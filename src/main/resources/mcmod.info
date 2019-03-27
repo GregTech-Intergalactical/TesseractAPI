@@ -1,0 +1,16 @@
+[
+{
+  "modid": "zap",
+  "name": "Zap",
+  "description": "IC2-esque energy API and implementation",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["coderbot16"],
+  "credits": "IC2 Team for their excellent power system",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
