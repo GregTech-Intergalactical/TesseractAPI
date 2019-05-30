@@ -22,6 +22,7 @@ public class AStarPathfinder {
 	public AStarPathfinder(INodeContainer container, BlockPos start, BlockPos end) {
 		this.start = start;
 		this.end = end;
+		this.container = container;
 
 		open = new HashSet<>();
 		closed = new HashSet<>();

@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 // Taken from https://stackoverflow.com/a/26164155
-// Basic Java implementation from Entry<C, E>
+// Java implementation of Either, adapted to Zap
 public class Entry<C, E>
 {
 	public static <C, E> Entry<C, E> cable(C value) {

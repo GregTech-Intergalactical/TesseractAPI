@@ -103,7 +103,7 @@ public class Graph<C, E> implements INodeContainer {
 		// For optimization purposes, the largest colored fragment remains resident within its original group.
 		
 		BFSearcher searcher = new BFSearcher(group);
-		TObjectByteHashMap<BlockPos> colors = new TObjectByteHashMap<BlockPos>(group.countBlocks(), 0.5F, (byte)127);
+		TObjectByteHashMap<BlockPos> colors = new TObjectByteHashMap<>(group.countBlocks(), 0.5F, (byte)127);
 		byte[] facingToColor = new byte[] { 127, 127, 127, 127, 127, 127 };
 		int[] counts = new int[6];
 		byte color = 0;
@@ -121,7 +121,6 @@ public class Graph<C, E> implements INodeContainer {
 
 			facingToColor[facing.ordinal()] = color;
 
-			System.out.println("Searching on side "+facing);
 			final byte targetColor = color;
 			searcher.search(side, reached -> {
 				colors.put(reached, targetColor);
@@ -140,8 +139,6 @@ public class Graph<C, E> implements INodeContainer {
 				bestCount = count;
 				best = i;
 			}
-
-			System.out.println("Count: "+ count);
 		}
 
 		final int bestColor = best;
