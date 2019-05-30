@@ -49,6 +49,5 @@ public class BFSearcher {
 		}
 
 		closed.clear();
-		open.clear();
 	}
 }

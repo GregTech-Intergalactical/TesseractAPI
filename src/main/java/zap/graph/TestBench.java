@@ -15,18 +15,6 @@ import java.util.UUID;
 
 public class TestBench {
 	public static void main(String[] args) throws Exception {
-		IElectricCable superCable = new IElectricCable() {
-			@Override
-			public long getLossPerBlock() {
-				return 0;
-			}
-
-			@Override
-			public IElectricLimits getPassageLimits() {
-				return ElectricLimits.UNLIMITED;
-			}
-		};
-
 		Graph<IElectricCable, IElectricNode> graph = new Graph<>();
 
 		BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
@@ -39,16 +27,41 @@ public class TestBench {
 			if(line.startsWith("add")) {
 				String[] adds = line.split(" ");
 				if(adds.length < 4) {
-					System.out.println("Usage: add <x> <y> <z>");
+					System.out.println("Usage: add <x> <y> <z> [endpoint or cable]");
 				}
 
 				BlockPos pos = new BlockPos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
 
 				if(!graph.contains(pos)) {
-					graph.addEndpoint(pos, new ExampleNode());
+					if(adds.length == 5 && adds[4].startsWith("c")) {
+						graph.addCable(pos, new ExampleCable());
+					} else {
+						graph.addEndpoint(pos, new ExampleNode());
+					}
+
 					System.out.println("Added "+pos+" to the graph");
 				} else {
 					System.out.println("Error: "+pos+" already exists in the graph");
+				}
+
+			} else if(line.startsWith("remove")) {
+				String[] adds = line.split(" ");
+				if(adds.length < 4) {
+					System.out.println("Usage: remove <x> <y> <z>");
+				}
+
+				BlockPos pos = new BlockPos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
+
+				Entry<IElectricCable, IElectricNode> entry = graph.remove(pos);
+
+				if(entry != null) {
+					entry.apply(cable -> {
+						System.out.println("Removed cable "+pos+" from the graph: "+cable);
+					}, endpoint -> {
+						System.out.println("Removed endpoint "+pos+" from the graph: "+endpoint);
+					});
+				} else {
+					System.out.println("Error: "+pos+" doesn't exist in the graph");
 				}
 
 			} else if(line.startsWith("exit")) {
@@ -58,12 +71,33 @@ public class TestBench {
 			System.out.println("Graph contains "+graph.groups.size()+" groups:");
 			for(Map.Entry<UUID, Group<IElectricCable, IElectricNode>> entry: graph.groups.entrySet()) {
 				Group<IElectricCable, IElectricNode> group = entry.getValue();
-				System.out.println("  Group "+entry.getKey()+" contains "+group.endpoints.size()+" endpoints:");
+				System.out.println("  Group "+entry.getKey()+" contains "+group.endpoints.size()+" endpoints and "+group.cables.size()+" cables:");
 
 				for(Map.Entry<BlockPos, IElectricNode> nodeEntry: group.endpoints.entrySet()) {
 					System.out.println("    Node at "+nodeEntry.getKey()+": "+nodeEntry.getValue());
 				}
+
+				for(Map.Entry<BlockPos, IElectricCable> cableEntry: group.cables.entrySet()) {
+					System.out.println("    Cable at "+cableEntry.getKey()+": "+cableEntry.getValue());
+				}
 			}
+		}
+	}
+
+	private static class ExampleCable implements IElectricCable {
+		@Override
+		public long getLossPerBlock() {
+			return 0;
+		}
+
+		@Override
+		public IElectricLimits getPassageLimits() {
+			return ElectricLimits.UNLIMITED;
+		}
+
+		@Override
+		public String toString() {
+			return "ExampleCable";
 		}
 	}
 
