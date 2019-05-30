@@ -111,8 +111,11 @@ public class Graph<C, E> implements INodeContainer {
 		for(EnumFacing facing: EnumFacing.VALUES) {
 			BlockPos side = pos.offset(facing);
 
+			// Try to assign the facing color if it already exists.
+			facingToColor[facing.ordinal()] = colors.get(side);
+
 			if(facingToColor[facing.ordinal()] != 127) {
-				// Already colored!
+				// Already colored! No point in doing it again.
 				continue;
 			} else if(!group.contains(side)) {
 				// Can't start from here.
@@ -122,6 +125,7 @@ public class Graph<C, E> implements INodeContainer {
 			facingToColor[facing.ordinal()] = color;
 
 			final byte targetColor = color;
+
 			searcher.search(side, reached -> {
 				colors.put(reached, targetColor);
 				counts[targetColor]++;
@@ -130,6 +134,7 @@ public class Graph<C, E> implements INodeContainer {
 			color++;
 		}
 
+		/// Then, determine which color has the most blocks, in order to avoid unnecessary movement during the split process.
 		int best = 0;
 		int bestCount = 0;
 		for(int i = 0; i < color; i++) {
