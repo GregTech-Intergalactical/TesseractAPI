@@ -13,9 +13,9 @@ import java.util.*;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class Graph<C, E> implements INodeContainer {
+public class Graph<C extends IConnectable, N extends IConnectable> implements INodeContainer {
 	private HashMap<BlockPos, UUID> posGrouping;
-	HashMap<UUID, Group<C, E>> groups;
+	HashMap<UUID, Group<C, N>> groups;
 	
 	public Graph() {
 		posGrouping = new HashMap<>();
@@ -28,53 +28,66 @@ public class Graph<C, E> implements INodeContainer {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void addEndpoint(BlockPos pos, E endpoint) {
+	public void addNode(BlockPos pos, N node) {
 		ArrayList<UUID> mergers = getNeighboringGroups(pos);
 
 		if(mergers.size()==0) {
 			UUID uuid = getNewId();
 
 			posGrouping.put(pos, uuid);
-			groups.put(uuid, (Group<C, E>)Group.singleEndpoint(pos, endpoint));
+			groups.put(uuid, (Group<C, N>)Group.singleNode(pos, node));
 		} else if(mergers.size()==1) {
 			UUID uuid = mergers.get(0);
 
 			posGrouping.put(pos, uuid);
-			groups.get(uuid).addEndpoint(pos, endpoint);
+			groups.get(uuid).addNode(pos, node);
 		} else {
-			MergeData<C, E> data = beginMerge(mergers);
+			MergeData<C, N> data = beginMerge(mergers);
 
 			posGrouping.put(pos, data.bestId);
-			data.best.addMergingEndpoint(pos, endpoint, data.mergeGroups);
+			data.best.addNode(pos, node);
+
+			for(Group<C, N> other: data.mergeGroups) {
+				data.best.mergeWith(other);
+			}
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public void addCable(BlockPos pos, C cable) {
+	public void addConnector(BlockPos pos, C connector) {
 		ArrayList<UUID> mergers = getNeighboringGroups(pos);
 
 		if(mergers.size()==0) {
 			UUID uuid = getNewId();
 
 			posGrouping.put(pos, uuid);
-			groups.put(uuid, (Group<C, E>)Group.singleCable(pos, cable));
+			groups.put(uuid, (Group<C, N>)Group.singleConnector(pos, connector));
 		} else if(mergers.size()==1) {
 			UUID uuid = mergers.get(0);
 
 			posGrouping.put(pos, uuid);
-			groups.get(uuid).addCable(pos, cable);
+			groups.get(uuid).addConnector(pos, connector);
 		} else {
-			MergeData<C, E> data = beginMerge(mergers);
+			MergeData<C, N> data = beginMerge(mergers);
 
 			posGrouping.put(pos, data.bestId);
-			data.best.addMergingCable(pos, cable, data.mergeGroups);
+			data.best.addConnector(pos, connector);
+
+			for(Group<C, N> other: data.mergeGroups) {
+				data.best.mergeWith(other);
+			}
 		}
 	}
 
 	@Nullable
-	public Entry<C, E> remove(BlockPos pos) {
+	public Entry<C, N> remove(BlockPos pos) {
 		UUID uuid = posGrouping.remove(pos);
-		Group<C, E> group = groups.get(uuid);
+
+		if(uuid == null) {
+			return null;
+		}
+
+		Group<C, N> group = groups.get(uuid);
 
 		// Test 1: If this a single-entry group, just remove it outright.
 		if(group.countBlocks() <= 1) {
@@ -92,7 +105,7 @@ public class Graph<C, E> implements INodeContainer {
 			}
 		}
 
-		Entry<C, E> entry = group.remove(pos);
+		Entry<C, N> entry = group.remove(pos);
 		if(neighbors <= 1) {
 			return entry;
 		}
@@ -148,7 +161,7 @@ public class Graph<C, E> implements INodeContainer {
 
 		final int bestColor = best;
 
-		ArrayList<Group<C, E>> newGroups = new ArrayList<>();
+		ArrayList<Group<C, N>> newGroups = new ArrayList<>();
 		ArrayList<UUID> newUuids = new ArrayList<>();
 		for(int i = 0; i < color; i++) {
 			if(i == bestColor) {
@@ -157,7 +170,7 @@ public class Graph<C, E> implements INodeContainer {
 				continue;
 			}
 
-			Group<C, E> newGroup = new Group<>();
+			Group<C, N> newGroup = new Group<>();
 			UUID newUUID = getNewId();
 
 			groups.put(newUUID, newGroup);
@@ -172,12 +185,13 @@ public class Graph<C, E> implements INodeContainer {
 			}
 
 			if(reachedColor != bestColor) {
-				Group<C,E> target = newGroups.get(reachedColor);
+				Group<C,N> target = newGroups.get(reachedColor);
 				UUID targetUuid = newUuids.get(reachedColor);
 
-				Entry<C, E> targetEntry = group.remove(reached);
+				Entry<C, N> targetEntry = group.remove(reached);
 				Objects.requireNonNull(targetEntry, "Graph::remove: Null entry when draining group");
 
+				// TODO: The entries added to the group might be disconnected from the other entries, this is probably not going to work super well.
 				posGrouping.put(reached, targetUuid);
 				target.addEntry(reached, targetEntry);
 			}
@@ -189,13 +203,13 @@ public class Graph<C, E> implements INodeContainer {
 	}
 
 	@SuppressWarnings("unchecked")
-	private MergeData<C, E> beginMerge(ArrayList<UUID> mergers) {
+	private MergeData<C, N> beginMerge(ArrayList<UUID> mergers) {
 		UUID bestId = mergers.get(0);
-		Group<C, E> best = groups.get(bestId);
+		Group<C, N> best = groups.get(bestId);
 		int bestSize = best.countBlocks();
 
 		for(UUID id: mergers) {
-			Group<C, E> candidate = groups.get(id);
+			Group<C, N> candidate = groups.get(id);
 			int size = candidate.countBlocks();
 
 			if(size > bestSize) {
@@ -205,13 +219,15 @@ public class Graph<C, E> implements INodeContainer {
 			}
 		}
 
-		Group<C, E>[] mergeGroups = new Group[mergers.size() - 1];
+		Group<C, N>[] mergeGroups = new Group[mergers.size() - 1];
 		int i = 0;
 		for(UUID id: mergers) {
 			if(id.equals(bestId)) {
 				continue;
 			}
 
+			// TODO: This iterates over every entry in the graph.
+			// TODO: It would be better to iterate over each entry in the Group instead.
 			for(Map.Entry<BlockPos, UUID> posGroup: posGrouping.entrySet()) {
 				if(posGroup.getValue().equals(id)) {
 					posGroup.setValue(bestId);
@@ -221,7 +237,7 @@ public class Graph<C, E> implements INodeContainer {
 			mergeGroups[i++] = groups.remove(id);
 		}
 
-		MergeData<C, E> data = new MergeData<>();
+		MergeData<C, N> data = new MergeData<>();
 
 		data.best = best;
 		data.bestId = bestId;
@@ -260,9 +276,9 @@ public class Graph<C, E> implements INodeContainer {
 	}
 
 	// Wish Java had tuples...
-	private static class MergeData<C, E> {
-		Group<C, E> best;
+	private static class MergeData<C extends IConnectable, N extends IConnectable> {
+		Group<C, N> best;
 		UUID bestId;
-		Group<C, E>[] mergeGroups;
+		Group<C, N>[] mergeGroups;
 	}
 }

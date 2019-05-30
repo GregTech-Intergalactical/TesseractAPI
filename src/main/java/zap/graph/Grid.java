@@ -14,26 +14,26 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 /**
- * Represents a set of endpoints connected by cables, where every endpoint can reach another through a cable path.
+ * Represents a set of endpoints connected by connectors, where every endpoint can reach another through a connector path.
  */
 public class Grid implements INodeContainer {
-	HashMap<BlockPos, CableEntry> cables;
+	HashMap<BlockPos, ConnectorEntry> connectors;
 	HashMap<BlockPos, IElectricNode> nodes;
 
 	public Grid(BlockPos single, IElectricNode node) {
-		cables = new HashMap<>();
+		connectors = new HashMap<>();
 		nodes = new HashMap<>();
 
 		nodes.put(single, node);
 	}
 
-	public void addCable(BlockPos at, IElectricCable cable, byte connectivity) {
-		CableEntry entry = new CableEntry();
+	public void addConnector(BlockPos at, IElectricCable connector, byte connectivity) {
+		ConnectorEntry entry = new ConnectorEntry();
 
-		entry.cable = cable;
+		entry.connector = connector;
 		entry.connectivity = connectivity;
 
-		cables.put(at, entry);
+		connectors.put(at, entry);
 	}
 
 	public void addNode(BlockPos pos, IElectricNode node) {
@@ -42,11 +42,11 @@ public class Grid implements INodeContainer {
 
 	@Override
 	public boolean contains(BlockPos pos) {
-		return cables.containsKey(pos) || nodes.containsKey(pos);
+		return connectors.containsKey(pos) || nodes.containsKey(pos);
 	}
 
-	public ArrayList<Grid> removeCable(BlockPos cable) {
-		if(cables.remove(cable) == null) {
+	public ArrayList<Grid> removeConnector(BlockPos connector) {
+		if(connectors.remove(connector) == null) {
 			return null;
 		}
 
@@ -54,12 +54,12 @@ public class Grid implements INodeContainer {
 		ArrayList<Grid> grids = new ArrayList<>();
 
 		for(EnumFacing facing: EnumFacing.VALUES) {
-			BlockPos pos = cable.offset(facing);
+			BlockPos pos = connector.offset(facing);
 
 			IElectricNode node = nodes.remove(pos);
 			if(node != null) {
 				grids.add(new Grid(pos, node));
-			} else if(cables.containsKey(pos)) {
+			} else if(connectors.containsKey(pos)) {
 				importantSides.add(facing);
 			}
 		}
@@ -80,12 +80,12 @@ public class Grid implements INodeContainer {
 		BFSearcher searcher = new BFSearcher(this);
 
 		for(EnumFacing facing: EnumFacing.VALUES) {
-			BlockPos pos = cable.offset(facing);
+			BlockPos pos = connector.offset(facing);
 
 			if(coloredSides.containsKey(facing)) {
 				// Already colored!
 				continue;
-			} else if(!cables.containsKey(pos)) {
+			} else if(!connectors.containsKey(pos)) {
 				// Can't start from here.
 				continue;
 			}
@@ -103,8 +103,8 @@ public class Grid implements INodeContainer {
 
 
 
-	private static class CableEntry {
-		IElectricCable cable;
+	private static class ConnectorEntry {
+		IElectricCable connector;
 		byte connectivity;
 	}
 }

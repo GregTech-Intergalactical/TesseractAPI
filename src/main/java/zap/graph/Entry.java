@@ -6,45 +6,45 @@ import java.util.function.Function;
 
 // Taken from https://stackoverflow.com/a/26164155
 // Java implementation of Either, adapted to Zap
-public class Entry<C, E>
+public class Entry<C, N>
 {
-	public static <C, E> Entry<C, E> cable(C value) {
+	public static <C, N> Entry<C, N> connector(C value) {
 		return new Entry<>(Optional.of(value), Optional.empty());
 	}
-	public static <C, E> Entry<C, E> endpoint(E value) {
+	public static <C, N> Entry<C, N> node(N value) {
 		return new Entry<>(Optional.empty(), Optional.of(value));
 	}
-	private final Optional<C> cable;
-	private final Optional<E> endpoint;
-	private Entry(Optional<C> l, Optional<E> r) {
-		cable=l;
-		endpoint=r;
+	private final Optional<C> connector;
+	private final Optional<N> node;
+	private Entry(Optional<C> l, Optional<N> r) {
+		connector=l;
+		node=r;
 	}
 	public <T> T map(
 			Function<? super C, ? extends T> lFunc,
-			Function<? super E, ? extends T> rFunc)
+			Function<? super N, ? extends T> rFunc)
 	{
-		return cable.<T>map(lFunc).orElseGet(()->endpoint.map(rFunc).get());
+		return connector.<T>map(lFunc).orElseGet(()->node.map(rFunc).get());
 	}
-	public <T> Entry<T,E> mapCable(Function<? super C, ? extends T> lFunc)
+	public <T> Entry<T,N> mapCable(Function<? super C, ? extends T> lFunc)
 	{
-		return new Entry<>(cable.map(lFunc),endpoint);
+		return new Entry<>(connector.map(lFunc),node);
 	}
-	public <T> Entry<C,T> mapEndpoint(Function<? super E, ? extends T> rFunc)
+	public <T> Entry<C,T> mapEndpoint(Function<? super N, ? extends T> rFunc)
 	{
-		return new Entry<>(cable, endpoint.map(rFunc));
+		return new Entry<>(connector, node.map(rFunc));
 	}
-	public void apply(Consumer<? super C> lFunc, Consumer<? super E> rFunc)
+	public void apply(Consumer<? super C> lFunc, Consumer<? super N> rFunc)
 	{
-		cable.ifPresent(lFunc);
-		endpoint.ifPresent(rFunc);
+		connector.ifPresent(lFunc);
+		node.ifPresent(rFunc);
 	}
 
 	public Optional<C> asCable() {
-		return cable;
+		return connector;
 	}
 
-	public Optional<E> asEndpoint() {
-		return endpoint;
+	public Optional<N> asEndpoint() {
+		return node;
 	}
 }

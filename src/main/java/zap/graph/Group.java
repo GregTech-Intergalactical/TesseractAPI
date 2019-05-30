@@ -1,86 +1,87 @@
 package zap.graph;
 
+import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.util.math.BlockPos;
 import zap.graph.traverse.INodeContainer;
 
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
+import java.util.Objects;
 
-public class Group<C, E> implements INodeContainer {
-	HashMap<BlockPos, E> endpoints;
-	HashMap<BlockPos, C> cables;
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
+public class Group<C extends IConnectable, N extends IConnectable> implements INodeContainer {
+	HashMap<BlockPos, N> nodes;
+	HashMap<BlockPos, C> connectors;
 
-	public Group() {
-		endpoints = new HashMap<>();
-		cables = new HashMap<>();
+	// Prevent the creation of empty groups, a caller needs to use singleNode/singleConnector.
+	private Group() {
+		nodes = new HashMap<>();
+		connectors = new HashMap<>();
 	}
 
-	public static <E> Group<?, E> singleEndpoint(BlockPos at, E endpoint) {
-		Group<?, E> group = new Group<>();
+	public static <N extends IConnectable> Group<?, N> singleNode(BlockPos at, N node) {
+		Group<?, N> group = new Group<>();
 
-		group.addEndpoint(at, endpoint);
+		group.addNode(at, node);
 
 		return group;
 	}
 
-	public static <C> Group<C, ?> singleCable(BlockPos at, C cable) {
+	public static <C extends IConnectable> Group<C, ?> singleConnector(BlockPos at, C connector) {
 		Group<C, ?> group = new Group<>();
 
-		group.cables.put(at, cable);
+		group.addConnector(at, connector);
 
 		return group;
 	}
 
 	public int countBlocks() {
-		return endpoints.size() + cables.size();
+		return nodes.size() + connectors.size();
 	}
 
 	@Override
 	public boolean contains(BlockPos at) {
-		return endpoints.containsKey(at) || cables.containsKey(at);
+		Objects.requireNonNull(at);
+
+		return nodes.containsKey(at) || connectors.containsKey(at);
 	}
 
-	public void addEntry(BlockPos at, Entry<C, E> entry) {
-		entry.apply(cable -> cables.put(at, cable), endpoint -> endpoints.put(at, endpoint));
+	// TODO: The Graph may add/remove entries that do not connect at the time of the method call.
+	// TODO: This should be avoided if at all possible.
+	public void addEntry(BlockPos at, Entry<C, N> entry) {
+		entry.apply(
+				connector -> connectors.put(Objects.requireNonNull(at), connector),
+				node -> nodes.put(Objects.requireNonNull(at), node)
+		);
 	}
 
-	public void addEndpoint(BlockPos at, E endpoint) {
-		endpoints.put(at, endpoint);
+	public void addNode(BlockPos at, N node) {
+		nodes.put(Objects.requireNonNull(at), Objects.requireNonNull(node));
 	}
 
-	public void addCable(BlockPos at, C cable) {
-		cables.put(at, cable);
+	public void addConnector(BlockPos at, C connector) {
+		connectors.put(Objects.requireNonNull(at), Objects.requireNonNull(connector));
 	}
 
 	@Nullable
-	public Entry<C, E> remove(BlockPos pos) {
-		E endpoint = endpoints.remove(pos);
-		C cable = cables.remove(pos);
+	public Entry<C, N> remove(BlockPos pos) {
+		N node = nodes.remove(pos);
+		C connector = connectors.remove(pos);
 
-		if(endpoint != null) {
-			return Entry.endpoint(endpoint);
-		} else if(cable != null) {
-			return Entry.cable(cable);
+		if(node != null) {
+			return Entry.node(node);
+		} else if(connector != null) {
+			return Entry.connector(connector);
 		} else {
 			return null;
 		}
 	}
 
-	public void addMergingEndpoint(BlockPos at, E endpoint, Group<C, E>[] merged) {
-		addEndpoint(at, endpoint);
-
-		for(Group<C, E> other: merged) {
-			endpoints.putAll(other.endpoints);
-			cables.putAll(other.cables);
-		}
-	}
-
-	public void addMergingCable(BlockPos at, C cable, Group<C, E>[] merged) {
-		addCable(at, cable);
-
-		for(Group<C, E> other: merged) {
-			endpoints.putAll(other.endpoints);
-			cables.putAll(other.cables);
-		}
+	// Graph controlled interface
+	void mergeWith(Group<C, N> other) {
+		nodes.putAll(other.nodes);
+		connectors.putAll(other.connectors);
 	}
 }
