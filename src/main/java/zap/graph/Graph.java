@@ -1,10 +1,8 @@
 package zap.graph;
 
-import gnu.trove.map.hash.TObjectByteHashMap;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
-import zap.graph.traverse.BFSearcher;
 import zap.graph.traverse.INodeContainer;
 
 import javax.annotation.Nullable;
@@ -111,7 +109,6 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		return entry;
 	}
 
-	@SuppressWarnings("unchecked")
 	private MergeData<C, N> beginMerge(ArrayList<UUID> mergers) {
 		UUID bestId = mergers.get(0);
 		Group<C, N> best = groups.get(bestId);
@@ -128,22 +125,20 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			}
 		}
 
-		Group<C, N>[] mergeGroups = new Group[mergers.size() - 1];
-		int i = 0;
+		ArrayList<Group<C, N>> mergeGroups = new ArrayList<>(mergers.size() - 1);
+
 		for(UUID id: mergers) {
 			if(id.equals(bestId)) {
 				continue;
 			}
 
-			// TODO: This iterates over every entry in the graph.
-			// TODO: It would be better to iterate over each entry in the Group instead.
-			for(Map.Entry<BlockPos, UUID> posGroup: posGrouping.entrySet()) {
-				if(posGroup.getValue().equals(id)) {
-					posGroup.setValue(bestId);
-				}
-			}
+			Group<C, N> removed = groups.remove(id);
+			final UUID target = bestId;
 
-			mergeGroups[i++] = groups.remove(id);
+			// Remap each position to point to the correct group.
+			removed.forEachPosition(position -> posGrouping.put(position, target));
+
+			mergeGroups.add(removed);
 		}
 
 		MergeData<C, N> data = new MergeData<>();
@@ -188,6 +183,6 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	private static class MergeData<C extends IConnectable, N extends IConnectable> {
 		Group<C, N> best;
 		UUID bestId;
-		Group<C, N>[] mergeGroups;
+		ArrayList<Group<C, N>> mergeGroups;
 	}
 }

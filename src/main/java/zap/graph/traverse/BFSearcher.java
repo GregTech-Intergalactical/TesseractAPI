@@ -3,6 +3,7 @@ package zap.graph.traverse;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
@@ -42,10 +43,17 @@ public class BFSearcher {
 	 *
 	 * @param from The start position of the search operation. This will be the first position reported to the consumer.
 	 * @param reached The receiver of the discovered positions
+	 * @param excluder A function that can add values to the closed set prior to the search operation.
+	 *                 They will not be reported or traversed; null is interpreted to mean no exclusions.
 	 */
-	public void search(BlockPos from, Consumer<BlockPos> reached) {
+	public void search(BlockPos from, Consumer<BlockPos> reached, @Nullable Consumer<HashSet<BlockPos>> excluder) {
 		if(!closed.isEmpty() || !open.isEmpty()) {
 			throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same BFSearcher instance");
+		}
+
+		// Exclude all of the provided positions
+		if(excluder != null) {
+			excluder.accept(closed);
 		}
 
 		try {
@@ -61,6 +69,7 @@ public class BFSearcher {
 
 				if (closed.contains(current)) {
 					// I don't think this should happen, but it works as a sanity check.
+					// This can happen if the starting point was excluded.
 					continue;
 				}
 

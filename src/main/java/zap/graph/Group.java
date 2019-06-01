@@ -7,7 +7,6 @@ import net.minecraft.util.math.BlockPos;
 import zap.graph.traverse.BFSearcher;
 import zap.graph.traverse.INodeContainer;
 
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.function.Consumer;
@@ -20,8 +19,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 	HashMap<UUID, Grid<C>> grids;
 
 	// Prevent the creation of empty graph.groups externally, a caller needs to use singleNode/singleConnector.
-	// TODO: Make this private, by fixing up Graph.
-	Group() {
+	private Group() {
 		nodes = new HashMap<>();
 		connectorPairing = new HashMap<>();
 		grids = new HashMap<>();
@@ -49,20 +47,16 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 		return nodes.size() + connectorPairing.size();
 	}
 
+	public void forEachPosition(Consumer<BlockPos> consumer) {
+		nodes.keySet().forEach(consumer);
+		connectorPairing.keySet().forEach(consumer);
+	}
+
 	@Override
 	public boolean contains(BlockPos at) {
 		Objects.requireNonNull(at);
 
 		return nodes.containsKey(at) || connectorPairing.containsKey(at);
-	}
-
-	// TODO: The Graph may add/remove entries that do not connect at the time of the method call.
-	// TODO: This should be avoided if at all possible.
-	public void addEntry(BlockPos at, Entry<C, N> entry) {
-		entry.apply(
-				connector -> addConnector(at, connector),
-				node -> addNode(at, node)
-		);
 	}
 
 	public void addNode(BlockPos at, N node) {
@@ -112,21 +106,21 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 	 * that this group contains the specified position; the function may misbehave if the group does not actually contain
 	 * the specified position.
 	 *
-	 * @param pos The position of the entry to remove.
+	 * @param posToRemove The position of the entry to remove.
 	 * @param split A consumer for the resulting fresh graphs from the split operation.
 	 * @return The removed entry, guaranteed to not be null.
 	 */
-	public Entry<C, N> remove(BlockPos pos, Consumer<Group<C, N>> split) {
+	public Entry<C, N> remove(BlockPos posToRemove, Consumer<Group<C, N>> split) {
 		// The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
 		// For now, it is retained for completeness and debugging purposes.
-		if(!contains(pos)) {
+		if(!contains(posToRemove)) {
 			throw new IllegalArgumentException("Tried to call Group::remove with a position that does not exist within the group.");
 		}
 
 		// If removing the entry would not cause a group split, then it is safe to remove the entry directly.
-		if(isExternal(pos)) {
-			Connectivity.Cache<N> node = nodes.remove(pos);
-			UUID pairing = connectorPairing.remove(pos);
+		if(isExternal(posToRemove)) {
+			Connectivity.Cache<N> node = nodes.remove(posToRemove);
+			UUID pairing = connectorPairing.remove(posToRemove);
 
 			if(node != null) {
 				return Entry.node(node.value());
@@ -141,26 +135,23 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
 			// No check is needed here, because the caller already asserts that the Group contains the specified position.
 			// Thus, if this is not a node, then it is guaranteed to be a connector.
-			return Entry.connector(grid.connectors.remove(pos).value());
+			return Entry.connector(grid.connectors.remove(posToRemove).value());
 		}
 
 		// If none of the fast routes work, we need to due a full group-traversal to figure out how the graph will be split.
 		// The algorithm works by "coloring" each fragment of the group based on what it is connected to, and then from this,
-		// splitting each colored portion into its own separate this.
-		// For optimization purposes, the largest colored fragment remains resident within its original this.
+		// splitting each colored portion into its own separate group.
 
-		// Note: we don't remove the node yet, but instead just tell the Searcher that it does not exist.
+		// For optimization purposes, the largest colored fragment remains resident within its original group.
+		// Note: we don't remove the node yet, but instead just tell the Searcher to exclude it.
 		// This is so that we can handle the grid splits ourselves at the end.
-		BFSearcher searcher = new BFSearcher (
-				// TODO: This doesn't support multiple removal operations
-				at -> (!pos.equals(at)) && (nodes.containsKey(at) || connectorPairing.containsKey(at))
-		);
+		BFSearcher searcher = new BFSearcher(this);
 
 		// Record what sides the search will occur on.
 		// In the future, this will enable multiple removals at the same time, such as with chunk unloads.
 		HashSet<BlockPos> toSearch = new HashSet<>();
 		for(EnumFacing facing: EnumFacing.VALUES) {
-			BlockPos side = pos.offset(facing);
+			BlockPos side = posToRemove.offset(facing);
 
 			if(this.contains(side)) {
 				toSearch.add(side);
@@ -190,7 +181,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 				}
 
 				found.add(reached);
-			});
+			}, closed -> closed.add(posToRemove));
 
 			colored.add(found);
 		}
@@ -209,10 +200,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
 		final int bestColor = best;
 
-		// TODO: This doesn't support multiple removal operations
-		UUID centerGridId = connectorPairing.get(pos);
+		// Future note: This doesn't support multiple removal operations
+		UUID centerGridId = connectorPairing.get(posToRemove);
 		Grid<C> centerGrid = null;
-		Entry<C, N> result = null;
+		Entry<C, N> result;
 
 		if(centerGridId != null) {
 			centerGrid = grids.remove(centerGridId);
@@ -224,10 +215,9 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 			// TODO: Split the central grid.
 			throw new UnsupportedOperationException("Cannot split grids on removal operations yet");
 		} else {
-			result = Entry.node(nodes.remove(pos).value());
+			result = Entry.node(nodes.remove(posToRemove).value());
 		}
 
-		// TODO: Actually remove the grid at the center.
 		for(int i = 0; i < colored.size(); i++) {
 			if(i == bestColor) {
 				// These nodes will be kept.
@@ -253,7 +243,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 				}
 
 				Grid<C> grid = grids.get(gridId);
-				if(grid.contains(pos)) {
+				if(grid.contains(posToRemove)) {
 					// This should be unreachable
 					throw new IllegalStateException("Searchable grid contains the removed position, the grid should have been removed already?!?");
 				}
@@ -303,11 +293,21 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 		nodes.putAll(other.nodes);
 
 		if(connectorPairing.containsKey(at)) {
-			// TODO connectors.putAll(other.connectors);
+			// TODO: Merge on grid boundaries
 			throw new UnsupportedOperationException("Cannot mergeWith on a potential grid boundary yet");
 		} else {
-			// TODO: UUIDs may be colliding, super rare chance...
-			grids.putAll(other.grids);
+			for(Map.Entry<UUID, Grid<C>> entry: grids.entrySet()) {
+				UUID id = entry.getKey();
+				Grid<C> otherGrid = entry.getValue();
+
+				if(grids.containsKey(id)) {
+					// TODO: Handle duplicate IDs
+					throw new IllegalStateException("Duplicate grid UUIDs");
+				}
+
+				grids.put(id, otherGrid);
+			}
+
 			connectorPairing.putAll(other.connectorPairing);
 		}
 	}
