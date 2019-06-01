@@ -28,6 +28,7 @@ public class TestBench {
 				String[] adds = line.split(" ");
 				if(adds.length < 4) {
 					System.out.println("Usage: add <x> <y> <z> [node or connector]");
+					continue;
 				}
 
 				BlockPos pos = new BlockPos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
@@ -48,6 +49,7 @@ public class TestBench {
 				String[] adds = line.split(" ");
 				if(adds.length < 4) {
 					System.out.println("Usage: remove <x> <y> <z>");
+					continue;
 				}
 
 				BlockPos pos = new BlockPos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
@@ -71,14 +73,19 @@ public class TestBench {
 			System.out.println("Graph contains "+graph.groups.size()+" groups:");
 			for(Map.Entry<UUID, Group<ExampleCable, ExampleNode>> entry: graph.groups.entrySet()) {
 				Group<ExampleCable, ExampleNode> group = entry.getValue();
-				System.out.println("  Group "+entry.getKey()+" contains "+group.nodes.size()+" nodes and "+group.connectors.size()+" connectors:");
+				System.out.println("  Group "+entry.getKey()+" contains "+group.nodes.size()+" nodes and "+group.grids.size()+" grids:");
 
-				for(Map.Entry<BlockPos, ExampleNode> nodeEntry: group.nodes.entrySet()) {
-					System.out.println("    Node at "+nodeEntry.getKey()+": "+nodeEntry.getValue());
+				for(Map.Entry<BlockPos, Connectivity.Cache<ExampleNode>> nodeEntry: group.nodes.entrySet()) {
+					System.out.println("    Node at "+nodeEntry.getKey()+": "+nodeEntry.getValue().value());
 				}
 
-				for(Map.Entry<BlockPos, ExampleCable> connectorEntry: group.connectors.entrySet()) {
-					System.out.println("    Cable at "+connectorEntry.getKey()+": "+connectorEntry.getValue());
+				for(Map.Entry<UUID, Grid<ExampleCable>> gridEntry: group.grids.entrySet()) {
+					Grid<ExampleCable> grid = gridEntry.getValue();
+					System.out.println("    Grid "+gridEntry.getKey()+" contains "+grid.connectors.size());
+
+					for(Map.Entry<BlockPos, Connectivity.Cache<ExampleCable>> connectorEntry: grid.connectors.entrySet()) {
+						System.out.println("      Connector at "+connectorEntry.getKey()+": "+connectorEntry.getValue().value());
+					}
 				}
 			}
 		}
