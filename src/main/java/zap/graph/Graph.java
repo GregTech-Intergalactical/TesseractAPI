@@ -48,7 +48,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			data.best.addNode(pos, node);
 
 			for(Group<C, N> other: data.mergeGroups) {
-				data.best.mergeWith(other);
+				data.best.mergeWith(other, pos);
 			}
 		}
 	}
@@ -74,7 +74,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			data.best.addConnector(pos, connector);
 
 			for(Group<C, N> other: data.mergeGroups) {
-				data.best.mergeWith(other);
+				data.best.mergeWith(other, pos);
 			}
 		}
 	}
@@ -89,115 +89,24 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 		Group<C, N> group = groups.get(uuid);
 
-		// Test 1: If this a single-entry group, just remove it outright.
-		if(group.countBlocks() <= 1) {
-			groups.remove(uuid);
-			return group.remove(pos);
-		}
+		Entry<C, N> entry = group.remove(pos, newGroup -> {
+			UUID newUuid = getNewId();
+			groups.put(newUuid, newGroup);
 
-		// Test 2: If the particular entry is on the very edge of the group, then remove it from the group.
-		int neighbors = 0;
-		for(EnumFacing facing: EnumFacing.VALUES) {
-			BlockPos face = pos.offset(facing);
-
-			if(group.contains(face)) {
-				neighbors += 1;
-			}
-		}
-
-		Entry<C, N> entry = group.remove(pos);
-		if(neighbors <= 1) {
-			return entry;
-		}
-
-		// Finally, if none of the fast routes work, we need to due a full group-traversal to figure out how the graph will be split.
-		// The algorithm works by "coloring" each fragment of the group based on what it is connected to, and then from this,
-		// splitting each colored portion into its own separate group.
-		// For optimization purposes, the largest colored fragment remains resident within its original group.
-		
-		BFSearcher searcher = new BFSearcher(group);
-		TObjectByteHashMap<BlockPos> colors = new TObjectByteHashMap<>(group.countBlocks(), 0.5F, (byte)127);
-		byte[] facingToColor = new byte[] { 127, 127, 127, 127, 127, 127 };
-		int[] counts = new int[6];
-		byte color = 0;
-
-		for(EnumFacing facing: EnumFacing.VALUES) {
-			BlockPos side = pos.offset(facing);
-
-			// Try to assign the facing color if it already exists.
-			facingToColor[facing.ordinal()] = colors.get(side);
-
-			if(facingToColor[facing.ordinal()] != 127) {
-				// Already colored! No point in doing it again.
-				continue;
-			} else if(!group.contains(side)) {
-				// Can't start from here.
-				continue;
+			for(BlockPos part: newGroup.nodes.keySet()) {
+				posGrouping.put(part, newUuid);
 			}
 
-			facingToColor[facing.ordinal()] = color;
-
-			final byte targetColor = color;
-
-			searcher.search(side, reached -> {
-				colors.put(reached, targetColor);
-				counts[targetColor]++;
-			});
-
-			color++;
-		}
-
-		/// Then, determine which color has the most blocks, in order to avoid unnecessary movement during the split process.
-		int best = 0;
-		int bestCount = 0;
-		for(int i = 0; i < color; i++) {
-			int count = counts[i];
-
-			if(count > bestCount) {
-				bestCount = count;
-				best = i;
+			for(Grid<C> grid: newGroup.grids.values()) {
+				for(BlockPos part: grid.connectors.keySet()) {
+					posGrouping.put(part, newUuid);
+				}
 			}
-		}
-
-		final int bestColor = best;
-
-		ArrayList<Group<C, N>> newGroups = new ArrayList<>();
-		ArrayList<UUID> newUuids = new ArrayList<>();
-		for(int i = 0; i < color; i++) {
-			if(i == bestColor) {
-				newGroups.add(null);
-				newUuids.add(null);
-				continue;
-			}
-
-			Group<C, N> newGroup = new Group<>();
-			UUID newUUID = getNewId();
-
-			groups.put(newUUID, newGroup);
-
-			newGroups.add(newGroup);
-			newUuids.add(newUUID);
-		}
-
-		colors.forEachEntry((reached, reachedColor) -> {
-			if(reachedColor == 127) {
-				throw new IllegalStateException("Graph::remove: Node at "+reached+" was not connected to the group it was assigned to, the graph is inconsistent");
-			}
-
-			if(reachedColor != bestColor) {
-				Group<C,N> target = newGroups.get(reachedColor);
-				UUID targetUuid = newUuids.get(reachedColor);
-
-				Entry<C, N> targetEntry = group.remove(reached);
-				Objects.requireNonNull(targetEntry, "Graph::remove: Null entry when draining group");
-
-				// TODO: The entries added to the group might be disconnected from the other entries, this is probably not going to work super well.
-				posGrouping.put(reached, targetUuid);
-				target.addEntry(reached, targetEntry);
-			}
-
-			return true;
 		});
+
+		if(group.countBlocks() == 0) {
+			groups.remove(uuid);
+		}
 
 		return entry;
 	}
