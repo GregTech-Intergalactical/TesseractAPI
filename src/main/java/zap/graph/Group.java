@@ -18,7 +18,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 	private HashMap<BlockPos, UUID> connectorPairing;
 	HashMap<UUID, Grid<C>> grids;
 
-	// Prevent the creation of empty graph.groups externally, a caller needs to use singleNode/singleConnector.
+	// Prevent the creation of empty groups externally, a caller needs to use singleNode/singleConnector.
 	private Group() {
 		nodes = new HashMap<>();
 		connectorPairing = new HashMap<>();
@@ -67,6 +67,9 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 	public void addConnector(BlockPos at, C connector) {
 		Connectivity.Cache<C> cache = Connectivity.Cache.of(Objects.requireNonNull(connector));
 		HashMap<UUID, Grid<C>> linkedGrids = new HashMap<>();
+		UUID bestId = null;
+		Grid<C> bestGrid = null;
+		int bestCount = 0;
 
 		for(EnumFacing facing: EnumFacing.VALUES) {
 			if(cache.connects(facing)) {
@@ -78,6 +81,12 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
 					if(grid.connects(offset, facing.getOpposite())) {
 						linkedGrids.put(id, grid);
+
+						if(grid.connectors.size() > bestCount) {
+							bestCount = grid.connectors.size();
+							bestGrid = grid;
+							bestId = id;
+						}
 					}
 				}
 			}
@@ -89,15 +98,36 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
 			connectorPairing.put(at, id);
 			grids.put(id, Grid.singleConnector(at, connector));
-		} else if(linkedGrids.size() == 1) {
-			// Add to existing grid
+			return;
+		}
 
-			Map.Entry<UUID, Grid<C>> entry = linkedGrids.entrySet().iterator().next();
+		if(bestGrid == null) {
+			throw new IllegalStateException();
+		}
 
-			connectorPairing.put(at, entry.getKey());
-			entry.getValue().addConnector(at, cache);
-		} else {
-			throw new UnsupportedOperationException("Cannot merge grids yet");
+		// Add to the best grid
+		connectorPairing.put(at, bestId);
+		bestGrid.addConnector(at, cache);
+
+		if(linkedGrids.size() == 1) {
+			// No other grids to merge with
+			return;
+		}
+
+		for(Map.Entry<UUID, Grid<C>> entry: linkedGrids.entrySet()) {
+			UUID id = entry.getKey();
+			Grid<C> grid = entry.getValue();
+
+			if(id.equals(bestId)) {
+				continue;
+			}
+
+			final UUID target = bestId;
+
+			bestGrid.connectors.putAll(grid.connectors);
+			grid.connectors.keySet().forEach(item -> connectorPairing.put(item, target));
+
+			grids.remove(id);
 		}
 	}
 
@@ -312,6 +342,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private UUID getNewId() {
 		UUID uuid = UUID.randomUUID();
 		while(grids.containsKey(uuid)) {

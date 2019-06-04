@@ -7,6 +7,7 @@ import zap.graph.traverse.INodeContainer;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
+import java.util.function.Consumer;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -43,5 +44,9 @@ public class Grid<C extends IConnectable> implements INodeContainer {
 	
 	public void addConnector(BlockPos pos, Connectivity.Cache<C> connector) {
 		connectors.put(pos, connector);
+	}
+
+	public void remove(BlockPos pos, Consumer<Grid<C>> split) {
+
 	}
 }
