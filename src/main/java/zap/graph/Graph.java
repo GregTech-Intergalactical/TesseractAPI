@@ -25,6 +25,11 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		return posGrouping.containsKey(pos);
 	}
 
+	@Override
+	public boolean linked(BlockPos from, EnumFacing towards, BlockPos to) {
+		return posGrouping.containsKey(from) && posGrouping.containsKey(to);
+	}
+
 	@SuppressWarnings("unchecked")
 	public void addNode(BlockPos pos, N node) {
 		ArrayList<UUID> mergers = getNeighboringGroups(pos);

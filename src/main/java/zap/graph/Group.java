@@ -4,6 +4,7 @@ import gnu.trove.map.hash.TObjectIntHashMap;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import zap.graph.traverse.BFDivider;
 import zap.graph.traverse.BFSearcher;
 import zap.graph.traverse.INodeContainer;
 
@@ -18,11 +19,14 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 	private HashMap<BlockPos, UUID> connectorPairing;
 	HashMap<UUID, Grid<C>> grids;
 
+	BFDivider divider;
+
 	// Prevent the creation of empty groups externally, a caller needs to use singleNode/singleConnector.
 	private Group() {
 		nodes = new HashMap<>();
 		connectorPairing = new HashMap<>();
 		grids = new HashMap<>();
+		divider = new BFDivider(this);
 	}
 
 	public static <N extends IConnectable> Group<?, N> singleNode(BlockPos at, N node) {
@@ -59,6 +63,14 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 		return nodes.containsKey(at) || connectorPairing.containsKey(at);
 	}
 
+	@Override
+	public boolean linked(BlockPos from, EnumFacing towards, BlockPos to) {
+		Objects.requireNonNull(from);
+		Objects.requireNonNull(to);
+
+		return contains(from) && contains(to);
+	}
+
 	public void addNode(BlockPos at, N node) {
 		Connectivity.Cache<N> cache = Connectivity.Cache.of(Objects.requireNonNull(node));
 		nodes.put(Objects.requireNonNull(at), cache);
@@ -72,22 +84,26 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 		int bestCount = 0;
 
 		for(EnumFacing facing: EnumFacing.VALUES) {
-			if(cache.connects(facing)) {
-				BlockPos offset = at.offset(facing);
-				UUID id = connectorPairing.get(offset);
+			if(!cache.connects(facing)) {
+				continue;
+			}
 
-				if(id != null) {
-					Grid<C> grid = grids.get(id);
+			BlockPos offset = at.offset(facing);
+			UUID id = connectorPairing.get(offset);
 
-					if(grid.connects(offset, facing.getOpposite())) {
-						linkedGrids.put(id, grid);
+			if(id == null) {
+				continue;
+			}
 
-						if(grid.connectors.size() > bestCount) {
-							bestCount = grid.connectors.size();
-							bestGrid = grid;
-							bestId = id;
-						}
-					}
+			Grid<C> grid = grids.get(id);
+
+			if(grid.wouldLink(at, facing, offset)) {
+				linkedGrids.put(id, grid);
+
+				if(grid.connectors.size() > bestCount) {
+					bestCount = grid.connectors.size();
+					bestGrid = grid;
+					bestId = id;
 				}
 			}
 		}
@@ -175,124 +191,115 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 		// For optimization purposes, the largest colored fragment remains resident within its original group.
 		// Note: we don't remove the node yet, but instead just tell the Searcher to exclude it.
 		// This is so that we can handle the grid splits ourselves at the end.
-		BFSearcher searcher = new BFSearcher(this);
-
-		// Record what sides the search will occur on.
-		// In the future, this will enable multiple removals at the same time, such as with chunk unloads.
-		HashSet<BlockPos> toSearch = new HashSet<>();
-		for(EnumFacing facing: EnumFacing.VALUES) {
-			BlockPos side = posToRemove.offset(facing);
-
-			if(this.contains(side)) {
-				toSearch.add(side);
-			}
-		}
-
-		TObjectIntHashMap<BlockPos> roots = new TObjectIntHashMap<>(6, 0.5F, Integer.MAX_VALUE);
 		ArrayList<HashSet<BlockPos>> colored = new ArrayList<>();
 
-		for(BlockPos root: toSearch) {
-			// Check if this root has already been colored.
-			int existingColor = roots.get(root);
+		int bestColor = divider.divide(
+				removed -> removed.add(posToRemove),
+				roots -> {
+					for(EnumFacing facing: EnumFacing.VALUES) {
+						BlockPos side = posToRemove.offset(facing);
 
-			if(existingColor != roots.getNoEntryValue()) {
-				// Already colored! No point in doing it again.
-				continue;
-			}
+						if(this.linked(posToRemove, facing, side)) {
+							roots.add(side);
+						}
+					}
+				},
+				colored::add
+		);
 
-			final int color = colored.size();
-			roots.put(root, color);
+		ArrayList<Grid<C>> splitGrids = null;
+		HashSet<BlockPos> excluded = new HashSet<>();
 
-			HashSet<BlockPos> found = new HashSet<>();
-
-			searcher.search(root, reached -> {
-				if(toSearch.contains(reached)) {
-					roots.put(reached, color);
-				}
-
-				found.add(reached);
-			}, closed -> closed.add(posToRemove));
-
-			colored.add(found);
-		}
-
-		/// Then, determine which color has the most blocks, in order to avoid unnecessary movement during the split process.
-		int best = 0;
-		int bestCount = 0;
-		for(int i = 0; i < colored.size(); i++) {
-			HashSet<BlockPos> found = colored.get(i);
-
-			if(found.size() > bestCount) {
-				bestCount = found.size();
-				best = i;
-			}
-		}
-
-		final int bestColor = best;
-
-		// Future note: This doesn't support multiple removal operations
-		UUID centerGridId = connectorPairing.get(posToRemove);
-		Grid<C> centerGrid = null;
 		Entry<C, N> result;
 
+		UUID centerGridId = connectorPairing.get(posToRemove);
 		if(centerGridId != null) {
-			centerGrid = grids.remove(centerGridId);
+			Grid<C> centerGrid = grids.remove(centerGridId);
+			splitGrids = new ArrayList<>();
 
 			for(BlockPos toMove: centerGrid.connectors.keySet()) {
 				connectorPairing.remove(toMove);
+				excluded.add(toMove);
 			}
 
-			// TODO: Split the central grid.
-			throw new UnsupportedOperationException("Cannot split grids on removal operations yet");
+			result = Entry.connector(centerGrid.remove(posToRemove, splitGrids::add));
+			splitGrids.add(centerGrid);
 		} else {
 			result = Entry.node(nodes.remove(posToRemove).value());
 		}
 
 		for(int i = 0; i < colored.size(); i++) {
-			if(i == bestColor) {
-				// These nodes will be kept.
-				continue;
-			}
-
-			Group<C, N> newGroup = new Group<>();
 			HashSet<BlockPos> found = colored.get(i);
+			Group<C, N> newGroup;
 
-			for(BlockPos reached: found) {
-				if(newGroup.connectorPairing.containsKey(reached) || (centerGrid != null && centerGrid.contains(reached))) {
-					continue;
+			if(i != bestColor) {
+				newGroup = new Group<>();
+
+				for(BlockPos reached: found) {
+					if(newGroup.connectorPairing.containsKey(reached) || (excluded.contains(reached))) {
+						continue;
+					}
+
+					UUID gridId = connectorPairing.get(reached);
+
+					// Just a node then, simply add it to the new group.
+					// The maps are mutated directly here in order to retain the cached connectivity.
+					if(gridId == null) {
+						System.out.println("Moving node at "+reached+" to new group");
+						newGroup.nodes.put(reached, Objects.requireNonNull(this.nodes.remove(reached)));
+						continue;
+					}
+
+					Grid<C> grid = grids.get(gridId);
+					if(grid.contains(posToRemove)) {
+						// This should be unreachable
+						throw new IllegalStateException("Searchable grid contains the removed position, the grid should have been removed already?!?");
+					}
+
+					System.out.println("Moving grid "+gridId+" to new group");
+					grids.remove(gridId);
+					newGroup.grids.put(gridId, grid);
+
+					for(BlockPos moved: grid.connectors.keySet()) {
+						connectorPairing.remove(moved);
+						newGroup.connectorPairing.put(moved, gridId);
+					}
 				}
+			} else {
+				newGroup = this;
+			}
 
-				UUID gridId = connectorPairing.get(reached);
+			// Add the fragments of the center grid, if present, to each group
+			if(splitGrids != null) {
+				Iterator<Grid<C>> iterator = splitGrids.iterator();
 
-				// Just a node then, simply add it to the new group.
-				// The maps are mutated directly here in order to retain the cached connectivity.
-				if(gridId == null) {
-					System.out.println("Moving node at "+reached+" to new group");
-					newGroup.nodes.put(reached, Objects.requireNonNull(this.nodes.remove(reached)));
-					continue;
-				}
+				while(iterator.hasNext()) {
+					Grid<C> grid = iterator.next();
+					BlockPos sample = grid.connectors.keySet().iterator().next();
 
-				Grid<C> grid = grids.get(gridId);
-				if(grid.contains(posToRemove)) {
-					// This should be unreachable
-					throw new IllegalStateException("Searchable grid contains the removed position, the grid should have been removed already?!?");
-				}
+					if(found.contains(sample)) {
+						UUID newId = newGroup.getNewId();
 
-				System.out.println("Moving grid "+gridId+" to new group");
-				grids.remove(gridId);
-				newGroup.grids.put(gridId, grid);
-
-				for(BlockPos moved: grid.connectors.keySet()) {
-					connectorPairing.remove(moved);
-					newGroup.connectorPairing.put(moved, gridId);
+						newGroup.addGrid(newId, grid);
+						iterator.remove();
+					}
 				}
 			}
 
-			split.accept(newGroup);
+			if(i != bestColor) {
+				split.accept(newGroup);
+			}
 		}
 
-		// TODO: Remove from Grid if needed
 		return Objects.requireNonNull(result);
+	}
+
+	private void addGrid(UUID id, Grid<C> grid) {
+		this.grids.put(id, grid);
+
+		for(BlockPos pos: grid.connectors.keySet()) {
+			this.connectorPairing.put(pos, id);
+		}
 	}
 
 	/**

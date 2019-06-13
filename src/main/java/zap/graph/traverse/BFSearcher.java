@@ -5,6 +5,7 @@ import net.minecraft.util.math.BlockPos;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.function.Consumer;
@@ -46,7 +47,7 @@ public class BFSearcher {
 	 * @param excluder A function that can add values to the closed set prior to the search operation.
 	 *                 They will not be reported or traversed; null is interpreted to mean no exclusions.
 	 */
-	public void search(BlockPos from, Consumer<BlockPos> reached, @Nullable Consumer<HashSet<BlockPos>> excluder) {
+	public void search(BlockPos from, Consumer<BlockPos> reached, @Nullable Consumer<Collection<BlockPos>> excluder) {
 		if(!closed.isEmpty() || !open.isEmpty()) {
 			throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same BFSearcher instance");
 		}
@@ -87,7 +88,7 @@ public class BFSearcher {
 						continue;
 					}
 
-					if(container.contains(searchPos) && container.connects(current, facing) && container.connects(searchPos, facing.getOpposite())) {
+					if(container.linked(current, facing, searchPos)) {
 						// Note: this allocates a new position
 						open.add(searchPos.toImmutable());
 					}
