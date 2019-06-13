@@ -4,18 +4,18 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.BlockPos;
 import zap.graph.traverse.BFDivider;
 import zap.graph.traverse.INodeContainer;
+import zap.graph.visit.VisitableGrid;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 // default: parameters are nonnull, methods return nonnull
-public class Grid<C extends IConnectable> implements INodeContainer {
+public class Grid<C extends IConnectable> implements INodeContainer, VisitableGrid<C> {
 	// To prevent excessive array reallocation
 	private static Direction[] DIRECTIONS = Direction.values();
 
-	HashMap<BlockPos, Connectivity.Cache<C>> connectors;
+	private HashMap<BlockPos, Connectivity.Cache<C>> connectors;
 	private BFDivider divider;
 
 	private Grid() {
@@ -23,10 +23,10 @@ public class Grid<C extends IConnectable> implements INodeContainer {
 		divider = new BFDivider(this);
 	}
 
-	public static <C extends IConnectable> Grid<C> singleConnector(BlockPos pos, C connector) {
+	public static <C extends IConnectable> Grid<C> singleConnector(BlockPos pos, Connectivity.Cache<C> connector) {
 		Grid<C> grid = new Grid<>();
 
-		grid.connectors.put(pos, Connectivity.Cache.of(connector));
+		grid.connectors.put(Objects.requireNonNull(pos), Objects.requireNonNull(connector));
 
 		return grid;
 	}
@@ -58,12 +58,46 @@ public class Grid<C extends IConnectable> implements INodeContainer {
 
 		return cacheTo.connects(towards.getOpposite());
 	}
-	
+
+	@Override
+	public int countConnectors() {
+		return connectors.size();
+	}
+
+	@Override
+	public void visitConnectors(BiConsumer<BlockPos, C> visitor) {
+		for(Map.Entry<BlockPos, Connectivity.Cache<C>> entry: connectors.entrySet()) {
+			visitor.accept(entry.getKey(), entry.getValue().value());
+		}
+	}
+
+	/**
+	 * Merges all of the elements from the other provided grid into this grid.
+	 * @param other The other grid to merge elements from
+	 */
+	void mergeWith(BlockPos at, Grid<C> other) {
+		// TODO: Validate that the other grid touches the specified position.
+
+		connectors.putAll(other.connectors);
+	}
+
+	/**
+	 * Gets a potentially random position from the grid.
+	 * @return A random position from the grid
+	 */
+	BlockPos sampleConnector() {
+		return connectors.keySet().iterator().next();
+	}
+
 	public void addConnector(BlockPos pos, Connectivity.Cache<C> connector) {
-		connectors.put(pos, connector);
+		// TODO: Validate that the other grid touches the specified position.
+
+		connectors.put(Objects.requireNonNull(pos), Objects.requireNonNull(connector));
 	}
 
 	public C remove(BlockPos pos, Consumer<Grid<C>> split) {
+		Objects.requireNonNull(split);
+
 		if(!contains(pos)) {
 			throw new IllegalArgumentException("Tried to call Grid::remove with a position that does not exist within the grid.");
 		}

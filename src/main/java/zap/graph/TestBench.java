@@ -36,9 +36,9 @@ public class TestBench {
 
 				if(!graph.contains(pos)) {
 					if(adds.length == 5 && adds[4].startsWith("c")) {
-						graph.addConnector(pos, new ExampleCable());
+						graph.addConnector(pos, Connectivity.Cache.of(new ExampleCable()));
 					} else {
-						graph.addNode(pos, new ExampleNode());
+						graph.addNode(pos, Connectivity.Cache.of(new ExampleNode()));
 					}
 
 					System.out.println("Added "+pos+" to the graph");
@@ -71,24 +71,23 @@ public class TestBench {
 				return;
 			}
 
-			System.out.println("Graph contains "+graph.groups.size()+" groups:");
-			for(Map.Entry<UUID, Group<ExampleCable, ExampleNode>> entry: graph.groups.entrySet()) {
-				Group<ExampleCable, ExampleNode> group = entry.getValue();
-				System.out.println("  Group "+entry.getKey()+" contains "+group.nodes.size()+" nodes and "+group.grids.size()+" grids:");
+			System.out.println("Graph contains "+graph.countGroups()+" groups:");
 
-				for(Map.Entry<BlockPos, Connectivity.Cache<ExampleNode>> nodeEntry: group.nodes.entrySet()) {
-					System.out.println("    Node at "+nodeEntry.getKey()+": "+nodeEntry.getValue().value());
-				}
+			graph.visit((groupId, group) -> {
+				System.out.println("  Group "+groupId+" contains "+group.countBlocks()+" blocks: ");
 
-				for(Map.Entry<UUID, Grid<ExampleCable>> gridEntry: group.grids.entrySet()) {
-					Grid<ExampleCable> grid = gridEntry.getValue();
-					System.out.println("    Grid "+gridEntry.getKey()+" contains "+grid.connectors.size());
+				group.visitNodes((position, node) ->
+						System.out.println("    Node at "+position+": "+node)
+				);
 
-					for(Map.Entry<BlockPos, Connectivity.Cache<ExampleCable>> connectorEntry: grid.connectors.entrySet()) {
-						System.out.println("      Connector at "+connectorEntry.getKey()+": "+connectorEntry.getValue().value());
-					}
-				}
-			}
+				group.visitGrids(grid -> {
+					System.out.println("    Grid contains "+grid.countConnectors()+" connectors:");
+
+					grid.visitConnectors((position, connector) ->
+						System.out.println("      Connector at "+position+": "+connector)
+					);
+				});
+			});
 		}
 	}
 

@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.function.Consumer;
 
@@ -39,6 +40,10 @@ public class BFDivider {
 	 *         return value of 0 indicates that the first returned set was the largest.
 	 */
 	public int divide(Consumer<Collection<BlockPos>> removed, Consumer<Collection<BlockPos>> rootProvider, Consumer<HashSet<BlockPos>> split) {
+		if(!toSearch.isEmpty() || !roots.isEmpty()) {
+			throw new ConcurrentModificationException("Attempted to run concurrent divide operations on the same BFDivider instance");
+		}
+
 		rootProvider.accept(toSearch);
 
 		int bestCount = 0;

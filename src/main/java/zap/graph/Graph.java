@@ -3,8 +3,12 @@ package zap.graph;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.BlockPos;
 import zap.graph.traverse.INodeContainer;
+import zap.graph.visit.VisitableGroup;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 // default: parameters are nonnull, methods return nonnull
 public class Graph<C extends IConnectable, N extends IConnectable> implements INodeContainer {
@@ -12,7 +16,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	private static Direction[] DIRECTIONS = Direction.values();
 
 	private HashMap<BlockPos, UUID> posGrouping;
-	HashMap<UUID, Group<C, N>> groups;
+	private HashMap<UUID, Group<C, N>> groups;
 	
 	public Graph() {
 		posGrouping = new HashMap<>();
@@ -29,51 +33,59 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		return posGrouping.containsKey(from) && posGrouping.containsKey(to);
 	}
 
-	@SuppressWarnings("unchecked")
-	public void addNode(BlockPos pos, N node) {
-		ArrayList<UUID> mergers = getNeighboringGroups(pos);
-
-		if(mergers.size()==0) {
-			UUID uuid = getNewId();
-
-			posGrouping.put(pos, uuid);
-			groups.put(uuid, (Group<C, N>)Group.singleNode(pos, node));
-		} else if(mergers.size()==1) {
-			UUID uuid = mergers.get(0);
-
-			posGrouping.put(pos, uuid);
-			groups.get(uuid).addNode(pos, node);
-		} else {
-			MergeData<C, N> data = beginMerge(mergers);
-
-			posGrouping.put(pos, data.bestId);
-			data.best.addNode(pos, node);
-
-			for(Group<C, N> other: data.mergeGroups) {
-				data.best.mergeWith(other, pos);
-			}
+	public void visit(BiConsumer<UUID, VisitableGroup<C, N>> visitor) {
+		for(Map.Entry<UUID, Group<C, N>> entry: groups.entrySet()) {
+			visitor.accept(entry.getKey(), entry.getValue());
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public void addConnector(BlockPos pos, C connector) {
+	public int countGroups() {
+		return groups.size();
+	}
+
+	/**
+	 * Adds a node to the graph at the specified position.
+	 * @param pos The position at which the node will be added
+	 * @param node The node to add
+	 */
+	public void addNode(BlockPos pos, Connectivity.Cache<N> node) {
+		add(pos, () -> Group.singleNode(pos, node), group -> group.addNode(pos, node));
+	}
+
+	/**
+	 * Adds a connector to the graph at the specified position.
+	 * @param pos The position at which the node will be added
+	 * @param connector The connector to add
+	 */
+	public void addConnector(BlockPos pos, Connectivity.Cache<C> connector) {
+		add(pos, () -> Group.singleConnector(pos, connector), group -> group.addConnector(pos, connector));
+	}
+
+	/**
+	 * Adds an item to the Graph, in a manner generic across nodes and connectors.
+	 * @param pos The position at which the item will be added
+	 * @param single A supplier of a group containing a single entry, if the position is not touching any existing positions.
+	 * @param multiple An acceptor of an existing group, that the caller should add the entry to.
+	 */
+	private void add(BlockPos pos, Supplier<Group<C, N>> single, Consumer<Group<C, N>> multiple) {
 		ArrayList<UUID> mergers = getNeighboringGroups(pos);
 
 		if(mergers.size()==0) {
 			UUID uuid = getNewId();
 
 			posGrouping.put(pos, uuid);
-			groups.put(uuid, (Group<C, N>)Group.singleConnector(pos, connector));
+			groups.put(uuid, single.get());
 		} else if(mergers.size()==1) {
 			UUID uuid = mergers.get(0);
 
 			posGrouping.put(pos, uuid);
-			groups.get(uuid).addConnector(pos, connector);
+
+			multiple.accept(groups.get(uuid));
 		} else {
 			MergeData<C, N> data = beginMerge(mergers);
 
 			posGrouping.put(pos, data.bestId);
-			data.best.addConnector(pos, connector);
+			multiple.accept(data.best);
 
 			for(Group<C, N> other: data.mergeGroups) {
 				data.best.mergeWith(other, pos);
@@ -94,15 +106,17 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			UUID newUuid = getNewId();
 			groups.put(newUuid, newGroup);
 
-			for(BlockPos part: newGroup.nodes.keySet()) {
-				posGrouping.put(part, newUuid);
-			}
+			// Mark the nodes as pointing at the new group
+			newGroup.visitNodes (
+					(part, node) -> posGrouping.put(part, newUuid)
+			);
 
-			for(Grid<C> grid: newGroup.grids.values()) {
-				for(BlockPos part: grid.connectors.keySet()) {
-					posGrouping.put(part, newUuid);
-				}
-			}
+			// Mark the connectors as pointing at the new group
+			newGroup.visitGrids (
+					grid -> grid.visitConnectors (
+							(part, connector) -> posGrouping.put(part, newUuid)
+					)
+			);
 		});
 
 		if(group.countBlocks() == 0) {
