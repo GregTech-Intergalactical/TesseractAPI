@@ -48,16 +48,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 		return group;
 	}
 
-	public void forEachPosition(Consumer<BlockPos> consumer) {
-		nodes.keySet().forEach(consumer);
-		connectorPairing.keySet().forEach(consumer);
-	}
-
-	@Override
-	public int countBlocks() {
-		return nodes.size() + connectorPairing.size();
-	}
-
 	@Override
 	public boolean contains(BlockPos at) {
 		Objects.requireNonNull(at);
@@ -71,6 +61,17 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 		Objects.requireNonNull(to);
 
 		return contains(from) && contains(to);
+	}
+
+	@Override
+	public int countBlocks() {
+		return nodes.size() + connectorPairing.size();
+	}
+
+	@Override
+	public void visitBlocks(Consumer<BlockPos> consumer) {
+		nodes.keySet().forEach(consumer);
+		connectorPairing.keySet().forEach(consumer);
 	}
 
 	@Override

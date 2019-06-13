@@ -153,7 +153,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			final UUID target = bestId;
 
 			// Remap each position to point to the correct group.
-			removed.forEachPosition(position -> posGrouping.put(position, target));
+			removed.visitBlocks(position -> posGrouping.put(position, target));
 
 			mergeGroups.add(removed);
 		}
