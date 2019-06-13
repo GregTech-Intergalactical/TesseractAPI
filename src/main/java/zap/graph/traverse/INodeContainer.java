@@ -26,13 +26,10 @@ public interface INodeContainer {
 	boolean linked(BlockPos from, Direction towards, BlockPos to);
 
 	/**
-	 * Tests whether the from position, if it were present in the container, would link to the target position.
-	 * @param from The starting position, which can potentially not exist in the container.
+	 * Tests whether the given position can link on the given side.
+	 * @param position The starting position, which must exist in the container.
 	 * @param towards The face on the starting position
-	 * @param to The target position, must be equal to <code>from.offset(towards)</code>
-	 * @return Whether the positions are linked. If a position is not contained within this container, returns false.
+	 * @return Whether the position would connect on the given side, returns false if the position is not within this container.
 	 */
-	default boolean wouldLink(BlockPos from, Direction towards, BlockPos to) {
-		return contains(to);
-	}
+	boolean connects(BlockPos position, Direction towards);
 }

@@ -33,6 +33,11 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		return posGrouping.containsKey(from) && posGrouping.containsKey(to);
 	}
 
+	@Override
+	public boolean connects(BlockPos position, Direction towards) {
+		return contains(position);
+	}
+
 	public void visit(BiConsumer<UUID, VisitableGroup<C, N>> visitor) {
 		for(Map.Entry<UUID, Group<C, N>> entry: groups.entrySet()) {
 			visitor.accept(entry.getKey(), entry.getValue());

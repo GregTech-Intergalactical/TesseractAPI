@@ -49,14 +49,14 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
 	}
 
 	@Override
-	public boolean wouldLink(BlockPos from, Direction towards, BlockPos to) {
-		Connectivity.Cache<C> cacheTo = connectors.get(to);
+	public boolean connects(BlockPos position, Direction towards) {
+		Connectivity.Cache<C> cache = connectors.get(position);
 
-		if(cacheTo == null) {
+		if(cache == null) {
 			return false;
 		}
 
-		return cacheTo.connects(towards.getOpposite());
+		return cache.connects(towards);
 	}
 
 	@Override

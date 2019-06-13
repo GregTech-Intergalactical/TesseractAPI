@@ -64,6 +64,11 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 	}
 
 	@Override
+	public boolean connects(BlockPos position, Direction towards) {
+		return contains(position);
+	}
+
+	@Override
 	public int countBlocks() {
 		return nodes.size() + connectorPairing.size();
 	}
@@ -119,7 +124,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
 			Grid<C> grid = grids.get(id);
 
-			if(grid.wouldLink(at, direction, offset)) {
+			if(grid.connects(offset, direction.getOpposite())) {
 				linkedGrids.put(id, grid);
 
 				if(grid.countConnectors() > bestCount) {
@@ -270,8 +275,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 			HashSet<BlockPos> found = colored.get(i);
 			Group<C, N> newGroup;
 
-			System.out.println("Processing color "+i);
-
 			if(i != bestColor) {
 				newGroup = new Group<>();
 
@@ -285,7 +288,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 					// Just a node then, simply add it to the new group.
 					// The maps are mutated directly here in order to retain the cached connectivity.
 					if(gridId == null) {
-						System.out.println("Moving node at "+reached+" to new group");
 						newGroup.nodes.put(reached, Objects.requireNonNull(this.nodes.remove(reached)));
 						continue;
 					}
@@ -296,7 +298,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 						throw new IllegalStateException("Searchable grid contains the removed position, the grid should have been removed already?!?");
 					}
 
-					System.out.println("Moving grid "+gridId+" to new group");
+					// Move grid to new group
 					grids.remove(gridId);
 					newGroup.grids.put(gridId, grid);
 
@@ -320,7 +322,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 					if(found.contains(sample)) {
 						UUID newId = newGroup.getNewId();
 
-						System.out.println("Moving grid "+newId+" to new group");
 						newGroup.addGrid(newId, grid);
 						iterator.remove();
 					}
@@ -367,25 +368,48 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 	// Graph controlled interface
 	void mergeWith(Group<C, N> other, BlockPos at) {
 		nodes.putAll(other.nodes);
+		connectorPairing.putAll(other.connectorPairing);
 
-		if(connectorPairing.containsKey(at)) {
-			// TODO: Merge on grid boundaries
-			throw new UnsupportedOperationException("Cannot mergeWith on a potential grid boundary yet");
-		} else {
-			for(Map.Entry<UUID, Grid<C>> entry: grids.entrySet()) {
-				UUID id = entry.getKey();
-				Grid<C> otherGrid = entry.getValue();
+		other.grids.keySet().forEach(id -> {
+			if (grids.containsKey(id)) {
+				// TODO: Handle duplicate IDs
+				throw new IllegalStateException("Duplicate grid UUIDs when attempting to merge groups, this should never happen!");
+			}
+		});
 
-				if(grids.containsKey(id)) {
-					// TODO: Handle duplicate IDs
-					throw new IllegalStateException("Duplicate grid UUIDs when attempting to merge groups");
+		UUID pairing = connectorPairing.get(at);
+
+		if(pairing != null) {
+			Grid<C> currentGrid = grids.get(pairing);
+
+			for (Direction direction : DIRECTIONS) {
+				BlockPos offset = at.offset(direction);
+
+				if (!currentGrid.connects(at, direction)) {
+					continue;
 				}
 
-				grids.put(id, otherGrid);
-			}
+				UUID id = other.connectorPairing.get(offset);
 
-			connectorPairing.putAll(other.connectorPairing);
+				if (id == null) {
+					continue;
+				}
+
+				Grid<C> grid = other.grids.remove(id);
+
+				if(grid == null) {
+					// Already removed.
+					continue;
+				}
+
+				if (grid.connects(offset, direction.getOpposite())) {
+					currentGrid.mergeWith(at, grid);
+					grid.visitConnectors((position, connector) -> this.connectorPairing.put(position, pairing));
+				}
+			}
 		}
+
+		grids.putAll(other.grids);
 	}
 
 	private UUID getNewId() {
