@@ -1,6 +1,6 @@
 package zap.graph.traverse;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.BlockPos;
 
 /**
@@ -23,7 +23,7 @@ public interface INodeContainer {
 	 * @param to The target position, must be equal to <code>from.offset(towards)</code>
 	 * @return Whether the positions are linked. If a position is not contained within this container, returns false.
 	 */
-	boolean linked(BlockPos from, EnumFacing towards, BlockPos to);
+	boolean linked(BlockPos from, Direction towards, BlockPos to);
 
 	/**
 	 * Tests whether the from position, if it were present in the container, would link to the target position.
@@ -32,7 +32,7 @@ public interface INodeContainer {
 	 * @param to The target position, must be equal to <code>from.offset(towards)</code>
 	 * @return Whether the positions are linked. If a position is not contained within this container, returns false.
 	 */
-	default boolean wouldLink(BlockPos from, EnumFacing towards, BlockPos to) {
+	default boolean wouldLink(BlockPos from, Direction towards, BlockPos to) {
 		return contains(to);
 	}
 }

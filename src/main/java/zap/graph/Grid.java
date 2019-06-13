@@ -1,20 +1,20 @@
 package zap.graph;
 
-import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.BlockPos;
 import zap.graph.traverse.BFDivider;
 import zap.graph.traverse.INodeContainer;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.Consumer;
 
-@ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
+// default: parameters are nonnull, methods return nonnull
 public class Grid<C extends IConnectable> implements INodeContainer {
+	// To prevent excessive array reallocation
+	private static Direction[] DIRECTIONS = Direction.values();
+
 	HashMap<BlockPos, Connectivity.Cache<C>> connectors;
 	private BFDivider divider;
 
@@ -37,7 +37,7 @@ public class Grid<C extends IConnectable> implements INodeContainer {
 	}
 
 	@Override
-	public boolean linked(BlockPos from, EnumFacing towards, BlockPos to) {
+	public boolean linked(BlockPos from, Direction towards, BlockPos to) {
 		Connectivity.Cache<C> cacheFrom = connectors.get(from);
 		Connectivity.Cache<C> cacheTo = connectors.get(to);
 		
@@ -49,7 +49,7 @@ public class Grid<C extends IConnectable> implements INodeContainer {
 	}
 
 	@Override
-	public boolean wouldLink(BlockPos from, EnumFacing towards, BlockPos to) {
+	public boolean wouldLink(BlockPos from, Direction towards, BlockPos to) {
 		Connectivity.Cache<C> cacheTo = connectors.get(to);
 
 		if(cacheTo == null) {
@@ -77,10 +77,10 @@ public class Grid<C extends IConnectable> implements INodeContainer {
 		int bestColor = divider.divide(
 				removed -> removed.add(pos),
 				roots -> {
-					for(EnumFacing facing: EnumFacing.VALUES) {
-						BlockPos side = pos.offset(facing);
+					for(Direction direction: DIRECTIONS) {
+						BlockPos side = pos.offset(direction);
 
-						if(this.linked(pos, facing, side)) {
+						if(this.linked(pos, direction, side)) {
 							roots.add(side);
 						}
 					}
@@ -119,10 +119,10 @@ public class Grid<C extends IConnectable> implements INodeContainer {
 		}
 
 		int neighbors = 0;
-		for(EnumFacing facing: EnumFacing.VALUES) {
-			BlockPos face = pos.offset(facing);
+		for(Direction direction: DIRECTIONS) {
+			BlockPos face = pos.offset(direction);
 
-			if(this.linked(pos, facing, face)) {
+			if(this.linked(pos, direction, face)) {
 				neighbors += 1;
 			}
 		}

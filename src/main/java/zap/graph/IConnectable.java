@@ -1,7 +1,7 @@
 package zap.graph;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.Direction;
 
 public interface IConnectable {
-	boolean connects(EnumFacing facing);
+	boolean connects(Direction direction);
 }

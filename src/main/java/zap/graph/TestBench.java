@@ -1,6 +1,6 @@
 package zap.graph;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.BlockPos;
 import zap.electric.api.IElectricCable;
 import zap.electric.api.IElectricLimits;
@@ -11,6 +11,7 @@ import zap.electric.base.ElectricLimits;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class TestBench {
@@ -54,10 +55,10 @@ public class TestBench {
 
 				BlockPos pos = new BlockPos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
 
-				Entry<ExampleCable, ExampleNode> entry = graph.remove(pos);
+				Optional<Entry<ExampleCable, ExampleNode>> entry = graph.remove(pos);
 
-				if(entry != null) {
-					entry.apply(connector -> {
+				if(entry.isPresent()) {
+					entry.get().apply(connector -> {
 						System.out.println("Removed connector "+pos+" from the graph: "+connector);
 					}, node -> {
 						System.out.println("Removed node "+pos+" from the graph: "+node);
@@ -108,17 +109,17 @@ public class TestBench {
 		}
 
 		@Override
-		public boolean connects(EnumFacing facing) {
+		public boolean connects(Direction direction) {
 			return true;
 		}
 	}
 
 	private static class ExampleNode implements IElectricNode, IConnectable {
-		public IElectricStorage getStorage(EnumFacing facing) {
+		public IElectricStorage getStorage(Direction direction) {
 			return null;
 		}
 
-		public IElectricLimits getReceiverLimits(EnumFacing facing) {
+		public IElectricLimits getReceiverLimits(Direction direction) {
 			return null;
 		}
 
@@ -132,7 +133,7 @@ public class TestBench {
 		}
 
 		@Override
-		public boolean connects(EnumFacing facing) {
+		public boolean connects(Direction direction) {
 			return true;
 		}
 	}

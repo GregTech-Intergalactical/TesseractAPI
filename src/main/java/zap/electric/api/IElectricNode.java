@@ -1,15 +1,15 @@
 package zap.electric.api;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.Direction;
 import zap.graph.IConnectable;
 
 public interface IElectricNode extends IConnectable {
-	IElectricStorage getStorage(EnumFacing facing);
-	IElectricLimits getReceiverLimits(EnumFacing facing);
+	IElectricStorage getStorage(Direction direction);
+	IElectricLimits getReceiverLimits(Direction direction);
 	int getOfferedPackets();
 
 	@Override
-	default boolean connects(EnumFacing facing) {
-		return getStorage(facing) != null;
+	default boolean connects(Direction direction) {
+		return getStorage(direction) != null;
 	}
 }

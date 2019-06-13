@@ -1,9 +1,8 @@
 package zap.graph.traverse;
 
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -20,9 +19,12 @@ import java.util.function.Consumer;
  * concurrently from different threads, then they will conflict, mixing results between each operation.
  */
 public class BFSearcher {
+	// To prevent excessive array reallocation
+	private static Direction[] DIRECTIONS = Direction.values();
+
 	private HashSet<BlockPos> closed;
 	private ArrayDeque<BlockPos> open;
-	private BlockPos.MutableBlockPos searchPos;
+	private BlockPos.Mutable searchPos;
 	private INodeContainer container;
 
 	/**
@@ -33,7 +35,7 @@ public class BFSearcher {
 	public BFSearcher(INodeContainer container) {
 		closed = new HashSet<>();
 		open = new ArrayDeque<>();
-		searchPos = new BlockPos.MutableBlockPos();
+		searchPos = new BlockPos.Mutable();
 		this.container = container;
 	}
 
@@ -47,7 +49,7 @@ public class BFSearcher {
 	 * @param excluder A function that can add values to the closed set prior to the search operation.
 	 *                 They will not be reported or traversed; null is interpreted to mean no exclusions.
 	 */
-	public void search(BlockPos from, Consumer<BlockPos> reached, @Nullable Consumer<Collection<BlockPos>> excluder) {
+	public void search(BlockPos from, Consumer<BlockPos> reached, Consumer<Collection<BlockPos>> excluder) {
 		if(!closed.isEmpty() || !open.isEmpty()) {
 			throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same BFSearcher instance");
 		}
@@ -79,16 +81,16 @@ public class BFSearcher {
 				reached.accept(current);
 
 				// Discover new nodes
-				for(EnumFacing facing: EnumFacing.VALUES) {
-					searchPos.setPos(current);
-					searchPos.move(facing);
+				for(Direction direction: DIRECTIONS) {
+					searchPos.set(current);
+					searchPos.setOffset(direction);
 
 					if(closed.contains(searchPos)) {
 						// Already seen, prevent infinite loops.
 						continue;
 					}
 
-					if(container.linked(current, facing, searchPos)) {
+					if(container.linked(current, direction, searchPos)) {
 						// Note: this allocates a new position
 						open.add(searchPos.toImmutable());
 					}

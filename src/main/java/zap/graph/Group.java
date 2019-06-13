@@ -1,20 +1,18 @@
 package zap.graph;
 
-import gnu.trove.map.hash.TObjectIntHashMap;
-import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.BlockPos;
 import zap.graph.traverse.BFDivider;
-import zap.graph.traverse.BFSearcher;
 import zap.graph.traverse.INodeContainer;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.function.Consumer;
 
-@ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
+// default: parameters are nonnull, methods return nonnull
 public class Group<C extends IConnectable, N extends IConnectable> implements INodeContainer {
+	// To prevent excessive array reallocation
+	private static Direction[] DIRECTIONS = Direction.values();
+
 	HashMap<BlockPos, Connectivity.Cache<N>> nodes;
 	private HashMap<BlockPos, UUID> connectorPairing;
 	HashMap<UUID, Grid<C>> grids;
@@ -64,7 +62,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 	}
 
 	@Override
-	public boolean linked(BlockPos from, EnumFacing towards, BlockPos to) {
+	public boolean linked(BlockPos from, Direction towards, BlockPos to) {
 		Objects.requireNonNull(from);
 		Objects.requireNonNull(to);
 
@@ -83,12 +81,12 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 		Grid<C> bestGrid = null;
 		int bestCount = 0;
 
-		for(EnumFacing facing: EnumFacing.VALUES) {
-			if(!cache.connects(facing)) {
+		for(Direction direction: DIRECTIONS) {
+			if(!cache.connects(direction)) {
 				continue;
 			}
 
-			BlockPos offset = at.offset(facing);
+			BlockPos offset = at.offset(direction);
 			UUID id = connectorPairing.get(offset);
 
 			if(id == null) {
@@ -97,7 +95,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
 			Grid<C> grid = grids.get(id);
 
-			if(grid.wouldLink(at, facing, offset)) {
+			if(grid.wouldLink(at, direction, offset)) {
 				linkedGrids.put(id, grid);
 
 				if(grid.connectors.size() > bestCount) {
@@ -196,10 +194,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 		int bestColor = divider.divide(
 				removed -> removed.add(posToRemove),
 				roots -> {
-					for(EnumFacing facing: EnumFacing.VALUES) {
-						BlockPos side = posToRemove.offset(facing);
+					for(Direction direction: DIRECTIONS) {
+						BlockPos side = posToRemove.offset(direction);
 
-						if(this.linked(posToRemove, facing, side)) {
+						if(this.linked(posToRemove, direction, side)) {
 							roots.add(side);
 						}
 					}
@@ -314,8 +312,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 		}
 
 		int neighbors = 0;
-		for(EnumFacing facing: EnumFacing.VALUES) {
-			BlockPos face = pos.offset(facing);
+		for(Direction direction: DIRECTIONS) {
+			BlockPos face = pos.offset(direction);
 
 			if(this.contains(face)) {
 				neighbors += 1;

@@ -1,6 +1,7 @@
 package zap.graph.traverse;
 
-import gnu.trove.map.hash.TObjectIntHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Collection;
@@ -14,10 +15,13 @@ import java.util.function.Consumer;
 public class BFDivider {
 	private BFSearcher searcher;
 	private HashSet<BlockPos> toSearch;
+	private Object2IntOpenHashMap<BlockPos> roots;
 
 	public BFDivider(INodeContainer container) {
 		searcher = new BFSearcher(container);
 		toSearch = new HashSet<>();
+		roots = new Object2IntOpenHashMap<>();
+		roots.defaultReturnValue(Integer.MAX_VALUE);
 	}
 
 	/**
@@ -37,8 +41,6 @@ public class BFDivider {
 	public int divide(Consumer<Collection<BlockPos>> removed, Consumer<Collection<BlockPos>> rootProvider, Consumer<HashSet<BlockPos>> split) {
 		rootProvider.accept(toSearch);
 
-		TObjectIntHashMap<BlockPos> roots = new TObjectIntHashMap<>(6, 0.5F, Integer.MAX_VALUE);
-
 		int bestCount = 0;
 		int bestColor = 0;
 
@@ -46,9 +48,9 @@ public class BFDivider {
 
 		for(BlockPos root: toSearch) {
 			// Check if this root has already been colored.
-			int existingColor = roots.get(root);
+			int existingColor = roots.getInt(root);
 
-			if(existingColor != roots.getNoEntryValue()) {
+			if(existingColor != roots.defaultReturnValue()) {
 				// Already colored! No point in doing it again.
 				continue;
 			}
@@ -75,6 +77,7 @@ public class BFDivider {
 		}
 
 		toSearch.clear();
+		roots.clear();
 
 		return bestColor;
 	}

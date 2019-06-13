@@ -1,17 +1,16 @@
 package zap.graph;
 
-import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.BlockPos;
 import zap.graph.traverse.INodeContainer;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
-@ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
+// default: parameters are nonnull, methods return nonnull
 public class Graph<C extends IConnectable, N extends IConnectable> implements INodeContainer {
+	// To prevent excessive array reallocation
+	private static Direction[] DIRECTIONS = Direction.values();
+
 	private HashMap<BlockPos, UUID> posGrouping;
 	HashMap<UUID, Group<C, N>> groups;
 	
@@ -26,7 +25,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	}
 
 	@Override
-	public boolean linked(BlockPos from, EnumFacing towards, BlockPos to) {
+	public boolean linked(BlockPos from, Direction towards, BlockPos to) {
 		return posGrouping.containsKey(from) && posGrouping.containsKey(to);
 	}
 
@@ -82,12 +81,11 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		}
 	}
 
-	@Nullable
-	public Entry<C, N> remove(BlockPos pos) {
+	public Optional<Entry<C, N>> remove(BlockPos pos) {
 		UUID uuid = posGrouping.remove(pos);
 
 		if(uuid == null) {
-			return null;
+			return Optional.empty();
 		}
 
 		Group<C, N> group = groups.get(uuid);
@@ -111,7 +109,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			groups.remove(uuid);
 		}
 
-		return entry;
+		return Optional.of(entry);
 	}
 
 	private MergeData<C, N> beginMerge(ArrayList<UUID> mergers) {
@@ -158,8 +156,8 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	private ArrayList<UUID> getNeighboringGroups(BlockPos pos) {
 		ArrayList<UUID> neighbors = new ArrayList<>(6);
 
-		for(EnumFacing facing: EnumFacing.VALUES) {
-			BlockPos face = pos.offset(facing);
+		for(Direction direction: DIRECTIONS) {
+			BlockPos face = pos.offset(direction);
 			UUID group = posGrouping.get(face);
 
 			if(group == null) {

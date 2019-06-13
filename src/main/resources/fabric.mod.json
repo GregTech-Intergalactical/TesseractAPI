@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "zap",
+  "version": "${version}",
+
+  "name": "Zap",
+  "description": "Powerful framework for energy, item, and fluid transport, loosely based on ",
+  "authors": [
+    "coderbot16"
+  ],
+  "contact": {
+    "sources": "https://gitlab.com/coderbot16/Zap-API"
+  },
+
+  "license": "LGPL-3.0-only",
+  "icon": "assets/zap/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.coderbot.zap.Zap"
+    ]
+  },
+
+  "depends": {
+    "fabricloader": ">=0.4.0",
+    "fabric": "*"
+  }
+}
