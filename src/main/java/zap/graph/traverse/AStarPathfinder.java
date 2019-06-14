@@ -7,25 +7,21 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.function.Consumer;
 
 public class AStarPathfinder {
 	// To prevent excessive array reallocation
 	private static Direction[] DIRECTIONS = Direction.values();
 
-	INodeContainer container;
+	private INodeContainer container;
 
-	BlockPos start;
-	BlockPos end;
+	private HashSet<BlockPos> open;
+	private HashSet<BlockPos> closed;
+	private HashMap<BlockPos, BlockPos> cameFrom;
+	private Object2IntMap<BlockPos> gScore;
+	private Object2IntMap<BlockPos> fScore;
 
-	HashSet<BlockPos> open;
-	HashSet<BlockPos> closed;
-	HashMap<BlockPos, BlockPos> cameFrom;
-	Object2IntMap<BlockPos> gScore;
-	Object2IntMap<BlockPos> fScore;
-
-	public AStarPathfinder(INodeContainer container, BlockPos start, BlockPos end) {
-		this.start = start;
-		this.end = end;
+	public AStarPathfinder(INodeContainer container) {
 		this.container = container;
 
 		open = new HashSet<>();
@@ -36,41 +32,73 @@ public class AStarPathfinder {
 
 		gScore.defaultReturnValue(Integer.MAX_VALUE);
 		fScore.defaultReturnValue(Integer.MAX_VALUE);
-
-		open.add(start);
-		fScore.put(start, heuristic(start));
 	}
 
-	public void findPath() {
+	// TODO: Verify that this works
+	public void findPath(BlockPos start, BlockPos end, Consumer<BlockPos> fromEnd) {
 		BlockPos.Mutable current = new BlockPos.Mutable();
+		BlockPos.Mutable neighbor = new BlockPos.Mutable();
 		current.set(start);
+
+		open.add(start);
+		fScore.put(start, heuristic(start, end));
 
 		while(!current.equals(end)) {
 			open.remove(current);
 			closed.add(current);
 
-			for(Direction direction: DIRECTIONS) {
-				current.setOffset(direction);
+			int currentGScore = gScore.getInt(current);
 
-				if(closed.contains(current)) {
-					current.setOffset(direction.getOpposite());
+			for(Direction direction: DIRECTIONS) {
+				neighbor.set(current).setOffset(direction);
+
+				if(closed.contains(neighbor) || !container.linked(current, direction, neighbor)) {
 					continue;
 				}
 
-				if(container.contains(current)) {
-					// TODO
+				int neighborGScore = currentGScore + 1;
+
+				if(!open.contains(current)) {
+					// note: this allocates
+					open.add(current.toImmutable());
+				} else {
+					int existingGScore = gScore.getInt(current);
+
+					if(neighborGScore >= existingGScore) {
+						continue;
+					}
 				}
 
-				current.setOffset(direction.getOpposite());
+				// note: this allocates
+				BlockPos neighborImmutable = neighbor.toImmutable();
+
+				cameFrom.put(neighborImmutable, current.toImmutable());
+				gScore.put(neighborImmutable, neighborGScore);
+				fScore.put(neighborImmutable, neighborGScore + heuristic(neighborImmutable, end));
 			}
 
 			current.set(findBestOpenNode());
 		}
 
-		// TODO
+
+		open.clear();
+		closed.clear();
+		gScore.clear();
+		fScore.clear();
+
+		fromEnd.accept(end);
+
+		while(!current.equals(start)) {
+			BlockPos node = cameFrom.remove(current);
+			current.set(node);
+
+			fromEnd.accept(node);
+		}
+
+		cameFrom.clear();
 	}
 
-	public BlockPos findBestOpenNode() {
+	private BlockPos findBestOpenNode() {
 		BlockPos best = null;
 		int bestScore = Integer.MAX_VALUE;
 
@@ -86,7 +114,7 @@ public class AStarPathfinder {
 		return best;
 	}
 
-	private int heuristic(BlockPos current) {
+	private static int heuristic(BlockPos current, BlockPos end) {
 		return Math.abs(current.getX()-end.getX()) + Math.abs(current.getY()-end.getY()) + Math.abs(current.getZ()-end.getZ());
 	}
 }
