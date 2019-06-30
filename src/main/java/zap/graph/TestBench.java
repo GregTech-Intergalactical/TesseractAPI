@@ -10,9 +10,7 @@ import zap.electric.base.ElectricLimits;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 public class TestBench {
 	public static void main(String[] args) throws Exception {
@@ -58,11 +56,10 @@ public class TestBench {
 				Optional<Entry<ExampleCable, ExampleNode>> entry = graph.remove(pos);
 
 				if(entry.isPresent()) {
-					entry.get().apply(connector -> {
-						System.out.println("Removed connector "+pos+" from the graph: "+connector);
-					}, node -> {
-						System.out.println("Removed node "+pos+" from the graph: "+node);
-					});
+					entry.get().apply(
+							connector -> System.out.println("Removed connector "+pos+" from the graph: "+connector),
+							node -> System.out.println("Removed node "+pos+" from the graph: "+node)
+					);
 				} else {
 					System.out.println("Error: "+pos+" doesn't exist in the graph");
 				}

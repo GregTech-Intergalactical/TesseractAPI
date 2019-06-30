@@ -205,11 +205,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
 			Grid<C> grid = grids.get(Objects.requireNonNull(pairing));
 
-			// Avoid leaving empty grids within the grid list.
-			if(grid.countConnectors() == 0) {
-				grids.remove(pairing);
-			}
-
 			// No check is needed here, because the caller already asserts that the Group contains the specified position.
 			// Thus, if this is not a node, then it is guaranteed to be a connector.
 			C removed = grid.remove(
@@ -223,6 +218,11 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 						);
 					}
 			);
+
+			// Avoid leaving empty grids within the grid list.
+			if(grid.countConnectors() == 0) {
+				grids.remove(pairing);
+			}
 
 			return Entry.connector(removed);
 		}

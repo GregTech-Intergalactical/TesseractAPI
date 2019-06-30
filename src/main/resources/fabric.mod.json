@@ -18,7 +18,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.coderbot.zap.Zap"
+      "zap.Zap"
     ]
   },
 
