@@ -1,5 +1,6 @@
 package zap.graph;
 
+import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.BlockPos;
 import zap.graph.traverse.BFDivider;
@@ -16,10 +17,13 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
 	private static Direction[] DIRECTIONS = Direction.values();
 
 	private HashMap<BlockPos, Connectivity.Cache<C>> connectors;
+	private Object2ByteOpenHashMap<BlockPos> linkedNodes;
 	private BFDivider divider;
 
 	private Grid() {
 		connectors = new HashMap<>();
+		linkedNodes = new Object2ByteOpenHashMap<>();
+		linkedNodes.defaultReturnValue(Byte.MAX_VALUE);
 		divider = new BFDivider(this);
 	}
 
@@ -33,31 +37,53 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
 
 	@Override
 	public boolean contains(BlockPos pos) {
-		return connectors.containsKey(pos);
+		return connectors.containsKey(pos) || linkedNodes.containsKey(pos);
 	}
 
 	@Override
 	public boolean linked(BlockPos from, Direction towards, BlockPos to) {
 		Connectivity.Cache<C> cacheFrom = connectors.get(from);
 		Connectivity.Cache<C> cacheTo = connectors.get(to);
-		
-		if(cacheFrom == null || cacheTo == null) {
+
+		byte connectivityFrom = linkedNodes.getByte(from);
+		byte connectivityTo = linkedNodes.getByte(to);
+
+		boolean validLink = false;
+
+		if(cacheFrom != null) {
+			validLink = true;
+			connectivityFrom = cacheFrom.connectivity;
+		}
+
+		if(cacheTo != null) {
+			validLink = true;
+			connectivityTo = cacheTo.connectivity;
+		}
+
+		if(connectivityFrom == Byte.MAX_VALUE || connectivityTo == Byte.MAX_VALUE) {
 			return false;
 		}
 
-		return cacheFrom.connects(towards) && cacheTo.connects(towards.getOpposite());
+		return validLink && Connectivity.has(connectivityFrom, towards) && Connectivity.has(connectivityTo, towards.getOpposite());
 	}
 
 	@Override
 	public boolean connects(BlockPos position, Direction towards) {
 		Connectivity.Cache<C> cache = connectors.get(position);
+		byte connectivity = linkedNodes.getByte(position);
 
-		if(cache == null) {
+		if(cache != null) {
+			connectivity = cache.connectivity;
+		}
+
+		if(connectivity == Byte.MAX_VALUE) {
 			return false;
 		}
 
-		return cache.connects(towards);
+		return Connectivity.has(connectivity, towards);
 	}
+
+	// TODO: Count / visit linked nodes
 
 	@Override
 	public int countConnectors() {
@@ -79,6 +105,7 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
 		// TODO: Validate that the other grid touches the specified position.
 
 		connectors.putAll(other.connectors);
+		linkedNodes.putAll(other.linkedNodes);
 	}
 
 	/**
@@ -95,6 +122,10 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
 		connectors.put(Objects.requireNonNull(pos), Objects.requireNonNull(connector));
 	}
 
+	public void addLinkedNode(BlockPos pos, byte connectivity) {
+		linkedNodes.put(Objects.requireNonNull(pos), connectivity);
+	}
+
 	public C remove(BlockPos pos, Consumer<Grid<C>> split) {
 		Objects.requireNonNull(split);
 
@@ -103,7 +134,7 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
 		}
 
 		if(isExternal(pos)) {
-			return this.connectors.remove(pos).value();
+			return removeFinal(pos);
 		}
 
 		ArrayList<HashSet<BlockPos>> colored = new ArrayList<>();
@@ -122,6 +153,9 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
 				colored::add
 		);
 
+		// TODO: Properly split / remove relevant linkedNodes, verify that this works.
+		HashSet<BlockPos> check = new HashSet<>();
+
 		for(int i = 0; i < colored.size(); i++) {
 			if (i == bestColor) {
 				// These nodes will be kept.
@@ -132,13 +166,42 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
 			HashSet<BlockPos> found = colored.get(i);
 
 			for (BlockPos reached : found) {
-				newGrid.connectors.put(reached, this.connectors.remove(reached));
+				byte connectivity = linkedNodes.getByte(reached);
+
+				if(connectivity != Byte.MAX_VALUE) {
+					check.add(reached);
+					newGrid.linkedNodes.put(reached, connectivity);
+				} else {
+					newGrid.connectors.put(reached, this.connectors.remove(reached));
+				}
 			}
 
 			split.accept(newGrid);
 		}
 
-		return this.connectors.remove(pos).value();
+		C connector = removeFinal(pos);
+
+		for(BlockPos toCheck: check) {
+			if(isExternal(toCheck)) {
+				linkedNodes.removeByte(toCheck);
+			}
+		}
+
+		return connector;
+	}
+
+	private C removeFinal(BlockPos pos) {
+		C connector = this.connectors.remove(pos).value();
+
+		for(Direction direction: DIRECTIONS) {
+			BlockPos face = pos.offset(direction);
+
+			if(linkedNodes.containsKey(face) && isExternal(face)) {
+				linkedNodes.removeByte(face);
+			}
+		}
+
+		return connector;
 	}
 
 	/**
@@ -147,7 +210,7 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
 	 * @return Whether the position only has a single neighbor in the group, or is the only entry in the group.
 	 */
 	private boolean isExternal(BlockPos pos) {
-		// If the group contains less than 2 blocks, neighbors cannot exist.
+		// If the grid contains less than 2 blocks, neighbors cannot exist.
 		if(this.connectors.size() <= 1) {
 			return true;
 		}
@@ -156,7 +219,7 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
 		for(Direction direction: DIRECTIONS) {
 			BlockPos face = pos.offset(direction);
 
-			if(this.linked(pos, direction, face)) {
+			if(!linkedNodes.containsKey(face) && this.linked(pos, direction, face)) {
 				neighbors += 1;
 			}
 		}
