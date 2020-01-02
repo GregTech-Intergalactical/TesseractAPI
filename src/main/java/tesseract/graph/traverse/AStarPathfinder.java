@@ -2,119 +2,116 @@ package tesseract.graph.traverse;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import tesseract.util.Dir;
+import tesseract.util.Pos;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.Consumer;
 
 public class AStarPathfinder {
-	// To prevent excessive array reallocation
-	private static Direction[] DIRECTIONS = Direction.values();
 
-	private INodeContainer container;
+    private INodeContainer container;
 
-	private HashSet<BlockPos> open;
-	private HashSet<BlockPos> closed;
-	private HashMap<BlockPos, BlockPos> cameFrom;
-	private Object2IntMap<BlockPos> gScore;
-	private Object2IntMap<BlockPos> fScore;
+    private HashSet<Pos> open;
+    private HashSet<Pos> closed;
+    private HashMap<Pos, Pos> cameFrom;
+    private Object2IntMap<Pos> gScore;
+    private Object2IntMap<Pos> fScore;
 
-	public AStarPathfinder(INodeContainer container) {
-		this.container = container;
+    public AStarPathfinder(INodeContainer container) {
+        this.container = container;
 
-		open = new HashSet<>();
-		closed = new HashSet<>();
-		cameFrom = new HashMap<>();
-		gScore = new Object2IntOpenHashMap<>();
-		fScore = new Object2IntOpenHashMap<>();
+        open = new HashSet<>();
+        closed = new HashSet<>();
+        cameFrom = new HashMap<>();
+        gScore = new Object2IntOpenHashMap<>();
+        fScore = new Object2IntOpenHashMap<>();
 
-		gScore.defaultReturnValue(Integer.MAX_VALUE);
-		fScore.defaultReturnValue(Integer.MAX_VALUE);
-	}
+        gScore.defaultReturnValue(Integer.MAX_VALUE);
+        fScore.defaultReturnValue(Integer.MAX_VALUE);
+    }
 
-	// TODO: Verify that this works
-	public void findPath(BlockPos start, BlockPos end, Consumer<BlockPos> fromEnd) {
-		BlockPos.MutableBlockPos current = new BlockPos.MutableBlockPos();
-		BlockPos.MutableBlockPos neighbor = new BlockPos.MutableBlockPos();
-		current.setPos(start);
+    private static int heuristic(Pos current, Pos end) {
+        return Math.abs(current.getX() - end.getX()) + Math.abs(current.getY() - end.getY()) + Math.abs(current.getZ() - end.getZ());
+    }
 
-		open.add(start);
-		fScore.put(start, heuristic(start, end));
+    // TODO: Verify that this works
+    public void findPath(Pos start, Pos end, Consumer<Pos> fromEnd) {
+        Pos current = new Pos(start);
+        Pos neighbor = new Pos();
 
-		while(!current.equals(end)) {
-			open.remove(current);
-			closed.add(current);
+        open.add(start);
+        fScore.put(start, heuristic(start, end));
 
-			int currentGScore = gScore.getInt(current);
+        while (!current.equals(end)) {
+            open.remove(current);
+            closed.add(current);
 
-			for(Direction direction: DIRECTIONS) {
-				neighbor.setPos(current).offset(direction);
+            int currentGScore = gScore.getInt(current);
 
-				if(closed.contains(neighbor) || !container.linked(current, direction, neighbor)) {
-					continue;
-				}
+            for (Dir direction : Dir.VALUES) {
+                neighbor.set(current).offset(direction);
 
-				int neighborGScore = currentGScore + 1;
+                if (closed.contains(neighbor) || !container.linked(current, direction, neighbor)) {
+                    continue;
+                }
 
-				if(!open.contains(current)) {
-					// note: this allocates
-					open.add(current.toImmutable());
-				} else {
-					int existingGScore = gScore.getInt(current);
+                int neighborGScore = currentGScore + 1;
 
-					if(neighborGScore >= existingGScore) {
-						continue;
-					}
-				}
+                if (!open.contains(current)) {
+                    // note: this allocates
+                    open.add(current/*.toImmutable()*/);
+                } else {
+                    int existingGScore = gScore.getInt(current);
 
-				// note: this allocates
-				BlockPos neighborImmutable = neighbor.toImmutable();
+                    if (neighborGScore >= existingGScore) {
+                        continue;
+                    }
+                }
 
-				cameFrom.put(neighborImmutable, current.toImmutable());
-				gScore.put(neighborImmutable, neighborGScore);
-				fScore.put(neighborImmutable, neighborGScore + heuristic(neighborImmutable, end));
-			}
+                // note: this allocates
+                Pos neighborImmutable = neighbor/*.toImmutable()*/;
 
-			current.setPos(findBestOpenNode());
-		}
+                cameFrom.put(neighborImmutable, current/*.toImmutable()*/);
+                gScore.put(neighborImmutable, neighborGScore);
+                fScore.put(neighborImmutable, neighborGScore + heuristic(neighborImmutable, end));
+            }
+
+            current.set(findBestOpenNode());
+        }
 
 
-		open.clear();
-		closed.clear();
-		gScore.clear();
-		fScore.clear();
+        open.clear();
+        closed.clear();
+        gScore.clear();
+        fScore.clear();
 
-		fromEnd.accept(end);
+        fromEnd.accept(end);
 
-		while(!current.equals(start)) {
-			BlockPos node = cameFrom.remove(current);
-			current.setPos(node);
+        while (!current.equals(start)) {
+            Pos node = cameFrom.remove(current);
+            current.set(node);
 
-			fromEnd.accept(node);
-		}
+            fromEnd.accept(node);
+        }
 
-		cameFrom.clear();
-	}
+        cameFrom.clear();
+    }
 
-	private BlockPos findBestOpenNode() {
-		BlockPos best = null;
-		int bestScore = Integer.MAX_VALUE;
+    private Pos findBestOpenNode() {
+        Pos best = null;
+        int bestScore = Integer.MAX_VALUE;
 
-		for(BlockPos pos: open) {
-			int score = fScore.getInt(pos);
+        for (Pos pos : open) {
+            int score = fScore.getInt(pos);
 
-			if(score < bestScore) {
-				bestScore = score;
-				best = pos;
-			}
-		}
+            if (score < bestScore) {
+                bestScore = score;
+                best = pos;
+            }
+        }
 
-		return best;
-	}
-
-	private static int heuristic(BlockPos current, BlockPos end) {
-		return Math.abs(current.getX()-end.getX()) + Math.abs(current.getY()-end.getY()) + Math.abs(current.getZ()-end.getZ());
-	}
+        return best;
+    }
 }

@@ -1,7 +1,7 @@
 package tesseract.graph.traverse;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.minecraft.util.math.BlockPos;
+import tesseract.util.Pos;
 
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -13,9 +13,10 @@ import java.util.function.Consumer;
  * search operations in order to split up a previously connected set of nodes into divided groups of connected nodes.
  */
 public class BFDivider {
+
 	private BFSearcher searcher;
-	private HashSet<BlockPos> toSearch;
-	private Object2IntOpenHashMap<BlockPos> roots;
+	private HashSet<Pos> toSearch;
+	private Object2IntOpenHashMap<Pos> roots;
 
 	public BFDivider(INodeContainer container) {
 		searcher = new BFSearcher(container);
@@ -38,7 +39,7 @@ public class BFDivider {
 	 * @return The index in the sequence of split position sets corresponding to the largest set of positions, ie. a
 	 *         return value of 0 indicates that the first returned set was the largest.
 	 */
-	public int divide(Consumer<Collection<BlockPos>> removed, Consumer<Collection<BlockPos>> rootProvider, Consumer<HashSet<BlockPos>> split) {
+	public int divide(Consumer<Collection<Pos>> removed, Consumer<Collection<Pos>> rootProvider, Consumer<HashSet<Pos>> split) {
 		if(!toSearch.isEmpty() || !roots.isEmpty()) {
 			throw new ConcurrentModificationException("Attempted to run concurrent divide operations on the same BFDivider instance");
 		}
@@ -50,7 +51,7 @@ public class BFDivider {
 
 		int currentColor = 0;
 
-		for(BlockPos root: toSearch) {
+		for(Pos root: toSearch) {
 			// Check if this root has already been colored.
 			int existingColor = roots.getInt(root);
 
@@ -62,7 +63,7 @@ public class BFDivider {
 			final int color = currentColor++;
 			roots.put(root, color);
 
-			HashSet<BlockPos> found = new HashSet<>();
+			HashSet<Pos> found = new HashSet<>();
 
 			searcher.search(root, reached -> {
 				if(toSearch.contains(reached)) {

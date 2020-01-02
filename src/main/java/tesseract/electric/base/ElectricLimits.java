@@ -3,6 +3,7 @@ package tesseract.electric.base;
 import tesseract.electric.api.IElectricLimits;
 
 public class ElectricLimits implements IElectricLimits {
+
 	public static final ElectricLimits UNLIMITED = new ElectricLimits();
 
 	private long maxEnergy;

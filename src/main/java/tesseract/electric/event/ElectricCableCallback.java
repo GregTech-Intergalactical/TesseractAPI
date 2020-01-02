@@ -3,7 +3,7 @@
 //import net.fabricmc.fabric.api.event.Event;
 //import net.fabricmc.fabric.api.event.EventFactory;
 //import net.minecraft.util.ActionResult;
-//import net.minecraft.util.math.BlockPos;
+//import tesseract.util.Pos;
 //import net.minecraft.world.World;
 //import tesseract.electric.api.IElectricCable;
 //import tesseract.graph.Connectivity;
@@ -48,7 +48,7 @@
 //	 * networks to also process the update.
 //	 */
 //	public interface Update {
-//		ActionResult update(World world, BlockPos pos, Connectivity.Cache<IElectricCable> cache);
+//		ActionResult update(World world, Pos pos, Connectivity.Cache<IElectricCable> cache);
 //	}
 //
 //	/**
@@ -57,6 +57,6 @@
 //	 * almost never want to return SUCCESS or FAIL, but rather PASS to enable other networks to also process the removal.
 //	 */
 //	public interface Remove {
-//		ActionResult remove(World world, BlockPos pos);
+//		ActionResult remove(World world, Pos pos);
 //	}
 //}

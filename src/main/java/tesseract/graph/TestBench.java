@@ -1,136 +1,140 @@
 package tesseract.graph;
 
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
 import tesseract.electric.api.IElectricCable;
 import tesseract.electric.api.IElectricLimits;
 import tesseract.electric.api.IElectricNode;
 import tesseract.electric.api.IElectricStorage;
 import tesseract.electric.base.ElectricLimits;
+import tesseract.util.Dir;
+import tesseract.util.Pos;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Optional;
 
 public class TestBench {
-	public static void main(String[] args) throws Exception {
-		Graph<ExampleCable, ExampleNode> graph = new Graph<>();
 
-		BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+    public static void main(String[] args) throws Exception {
 
-		while(true) {
-			System.out.print("> ");
-			String line = input.readLine().trim();
-			System.out.println(line);
+        Graph<ExampleCable, ExampleNode> graph = new Graph<>();
 
-			if(line.startsWith("add")) {
-				String[] adds = line.split(" ");
-				if(adds.length < 4) {
-					System.out.println("Usage: add <x> <y> <z> [node or connector]");
-					continue;
-				}
+        BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
-				BlockPos pos = new BlockPos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
+        while (true) {
+            System.out.print("> ");
+            String line = input.readLine().trim();
+            System.out.println(line);
 
-				if(!graph.contains(pos)) {
-					if(adds.length == 5 && adds[4].startsWith("c")) {
-						graph.addConnector(pos, Connectivity.Cache.of(new ExampleCable()));
-					} else {
-						graph.addNode(pos, Connectivity.Cache.of(new ExampleNode()));
-					}
+            if (line.startsWith("add")) {
+                String[] adds = line.split(" ");
+                if (adds.length < 4) {
+                    System.out.println("Usage: add <x> <y> <z> [node or connector]");
+                    continue;
+                }
 
-					System.out.println("Added "+pos+" to the graph");
-				} else {
-					System.out.println("Error: "+pos+" already exists in the graph");
-				}
+                Pos pos = new Pos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
 
-			} else if(line.startsWith("remove")) {
-				String[] adds = line.split(" ");
-				if(adds.length < 4) {
-					System.out.println("Usage: remove <x> <y> <z>");
-					continue;
-				}
+                if (!graph.contains(pos)) {
+                    if (adds.length == 5 && adds[4].startsWith("c")) {
+                        graph.addConnector(pos, Connectivity.Cache.of(new ExampleCable()));
+                    } else {
+                        graph.addNode(pos, Connectivity.Cache.of(new ExampleNode()));
+                    }
 
-				BlockPos pos = new BlockPos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
+                    System.out.println("Added " + pos + " to the graph");
+                } else {
+                    System.out.println("Error: " + pos + " already exists in the graph");
+                }
 
-				Optional<Entry<ExampleCable, ExampleNode>> entry = graph.remove(pos);
+            } else if (line.startsWith("remove")) {
+                String[] adds = line.split(" ");
+                if (adds.length < 4) {
+                    System.out.println("Usage: remove <x> <y> <z>");
+                    continue;
+                }
 
-				if(entry.isPresent()) {
-					entry.get().apply(
-							connector -> System.out.println("Removed connector "+pos+" from the graph: "+connector),
-							node -> System.out.println("Removed node "+pos+" from the graph: "+node)
-					);
-				} else {
-					System.out.println("Error: "+pos+" doesn't exist in the graph");
-				}
+                Pos pos = new Pos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
 
-			} else if(line.startsWith("exit")) {
-				return;
-			}
+                Optional<Entry<ExampleCable, ExampleNode>> entry = graph.remove(pos);
 
-			System.out.println("Graph contains "+graph.countGroups()+" groups:");
+                if (entry.isPresent()) {
+                    entry.get().apply(
+                        connector -> System.out.println("Removed connector " + pos + " from the graph: " + connector),
+                        node -> System.out.println("Removed node " + pos + " from the graph: " + node)
+                    );
+                } else {
+                    System.out.println("Error: " + pos + " doesn't exist in the graph");
+                }
 
-			graph.visit((groupId, group) -> {
-				System.out.println("  Group "+groupId+" contains "+group.countBlocks()+" blocks: ");
+            } else if (line.startsWith("exit")) {
+                return;
+            }
 
-				group.visitNodes((position, node) ->
-						System.out.println("    Node at "+position+": "+node)
-				);
+            System.out.println("Graph contains " + graph.countGroups() + " groups:");
 
-				group.visitGrids(grid -> {
-					System.out.println("    Grid contains "+grid.countConnectors()+" connectors:");
+            graph.visit((groupId, group) -> {
+                System.out.println("  Group " + groupId + " contains " + group.countBlocks() + " blocks: ");
 
-					grid.visitConnectors((position, connector) ->
-						System.out.println("      Connector at "+position+": "+connector)
-					);
-				});
-			});
-		}
-	}
+                group.visitNodes((position, node) ->
+                    System.out.println("    Node at " + position + ": " + node)
+                );
 
-	private static class ExampleCable implements IElectricCable, IConnectable {
-		@Override
-		public long getLossPerBlock() {
-			return 0;
-		}
+                group.visitGrids(grid -> {
+                    System.out.println("    Grid contains " + grid.countConnectors() + " connectors:");
 
-		@Override
-		public IElectricLimits getPassageLimits() {
-			return ElectricLimits.UNLIMITED;
-		}
+                    grid.visitConnectors((position, connector) ->
+                        System.out.println("      Connector at " + position + ": " + connector)
+                    );
+                });
+            });
+        }
+    }
 
-		@Override
-		public String toString() {
-			return "ExampleCable";
-		}
+    private static class ExampleCable implements IElectricCable, IConnectable {
 
-		@Override
-		public boolean connects(Direction direction) {
-			return true;
-		}
-	}
+        @Override
+        public long getLossPerBlock() {
+            return 0;
+        }
 
-	private static class ExampleNode implements IElectricNode, IConnectable {
-		public IElectricStorage getStorage(Direction direction) {
-			return null;
-		}
+        @Override
+        public IElectricLimits getPassageLimits() {
+            return ElectricLimits.UNLIMITED;
+        }
 
-		public IElectricLimits getReceiverLimits(Direction direction) {
-			return null;
-		}
+        @Override
+        public String toString() {
+            return "ExampleCable";
+        }
 
-		public int getOfferedPackets() {
-			return 0;
-		}
+        @Override
+        public boolean connects(Dir direction) {
+            return true;
+        }
+    }
 
-		@Override
-		public String toString() {
-			return "ExampleNode";
-		}
+    private static class ExampleNode implements IElectricNode, IConnectable {
 
-		@Override
-		public boolean connects(Direction direction) {
-			return true;
-		}
-	}
+        public IElectricStorage getStorage(Dir direction) {
+            return null;
+        }
+
+        public IElectricLimits getReceiverLimits(Dir direction) {
+            return null;
+        }
+
+        public int getOfferedPackets() {
+            return 0;
+        }
+
+        @Override
+        public String toString() {
+            return "ExampleNode";
+        }
+
+        @Override
+        public boolean connects(Dir direction) {
+            return true;
+        }
+    }
 }

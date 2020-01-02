@@ -1,6 +1,7 @@
 package tesseract.electric;
 
 public final class ElectricUnits {
+
 	public static final long MILLI_EU = 1;
 	public static final long EU = MILLI_EU * 1000;
 	public static final long KILO_EU = EU * 1000;

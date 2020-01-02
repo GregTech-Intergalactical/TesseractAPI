@@ -1,7 +1,7 @@
 package tesseract.graph;
 
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import tesseract.util.Dir;
+import tesseract.util.Pos;
 import tesseract.graph.traverse.INodeContainer;
 import tesseract.graph.visit.VisitableGroup;
 
@@ -12,10 +12,8 @@ import java.util.function.Supplier;
 
 // default: parameters are nonnull, methods return nonnull
 public class Graph<C extends IConnectable, N extends IConnectable> implements INodeContainer {
-	// To prevent excessive array reallocation
-	private static Direction[] DIRECTIONS = Direction.values();
 
-	private HashMap<BlockPos, UUID> posGrouping;
+	private HashMap<Pos, UUID> posGrouping;
 	private HashMap<UUID, Group<C, N>> groups;
 	
 	public Graph() {
@@ -24,17 +22,17 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	}
 
 	@Override
-	public boolean contains(BlockPos pos) {
+	public boolean contains(Pos pos) {
 		return posGrouping.containsKey(pos);
 	}
 
 	@Override
-	public boolean linked(BlockPos from, Direction towards, BlockPos to) {
+	public boolean linked(Pos from, Dir towards, Pos to) {
 		return posGrouping.containsKey(from) && posGrouping.containsKey(to);
 	}
 
 	@Override
-	public boolean connects(BlockPos position, Direction towards) {
+	public boolean connects(Pos position, Dir towards) {
 		return contains(position);
 	}
 
@@ -53,7 +51,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The position at which the node will be added
 	 * @param node The node to add
 	 */
-	public void addNode(BlockPos pos, Connectivity.Cache<N> node) {
+	public void addNode(Pos pos, Connectivity.Cache<N> node) {
 		add(pos, () -> Group.singleNode(pos, node), group -> group.addNode(pos, node));
 	}
 
@@ -62,7 +60,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The position at which the node will be added
 	 * @param connector The connector to add
 	 */
-	public void addConnector(BlockPos pos, Connectivity.Cache<C> connector) {
+	public void addConnector(Pos pos, Connectivity.Cache<C> connector) {
 		add(pos, () -> Group.singleConnector(pos, connector), group -> group.addConnector(pos, connector));
 	}
 
@@ -72,7 +70,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param single A supplier of a group containing a single entry, if the position is not touching any existing positions.
 	 * @param multiple An acceptor of an existing group, that the caller should add the entry to.
 	 */
-	private void add(BlockPos pos, Supplier<Group<C, N>> single, Consumer<Group<C, N>> multiple) {
+	private void add(Pos pos, Supplier<Group<C, N>> single, Consumer<Group<C, N>> multiple) {
 		ArrayList<UUID> mergers = getNeighboringGroups(pos);
 
 		if(mergers.size()==0) {
@@ -98,7 +96,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		}
 	}
 
-	public Optional<Entry<C, N>> remove(BlockPos pos) {
+	public Optional<Entry<C, N>> remove(Pos pos) {
 		UUID uuid = posGrouping.remove(pos);
 
 		if(uuid == null) {
@@ -172,11 +170,11 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		return data;
 	}
 
-	private ArrayList<UUID> getNeighboringGroups(BlockPos pos) {
+	private ArrayList<UUID> getNeighboringGroups(Pos pos) {
 		ArrayList<UUID> neighbors = new ArrayList<>(6);
 
-		for(Direction direction: DIRECTIONS) {
-			BlockPos face = pos.offset(direction);
+		for(Dir direction : Dir.VALUES) {
+			Pos face = pos.offset(direction);
 			UUID group = posGrouping.get(face);
 
 			if(group == null) {
