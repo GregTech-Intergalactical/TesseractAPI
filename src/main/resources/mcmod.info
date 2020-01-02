@@ -1,14 +1,14 @@
 [
 {
-  "modid": "zap",
-  "name": "Zap",
-  "description": "IC2-esque energy API and implementation",
+  "modid": "tesseract",
+  "name": "Tesseract API",
+  "description": "Multi purpose object network API",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
   "updateUrl": "",
-  "authorList": ["coderbot16"],
-  "credits": "IC2 Team for their excellent power system",
+  "authorList": ["coderbot16, mitchej123"],
+  "credits": "",
   "logoFile": "",
   "screenshots": [],
   "dependencies": []
