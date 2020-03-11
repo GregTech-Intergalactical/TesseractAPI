@@ -71,28 +71,29 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param multiple An acceptor of an existing group, that the caller should add the entry to.
 	 */
 	private void add(Pos pos, Supplier<Group<C, N>> single, Consumer<Group<C, N>> multiple) {
+		UUID uuid;
 		ArrayList<UUID> mergers = getNeighboringGroups(pos);
+		switch (mergers.size()) {
+			case 0:
+				uuid = getNewId();
+				posGrouping.put(pos, uuid);
+				groups.put(uuid, single.get());
+				break;
+			case 1:
+				uuid = mergers.get(0);
+				posGrouping.put(pos, uuid);
+				multiple.accept(groups.get(uuid));
+				break;
+			default:
+				MergeData<C, N> data = beginMerge(mergers);
 
-		if(mergers.size()==0) {
-			UUID uuid = getNewId();
+				posGrouping.put(pos, data.bestId);
+				multiple.accept(data.best);
 
-			posGrouping.put(pos, uuid);
-			groups.put(uuid, single.get());
-		} else if(mergers.size()==1) {
-			UUID uuid = mergers.get(0);
-
-			posGrouping.put(pos, uuid);
-
-			multiple.accept(groups.get(uuid));
-		} else {
-			MergeData<C, N> data = beginMerge(mergers);
-
-			posGrouping.put(pos, data.bestId);
-			multiple.accept(data.best);
-
-			for(Group<C, N> other: data.mergeGroups) {
-				data.best.mergeWith(other, pos);
-			}
+				for(Group<C, N> other: data.mergeGroups) {
+					data.best.mergeWith(other, pos);
+				}
+				break;
 		}
 	}
 
