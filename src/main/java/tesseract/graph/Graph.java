@@ -100,7 +100,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public Optional<Entry<C, N>> remove(Pos pos) {
 		UUID uuid = posGrouping.remove(pos);
 
-		if(uuid == null) {
+		if (uuid == null) {
 			return Optional.empty();
 		}
 
@@ -123,7 +123,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			);
 		});
 
-		if(group.countBlocks() == 0) {
+		if (group.countBlocks() == 0) {
 			groups.remove(uuid);
 		}
 
@@ -139,7 +139,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			Group<C, N> candidate = groups.get(id);
 			int size = candidate.countBlocks();
 
-			if(size > bestSize) {
+			if (size > bestSize) {
 				best = candidate;
 				bestId = id;
 				bestSize = size;
@@ -149,7 +149,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		ArrayList<Group<C, N>> mergeGroups = new ArrayList<>(mergers.size() - 1);
 
 		for(UUID id: mergers) {
-			if(id.equals(bestId)) {
+			if (id.equals(bestId)) {
 				continue;
 			}
 
@@ -178,11 +178,11 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			Pos face = pos.offset(direction);
 			UUID group = posGrouping.get(face);
 
-			if(group == null) {
+			if (group == null) {
 				continue;
 			}
 
-			if(!neighbors.contains(group)) {
+			if (!neighbors.contains(group)) {
 				neighbors.add(group);
 			}
 		}

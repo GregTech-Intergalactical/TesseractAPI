@@ -1,117 +1,117 @@
 package tesseract.graph.traverse;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import tesseract.util.Dir;
+import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import java.util.HashMap;
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.function.Consumer;
+import java.util.ConcurrentModificationException;
 
+/**
+ * A Star Algorithm implementation which finds an allowed path from start to goal coordinates on grid.
+ * <p>
+ * This method uses the A Star algorithm. The costs value is calculated in
+ * the given Node implementation.
+ * <p>
+ * If no allowed path exists, nothing will be returned to the constumer.
+ */
 public class AStarPathfinder {
 
+    private HashSet<Node> closed;
+    private ArrayDeque<Node> open;
     private INodeContainer container;
 
-    private HashSet<Pos> open;
-    private HashSet<Pos> closed;
-    private HashMap<Pos, Pos> cameFrom;
-    private Object2IntMap<Pos> gScore;
-    private Object2IntMap<Pos> fScore;
-
+    /**
+     * Creates a reusable AStarPathfinder instance that will search the provided container.
+     *
+     * @param container The container to use for search operations
+     */
     public AStarPathfinder(INodeContainer container) {
-        this.container = container;
-
-        open = new HashSet<>();
         closed = new HashSet<>();
-        cameFrom = new HashMap<>();
-        gScore = new Object2IntOpenHashMap<>();
-        fScore = new Object2IntOpenHashMap<>();
-
-        gScore.defaultReturnValue(Integer.MAX_VALUE);
-        fScore.defaultReturnValue(Integer.MAX_VALUE);
+        open = new ArrayDeque<>();
+        this.container = container;
     }
 
-    private static int heuristic(Pos current, Pos end) {
-        return Math.abs(current.getX() - end.getX()) + Math.abs(current.getY() - end.getY()) + Math.abs(current.getZ() - end.getZ());
-    }
+    /**
+     * Begins a find operation from the specified start position. The finder will report each new reached position of the path
+     * to the provided consumer. As a result of the algorithm, each reported position is guaranteed to be connected to
+     * an existing position, or in the case of the first reported position, it will be identical to from.
+     *
+     * @param origin     The start position of the finds operation. This will be the first position reported to the consumer.
+     * @param target     The target position of the finds operation. This will be the last position reported to the consumer.
+     * @param collector  An acceptor of the points calculated by the A Star algorithm.
+     */
+    public void find(Pos origin, Pos target,  Consumer<Pos> collector) {
+        if (!closed.isEmpty() || !open.isEmpty()) {
+            throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same AStarPathfinder instance");
+        }
 
-    // TODO: Verify that this works
-    public void findPath(Pos start, Pos end, Consumer<Pos> fromEnd) {
-        Pos current = new Pos(start);
-        Pos neighbor = new Pos();
+        if (target == null || origin == null || origin.equals(target)) {
+            throw new ConcurrentModificationException("Attempted to run find operation with invalid position");
+        }
 
-        open.add(start);
-        fScore.put(start, heuristic(start, end));
+        try {
+            Node start = new Node(origin);
+            Node end = new Node(target);
 
-        while (!current.equals(end)) {
-            open.remove(current);
-            closed.add(current);
+            open.add(start);
 
-            int currentGScore = gScore.getInt(current);
+            while (!open.isEmpty()) {
 
-            for (Dir direction : Dir.VALUES) {
-                neighbor.set(current).offset(direction);
+                Node current = getLowestF();
+                if (current.equals(end)) {
+                    Node temp = current;
+                    collector.accept(current);
 
-                if (closed.contains(neighbor) || !container.linked(current, direction, neighbor)) {
-                    continue;
+                    while (temp.getParent() != null) {
+                        collector.accept(temp.getParent());
+                        temp = temp.getParent();
+                    }
+
+                    break;
                 }
 
-                int neighborGScore = currentGScore + 1;
+                open.remove(current);
+                closed.add(current);
 
-                if (!open.contains(current)) {
-                    // note: this allocates
-                    open.add(current/*.toImmutable()*/);
-                } else {
-                    int existingGScore = gScore.getInt(current);
+                for (Node n : current.getNeighboringNodes(container)) {
 
-                    if (neighborGScore >= existingGScore) {
+                    if (closed.contains(n)) {
                         continue;
                     }
+
+                    int tempScore = current.getCost() + current.distanceTo(n);
+
+                    if (open.contains(n)) {
+                        if (tempScore < n.getCost()) {
+                            n.setCost(tempScore);
+                            n.setParent(current);
+                        }
+                    } else {
+                        n.setCost(tempScore);
+                        open.add(n);
+                        n.setParent(current);
+                    }
+
+                    n.setHeuristic(n.heuristic(end));
+                    n.setFunction(n.getCost() + n.getHeuristic());
                 }
-
-                // note: this allocates
-                Pos neighborImmutable = neighbor/*.toImmutable()*/;
-
-                cameFrom.put(neighborImmutable, current/*.toImmutable()*/);
-                gScore.put(neighborImmutable, neighborGScore);
-                fScore.put(neighborImmutable, neighborGScore + heuristic(neighborImmutable, end));
             }
-
-            current.set(findBestOpenNode());
+        } finally {
+            // Clean up the open/closed sets
+            closed.clear();
+            open.clear();
         }
-
-
-        open.clear();
-        closed.clear();
-        gScore.clear();
-        fScore.clear();
-
-        fromEnd.accept(end);
-
-        while (!current.equals(start)) {
-            Pos node = cameFrom.remove(current);
-            current.set(node);
-
-            fromEnd.accept(node);
-        }
-
-        cameFrom.clear();
     }
 
-    private Pos findBestOpenNode() {
-        Pos best = null;
-        int bestScore = Integer.MAX_VALUE;
-
-        for (Pos pos : open) {
-            int score = fScore.getInt(pos);
-
-            if (score < bestScore) {
-                bestScore = score;
-                best = pos;
+    private Node getLowestF() {
+        Node lowest = open.peek();
+        for (Node n : open) {
+            if (n.getFunction() < lowest.getFunction()) {
+                lowest = n;
             }
         }
-
-        return best;
+        return lowest;
     }
 }

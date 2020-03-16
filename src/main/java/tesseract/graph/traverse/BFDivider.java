@@ -18,6 +18,11 @@ public class BFDivider {
 	private HashSet<Pos> toSearch;
 	private Object2IntOpenHashMap<Pos> roots;
 
+	/**
+	 * Creates a reusable BFDivider instance that will devides the provided container.
+	 *
+	 * @param container The container to use for devides operations
+	 */
 	public BFDivider(INodeContainer container) {
 		searcher = new BFSearcher(container);
 		toSearch = new HashSet<>();
@@ -40,7 +45,7 @@ public class BFDivider {
 	 *         return value of 0 indicates that the first returned set was the largest.
 	 */
 	public int divide(Consumer<Collection<Pos>> removed, Consumer<Collection<Pos>> rootProvider, Consumer<HashSet<Pos>> split) {
-		if(!toSearch.isEmpty() || !roots.isEmpty()) {
+		if (!toSearch.isEmpty() || !roots.isEmpty()) {
 			throw new ConcurrentModificationException("Attempted to run concurrent divide operations on the same BFDivider instance");
 		}
 
@@ -55,7 +60,7 @@ public class BFDivider {
 			// Check if this root has already been colored.
 			int existingColor = roots.getInt(root);
 
-			if(existingColor != roots.defaultReturnValue()) {
+			if (existingColor != roots.defaultReturnValue()) {
 				// Already colored! No point in doing it again.
 				continue;
 			}
@@ -66,14 +71,14 @@ public class BFDivider {
 			HashSet<Pos> found = new HashSet<>();
 
 			searcher.search(root, reached -> {
-				if(toSearch.contains(reached)) {
+				if (toSearch.contains(reached)) {
 					roots.put(reached, color);
 				}
 
 				found.add(reached);
 			}, removed);
 
-			if(found.size() > bestCount) {
+			if (found.size() > bestCount) {
 				bestCount = found.size();
 				bestColor = color;
 			}

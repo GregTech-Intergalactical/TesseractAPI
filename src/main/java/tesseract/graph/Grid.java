@@ -1,6 +1,7 @@
 package tesseract.graph;
 
 import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
+import tesseract.graph.traverse.AStarPathfinder;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.graph.traverse.INodeContainer;
 import tesseract.graph.visit.VisitableGrid;
@@ -17,19 +18,19 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
     private HashMap<Pos, Connectivity.Cache<C>> connectors;
     private Object2ByteOpenHashMap<Pos> linkedNodes;
     private BFDivider divider;
+    private AStarPathfinder finder;
 
     private Grid() {
         connectors = new HashMap<>();
         linkedNodes = new Object2ByteOpenHashMap<>();
         linkedNodes.defaultReturnValue(Byte.MAX_VALUE);
         divider = new BFDivider(this);
+        finder = new AStarPathfinder(this);
     }
 
     public static <C extends IConnectable> Grid<C> singleConnector(Pos pos, Connectivity.Cache<C> connector) {
         Grid<C> grid = new Grid<>();
-
         grid.connectors.put(Objects.requireNonNull(pos), Objects.requireNonNull(connector));
-
         return grid;
     }
 
@@ -93,6 +94,11 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
         for (Map.Entry<Pos, Connectivity.Cache<C>> entry : connectors.entrySet()) {
             visitor.accept(entry.getKey(), entry.getValue().value());
         }
+    }
+
+    @Override
+    public void findPath(Pos start, Pos end, Consumer<Pos> collector) {
+        finder.find(start, end, collector);
     }
 
     /**

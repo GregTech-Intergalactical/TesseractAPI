@@ -1,5 +1,7 @@
 package tesseract.util;
 
+import net.minecraft.util.math.BlockPos;
+
 public class Pos {
     
     private int x, y, z;
@@ -37,31 +39,19 @@ public class Pos {
     }
 
     public Pos add(int x, int y, int z) {
-        this.x += x;
-        this.y += y;
-        this.z += z;
-        return this;
+        return this.set(this.x + x, this.y + y, this.z + z);
     }
 
     public Pos add(Pos pos) {
-        this.x += pos.x;
-        this.y += pos.y;
-        this.z += pos.z;
-        return this;
+        return this.set(this.x + pos.x, this.y + pos.y, this.z + pos.z);
     }
 
     public Pos sub(int x, int y, int z) {
-        this.x -= x;
-        this.y -= y;
-        this.z -= z;
-        return this;
+        return this.set(this.x - x, this.y - y, this.z - z);
     }
 
     public Pos sub(Pos pos) {
-        this.x -= pos.x;
-        this.y -= pos.y;
-        this.z -= pos.z;
-        return this;
+        return this.set(this.x - pos.x, this.y - pos.y, this.z - pos.z);
     }
 
     public int getX() {
@@ -77,15 +67,25 @@ public class Pos {
     }
 
     public Pos offset(Dir dir) {
-        return offset(dir, 1);
+        return new Pos(x + dir.getXOffset(), y + dir.getYOffset(), z + dir.getZOffset());
     }
 
-    public Pos offset(Dir dir, int count) {
-        if (count == 0) return this;
-        this.x += dir.getOffset() * count;
-        this.y += dir.getOffset() * count;
-        this.z += dir.getOffset() * count;
-        return this;
+    public Pos offset(Dir dir, int n) {
+        return n == 0 ? this : new Pos(x + dir.getXOffset() * n, y + dir.getYOffset() * n, z + dir.getZOffset() * n);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Pos) {
+            Pos o = (Pos) obj;
+            return (x == o.x) && (y == o.y) && (z == o.z);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return (x + z * 31) * 31 + x;
     }
 
     @Override

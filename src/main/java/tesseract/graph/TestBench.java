@@ -5,6 +5,7 @@ import tesseract.electric.api.IElectricLimits;
 import tesseract.electric.api.IElectricNode;
 import tesseract.electric.api.IElectricStorage;
 import tesseract.electric.base.ElectricLimits;
+import tesseract.graph.traverse.AStarPathfinder;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
@@ -17,7 +18,8 @@ public class TestBench {
     public static void main(String[] args) throws Exception {
 
         Graph<ExampleCable, ExampleNode> graph = new Graph<>();
-
+        Connectivity.Cache<ExampleNode> n = Connectivity.Cache.of(new ExampleNode());
+        Connectivity.Cache<ExampleCable> c = Connectivity.Cache.of(new ExampleCable());
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
@@ -36,9 +38,9 @@ public class TestBench {
 
                 if (!graph.contains(pos)) {
                     if (adds.length == 5 && adds[4].startsWith("c")) {
-                        graph.addConnector(pos, Connectivity.Cache.of(new ExampleCable()));
+                        graph.addConnector(pos, c);
                     } else {
-                        graph.addNode(pos, Connectivity.Cache.of(new ExampleNode()));
+                        graph.addNode(pos, n);
                     }
 
                     System.out.println("Added " + pos + " to the graph");
@@ -59,12 +61,30 @@ public class TestBench {
 
                 if (entry.isPresent()) {
                     entry.get().apply(
-                        connector -> System.out.println("Removed connector " + pos + " from the graph: " + connector),
-                        node -> System.out.println("Removed node " + pos + " from the graph: " + node)
+                            connector -> System.out.println("Removed connector " + pos + " from the graph: " + connector),
+                            node -> System.out.println("Removed node " + pos + " from the graph: " + node)
                     );
                 } else {
                     System.out.println("Error: " + pos + " doesn't exist in the graph");
                 }
+            }
+            else if (line.startsWith("a*")) {
+                String[] star = line.split(" ");
+                if (star.length < 7) {
+                    System.out.println("Usage: a* <x1> <y1> <z1> <x2> <y2> <z2>");
+                    continue;
+                }
+
+                Pos start = new Pos(Integer.parseInt(star[1]), Integer.parseInt(star[2]), Integer.parseInt(star[3]));
+                Pos end = new Pos(Integer.parseInt(star[4]), Integer.parseInt(star[5]), Integer.parseInt(star[6]));
+
+                System.out.println("findPath ->");
+
+                graph.visit((groupId, group) -> {
+                    group.visitGrids(grid -> {
+                        grid.findPath(start, end, System.out::println);
+                    });
+                });
 
             } else if (line.startsWith("exit")) {
                 return;
