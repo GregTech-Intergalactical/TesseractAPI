@@ -90,7 +90,7 @@ public class BFSearcher {
 
                     if (container.linked(current, direction, searchPos)) {
                         // Note: this allocates a new position
-                        open.add(searchPos/*.toImmutable()*/);
+                        open.add(searchPos.toImmutable());
                     }
                 }
             }
