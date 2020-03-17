@@ -19,16 +19,16 @@ public class Entry<C, N> {
 	private final Optional<N> node;
 
 	private Entry(Optional<C> l, Optional<N> r) {
-		connector=l;
-		node=r;
+		connector = l;
+		node = r;
 	}
 
 	public <T> T map(Function<? super C, ? extends T> lFunc, Function<? super N, ? extends T> rFunc) {
-		return connector.<T>map(lFunc).orElseGet(()->node.map(rFunc).get());
+		return connector.<T>map(lFunc).orElseGet(() -> node.map(rFunc).get());
 	}
 
 	public <T> Entry<T,N> mapCable(Function<? super C, ? extends T> lFunc) {
-		return new Entry<>(connector.map(lFunc),node);
+		return new Entry<>(connector.map(lFunc), node);
 	}
 
 	public <T> Entry<C,T> mapEndpoint(Function<? super N, ? extends T> rFunc) {
