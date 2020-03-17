@@ -5,7 +5,6 @@ import tesseract.electric.api.IElectricLimits;
 import tesseract.electric.api.IElectricNode;
 import tesseract.electric.api.IElectricStorage;
 import tesseract.electric.base.ElectricLimits;
-import tesseract.graph.traverse.AStarPathfinder;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
@@ -18,8 +17,6 @@ public class TestBench {
     public static void main(String[] args) throws Exception {
 
         Graph<ExampleCable, ExampleNode> graph = new Graph<>();
-        Connectivity.Cache<ExampleNode> n = Connectivity.Cache.of(new ExampleNode());
-        Connectivity.Cache<ExampleCable> c = Connectivity.Cache.of(new ExampleCable());
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
@@ -38,9 +35,9 @@ public class TestBench {
 
                 if (!graph.contains(pos)) {
                     if (adds.length == 5 && adds[4].startsWith("c")) {
-                        graph.addConnector(pos, c);
+                        graph.addConnector(pos, Connectivity.Cache.of(new ExampleCable()));
                     } else {
-                        graph.addNode(pos, n);
+                        graph.addNode(pos, Connectivity.Cache.of(new ExampleNode()));
                     }
 
                     System.out.println("Added " + pos + " to the graph");
@@ -61,8 +58,8 @@ public class TestBench {
 
                 if (entry.isPresent()) {
                     entry.get().apply(
-                            connector -> System.out.println("Removed connector " + pos + " from the graph: " + connector),
-                            node -> System.out.println("Removed node " + pos + " from the graph: " + node)
+                        connector -> System.out.println("Removed connector " + pos + " from the graph: " + connector),
+                        node -> System.out.println("Removed node " + pos + " from the graph: " + node)
                     );
                 } else {
                     System.out.println("Error: " + pos + " doesn't exist in the graph");
@@ -80,11 +77,14 @@ public class TestBench {
 
                 System.out.println("findPath ->");
 
-                graph.visit((groupId, group) -> {
-                    group.visitGrids(grid -> {
-                        grid.findPath(start, end, System.out::println);
-                    });
-                });
+                graph.visit((groupId, group) -> group.visitGrids(grid -> grid.findPath(start, end, System.out::println)));
+                continue;
+            }
+            else if (line.startsWith("clear")) {
+                System.out.println("Graph cleaned");
+
+                graph.visit((groupId, group) -> graph.remove(groupId));
+                continue;
 
             } else if (line.startsWith("exit")) {
                 return;
@@ -95,16 +95,12 @@ public class TestBench {
             graph.visit((groupId, group) -> {
                 System.out.println("  Group " + groupId + " contains " + group.countBlocks() + " blocks: ");
 
-                group.visitNodes((position, node) ->
-                    System.out.println("    Node at " + position + ": " + node)
-                );
+                group.visitNodes((position, node) -> System.out.println("    Node at " + position + ": " + node));
 
                 group.visitGrids(grid -> {
                     System.out.println("    Grid contains " + grid.countConnectors() + " connectors:");
 
-                    grid.visitConnectors((position, connector) ->
-                        System.out.println("      Connector at " + position + ": " + connector)
-                    );
+                    grid.visitConnectors((position, connector) -> System.out.println("      Connector at " + position + ": " + connector));
                 });
             });
         }

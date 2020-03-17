@@ -56,7 +56,7 @@ public class BFDivider {
 
 		int currentColor = 0;
 
-		for(Pos root: toSearch) {
+		for (Pos root: toSearch) {
 			// Check if this root has already been colored.
 			int existingColor = roots.getInt(root);
 

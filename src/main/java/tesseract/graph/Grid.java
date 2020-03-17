@@ -119,7 +119,8 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
      * @return A random position from the grid
      */
     Pos sampleConnector() {
-        return connectors.keySet().iterator().next();
+        Iterator<Pos> iterator = connectors.keySet().iterator();
+        return iterator.hasNext() ? iterator.next() : null;
     }
 
     public void addConnector(Pos pos, Connectivity.Cache<C> connector) {
@@ -149,10 +150,10 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
             removed -> removed.add(pos),
             roots -> {
                 for (Dir direction : Dir.VALUES) {
-                    Pos side = pos.offset(direction);
+                    Pos face = pos.offset(direction);
 
-                    if (this.linked(pos, direction, side)) {
-                        roots.add(side);
+                    if (this.linked(pos, direction, face)) {
+                        roots.add(face);
                     }
                 }
             },

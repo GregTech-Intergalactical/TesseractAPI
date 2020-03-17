@@ -1,5 +1,6 @@
 package tesseract.graph.traverse;
 
+import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
@@ -61,6 +62,7 @@ public class AStarPathfinder {
 
                 Node current = getLowestF();
                 if (current.equals(end)) {
+                    //
                     Node temp = current;
                     collector.accept(current);
 
@@ -75,7 +77,7 @@ public class AStarPathfinder {
                 open.remove(current);
                 closed.add(current);
 
-                for (Node n : current.getNeighboringNodes(container)) {
+                for (Node n : getNeighboringNodes(current)) {
 
                     if (closed.contains(n)) {
                         continue;
@@ -105,6 +107,11 @@ public class AStarPathfinder {
         }
     }
 
+    /**
+     * Returns a node with the lowest function which exists the open list.
+     *
+     * @return  The found node.
+     */
     private Node getLowestF() {
         Node lowest = open.peek();
         for (Node n : open) {
@@ -113,5 +120,24 @@ public class AStarPathfinder {
             }
         }
         return lowest;
+    }
+
+    /**
+     * Returns a set of a neighbors of a given node.
+     *
+     * @return  The set of nodes.
+     */
+    public HashSet<Node> getNeighboringNodes(Node current) {
+        HashSet<Node> neighbors = new HashSet<>(6);
+
+        for (Dir direction : Dir.VALUES) {
+            Pos pos = current.offset(direction);
+
+            if (container.contains(pos)) {
+                neighbors.add(new Node(pos));
+            }
+        }
+
+        return neighbors;
     }
 }

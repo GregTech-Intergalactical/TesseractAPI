@@ -29,8 +29,7 @@ public class Connectivity {
         byte connectivity;
         C value;
 
-        private Cache() {
-        }
+        private Cache() { }
 
         public static <C> Cache<C> ofDelegated(C value, IConnectable delegate) {
             Cache<C> cache = new Cache<>();

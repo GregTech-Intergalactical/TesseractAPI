@@ -20,11 +20,10 @@ public class GraphTest {
     @Test
     public void linked() {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
-        Connectivity.Cache<TestNode> node = Connectivity.Cache.of(new GraphTest.TestNode());
         Pos pos1 = new Pos(0, 0, 0);
-        Pos pos2 = new Pos(1, 1, 1);
-        graph.addNode(pos1, node);
-        graph.addNode(pos2, node);
+        Pos pos2 = new Pos(0, 1, 0);
+        graph.addNode(pos1, Connectivity.Cache.of(new GraphTest.TestNode()));
+        graph.addNode(pos2, Connectivity.Cache.of(new GraphTest.TestNode()));
         assertTrue(graph.linked(pos1, null, pos2));
     }
 

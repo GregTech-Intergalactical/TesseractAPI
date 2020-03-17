@@ -22,7 +22,6 @@ public class BFSearcher {
 
     private HashSet<Pos> closed;
     private ArrayDeque<Pos> open;
-    private Pos searchPos;
     private INodeContainer container;
 
     /**
@@ -33,7 +32,6 @@ public class BFSearcher {
     public BFSearcher(INodeContainer container) {
         closed = new HashSet<>();
         open = new ArrayDeque<>();
-        searchPos = new Pos();
         this.container = container;
     }
 
@@ -80,17 +78,16 @@ public class BFSearcher {
 
                 // Discover new nodes
                 for (Dir direction : Dir.VALUES) {
-                    searchPos.set(current);
-                    searchPos.offset(direction);
+                    Pos pos = current.offset(direction);
 
-                    if (closed.contains(searchPos)) {
+                    if (closed.contains(pos)) {
                         // Already seen, prevent infinite loops.
                         continue;
                     }
 
-                    if (container.linked(current, direction, searchPos)) {
+                    if (container.linked(current, direction, pos)) {
                         // Note: this allocates a new position
-                        open.add(searchPos.toImmutable());
+                        open.add(pos);
                     }
                 }
             }

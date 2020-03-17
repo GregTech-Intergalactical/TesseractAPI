@@ -37,7 +37,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	}
 
 	public void visit(BiConsumer<UUID, VisitableGroup<C, N>> visitor) {
-		for(Map.Entry<UUID, Group<C, N>> entry: groups.entrySet()) {
+		for (Map.Entry<UUID, Group<C, N>> entry: groups.entrySet()) {
 			visitor.accept(entry.getKey(), entry.getValue());
 		}
 	}
@@ -72,7 +72,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 */
 	private void add(Pos pos, Supplier<Group<C, N>> single, Consumer<Group<C, N>> multiple) {
 		UUID uuid;
-		ArrayList<UUID> mergers = getNeighboringGroups(pos);
+		ArrayDeque<UUID> mergers = getNeighboringGroups(pos);
 		switch (mergers.size()) {
 			case 0:
 				uuid = getNewId();
@@ -80,7 +80,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 				groups.put(uuid, single.get());
 				break;
 			case 1:
-				uuid = mergers.get(0);
+				uuid = mergers.peek();
 				posGrouping.put(pos, uuid);
 				multiple.accept(groups.get(uuid));
 				break;
@@ -90,7 +90,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 				posGrouping.put(pos, data.bestId);
 				multiple.accept(data.best);
 
-				for(Group<C, N> other: data.mergeGroups) {
+				for (Group<C, N> other: data.mergeGroups) {
 					data.best.mergeWith(other, pos);
 				}
 				break;
@@ -111,16 +111,10 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			groups.put(newUuid, newGroup);
 
 			// Mark the nodes as pointing at the new group
-			newGroup.visitNodes (
-					(part, node) -> posGrouping.put(part, newUuid)
-			);
+			newGroup.visitNodes((part, node) -> posGrouping.put(part, newUuid));
 
 			// Mark the connectors as pointing at the new group
-			newGroup.visitGrids (
-					grid -> grid.visitConnectors (
-							(part, connector) -> posGrouping.put(part, newUuid)
-					)
-			);
+			newGroup.visitGrids(grid -> grid.visitConnectors((part, connector) -> posGrouping.put(part, newUuid)));
 		});
 
 		if (group.countBlocks() == 0) {
@@ -130,12 +124,17 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		return Optional.of(entry);
 	}
 
-	private MergeData<C, N> beginMerge(ArrayList<UUID> mergers) {
-		UUID bestId = mergers.get(0);
+	public void remove(UUID id) {
+		groups.remove(id);
+		posGrouping.entrySet().removeIf(entry -> entry.getValue() == id);
+	}
+
+	private MergeData<C, N> beginMerge(ArrayDeque<UUID> mergers) {
+		UUID bestId = mergers.peek();
 		Group<C, N> best = groups.get(bestId);
 		int bestSize = best.countBlocks();
 
-		for(UUID id: mergers) {
+		for (UUID id: mergers) {
 			Group<C, N> candidate = groups.get(id);
 			int size = candidate.countBlocks();
 
@@ -146,9 +145,9 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			}
 		}
 
-		ArrayList<Group<C, N>> mergeGroups = new ArrayList<>(mergers.size() - 1);
+		HashSet<Group<C, N>> mergeGroups = new HashSet<>(mergers.size() - 1);
 
-		for(UUID id: mergers) {
+		for (UUID id: mergers) {
 			if (id.equals(bestId)) {
 				continue;
 			}
@@ -171,10 +170,10 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		return data;
 	}
 
-	private ArrayList<UUID> getNeighboringGroups(Pos pos) {
-		ArrayList<UUID> neighbors = new ArrayList<>(6);
+	private ArrayDeque<UUID> getNeighboringGroups(Pos pos) {
+		ArrayDeque<UUID> neighbors = new ArrayDeque<>(6);
 
-		for(Dir direction : Dir.VALUES) {
+		for (Dir direction : Dir.VALUES) {
 			Pos face = pos.offset(direction);
 			UUID group = posGrouping.get(face);
 
@@ -192,7 +191,8 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 	private UUID getNewId() {
 		UUID uuid = UUID.randomUUID();
-		while(groups.containsKey(uuid)) {
+
+		while (groups.containsKey(uuid)) {
 			// Should never be called, but whatever.
 			uuid = UUID.randomUUID();
 		}
@@ -200,10 +200,9 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		return uuid;
 	}
 
-	// Wish Java had tuples...
 	private static class MergeData<C extends IConnectable, N extends IConnectable> {
-		Group<C, N> best;
 		UUID bestId;
-		ArrayList<Group<C, N>> mergeGroups;
+		Group<C, N> best;
+		HashSet<Group<C, N>> mergeGroups;
 	}
 }

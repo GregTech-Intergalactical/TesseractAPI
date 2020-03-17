@@ -211,9 +211,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     UUID newId = getNewId();
                     grids.put(newId, newGrid);
 
-                    newGrid.visitConnectors((pos, connector) ->
-                        connectorPairing.put(pos, newId)
-                    );
+                    newGrid.visitConnectors((pos, connector) -> connectorPairing.put(pos, newId));
                 }
             );
 
@@ -248,7 +246,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             colored::add
         );
 
-        ArrayList<Grid<C>> splitGrids = null;
+        HashSet<Grid<C>> splitGrids = null;
         HashSet<Pos> excluded = new HashSet<>();
 
         Entry<C, N> result;
@@ -256,7 +254,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         UUID centerGridId = connectorPairing.get(posToRemove);
         if (centerGridId != null) {
             Grid<C> centerGrid = grids.remove(centerGridId);
-            splitGrids = new ArrayList<>();
+            splitGrids = new HashSet<>();
 
             centerGrid.visitConnectors((toMove, connector) -> {
                 connectorPairing.remove(toMove);

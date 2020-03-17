@@ -65,18 +65,4 @@ public class Node extends Pos {
     public String toString() {
         return "(" + getX() + ", " + getY() + ", " + getZ() + ")" + " [Cost: " + getCost() + " | Heuristic: " + getHeuristic() + " | Function: " + getFunction() + "]";
     }
-
-    public HashSet<Node> getNeighboringNodes(INodeContainer container) {
-        HashSet<Node> neighbors = new HashSet<>(6);
-
-        for (Dir direction : Dir.VALUES) {
-            Pos face = offset(direction);
-
-            if (container.contains(face)) {
-                neighbors.add(new Node(face));
-            }
-        }
-
-        return neighbors;
-    }
 }

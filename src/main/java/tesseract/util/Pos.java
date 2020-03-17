@@ -74,10 +74,6 @@ public class Pos {
         return n == 0 ? this : new Pos(x + dir.getXOffset() * n, y + dir.getYOffset() * n, z + dir.getZOffset() * n);
     }
 
-    public Pos toImmutable() {
-        return new Pos(this);
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Pos) {
