@@ -1,4 +1,4 @@
-package tesseract.graph.traverse;
+package tesseract.graph;
 
 import tesseract.util.Dir;
 import tesseract.util.Pos;
@@ -7,11 +7,10 @@ import tesseract.util.Pos;
  * A simple interface for representing objects that contain groups of positions that are connected in various ways.
  * Used by traversal classes in order to determine how they may move from one element to the next.
  */
-public interface INodeContainer {
+public interface INode {
 
 	/**
 	 * Tests whether this container contains the specified position.
-	 *
 	 * @param pos The position that the container may potentially contain
 	 * @return Whether the container contains the specified position
 	 */

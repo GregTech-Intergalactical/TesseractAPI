@@ -39,19 +39,19 @@ public class Pos {
     }
 
     public Pos add(int x, int y, int z) {
-        return this.set(this.x + x, this.y + y, this.z + z);
+        return set(this.x + x, this.y + y, this.z + z);
     }
 
     public Pos add(Pos pos) {
-        return this.set(this.x + pos.x, this.y + pos.y, this.z + pos.z);
+        return set(this.x + pos.x, this.y + pos.y, this.z + pos.z);
     }
 
     public Pos sub(int x, int y, int z) {
-        return this.set(this.x - x, this.y - y, this.z - z);
+        return set(this.x - x, this.y - y, this.z - z);
     }
 
     public Pos sub(Pos pos) {
-        return this.set(this.x - pos.x, this.y - pos.y, this.z - pos.z);
+        return set(this.x - pos.x, this.y - pos.y, this.z - pos.z);
     }
 
     public int getX() {

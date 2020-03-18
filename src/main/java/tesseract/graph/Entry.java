@@ -4,8 +4,23 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-// Taken from https://stackoverflow.com/a/26164155
-// Java implementation of Either, adapted to Zap
+/**
+ * A class that acts as a container for a value of one of two types.
+ * <p>
+ * An Entry can be used to express a success or failure case. By convention,
+ * Right is used to store the success value, (you can use the play on words
+ * "right" == "correct" as a mnemonic) and Left is used to store failure values
+ * (such as exceptions).
+ * <p>
+ * While this class is public and abstract it does not expose a constructor as
+ * only the concrete Left and Right subclasses are meant to be used.
+ * <p>
+ * Entry is immutable, but does not force immutability on contained objects; if
+ * the contained objects are mutable then equals and hashcode methods should not
+ * be relied on.
+ *
+ * @link https://stackoverflow.com/a/26164155
+ */
 public class Entry<C, N> {
 
 	public static <C, N> Entry<C, N> connector(C value) {

@@ -10,9 +10,14 @@ import tesseract.util.Pos;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
-public class TestBench {
+/**
+ * Testing purpose class
+ */
+class TestBench {
 
     public static void main(String[] args) throws Exception {
 
@@ -64,11 +69,10 @@ public class TestBench {
                 } else {
                     System.out.println("Error: " + pos + " doesn't exist in the graph");
                 }
-            }
-            else if (line.startsWith("a*")) {
+            } else if (line.startsWith("a*")) {
                 String[] star = line.split(" ");
                 if (star.length < 7) {
-                    System.out.println("Usage: a* <x1> <y1> <z1> <x2> <y2> <z2>");
+                    System.out.println("Usage: a* <x1> <y1> <z1> <x2> <y2> <z2> [crossroad]");
                     continue;
                 }
 
@@ -76,33 +80,34 @@ public class TestBench {
                 Pos end = new Pos(Integer.parseInt(star[4]), Integer.parseInt(star[5]), Integer.parseInt(star[6]));
 
                 System.out.println("findPath ->");
-
-                graph.visit((groupId, group) -> group.visitGrids(grid -> grid.findPath(start, end, System.out::println)));
+                for (Map.Entry<UUID, Group<ExampleCable, ExampleNode>> group : graph.getGroups().entrySet()) {
+                    for (IGrid<ExampleCable> grid : group.getValue().getGrids()) {
+                        for (Pos pos : grid.getPath(start, end, star.length == 8 && star[7].startsWith("x"))) {
+                            System.out.println(pos);
+                        }
+                    }
+                }
                 continue;
-            }
-            else if (line.startsWith("clear")) {
-                System.out.println("Graph cleaned");
-
-                graph.visit((groupId, group) -> graph.remove(groupId));
-                continue;
-
             } else if (line.startsWith("exit")) {
                 return;
             }
 
             System.out.println("Graph contains " + graph.countGroups() + " groups:");
 
-            graph.visit((groupId, group) -> {
-                System.out.println("  Group " + groupId + " contains " + group.countBlocks() + " blocks: ");
+            for (Map.Entry<UUID, Group<ExampleCable, ExampleNode>> group : graph.getGroups().entrySet()) {
+                System.out.println("  Group " + group.getKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
 
-                group.visitNodes((position, node) -> System.out.println("    Node at " + position + ": " + node));
+                for (Map.Entry<Pos, ExampleNode> node : group.getValue().getNodes().entrySet()) {
+                    System.out.println("    Node at " +  node.getKey() + ": " + node.getValue());
+                }
 
-                group.visitGrids(grid -> {
+                for (IGrid<ExampleCable> grid : group.getValue().getGrids()) {
                     System.out.println("    Grid contains " + grid.countConnectors() + " connectors:");
-
-                    grid.visitConnectors((position, connector) -> System.out.println("      Connector at " + position + ": " + connector));
-                });
-            });
+                    for (Map.Entry<Pos, ExampleCable> connector : grid.getConnectors().entrySet()) {
+                        System.out.println("      Connector at " + connector.getKey() + ": " + connector.getValue());
+                    }
+                }
+            };
         }
     }
 

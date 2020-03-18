@@ -1,5 +1,6 @@
 package tesseract.graph.traverse;
 
+import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
@@ -22,14 +23,14 @@ public class BFSearcher {
 
     private HashSet<Pos> closed;
     private ArrayDeque<Pos> open;
-    private INodeContainer container;
+    private INode container;
 
     /**
      * Creates a reusable BFSearcher instance that will search the provided container.
      *
-     * @param container The container to use for search operations
+     * @param container The container to use for search operations.
      */
-    public BFSearcher(INodeContainer container) {
+    public BFSearcher(INode container) {
         closed = new HashSet<>();
         open = new ArrayDeque<>();
         this.container = container;

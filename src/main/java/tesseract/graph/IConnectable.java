@@ -9,6 +9,8 @@ public interface IConnectable {
 
     /**
      *
+     * @param direction
+     * @return
      */
     boolean connects(Dir direction);
 }

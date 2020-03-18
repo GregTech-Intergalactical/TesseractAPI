@@ -27,15 +27,15 @@ public enum Dir {
     }
 
     public int getXOffset() {
-        return this.direction.getX();
+        return direction.getX();
     }
 
     public int getYOffset() {
-        return this.direction.getY();
+        return direction.getY();
     }
 
     public int getZOffset() {
-        return this.direction.getZ();
+        return direction.getZ();
     }
 
     public Dir invert() {

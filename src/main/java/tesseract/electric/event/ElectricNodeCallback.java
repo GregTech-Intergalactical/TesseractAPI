@@ -16,10 +16,10 @@
 //
 //	public static final Event<Update> UPDATE = EventFactory.createArrayBacked(Update.class,
 //			(listeners) -> (world, pos, cache) -> {
-//				for(Update callback: listeners) {
+//				for (Update callback: listeners) {
 //					ActionResult result = callback.update(world, pos, cache);
 //
-//					if(result != ActionResult.PASS) {
+//					if (result != ActionResult.PASS) {
 //						return result;
 //					}
 //				}
@@ -30,10 +30,10 @@
 //
 //	public static final Event<Remove> REMOVE = EventFactory.createArrayBacked(Remove.class,
 //			(listeners) -> (world, pos) -> {
-//				for(Remove callback: listeners) {
+//				for (Remove callback: listeners) {
 //					ActionResult result = callback.remove(world, pos);
 //
-//					if(result != ActionResult.PASS) {
+//					if (result != ActionResult.PASS) {
 //						return result;
 //					}
 //				}

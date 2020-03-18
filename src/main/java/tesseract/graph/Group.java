@@ -1,46 +1,54 @@
 package tesseract.graph;
 
 import tesseract.graph.traverse.BFDivider;
-import tesseract.graph.traverse.INodeContainer;
-import tesseract.graph.visit.VisitableGrid;
-import tesseract.graph.visit.VisitableGroup;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-// default: parameters are nonnull, methods return nonnull
-public class Group<C extends IConnectable, N extends IConnectable> implements INodeContainer, VisitableGroup<C, N> {
+/**
+ * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
+ * @apiNote default parameters are nonnull, methods return nonnull.
+ */
+public class Group<C extends IConnectable, N extends IConnectable> implements INode, IGroup<C, N> {
 
     private HashMap<Pos, Connectivity.Cache<N>> nodes;
-    private HashMap<Pos, UUID> connectorPairing;
+    private HashMap<Pos, UUID> connectors; // connectors pairing
     private HashMap<UUID, Grid<C>> grids;
-
     private BFDivider divider;
 
     // Prevent the creation of empty groups externally, a caller needs to use singleNode/singleConnector.
     private Group() {
         nodes = new HashMap<>();
-        connectorPairing = new HashMap<>();
+        connectors = new HashMap<>();
         grids = new HashMap<>();
         divider = new BFDivider(this);
     }
 
+    /**
+     *
+     * @param at
+     * @param node
+     * @return
+     */
     public static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(Pos at, Connectivity.Cache<N> node) {
         Group<C, N> group = new Group<>();
-
         group.addNode(at, node);
-
         return group;
     }
 
+    /**
+     *
+     * @param at
+     * @param connector
+     * @return
+     */
     public static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(Pos at, Connectivity.Cache<C> connector) {
         Group<C, N> group = new Group<>();
         UUID id = group.getNewId();
 
-        group.connectorPairing.put(at, id);
+        group.connectors.put(at, id);
         group.grids.put(id, Grid.singleConnector(at, connector));
 
         return group;
@@ -50,7 +58,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     public boolean contains(Pos at) {
         Objects.requireNonNull(at);
 
-        return nodes.containsKey(at) || connectorPairing.containsKey(at);
+        return nodes.containsKey(at) || connectors.containsKey(at);
     }
 
     @Override
@@ -68,35 +76,47 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
     @Override
     public int countBlocks() {
-        return nodes.size() + connectorPairing.size();
+        return nodes.size() + connectors.size();
     }
 
     @Override
-    public void visitBlocks(Consumer<Pos> consumer) {
-        nodes.keySet().forEach(consumer);
-        connectorPairing.keySet().forEach(consumer);
+    public LinkedHashSet<Pos> getBlocks() {
+        LinkedHashSet<Pos> set = new LinkedHashSet<>();
+        set.addAll(nodes.keySet());
+        set.addAll(connectors.keySet());
+        return set;
     }
 
     @Override
-    public void visitNodes(BiConsumer<Pos, N> visitor) {
+    public HashMap<Pos, N> getNodes() {
+        HashMap<Pos, N> map = new HashMap<>();
         for (Map.Entry<Pos, Connectivity.Cache<N>> entry : nodes.entrySet()) {
-            visitor.accept(entry.getKey(), entry.getValue().value());
+            map.put(entry.getKey(), entry.getValue().value());
         }
+        return map;
     }
 
     @Override
-    public void visitGrids(Consumer<VisitableGrid<C>> visitor) {
-        for (Grid<C> grid : grids.values()) {
-            visitor.accept(grid);
-        }
+    public LinkedHashSet<IGrid<C>> getGrids() {
+        return new LinkedHashSet<>(grids.values());
     }
 
+    /**
+     *
+     * @param at
+     * @param node
+     */
     public void addNode(Pos at, Connectivity.Cache<N> node) {
         nodes.put(Objects.requireNonNull(at), Objects.requireNonNull(node));
     }
 
+    /**
+     *
+     * @param at
+     * @param connector
+     */
     public void addConnector(Pos at, Connectivity.Cache<C> connector) {
-        connector = Objects.requireNonNull(connector);
+        Objects.requireNonNull(connector);
 
         HashMap<UUID, Grid<C>> linkedGrids = new HashMap<>();
         UUID bestId = null;
@@ -111,7 +131,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             }
 
             Pos offset = at.offset(direction);
-            UUID id = connectorPairing.get(offset);
+            UUID id = connectors.get(offset);
 
             if (id == null) {
                 neighbors += nodes.containsKey(offset) ? 1 : 0;
@@ -141,7 +161,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             // Single connector grid
             UUID id = getNewId();
 
-            connectorPairing.put(at, id);
+            connectors.put(at, id);
             grids.put(id, Grid.singleConnector(at, connector));
             return;
         }
@@ -151,7 +171,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         // Add to the best grid
-        connectorPairing.put(at, bestId);
+        connectors.put(at, bestId);
         bestGrid.addConnector(at, connector);
 
         if (linkedGrids.size() == 1) {
@@ -167,11 +187,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 continue;
             }
 
-            final UUID target = bestId;
-
             bestGrid.mergeWith(at, grid);
-            grid.visitConnectors((item, visited) -> connectorPairing.put(item, target));
-
+            for (Pos item : grid.getConnectors().keySet()) {
+                connectors.put(item, bestId);
+            }
             grids.remove(id);
         }
     }
@@ -195,7 +214,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         // If removing the entry would not cause a group split, then it is safe to remove the entry directly.
         if (isExternal(posToRemove)) {
             Connectivity.Cache<N> node = nodes.remove(posToRemove);
-            UUID pairing = connectorPairing.remove(posToRemove);
+            UUID pairing = connectors.remove(posToRemove);
 
             if (node != null) {
                 return Entry.node(node.value());
@@ -211,7 +230,9 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     UUID newId = getNewId();
                     grids.put(newId, newGrid);
 
-                    newGrid.visitConnectors((pos, connector) -> connectorPairing.put(pos, newId));
+                    for (Pos pos : newGrid.getConnectors().keySet()) {
+                        connectors.put(pos, newId);
+                    }
                 }
             );
 
@@ -230,7 +251,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         // For optimization purposes, the largest colored fragment remains resident within its original group.
         // Note: we don't remove the node yet, but instead just tell the Searcher to exclude it.
         // This is so that we can handle the grid splits ourselves at the end.
-        ArrayList<HashSet<Pos>> colored = new ArrayList<>();
+        ArrayList<LinkedHashSet<Pos>> colored = new ArrayList<>();
 
         int bestColor = divider.divide(
             removed -> removed.add(posToRemove),
@@ -238,7 +259,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 for (Dir direction : Dir.VALUES) {
                     Pos side = posToRemove.offset(direction);
 
-                    if (this.linked(posToRemove, direction, side)) {
+                    if (linked(posToRemove, direction, side)) {
                         roots.add(side);
                     }
                 }
@@ -246,20 +267,20 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             colored::add
         );
 
-        HashSet<Grid<C>> splitGrids = null;
+        LinkedHashSet<Grid<C>> splitGrids = null;
         HashSet<Pos> excluded = new HashSet<>();
 
         Entry<C, N> result;
 
-        UUID centerGridId = connectorPairing.get(posToRemove);
+        UUID centerGridId = connectors.get(posToRemove);
         if (centerGridId != null) {
             Grid<C> centerGrid = grids.remove(centerGridId);
-            splitGrids = new HashSet<>();
+            splitGrids = new LinkedHashSet<>();
 
-            centerGrid.visitConnectors((toMove, connector) -> {
-                connectorPairing.remove(toMove);
-                excluded.add(toMove);
-            });
+            for (Pos move : centerGrid.getConnectors().keySet()) {
+                connectors.remove(move);
+                excluded.add(move);
+            }
 
             result = Entry.connector(centerGrid.remove(posToRemove, splitGrids::add));
             splitGrids.add(centerGrid);
@@ -268,23 +289,23 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         for (int i = 0; i < colored.size(); i++) {
-            HashSet<Pos> found = colored.get(i);
+            LinkedHashSet<Pos> found = colored.get(i);
             Group<C, N> newGroup;
 
             if (i != bestColor) {
                 newGroup = new Group<>();
 
                 for (Pos reached : found) {
-                    if (newGroup.connectorPairing.containsKey(reached) || (excluded.contains(reached))) {
+                    if (newGroup.connectors.containsKey(reached) || (excluded.contains(reached))) {
                         continue;
                     }
 
-                    UUID gridId = connectorPairing.get(reached);
+                    UUID gridId = connectors.get(reached);
 
                     // Just a node then, simply add it to the new group.
                     // The maps are mutated directly here in order to retain the cached connectivity.
                     if (gridId == null) {
-                        newGroup.nodes.put(reached, Objects.requireNonNull(this.nodes.remove(reached)));
+                        newGroup.nodes.put(reached, Objects.requireNonNull(nodes.remove(reached)));
                         continue;
                     }
 
@@ -298,10 +319,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     grids.remove(gridId);
                     newGroup.grids.put(gridId, grid);
 
-                    grid.visitConnectors((moved, connector) -> {
-                        connectorPairing.remove(moved);
-                        newGroup.connectorPairing.put(moved, gridId);
-                    });
+                    for (Pos moved : grid.getConnectors().keySet()) {
+                        connectors.remove(moved);
+                        newGroup.connectors.put(moved, gridId);
+                    };
                 }
             } else {
                 newGroup = this;
@@ -332,10 +353,16 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         return Objects.requireNonNull(result);
     }
 
+    /**
+     *
+     * @param id
+     * @param grid
+     */
     private void addGrid(UUID id, Grid<C> grid) {
-        this.grids.put(id, grid);
-
-        grid.visitConnectors((moved, connector) -> connectorPairing.put(moved, id));
+        grids.put(id, grid);
+        for (Pos moved : grid.getConnectors().keySet()) {
+            connectors.put(moved, id);
+        }
     }
 
     /**
@@ -346,7 +373,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      */
     private boolean isExternal(Pos pos) {
         // If the group contains less than 2 blocks, neighbors cannot exist.
-        if (this.countBlocks() <= 1) {
+        if (countBlocks() <= 1) {
             return true;
         }
 
@@ -354,7 +381,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         for (Dir direction : Dir.VALUES) {
             Pos face = pos.offset(direction);
 
-            if (this.contains(face)) {
+            if (contains(face)) {
                 neighbors += 1;
             }
         }
@@ -363,18 +390,23 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     // Graph controlled interface
+
+    /**
+     *
+     * @param other
+     * @param at
+     */
     void mergeWith(Group<C, N> other, Pos at) {
         nodes.putAll(other.nodes);
-        connectorPairing.putAll(other.connectorPairing);
+        connectors.putAll(other.connectors);
 
-        other.grids.keySet().forEach(id -> {
+        for (UUID id : other.grids.keySet()) {
             if (grids.containsKey(id)) {
-                // TODO: Handle duplicate IDs
                 throw new IllegalStateException("Duplicate grid UUIDs when attempting to merge groups, this should never happen!");
             }
-        });
+        };
 
-        UUID pairing = connectorPairing.get(at);
+        UUID pairing = connectors.get(at);
 
         if (pairing != null) {
             Grid<C> currentGrid = grids.get(pairing);
@@ -386,7 +418,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     continue;
                 }
 
-                UUID id = other.connectorPairing.get(offset);
+                UUID id = other.connectors.get(offset);
 
                 if (id == null) {
                     continue;
@@ -401,7 +433,9 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
                 if (grid.connects(offset, direction.invert())) {
                     currentGrid.mergeWith(at, grid);
-                    grid.visitConnectors((position, connector) -> this.connectorPairing.put(position, pairing));
+                    for (Pos position : grid.getConnectors().keySet()) {
+                        connectors.put(position, pairing);
+                    }
                 }
             }
         }
@@ -409,6 +443,9 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         grids.putAll(other.grids);
     }
 
+    /**
+     * @return Pseudo randomly generates an immutable universally unique identifier.
+     */
     private UUID getNewId() {
         UUID uuid = UUID.randomUUID();
         while (grids.containsKey(uuid)) {

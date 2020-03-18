@@ -1,11 +1,12 @@
 package tesseract.graph.traverse;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import tesseract.graph.INode;
 import tesseract.util.Pos;
 
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.function.Consumer;
 
 /**
@@ -15,17 +16,17 @@ import java.util.function.Consumer;
 public class BFDivider {
 
 	private BFSearcher searcher;
-	private HashSet<Pos> toSearch;
+	private LinkedHashSet<Pos> lookup;
 	private Object2IntOpenHashMap<Pos> roots;
 
 	/**
 	 * Creates a reusable BFDivider instance that will devides the provided container.
 	 *
-	 * @param container The container to use for devides operations
+	 * @param container The container to use for devides operations.
 	 */
-	public BFDivider(INodeContainer container) {
+	public BFDivider(INode container) {
 		searcher = new BFSearcher(container);
-		toSearch = new HashSet<>();
+		lookup = new LinkedHashSet<>();
 		roots = new Object2IntOpenHashMap<>();
 		roots.defaultReturnValue(Integer.MAX_VALUE);
 	}
@@ -44,50 +45,52 @@ public class BFDivider {
 	 * @return The index in the sequence of split position sets corresponding to the largest set of positions, ie. a
 	 *         return value of 0 indicates that the first returned set was the largest.
 	 */
-	public int divide(Consumer<Collection<Pos>> removed, Consumer<Collection<Pos>> rootProvider, Consumer<HashSet<Pos>> split) {
-		if (!toSearch.isEmpty() || !roots.isEmpty()) {
+	public int divide(Consumer<Collection<Pos>> removed, Consumer<Collection<Pos>> rootProvider, Consumer<LinkedHashSet<Pos>> split) {
+		if (!lookup.isEmpty() || !roots.isEmpty()) {
 			throw new ConcurrentModificationException("Attempted to run concurrent divide operations on the same BFDivider instance");
 		}
 
-		rootProvider.accept(toSearch);
+		rootProvider.accept(lookup);
 
 		int bestCount = 0;
 		int bestColor = 0;
-
 		int currentColor = 0;
 
-		for (Pos root: toSearch) {
-			// Check if this root has already been colored.
-			int existingColor = roots.getInt(root);
+		try {
+			for (Pos root : lookup) {
+				// Check if this root has already been colored.
+				int existingColor = roots.getInt(root);
 
-			if (existingColor != roots.defaultReturnValue()) {
-				// Already colored! No point in doing it again.
-				continue;
-			}
-
-			final int color = currentColor++;
-			roots.put(root, color);
-
-			HashSet<Pos> found = new HashSet<>();
-
-			searcher.search(root, reached -> {
-				if (toSearch.contains(reached)) {
-					roots.put(reached, color);
+				if (existingColor != roots.defaultReturnValue()) {
+					// Already colored! No point in doing it again.
+					continue;
 				}
 
-				found.add(reached);
-			}, removed);
+				final int color = currentColor++;
+				roots.put(root, color);
 
-			if (found.size() > bestCount) {
-				bestCount = found.size();
-				bestColor = color;
+				LinkedHashSet<Pos> found = new LinkedHashSet<>();
+
+				searcher.search(root, reached -> {
+					if (lookup.contains(reached)) {
+						roots.put(reached, color);
+					}
+
+					found.add(reached);
+				}, removed);
+
+				if (found.size() > bestCount) {
+					bestCount = found.size();
+					bestColor = color;
+				}
+
+				split.accept(found);
 			}
-
-			split.accept(found);
+		} finally {
+			// Clean up the open/closed sets
+			lookup.clear();
+			roots.clear();
 		}
-
-		toSearch.clear();
-		roots.clear();
 
 		return bestColor;
 	}
