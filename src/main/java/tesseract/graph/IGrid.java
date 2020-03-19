@@ -1,9 +1,8 @@
 package tesseract.graph;
 
-import tesseract.util.Pos;
-
-import java.util.HashMap;
-import java.util.LinkedHashSet;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 
 /**
  * A simple interface for representing objects that contain sets of positions that are linked to each other.
@@ -16,9 +15,9 @@ public interface IGrid<C extends IConnectable> {
 	int countConnectors();
 
 	/**
-	 * @return Returns connectors.
+	 * @return Returns connectors map.
 	 */
-	HashMap<Pos, C> getConnectors();
+	Long2ObjectMap<Connectivity.Cache<C>> getConnectors();
 
 	/**
 	 * Begins a find operation from the specified start position to the end position.
@@ -27,5 +26,5 @@ public interface IGrid<C extends IConnectable> {
 	 * @param crossroad If true will generate path only with crossroad nodes, false for all nodes.
 	 * @return An set of path points.
 	 */
-	LinkedHashSet<Pos> getPath(Pos start, Pos end, boolean crossroad);
+	LongSet getPath(long start, long end, boolean crossroad);
 }

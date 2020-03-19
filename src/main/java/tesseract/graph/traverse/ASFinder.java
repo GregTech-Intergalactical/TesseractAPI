@@ -1,13 +1,14 @@
 package tesseract.graph.traverse;
 
+import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
 import java.util.ArrayDeque;
-import java.util.HashSet;
 import java.util.ConcurrentModificationException;
-import java.util.LinkedHashSet;
 
 /**
  * A Star Algorithm implementation for converting a graph – consisting of the grid – into a route through the grid.
@@ -15,8 +16,8 @@ import java.util.LinkedHashSet;
 public class ASFinder {
 
     private ArrayDeque<Node> open;
-    private HashSet<Node> closed;
-    private LinkedHashSet<Pos> path;
+    private ObjectOpenHashSet<Node> closed;
+    private LongLinkedOpenHashSet path;
     private INode container;
 
     /**
@@ -25,9 +26,9 @@ public class ASFinder {
      * @param container The container to use for search operations
      */
     public ASFinder(INode container) {
-        closed = new HashSet<>();
         open = new ArrayDeque<>();
-        path = new LinkedHashSet<>();
+        closed = new ObjectOpenHashSet<>();
+        path = new LongLinkedOpenHashSet();
         this.container = container;
     }
 
@@ -39,12 +40,12 @@ public class ASFinder {
      * @param crossroad If true will generate path only with crossroad nodes, false for all nodes.
      * @return          An set of the points calculated by the A Star algorithm.
      */
-    public LinkedHashSet<Pos> find(Pos origin, Pos target, boolean crossroad) {
+    public LongLinkedOpenHashSet find(long origin, long target, boolean crossroad) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same ASFinder instance");
         }
 
-        if (target == null || origin == null || origin.equals(target)) {
+        if (origin == target) {
             throw new ConcurrentModificationException("Attempted to run find operation with invalid positions");
         }
 
@@ -106,21 +107,21 @@ public class ASFinder {
      */
     public void retracePath(Node current, boolean crossroad) {
         Node temp = current;
-        path.add(current);
+        path.add(current.get());
 
         while (temp.getParent() != null) {
             Node parent = temp.getParent();
             if (crossroad) {
                 if (isCrossroad(parent)) {
-                    path.add(parent);
+                    path.add(parent.get());
                 }
             } else {
-                path.add(parent);
+                path.add(parent.get());
             }
             temp = parent;
         }
 
-        path.add(temp);
+        path.add(temp.get());
     }
 
     /**
@@ -144,11 +145,11 @@ public class ASFinder {
      * @param current The given node.
      * @return The set of nodes.
      */
-    public HashSet<Node> getNeighboringNodes(Node current) {
-        HashSet<Node> neighbors = new HashSet<>(6);
+    public ObjectLinkedOpenHashSet<Node> getNeighboringNodes(Node current) {
+        ObjectLinkedOpenHashSet<Node> neighbors = new ObjectLinkedOpenHashSet<>(6);
 
         for (Dir direction : Dir.VALUES) {
-            Pos pos = current.offset(direction);
+            long pos = current.offset(direction).get();
 
             if (container.contains(pos)) {
                 neighbors.add(new Node(pos));
@@ -168,7 +169,7 @@ public class ASFinder {
         int connections = 0;
 
         for (Dir direction : Dir.VALUES) {
-            Pos pos = current.offset(direction);
+            long pos = current.offset(direction).get();
 
             if (container.connects(pos, direction)) {
                 connections++;
@@ -192,6 +193,10 @@ public class ASFinder {
 
         public Node(int x, int y, int z) {
             super(x, y, z);
+        }
+
+        public Node(long value) {
+            super(value);
         }
 
         public Node(Pos pos) {

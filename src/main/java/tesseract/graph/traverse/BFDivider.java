@@ -1,12 +1,11 @@
 package tesseract.graph.traverse;
 
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import tesseract.graph.INode;
-import tesseract.util.Pos;
 
-import java.util.Collection;
 import java.util.ConcurrentModificationException;
-import java.util.LinkedHashSet;
 import java.util.function.Consumer;
 
 /**
@@ -16,8 +15,8 @@ import java.util.function.Consumer;
 public class BFDivider {
 
 	private BFSearcher searcher;
-	private LinkedHashSet<Pos> lookup;
-	private Object2IntOpenHashMap<Pos> roots;
+	private LongLinkedOpenHashSet lookup;
+	private Long2IntOpenHashMap roots;
 
 	/**
 	 * Creates a reusable BFDivider instance that will devides the provided container.
@@ -26,8 +25,8 @@ public class BFDivider {
 	 */
 	public BFDivider(INode container) {
 		searcher = new BFSearcher(container);
-		lookup = new LinkedHashSet<>();
-		roots = new Object2IntOpenHashMap<>();
+		lookup = new LongLinkedOpenHashSet();
+		roots = new Long2IntOpenHashMap();
 		roots.defaultReturnValue(Integer.MAX_VALUE);
 	}
 
@@ -45,7 +44,7 @@ public class BFDivider {
 	 * @return The index in the sequence of split position sets corresponding to the largest set of positions, ie. a
 	 *         return value of 0 indicates that the first returned set was the largest.
 	 */
-	public int divide(Consumer<Collection<Pos>> removed, Consumer<Collection<Pos>> rootProvider, Consumer<LinkedHashSet<Pos>> split) {
+	public int divide(Consumer<LongOpenHashSet> removed, Consumer<LongLinkedOpenHashSet> rootProvider, Consumer<LongLinkedOpenHashSet> split) {
 		if (!lookup.isEmpty() || !roots.isEmpty()) {
 			throw new ConcurrentModificationException("Attempted to run concurrent divide operations on the same BFDivider instance");
 		}
@@ -57,9 +56,9 @@ public class BFDivider {
 		int currentColor = 0;
 
 		try {
-			for (Pos root : lookup) {
+			for (long root : lookup) {
 				// Check if this root has already been colored.
-				int existingColor = roots.getInt(root);
+				int existingColor = roots.get(root);
 
 				if (existingColor != roots.defaultReturnValue()) {
 					// Already colored! No point in doing it again.
@@ -69,7 +68,7 @@ public class BFDivider {
 				final int color = currentColor++;
 				roots.put(root, color);
 
-				LinkedHashSet<Pos> found = new LinkedHashSet<>();
+				LongLinkedOpenHashSet found = new LongLinkedOpenHashSet();
 
 				searcher.search(root, reached -> {
 					if (lookup.contains(reached)) {

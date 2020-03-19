@@ -1,14 +1,14 @@
 package tesseract.graph.traverse;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.ConcurrentModificationException;
-import java.util.HashSet;
 import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
 /**
  * Breadth-first searcher implementation for determining connectivity within a graph, used for graph splitting upon node removal.
@@ -21,8 +21,8 @@ import java.util.function.Consumer;
  */
 public class BFSearcher {
 
-    private HashSet<Pos> closed;
-    private ArrayDeque<Pos> open;
+    private LongOpenHashSet closed;
+    private ArrayDeque<Long> open;
     private INode container;
 
     /**
@@ -31,7 +31,7 @@ public class BFSearcher {
      * @param container The container to use for search operations.
      */
     public BFSearcher(INode container) {
-        closed = new HashSet<>();
+        closed = new LongOpenHashSet();
         open = new ArrayDeque<>();
         this.container = container;
     }
@@ -46,7 +46,7 @@ public class BFSearcher {
      * @param excluder A function that can add values to the closed set prior to the search operation.
      *                 They will not be reported or traversed; null is interpreted to mean no exclusions.
      */
-    public void search(Pos from, Consumer<Pos> reached, Consumer<Collection<Pos>> excluder) {
+    public void search(long from, LongConsumer reached, Consumer<LongOpenHashSet> excluder) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same BFSearcher instance");
         }
@@ -65,7 +65,7 @@ public class BFSearcher {
 
             while (!open.isEmpty()) {
                 // Pick a position
-                Pos current = open.remove();
+                long current = open.remove();
 
                 if (closed.contains(current)) {
                     // I don't think this should happen, but it works as a sanity check.
@@ -77,9 +77,10 @@ public class BFSearcher {
                 closed.add(current);
                 reached.accept(current);
 
+                Pos position = new Pos(current);
                 // Discover new nodes
                 for (Dir direction : Dir.VALUES) {
-                    Pos pos = current.offset(direction);
+                    long pos = position.offset(direction).get();
 
                     if (closed.contains(pos)) {
                         // Already seen, prevent infinite loops.

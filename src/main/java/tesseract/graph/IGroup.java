@@ -1,9 +1,8 @@
 package tesseract.graph;
 
-import tesseract.util.Pos;
-
-import java.util.HashMap;
-import java.util.LinkedHashSet;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.objects.ObjectCollection;
 
 /**
  * A simple interface for representing objects that contain sets of positions that are may or may not be linked.
@@ -16,17 +15,17 @@ public interface IGroup<C extends IConnectable, N extends IConnectable> {
 	int countBlocks();
 
 	/**
-	 * @return Returns blocks.
+	 * @return Returns blocks set.
 	 */
-	LinkedHashSet<Pos> getBlocks();
+	LongSet getBlocks();
 
 	/**
-	 * @return Returns nodes.
+	 * @return Returns nodes map.
 	 */
-	HashMap<Pos, N> getNodes();
+	Long2ObjectMap<Connectivity.Cache<N>> getNodes();
 
 	/**
-	 * @return Returns grids.
+	 * @return Returns grids set.
 	 */
-	LinkedHashSet<IGrid<C>> getGrids();
+	ObjectCollection<Grid<C>> getGrids();
 }

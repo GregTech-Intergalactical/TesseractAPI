@@ -14,7 +14,7 @@ public interface INode {
 	 * @param pos The position that the container may potentially contain
 	 * @return Whether the container contains the specified position
 	 */
-	boolean contains(Pos pos);
+	boolean contains(long pos);
 
 	/**
 	 * Tests whether adjacent positions are linked.
@@ -23,7 +23,7 @@ public interface INode {
 	 * @param to The target position, must be equal to <code>from.offset(towards)</code>
 	 * @return Whether the positions are linked. If a position is not contained within this container, returns false.
 	 */
-	boolean linked(Pos from, Dir towards, Pos to);
+	boolean linked(long from, Dir towards, long to);
 
 	/**
 	 * Tests whether the given position can link on the given side.
@@ -31,5 +31,5 @@ public interface INode {
 	 * @param towards The face on the starting position
 	 * @return Whether the position would connect on the given side, returns false if the position is not within this container.
 	 */
-	boolean connects(Pos position, Dir towards);
+	boolean connects(long position, Dir towards);
 }

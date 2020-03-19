@@ -21,7 +21,8 @@ import java.util.function.Function;
  *
  * @link https://stackoverflow.com/a/26164155
  */
-public class Entry<C, N> {
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+public final class Entry<C, N> {
 
 	public static <C, N> Entry<C, N> connector(C value) {
 		return new Entry<>(Optional.of(value), Optional.empty());

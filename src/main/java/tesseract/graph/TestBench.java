@@ -1,5 +1,7 @@
 package tesseract.graph;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import tesseract.electric.api.IElectricCable;
 import tesseract.electric.api.IElectricLimits;
 import tesseract.electric.api.IElectricNode;
@@ -10,7 +12,6 @@ import tesseract.util.Pos;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,12 +38,13 @@ class TestBench {
                 }
 
                 Pos pos = new Pos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
+                long position = pos.get();
 
-                if (!graph.contains(pos)) {
+                if (!graph.contains(position)) {
                     if (adds.length == 5 && adds[4].startsWith("c")) {
-                        graph.addConnector(pos, Connectivity.Cache.of(new ExampleCable()));
+                        graph.addConnector(position, Connectivity.Cache.of(new ExampleCable()));
                     } else {
-                        graph.addNode(pos, Connectivity.Cache.of(new ExampleNode()));
+                        graph.addNode(position, Connectivity.Cache.of(new ExampleNode()));
                     }
 
                     System.out.println("Added " + pos + " to the graph");
@@ -58,8 +60,9 @@ class TestBench {
                 }
 
                 Pos pos = new Pos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
+                long position = pos.get();
 
-                Optional<Entry<ExampleCable, ExampleNode>> entry = graph.remove(pos);
+                Optional<Entry<ExampleCable, ExampleNode>> entry = graph.remove(position);
 
                 if (entry.isPresent()) {
                     entry.get().apply(
@@ -80,10 +83,10 @@ class TestBench {
                 Pos end = new Pos(Integer.parseInt(star[4]), Integer.parseInt(star[5]), Integer.parseInt(star[6]));
 
                 System.out.println("findPath ->");
-                for (Map.Entry<UUID, Group<ExampleCable, ExampleNode>> group : graph.getGroups().entrySet()) {
+                for (Object2ObjectMap.Entry<UUID, Group<ExampleCable, ExampleNode>> group : graph.getGroups().object2ObjectEntrySet()) {
                     for (IGrid<ExampleCable> grid : group.getValue().getGrids()) {
-                        for (Pos pos : grid.getPath(start, end, star.length == 8 && star[7].startsWith("x"))) {
-                            System.out.println(pos);
+                        for (long pos : grid.getPath(start.get(), end.get(), star.length == 8 && star[7].startsWith("x"))) {
+                            System.out.println(new Pos(pos));
                         }
                     }
                 }
@@ -94,17 +97,17 @@ class TestBench {
 
             System.out.println("Graph contains " + graph.countGroups() + " groups:");
 
-            for (Map.Entry<UUID, Group<ExampleCable, ExampleNode>> group : graph.getGroups().entrySet()) {
+            for (Object2ObjectMap.Entry<UUID, Group<ExampleCable, ExampleNode>> group : graph.getGroups().object2ObjectEntrySet()) {
                 System.out.println("  Group " + group.getKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
 
-                for (Map.Entry<Pos, ExampleNode> node : group.getValue().getNodes().entrySet()) {
-                    System.out.println("    Node at " +  node.getKey() + ": " + node.getValue());
+                for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
+                    System.out.println("    Node at " +  new Pos(node.getLongKey()) + ": " + node.getValue().value());
                 }
 
                 for (IGrid<ExampleCable> grid : group.getValue().getGrids()) {
                     System.out.println("    Grid contains " + grid.countConnectors() + " connectors:");
-                    for (Map.Entry<Pos, ExampleCable> connector : grid.getConnectors().entrySet()) {
-                        System.out.println("      Connector at " + connector.getKey() + ": " + connector.getValue());
+                    for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleCable>> connector : grid.getConnectors().long2ObjectEntrySet()) {
+                        System.out.println("      Connector at " + new Pos(connector.getLongKey()) + ": " + connector.getValue().value());
                     }
                 }
             };

@@ -45,12 +45,12 @@ public class Connectivity {
     }
 
     /**
-     *
+     * The Cache is a class that should work with connections.
      */
     public static class Cache<C> {
 
-        byte connectivity;
-        C value;
+        private byte connectivity;
+        private C value;
 
         private Cache() { }
 
@@ -70,6 +70,10 @@ public class Connectivity {
 
         public boolean connects(Dir direction) {
             return Connectivity.has(connectivity, direction);
+        }
+
+        public byte connectivity() {
+            return connectivity;
         }
 
         public C value() {
