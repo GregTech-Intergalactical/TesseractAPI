@@ -1,7 +1,9 @@
 package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.*;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.*;
+import tesseract.util.listener.IListener;
+import tesseract.util.listener.Long2ByteMapListener;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Dir;
@@ -16,16 +18,16 @@ import java.util.function.Consumer;
  */
 public class Grid<C extends IConnectable> implements INode, IGrid<C> {
 
-    private Long2ObjectLinkedOpenHashMap<Connectivity.Cache<C>> connectors;
-    private Long2ByteOpenHashMap nodes; // linked nodes
+    private Long2ObjectMap<Connectivity.Cache<C>> connectors;
+    //private Object2ObjectLinkedOpenHashMap<C, ObjectLinkedOpenHashSet<LongLinkedOpenHashSet>> pathes;
+    private Long2ByteMapListener nodes; // linked nodes
     private BFDivider divider;
     private ASFinder finder;
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
         connectors = new Long2ObjectLinkedOpenHashMap<>();
-        nodes = new Long2ByteOpenHashMap();
-        nodes.defaultReturnValue(Byte.MAX_VALUE);
+        nodes = new Long2ByteMapListener(new Long2ByteLinkedOpenHashMap(), listener);
         divider = new BFDivider(this);
         finder = new ASFinder(this);
     }
@@ -41,6 +43,13 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
         grid.connectors.put(pos, Objects.requireNonNull(connector));
         return grid;
     }
+
+    /**
+     * Executes on any change on linked node list.
+     */
+    public static IListener listener = () -> {
+
+    };
 
     @Override
     public boolean contains(long pos) {
@@ -90,7 +99,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
         return Connectivity.has(connectivity, towards);
     }
 
-    // TODO: Count / visit linked nodes
+    // TODO: Count/visit linked nodes
 
     @Override
     public int countConnectors() {
@@ -98,8 +107,18 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
     }
 
     @Override
+    public int countNodes() {
+        return nodes.unwrap().size();
+    }
+
+    @Override
     public Long2ObjectMap<Connectivity.Cache<C>> getConnectors() {
-        return Long2ObjectMaps.unmodifiable(connectors);
+        return connectors;
+    }
+
+    @Override
+    public Long2ByteMap getNodes() {
+        return nodes.unwrap();
     }
 
     @Override
@@ -123,10 +142,9 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
      *
      * @return A random position from the grid
      */
-    @SuppressWarnings("ConstantConditions")
     public long sampleConnector() {
         LongIterator iterator = connectors.keySet().iterator();
-        return iterator.hasNext() ? iterator.nextLong() : null;
+        return iterator.hasNext() ? iterator.nextLong() : Long.MAX_VALUE;
     }
 
     /**
@@ -162,7 +180,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
         }
 
         if (isExternal(pos)) {
-            return removeFinal(pos);
+            return connectors.remove(pos).value();
         }
 
         ObjectArrayList<LongLinkedOpenHashSet> colored = new ObjectArrayList<>();
@@ -183,7 +201,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
         );
 
         // TODO: Properly split / remove relevant nodes, verify that this works.
-        LongLinkedOpenHashSet check = new LongLinkedOpenHashSet();
+        ///LongLinkedOpenHashSet check = new LongLinkedOpenHashSet();
 
         for (int i = 0; i < colored.size(); i++) {
             if (i == bestColor) {
@@ -197,10 +215,13 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
             for (long reached : found) {
                 byte connectivity = nodes.get(reached);
 
-                if (connectivity != Byte.MAX_VALUE) {
+                /*if (connectivity != Byte.MAX_VALUE) {
                     check.add(reached);
                     newGrid.nodes.put(reached, connectivity);
                 } else {
+                    newGrid.connectors.put(reached, connectors.remove(reached));
+                }*/
+                if (connectivity == Byte.MAX_VALUE) {
                     newGrid.connectors.put(reached, connectors.remove(reached));
                 }
             }
@@ -208,7 +229,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
             split.accept(newGrid);
         }
 
-        C connector = removeFinal(pos);
+        /*C connector = removeFinal(pos);
 
         for (long toCheck : check) {
             if (isExternal(toCheck)) {
@@ -216,7 +237,16 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
             }
         }
 
-        return connector;
+        return connector;*/
+        return connectors.remove(pos).value();
+    }
+
+    /**
+     *
+     * @param key
+     */
+    public void removeNode(long key) {
+        //nodes.remove(key);
     }
 
     /**
@@ -224,7 +254,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
      * @param pos
      * @return
      */
-    private C removeFinal(long pos) {
+    /*private C removeFinal(long pos) {
         C connector = connectors.remove(pos).value();
 
         Pos position = new Pos(pos);
@@ -237,7 +267,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
         }
 
         return connector;
-    }
+    }*/
 
     /**
      * Tests if a particular position is only connected to the grid on a single side, or is the only entry in the grid.

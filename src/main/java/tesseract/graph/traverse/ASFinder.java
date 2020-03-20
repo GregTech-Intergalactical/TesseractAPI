@@ -67,7 +67,7 @@ public class ASFinder {
                 open.remove(current);
                 closed.add(current);
 
-                for (Node n : getNeighboringNodes(current)) {
+                for (Node n : getNeighborsNodes(current)) {
 
                     if (closed.contains(n)) {
                         continue;
@@ -145,7 +145,7 @@ public class ASFinder {
      * @param current The given node.
      * @return The set of nodes.
      */
-    public ObjectLinkedOpenHashSet<Node> getNeighboringNodes(Node current) {
+    public ObjectLinkedOpenHashSet<Node> getNeighborsNodes(Node current) {
         ObjectLinkedOpenHashSet<Node> neighbors = new ObjectLinkedOpenHashSet<>(6);
 
         for (Dir direction : Dir.VALUES) {

@@ -1,63 +1,64 @@
 package tesseract.graph;
 
+import it.unimi.dsi.fastutil.longs.*;
 import org.junit.Test;
 import tesseract.electric.api.*;
 import tesseract.electric.base.*;
 import tesseract.util.Dir;
-import tesseract.util.Pos;
 
+import static tesseract.util.Pos.packAll;
 import static org.junit.Assert.*;
 
 public class GraphTest {
     @Test
     public void system() {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
-        graph.addConnector(new Pos(1, 0, 0).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(new Pos(0, 1, 0).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(new Pos(0, 2, 0).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(new Pos(0, 3, 0).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(new Pos(0, 4, 0).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(new Pos(0, 5, 0).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(new Pos(0, 6, 0).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(new Pos(0, 0, 1).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(new Pos(0, 0, -1).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(new Pos(0, -1, 0).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(new Pos(-1, 0, 0).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(1, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 1, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 2, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 3, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 4, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 5, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 6, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 0, 1), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 0, -1), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, -1, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(-1, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
         assertEquals(6, graph.countGroups());
-        graph.addConnector(new Pos(0, 0, 0).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
         assertEquals(1, graph.countGroups());
-        graph.remove(new Pos(0, 0, 0).get());
+        graph.remove(packAll(0, 0, 0));
         assertEquals(6, graph.countGroups());
-        graph.remove(new Pos(0, 4, 0).get());
+        graph.remove(packAll(0, 4, 0));
         assertEquals(7, graph.countGroups());
-        graph.addConnector(new Pos(0, 0, 0).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(new Pos(0, 4, 0).get(), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 4, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
         assertEquals(1, graph.countGroups());
-        long[] array = new long[8]; int i = 0;
+        LongSet set1 = new LongLinkedOpenHashSet();
         for (IGroup<TestCable, TestNode> group : graph.getGroups().values()) {
-            for (IGrid<GraphTest.TestCable> grid : group.getGrids()) {
-                for (long pos : grid.getPath(new Pos(0, -1, 0).get(), new Pos(0, 6, 0).get(), false)) {
-                    array[i] = pos;
-                    i++;
-                }
+            for (IGrid<GraphTest.TestCable> grid : group.getGrids().values()) {
+                set1 = grid.getPath(packAll(0, -1, 0), packAll(0, 6, 0), false);
             }
         }
-        long[] pos = new long[8];
-        pos[0] = new Pos(0, 6, 0).get();
-        pos[1] = new Pos(0, 5, 0).get();
-        pos[2] = new Pos(0, 4, 0).get();
-        pos[3] = new Pos(0, 3, 0).get();
-        pos[4] = new Pos(0, 2, 0).get();
-        pos[5] = new Pos(0, 1, 0).get();
-        pos[6] = new Pos(0, 0, 0).get();
-        pos[7] = new Pos(0, -1, 0).get();
-        for (int x = 0; x < 8; x++) assertEquals(pos[x], array[x]);
+        LongList set2 = new LongArrayList();
+        set2.add(packAll(0, 6, 0));
+        set2.add(packAll(0, 5, 0));
+        set2.add(packAll(0, 4, 0));
+        set2.add(packAll(0, 3, 0));
+        set2.add(packAll(0, 2, 0));
+        set2.add(packAll(0, 1, 0));
+        set2.add(packAll(0, 0, 0));
+        set2.add(packAll(0, -1, 0));
+        LongIterator iterator = set1.iterator();
+        for (int i = 0; i < set2.size(); i++) {
+            assertEquals(set2.getLong(i),  iterator.nextLong());
+        }
     }
 
     @Test
     public void contains() {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
-        long pos = new Pos(1, 1, 1).get();
+        long pos = packAll(1, 1, 1);
         assertFalse(graph.contains(pos));
         graph.addNode(pos, Connectivity.Cache.of(new GraphTest.TestNode()));
         assertTrue(graph.contains(pos));
@@ -66,8 +67,8 @@ public class GraphTest {
     @Test
     public void linked() {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
-        long pos1 = new Pos(0, 0, 0).get();
-        long pos2 = new Pos(0, 1, 0).get();
+        long pos1 = packAll(0, 0, 0);
+        long pos2 = packAll(0, 1, 0);
         graph.addNode(pos1, Connectivity.Cache.of(new GraphTest.TestNode()));
         graph.addNode(pos2, Connectivity.Cache.of(new GraphTest.TestNode()));
         assertTrue(graph.linked(pos1, null, pos2));
@@ -76,7 +77,7 @@ public class GraphTest {
     @Test
     public void connects() {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
-        long pos = new Pos(0, 0, 0).get();
+        long pos = packAll(0, 0, 0);
         graph.addNode(pos, Connectivity.Cache.of(new GraphTest.TestNode()));
         assertTrue(graph.connects(pos, null));
     }
@@ -84,7 +85,7 @@ public class GraphTest {
     @Test
     public void visit() {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
-        graph.addNode(new Pos(5, 5, 5).get(), Connectivity.Cache.of(new GraphTest.TestNode()));
+        graph.addNode(packAll(5, 5, 5), Connectivity.Cache.of(new GraphTest.TestNode()));
         for (IGroup<TestCable, TestNode> group : graph.getGroups().values()) {
             assertEquals(1, group.countBlocks());
         }
@@ -93,16 +94,16 @@ public class GraphTest {
     @Test
     public void countGroups() {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
-        graph.addNode(new Pos(0, 0, 0).get(), Connectivity.Cache.of(new GraphTest.TestNode()));
-        graph.addNode(new Pos(1, 1, 1).get(), Connectivity.Cache.of(new GraphTest.TestNode()));
-        graph.addNode(new Pos(2, 2, 2).get(), Connectivity.Cache.of(new GraphTest.TestNode()));
+        graph.addNode(packAll(0, 0, 0), Connectivity.Cache.of(new GraphTest.TestNode()));
+        graph.addNode(packAll(1, 1, 1), Connectivity.Cache.of(new GraphTest.TestNode()));
+        graph.addNode(packAll(2, 2, 2), Connectivity.Cache.of(new GraphTest.TestNode()));
         assertEquals(3, graph.countGroups());
     }
 
     @Test
     public void addNode() {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
-        long pos = new Pos(5, 5, 5).get();
+        long pos = packAll(5, 5, 5);
         graph.addNode(pos, Connectivity.Cache.of(new GraphTest.TestNode()));
         for (IGroup<TestCable, TestNode> group : graph.getGroups().values()) {
             for (long position : group.getNodes().keySet()) {
@@ -114,10 +115,10 @@ public class GraphTest {
     @Test
     public void addConnector() {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
-        long pos = new Pos(2, 2, 2).get();
+        long pos = packAll(2, 2, 2);
         graph.addConnector(pos, Connectivity.Cache.of(new GraphTest.TestCable()));
         for (IGroup<TestCable, TestNode> group : graph.getGroups().values()) {
-            for (IGrid<GraphTest.TestCable> grid : group.getGrids()) {
+            for (IGrid<GraphTest.TestCable> grid : group.getGrids().values()) {
                 for (long position : grid.getConnectors().keySet()) {
                     assertEquals(position, pos);
                 }
@@ -128,7 +129,7 @@ public class GraphTest {
     @Test
     public void remove() {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
-        long pos = new Pos(0, 0, 0).get();
+        long pos = packAll(0, 0, 0);
         graph.addNode(pos, Connectivity.Cache.of(new GraphTest.TestNode()));
         assertEquals(1, graph.countGroups());
         graph.remove(pos);

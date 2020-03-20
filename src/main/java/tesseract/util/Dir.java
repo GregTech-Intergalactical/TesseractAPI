@@ -22,9 +22,9 @@ public enum Dir {
     /**
      * Create a direction instance.
      *
-     * @param index
-     * @param opposite
-     * @param direction
+     * @param index The index of the direction.
+     * @param opposite The opposite index of the direction.
+     * @param direction The direction vector.
      */
     Dir(int index, int opposite, Pos direction) {
         this.index = index;

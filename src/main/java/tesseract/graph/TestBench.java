@@ -15,6 +15,8 @@ import java.io.InputStreamReader;
 import java.util.Optional;
 import java.util.UUID;
 
+import static tesseract.util.Pos.packAll;
+
 /**
  * Testing purpose class
  */
@@ -79,13 +81,13 @@ class TestBench {
                     continue;
                 }
 
-                Pos start = new Pos(Integer.parseInt(star[1]), Integer.parseInt(star[2]), Integer.parseInt(star[3]));
-                Pos end = new Pos(Integer.parseInt(star[4]), Integer.parseInt(star[5]), Integer.parseInt(star[6]));
+                long start = packAll(Integer.parseInt(star[1]), Integer.parseInt(star[2]), Integer.parseInt(star[3]));
+                long end = packAll(Integer.parseInt(star[4]), Integer.parseInt(star[5]), Integer.parseInt(star[6]));
 
                 System.out.println("findPath ->");
                 for (Object2ObjectMap.Entry<UUID, Group<ExampleCable, ExampleNode>> group : graph.getGroups().object2ObjectEntrySet()) {
-                    for (IGrid<ExampleCable> grid : group.getValue().getGrids()) {
-                        for (long pos : grid.getPath(start.get(), end.get(), star.length == 8 && star[7].startsWith("x"))) {
+                    for (IGrid<ExampleCable> grid : group.getValue().getGrids().values()) {
+                        for (long pos : grid.getPath(start, end, star.length == 8 && star[7].startsWith("x"))) {
                             System.out.println(new Pos(pos));
                         }
                     }
@@ -104,10 +106,15 @@ class TestBench {
                     System.out.println("    Node at " +  new Pos(node.getLongKey()) + ": " + node.getValue().value());
                 }
 
-                for (IGrid<ExampleCable> grid : group.getValue().getGrids()) {
+                for (IGrid<ExampleCable> grid : group.getValue().getGrids().values()) {
                     System.out.println("    Grid contains " + grid.countConnectors() + " connectors:");
+
                     for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleCable>> connector : grid.getConnectors().long2ObjectEntrySet()) {
                         System.out.println("      Connector at " + new Pos(connector.getLongKey()) + ": " + connector.getValue().value());
+                    }
+
+                    for (long pos : grid.getNodes().keySet()) {
+                        System.out.println("          Node at " +  new Pos(pos));
                     }
                 }
             };
@@ -135,6 +142,11 @@ class TestBench {
         public boolean connects(Dir direction) {
             return true;
         }
+
+        /*@Override
+        public void update() {
+            System.out.println("update callback");
+        }*/
     }
 
     private static class ExampleNode implements IElectricNode, IConnectable {
@@ -160,5 +172,10 @@ class TestBench {
         public boolean connects(Dir direction) {
             return true;
         }
+
+        /*@Override
+        public void update() {
+            System.out.println("update callback");
+        }*/
     }
 }

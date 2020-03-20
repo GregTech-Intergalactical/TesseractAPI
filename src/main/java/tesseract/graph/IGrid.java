@@ -1,7 +1,7 @@
 package tesseract.graph;
 
+import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 
 /**
@@ -15,9 +15,19 @@ public interface IGrid<C extends IConnectable> {
 	int countConnectors();
 
 	/**
+	 * @return Gets the number of linked nodes.
+	 */
+	int countNodes();
+
+	/**
 	 * @return Returns connectors map.
 	 */
 	Long2ObjectMap<Connectivity.Cache<C>> getConnectors();
+
+	/**
+	 * @return Returns linked nodes map.
+	 */
+	Long2ByteMap getNodes();
 
 	/**
 	 * Begins a find operation from the specified start position to the end position.

@@ -2,7 +2,9 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import it.unimi.dsi.fastutil.objects.ObjectCollection;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+
+import java.util.UUID;
 
 /**
  * A simple interface for representing objects that contain sets of positions that are may or may not be linked.
@@ -27,5 +29,5 @@ public interface IGroup<C extends IConnectable, N extends IConnectable> {
 	/**
 	 * @return Returns grids set.
 	 */
-	ObjectCollection<Grid<C>> getGrids();
+	Object2ObjectMap<UUID, Grid<C>> getGrids();
 }

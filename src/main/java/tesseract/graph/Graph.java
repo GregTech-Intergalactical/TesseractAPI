@@ -1,9 +1,9 @@
 package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
@@ -18,8 +18,8 @@ import java.util.UUID;
  */
 public class Graph<C extends IConnectable, N extends IConnectable> implements INode {
 
-	private Object2ObjectLinkedOpenHashMap<UUID, Group<C, N>> groups;
-	private Long2ObjectLinkedOpenHashMap<UUID> positions; // group positions
+	private Object2ObjectMap<UUID, Group<C, N>> groups;
+	private Long2ObjectMap<UUID> positions; // group positions
 
 	public Graph() {
 		groups = new Object2ObjectLinkedOpenHashMap<>();
@@ -46,7 +46,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @return
 	 */
 	public Object2ObjectMap<UUID, Group<C, N>> getGroups() {
-		return Object2ObjectMaps.unmodifiable(groups);
+		return groups;
 	}
 
 	/**
@@ -59,6 +59,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 	/**
 	 * Adds a node to the graph at the specified position.
+	 *
 	 * @param pos The position at which the node will be added
 	 * @param node The node to add
 	 */
@@ -71,6 +72,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 	/**
 	 * Adds a connector to the graph at the specified position.
+	 *
 	 * @param pos The position at which the node will be added
 	 * @param connector The connector to add
 	 */
@@ -83,13 +85,14 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 	/**
 	 * Adds an item to the Graph, in a manner generic across nodes and connectors.
+	 *
 	 * @param pos The position at which the item will be added
 	 * @param single A group containing a single entry, if the position is not touching any existing positions.
 	 * @return An existing group, that the caller should add the entry to.
 	 */
 	private Group<C, N> add(long pos, Group<C, N> single) {
 		UUID uuid;
-		ArrayDeque<UUID> mergers = getNeighboringGroups(pos);
+		ArrayDeque<UUID> mergers = getNeighborsGroups(pos);
 		switch (mergers.size()) {
 			case 0:
 				uuid = getNewId();
@@ -136,7 +139,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			}
 
 			// Mark the connectors as pointing at the new group
-			for (IGrid<C> grid : newGroup.getGrids()) {
+			for (IGrid<C> grid : newGroup.getGrids().values()) {
 				for (long part : grid.getConnectors().keySet()) {
 					positions.put(part, newUuid);
 				}
@@ -189,20 +192,19 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		}
 
 		MergeData<C, N> data = new MergeData<>();
-
 		data.best = best;
 		data.bestId = bestId;
 		data.mergeGroups = mergeGroups;
-
 		return data;
 	}
 
 	/**
-	 * Lookups for neighbors around given position.
+	 * Lookups for neighbors groups around given position.
+	 *
 	 * @param pos The search position.
 	 * @return The array of the groups which are neighbors to each other.
 	 */
-	private ArrayDeque<UUID> getNeighboringGroups(long pos) {
+	private ArrayDeque<UUID> getNeighborsGroups(long pos) {
 		ArrayDeque<UUID> neighbors = new ArrayDeque<>(6);
 
 		Pos position = new Pos(pos);
