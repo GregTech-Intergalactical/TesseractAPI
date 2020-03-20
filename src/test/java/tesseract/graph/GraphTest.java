@@ -5,7 +5,6 @@ import org.junit.Test;
 import tesseract.electric.api.*;
 import tesseract.electric.base.*;
 import tesseract.util.Dir;
-import tesseract.util.Pos;
 
 import static tesseract.util.Pos.packAll;
 import static org.junit.Assert.*;

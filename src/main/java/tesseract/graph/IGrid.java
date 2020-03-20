@@ -31,9 +31,9 @@ public interface IGrid<C extends IConnectable> {
 	Long2ByteMap getNodes();
 
 	/**
-	 * @return Returns pathes map.
+	 * @return Returns crossroad paths map.
 	 */
-	Long2ObjectMap<ObjectSet<LongSet>> getPathes();
+	Long2ObjectMap<ObjectSet<LongSet>> getCrossroads();
 
 	/**
 	 * Begins a find operation from the specified start position to the end position.

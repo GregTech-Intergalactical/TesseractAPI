@@ -19,8 +19,7 @@ import java.util.function.Consumer;
 public class Grid<C extends IConnectable> implements INode, IGrid<C> {
 
     private Long2ObjectMap<Connectivity.Cache<C>> connectors;
-    //private Object2ObjectLinkedOpenHashMap<C, ObjectLinkedOpenHashSet<LongLinkedOpenHashSet>> pathes;
-    private Long2ObjectMap<ObjectSet<LongSet>> pathes;
+    private Long2ObjectMap<ObjectSet<LongSet>> paths;
     private Long2ByteMapListener nodes; // linked nodes
     private BFDivider divider;
     private ASFinder finder;
@@ -28,7 +27,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
         connectors = new Long2ObjectLinkedOpenHashMap<>();
-        pathes = new Long2ObjectLinkedOpenHashMap<>();
+        paths = new Long2ObjectLinkedOpenHashMap<>();
         nodes = new Long2ByteMapListener(new Long2ByteLinkedOpenHashMap(), listener);
         divider = new BFDivider(this);
         finder = new ASFinder(this);
@@ -52,7 +51,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
      */
     public IListener listener = () -> {
 
-        pathes.clear();
+        paths.clear();
 
         /*for (long origin : nodes.unwrap().keySet()) {
             ObjectSet<LongSet> path = new ObjectLinkedOpenHashSet<>();
@@ -136,8 +135,8 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
     }
 
     @Override
-    public Long2ObjectMap<ObjectSet<LongSet>> getPathes() {
-        return pathes;
+    public Long2ObjectMap<ObjectSet<LongSet>> getCrossroads() {
+        return paths;
     }
 
     @Override

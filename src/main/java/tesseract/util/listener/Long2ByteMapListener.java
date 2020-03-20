@@ -4,7 +4,7 @@ import it.unimi.dsi.fastutil.longs.Long2ByteLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 
 /**
- *
+ * Wrapper for a Long2ByteMap class and listener for updates.
  */
 public class Long2ByteMapListener {
 
@@ -12,9 +12,7 @@ public class Long2ByteMapListener {
     private IListener listener;
 
     /**
-     *
-     * @param map
-     * @param listener
+     * Constructs a new Long2ByteMap with the same mappings as the specified Map.
      */
     public Long2ByteMapListener(Long2ByteMap map, IListener listener) {
         this.map = map;
@@ -23,28 +21,21 @@ public class Long2ByteMapListener {
     }
 
     /**
-     *
-     * @param key
-     * @return
+     * Returns true if this map contains a mapping for the specified key.
      */
     public boolean containsKey(long key) {
         return map.containsKey(key);
     }
 
     /**
-     *
-     * @param key
-     * @return
+     * Returns the value to which the specified key is mapped, or null if this map contains no mapping for the key.
      */
     public byte get(long key) {
         return map.get(key);
     }
 
     /**
-     *
-     * @param key
-     * @param value
-     * @return
+     * Associates the specified value with the specified key in this map.
      */
     public byte put(long key, byte value) {
         map.put(key, value);
@@ -53,8 +44,7 @@ public class Long2ByteMapListener {
     }
 
     /**
-     *
-     * @param wrapper
+     * Copies all of the mappings from the specified map to this map.
      */
     public void putAll(Long2ByteMapListener wrapper) {
         map.putAll(wrapper.map);
@@ -62,9 +52,7 @@ public class Long2ByteMapListener {
     }
 
     /**
-     *
-     * @param key
-     * @return
+     * Removes the mapping for the specified key from this map if present.
      */
     public byte remove(long key) {
         byte value = map.remove(key);
@@ -73,7 +61,7 @@ public class Long2ByteMapListener {
     }
 
     /**
-     *
+     * Unwrapping class to original one.
      */
     public Long2ByteMap unwrap() {
         return map;
