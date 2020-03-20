@@ -3,6 +3,7 @@ package tesseract.graph.traverse;
 import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
@@ -145,8 +146,8 @@ public class ASFinder {
      * @param current The given node.
      * @return The set of nodes.
      */
-    public ObjectLinkedOpenHashSet<Node> getNeighborsNodes(Node current) {
-        ObjectLinkedOpenHashSet<Node> neighbors = new ObjectLinkedOpenHashSet<>(6);
+    public ObjectSet<Node> getNeighborsNodes(Node current) {
+        ObjectSet<Node> neighbors = new ObjectLinkedOpenHashSet<>(6);
 
         for (Dir direction : Dir.VALUES) {
             long pos = current.offset(direction).get();

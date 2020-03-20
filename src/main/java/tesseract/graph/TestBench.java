@@ -1,7 +1,10 @@
 package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.electric.api.IElectricCable;
 import tesseract.electric.api.IElectricLimits;
 import tesseract.electric.api.IElectricNode;
@@ -87,17 +90,49 @@ class TestBench {
                 System.out.println("findPath ->");
                 for (Object2ObjectMap.Entry<UUID, Group<ExampleCable, ExampleNode>> group : graph.getGroups().object2ObjectEntrySet()) {
                     for (IGrid<ExampleCable> grid : group.getValue().getGrids().values()) {
-                        for (long pos : grid.getPath(start, end, star.length == 8 && star[7].startsWith("x"))) {
+                        for (long pos : grid.findPath(start, end, star.length == 8 && star[7].startsWith("x"))) {
                             System.out.println(new Pos(pos));
                         }
                     }
                 }
                 continue;
             } else if (line.startsWith("exit")) {
+                for (Object2ObjectMap.Entry<UUID, Group<ExampleCable, ExampleNode>> group : graph.getGroups().object2ObjectEntrySet()) {
+                    System.out.println("  Group " + group.getKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
+
+                    for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
+                        System.out.println("    Node at " +  new Pos(node.getLongKey()) + ": " + node.getValue().value());
+                    }
+
+                    for (IGrid<ExampleCable> grid : group.getValue().getGrids().values()) {
+                        System.out.println("    Grid contains " + grid.countConnectors() + " connectors:");
+
+                        for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleCable>> connector : grid.getConnectors().long2ObjectEntrySet()) {
+                            System.out.println("      Connector at " + new Pos(connector.getLongKey()) + ": " + connector.getValue().value());
+                        }
+
+                        System.out.println("      Grid contains " + grid.countNodes() + " linked nodes:");
+                        for (long pos : grid.getNodes().keySet()) {
+                            System.out.println("          Node at " +  new Pos(pos));
+                        }
+
+                        for (Long2ObjectMap.Entry<ObjectSet<LongSet>> entry : grid.getPathes().long2ObjectEntrySet()) {
+                            System.out.println("              Path start at " +  new Pos(entry.getLongKey()));
+
+                            ObjectIterator<LongSet> iterator = entry.getValue().iterator();
+                            while (iterator.hasNext()) {
+                                for (long pos : iterator.next()) {
+                                    System.out.println("                  Pos at " + new Pos(pos));
+                                }
+                            }
+                            System.out.println("              Ended");
+                        }
+                    }
+                };
                 return;
             }
 
-            System.out.println("Graph contains " + graph.countGroups() + " groups:");
+            /*System.out.println("Graph contains " + graph.countGroups() + " groups:");
 
             for (Object2ObjectMap.Entry<UUID, Group<ExampleCable, ExampleNode>> group : graph.getGroups().object2ObjectEntrySet()) {
                 System.out.println("  Group " + group.getKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
@@ -113,11 +148,26 @@ class TestBench {
                         System.out.println("      Connector at " + new Pos(connector.getLongKey()) + ": " + connector.getValue().value());
                     }
 
+                    System.out.println("      Grid contains " + grid.countNodes() + " linked nodes:");
                     for (long pos : grid.getNodes().keySet()) {
                         System.out.println("          Node at " +  new Pos(pos));
                     }
+
+                    for (Long2ObjectMap.Entry<ObjectSet<LongSet>> entry : grid.getPathes().long2ObjectEntrySet()) {
+                        System.out.println("              Path start at " +  new Pos(entry.getLongKey()));
+
+                        ObjectIterator<LongSet> iterator = entry.getValue().iterator();
+                        while (iterator.hasNext()) {
+                            for (long pos : iterator.next()) {
+                                System.out.println("                  Pos at " + new Pos(pos));
+                            }
+                        }
+                        System.out.println("              Ended");
+                    }
                 }
             };
+
+            System.out.println("_____________________________________________________________________________");*/
         }
     }
 

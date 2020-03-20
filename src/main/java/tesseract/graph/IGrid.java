@@ -3,6 +3,7 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 
 /**
  * A simple interface for representing objects that contain sets of positions that are linked to each other.
@@ -25,9 +26,14 @@ public interface IGrid<C extends IConnectable> {
 	Long2ObjectMap<Connectivity.Cache<C>> getConnectors();
 
 	/**
-	 * @return Returns linked nodes map.
+	 * @return Returns nodes map.
 	 */
 	Long2ByteMap getNodes();
+
+	/**
+	 * @return Returns pathes map.
+	 */
+	Long2ObjectMap<ObjectSet<LongSet>> getPathes();
 
 	/**
 	 * Begins a find operation from the specified start position to the end position.
@@ -36,5 +42,5 @@ public interface IGrid<C extends IConnectable> {
 	 * @param crossroad If true will generate path only with crossroad nodes, false for all nodes.
 	 * @return An set of path points.
 	 */
-	LongSet getPath(long start, long end, boolean crossroad);
+	LongSet findPath(long start, long end, boolean crossroad);
 }

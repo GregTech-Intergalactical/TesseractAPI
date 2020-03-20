@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
@@ -45,16 +46,16 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 *
 	 * @return
 	 */
-	public Object2ObjectMap<UUID, Group<C, N>> getGroups() {
-		return groups;
+	public int countGroups() {
+		return groups.size();
 	}
 
 	/**
 	 *
 	 * @return
 	 */
-	public int countGroups() {
-		return groups.size();
+	public Object2ObjectMap<UUID, Group<C, N>> getGroups() {
+		return groups;
 	}
 
 	/**
@@ -108,7 +109,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			default:
 				MergeData<C, N> data = beginMerge(mergers);
 				positions.put(pos, data.bestId);
-				for (Group<C, N> other: data.mergeGroups) {
+				for (Group<C, N> other: data.merged) {
 					data.best.mergeWith(other, pos);
 				}
 				return data.best;
@@ -174,7 +175,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			}
 		}
 
-		ObjectLinkedOpenHashSet<Group<C, N>> mergeGroups = new ObjectLinkedOpenHashSet<>(mergers.size() - 1);
+		ObjectSet<Group<C, N>> mergeGroups = new ObjectLinkedOpenHashSet<>(mergers.size() - 1);
 
 		for (UUID id: mergers) {
 			if (id.equals(bestId)) {
@@ -194,7 +195,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		MergeData<C, N> data = new MergeData<>();
 		data.best = best;
 		data.bestId = bestId;
-		data.mergeGroups = mergeGroups;
+		data.merged = mergeGroups;
 		return data;
 	}
 
@@ -244,6 +245,6 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	private static class MergeData<C extends IConnectable, N extends IConnectable> {
 		UUID bestId;
 		Group<C, N> best;
-		ObjectLinkedOpenHashSet<Group<C, N>> mergeGroups;
+		ObjectSet<Group<C, N>> merged;
 	}
 }
