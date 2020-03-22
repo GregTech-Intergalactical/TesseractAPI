@@ -2,12 +2,15 @@ package tesseract.graph;
 
 import tesseract.util.Dir;
 
+/**
+ * A class that acts as a controller for a connectivity of the connectables.
+ */
 public class Connectivity {
 
-    public static byte with(byte connectivity, Dir side) {
-        return (byte) (connectivity | (1 << side.ordinal()));
-    }
-
+    /**
+     * @param connectable The given instance.
+     * @return Gets the connectivity for instance.
+     */
     public static byte of(IConnectable connectable) {
         byte connectivity = 0;
 
@@ -20,38 +23,54 @@ public class Connectivity {
         return connectivity;
     }
 
+    /**
+     * @param connectivity The provided state.
+     * @param side The direction index.
+     * @return Connectivity state for a connection.
+     */
+    public static byte with(byte connectivity, Dir side) {
+        return (byte) (connectivity | (1 << side.ordinal()));
+    }
+
+    /**
+     * @param connectivity The provided state.
+     * @param side The direction index.
+     * @return True if a  connection is exist, false otherwise.
+     */
     public static boolean has(byte connectivity, Dir side) {
         return (connectivity & (1 << side.ordinal())) > 0;
     }
 
+    /**
+     * The Cache is a class that should work with connections.
+     */
     public static class Cache<C> {
 
-        byte connectivity;
-        C value;
+        private byte connectivity;
+        private C value;
 
-        private Cache() {
-        }
+        private Cache() { }
 
         public static <C> Cache<C> ofDelegated(C value, IConnectable delegate) {
             Cache<C> cache = new Cache<>();
-
             cache.value = value;
             cache.connectivity = Connectivity.of(delegate);
-
             return cache;
         }
 
         public static <C extends IConnectable> Cache<C> of(C value) {
             Cache<C> cache = new Cache<>();
-
             cache.value = value;
             cache.connectivity = Connectivity.of(value);
-
             return cache;
         }
 
         public boolean connects(Dir direction) {
             return Connectivity.has(connectivity, direction);
+        }
+
+        public byte connectivity() {
+            return connectivity;
         }
 
         public C value() {

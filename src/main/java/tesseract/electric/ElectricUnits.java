@@ -10,6 +10,12 @@ public final class ElectricUnits {
 	public static final long TERA_EU = GIGA_EU * 1000;
 	public static final long PETA_EU = TERA_EU * 1000;
 
+	/**
+	 *
+	 * @param whole
+	 * @param milli
+	 * @return
+	 */
 	public static long fromParts(long whole, long milli) {
 		return whole * 1000 + milli;
 	}

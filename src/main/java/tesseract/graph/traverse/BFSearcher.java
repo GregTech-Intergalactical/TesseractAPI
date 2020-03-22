@@ -1,13 +1,14 @@
 package tesseract.graph.traverse;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.ConcurrentModificationException;
-import java.util.HashSet;
 import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
 /**
  * Breadth-first searcher implementation for determining connectivity within a graph, used for graph splitting upon node removal.
@@ -20,20 +21,18 @@ import java.util.function.Consumer;
  */
 public class BFSearcher {
 
-    private HashSet<Pos> closed;
-    private ArrayDeque<Pos> open;
-    private Pos searchPos;
-    private INodeContainer container;
+    private LongOpenHashSet closed;
+    private ArrayDeque<Long> open;
+    private INode container;
 
     /**
      * Creates a reusable BFSearcher instance that will search the provided container.
      *
-     * @param container The container to use for search operations
+     * @param container The container to use for search operations.
      */
-    public BFSearcher(INodeContainer container) {
-        closed = new HashSet<>();
+    public BFSearcher(INode container) {
+        closed = new LongOpenHashSet();
         open = new ArrayDeque<>();
-        searchPos = new Pos();
         this.container = container;
     }
 
@@ -42,12 +41,12 @@ public class BFSearcher {
      * to the provided consumer. As a result of the algorithm, each reported position is guaranteed to be connected to
      * an existing position, or in the case of the first reported position, it will be identical to from.
      *
-     * @param from     The start position of the search operation. This will be the first position reported to the consumer.
-     * @param reached  The receiver of the discovered positions
+     * @param from The start position of the search operation. This will be the first position reported to the consumer.
+     * @param reached The receiver of the discovered positions
      * @param excluder A function that can add values to the closed set prior to the search operation.
      *                 They will not be reported or traversed; null is interpreted to mean no exclusions.
      */
-    public void search(Pos from, Consumer<Pos> reached, Consumer<Collection<Pos>> excluder) {
+    public void search(long from, LongConsumer reached, Consumer<LongOpenHashSet> excluder) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same BFSearcher instance");
         }
@@ -66,7 +65,7 @@ public class BFSearcher {
 
             while (!open.isEmpty()) {
                 // Pick a position
-                Pos current = open.remove();
+                long current = open.remove();
 
                 if (closed.contains(current)) {
                     // I don't think this should happen, but it works as a sanity check.
@@ -78,19 +77,19 @@ public class BFSearcher {
                 closed.add(current);
                 reached.accept(current);
 
+                Pos position = new Pos(current);
                 // Discover new nodes
                 for (Dir direction : Dir.VALUES) {
-                    searchPos.set(current);
-                    searchPos.offset(direction);
+                    long pos = position.offset(direction).get();
 
-                    if (closed.contains(searchPos)) {
+                    if (closed.contains(pos)) {
                         // Already seen, prevent infinite loops.
                         continue;
                     }
 
-                    if (container.linked(current, direction, searchPos)) {
+                    if (container.linked(current, direction, pos)) {
                         // Note: this allocates a new position
-                        open.add(searchPos.toImmutable());
+                        open.add(pos);
                     }
                 }
             }

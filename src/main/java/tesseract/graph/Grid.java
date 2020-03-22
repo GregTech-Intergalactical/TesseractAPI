@@ -1,62 +1,78 @@
 package tesseract.graph;
 
-import it.unimi.dsi.fastutil.objects.Object2ByteOpenHashMap;
-import tesseract.graph.traverse.AStarPathfinder;
+import it.unimi.dsi.fastutil.longs.*;
+import it.unimi.dsi.fastutil.objects.*;
+import tesseract.util.listener.Long2ByteMapListener;
+import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
-import tesseract.graph.traverse.INodeContainer;
-import tesseract.graph.visit.VisitableGrid;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
-import java.util.*;
-import java.util.function.BiConsumer;
+import java.util.ArrayDeque;
+import java.util.Objects;
 import java.util.function.Consumer;
 
-// default: parameters are nonnull, methods return nonnull
-public class Grid<C extends IConnectable> implements INodeContainer, VisitableGrid<C> {
+/**
+ * Grid provides the functionality of a set of linked nodes.
+ * @apiNote default parameters are nonnull, methods return nonnull.
+ */
+public class Grid<C extends IConnectable> implements INode, IGrid<C> {
 
-    private HashMap<Pos, Connectivity.Cache<C>> connectors;
-    private Object2ByteOpenHashMap<Pos> linkedNodes;
+    private Long2ObjectMap<Connectivity.Cache<C>> connectors;
+    private Long2ObjectMap<ObjectList<ArrayDeque<Pos>>> paths;
+    private Long2ObjectMap<ObjectList<ArrayDeque<Pos>>> roads;
+    private Long2ByteMapListener nodes; // linked nodes
     private BFDivider divider;
-    private AStarPathfinder finder;
+    private ASFinder finder;
 
+    // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
-        connectors = new HashMap<>();
-        linkedNodes = new Object2ByteOpenHashMap<>();
-        linkedNodes.defaultReturnValue(Byte.MAX_VALUE);
+        connectors = new Long2ObjectLinkedOpenHashMap<>();
+        paths = new Long2ObjectLinkedOpenHashMap<>();
+        roads = new Long2ObjectLinkedOpenHashMap<>();
+        nodes = new Long2ByteMapListener(new Long2ByteLinkedOpenHashMap(), () -> {
+            paths.clear();
+            roads.clear();
+        });
+
         divider = new BFDivider(this);
-        finder = new AStarPathfinder(this);
+        finder = new ASFinder(this);
     }
 
-    public static <C extends IConnectable> Grid<C> singleConnector(Pos pos, Connectivity.Cache<C> connector) {
+    /**
+     * @param pos The position of the connector.
+     * @param connector The given connector.
+     * @return Create a instance of a class for a given position and connector.
+     */
+    public static <C extends IConnectable> Grid<C> singleConnector(long pos, Connectivity.Cache<C> connector) {
         Grid<C> grid = new Grid<>();
-        grid.connectors.put(Objects.requireNonNull(pos), Objects.requireNonNull(connector));
+        grid.connectors.put(pos, Objects.requireNonNull(connector));
         return grid;
     }
 
     @Override
-    public boolean contains(Pos pos) {
-        return connectors.containsKey(pos) || linkedNodes.containsKey(pos);
+    public boolean contains(long pos) {
+        return connectors.containsKey(pos) || nodes.containsKey(pos);
     }
 
     @Override
-    public boolean linked(Pos from, Dir towards, Pos to) {
+    public boolean linked(long from, Dir towards, long to) {
         Connectivity.Cache<C> cacheFrom = connectors.get(from);
         Connectivity.Cache<C> cacheTo = connectors.get(to);
 
-        byte connectivityFrom = linkedNodes.getByte(from);
-        byte connectivityTo = linkedNodes.getByte(to);
+        byte connectivityFrom = nodes.get(from);
+        byte connectivityTo = nodes.get(to);
 
         boolean validLink = false;
 
         if (cacheFrom != null) {
             validLink = true;
-            connectivityFrom = cacheFrom.connectivity;
+            connectivityFrom = cacheFrom.connectivity();
         }
 
         if (cacheTo != null) {
             validLink = true;
-            connectivityTo = cacheTo.connectivity;
+            connectivityTo = cacheTo.connectivity();
         }
 
         if (connectivityFrom == Byte.MAX_VALUE || connectivityTo == Byte.MAX_VALUE) {
@@ -67,12 +83,12 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
     }
 
     @Override
-    public boolean connects(Pos position, Dir towards) {
+    public boolean connects(long position, Dir towards) {
         Connectivity.Cache<C> cache = connectors.get(position);
-        byte connectivity = linkedNodes.getByte(position);
+        byte connectivity = nodes.get(position);
 
         if (cache != null) {
-            connectivity = cache.connectivity;
+            connectivity = cache.connectivity();
         }
 
         if (connectivity == Byte.MAX_VALUE) {
@@ -82,7 +98,7 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
         return Connectivity.has(connectivity, towards);
     }
 
-    // TODO: Count / visit linked nodes
+    // TODO: Count/visit linked nodes
 
     @Override
     public int countConnectors() {
@@ -90,77 +106,151 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
     }
 
     @Override
-    public void visitConnectors(BiConsumer<Pos, C> visitor) {
-        for (Map.Entry<Pos, Connectivity.Cache<C>> entry : connectors.entrySet()) {
-            visitor.accept(entry.getKey(), entry.getValue().value());
-        }
+    public int countNodes() {
+        return nodes.unwrap().size();
     }
 
     @Override
-    public void findPath(Pos start, Pos end, Consumer<Pos> collector) {
-        finder.find(start, end, collector);
+    public Long2ObjectMap<Connectivity.Cache<C>> getConnectors() {
+        return connectors;
+    }
+
+    @Override
+    public Long2ByteMap getNodes() {
+        return nodes.unwrap();
+    }
+
+    @Override
+    public ObjectList<ArrayDeque<Pos>> getPath(long pos) {
+        return find(paths, pos, false);
+    }
+
+    @Override
+    public ObjectList<ArrayDeque<Pos>> getCrossroad(long pos) {
+        return find(roads, pos, true);
+    }
+
+    @Override
+    public ArrayDeque<Pos> findPath(long start, long end, boolean crossroad) {
+        return finder.find(start, end, crossroad);
+    }
+
+    /**
+     * Lazily generates paths from the linked node to another linked nodes.
+     *
+     * @param path The provided map.
+     * @param pos The position of the linked node.
+     * @param crossroad If true will generate path only with crossroad nodes, false for all nodes.
+     * @return Returns paths map for linked node.
+     */
+    private ObjectList<ArrayDeque<Pos>> find(Long2ObjectMap<ObjectList<ArrayDeque<Pos>>> path, long pos, boolean crossroad) {
+
+        if (!path.containsKey(pos)) {
+            ObjectList<ArrayDeque<Pos>> data = new ObjectArrayList<>();
+
+            for (long target : nodes.unwrap().keySet()) {
+                if (pos != target) {
+                    data.add(finder.find(pos, target, crossroad));
+                }
+            }
+
+            path.put(pos, data);
+        }
+
+        return path.get(pos);
     }
 
     /**
      * Merges all of the elements from the other provided grid into this grid.
      *
-     * @param other The other grid to merge elements from
+     * @param at unknown.
+     * @param other The other grid to merge elements from.
      */
-    void mergeWith(Pos at, Grid<C> other) {
+    public void mergeWith(long at, Grid<C> other) {
         // TODO: Validate that the other grid touches the specified position.
-
         connectors.putAll(other.connectors);
-        linkedNodes.putAll(other.linkedNodes);
+        nodes.putAll(other.nodes);
     }
 
     /**
      * Gets a potentially random position from the grid.
      *
-     * @return A random position from the grid
+     * @return A random position from the grid.
      */
-    Pos sampleConnector() {
-        return connectors.keySet().iterator().next();
+    public long sampleConnector() {
+        LongIterator iterator = connectors.keySet().iterator();
+        return iterator.hasNext() ? iterator.nextLong() : Long.MAX_VALUE;
     }
 
-    public void addConnector(Pos pos, Connectivity.Cache<C> connector) {
+    /**
+     * Adds a new connector to the grid.
+     *
+     * @param pos The given position.
+     * @param connector The given connector.
+     */
+    public void addConnector(long pos, Connectivity.Cache<C> connector) {
         // TODO: Validate that the other grid touches the specified position.
-
-        connectors.put(Objects.requireNonNull(pos), Objects.requireNonNull(connector));
+        connectors.put(pos, Objects.requireNonNull(connector));
     }
 
-    public void addLinkedNode(Pos pos, byte connectivity) {
-        linkedNodes.put(Objects.requireNonNull(pos), connectivity);
+    /**
+     * Adds a new node to the grid.
+     *
+     * @param pos The given position.
+     * @param connectivity The connectivity state.
+     */
+    public void addNode(long pos, byte connectivity) {
+        nodes.put(pos, connectivity);
     }
 
-    public C remove(Pos pos, Consumer<Grid<C>> split) {
+    /**
+     * Removes the node from the grid.
+     *
+     * @param pos The given position.
+     */
+    public void removeNode(long pos) {
+        nodes.remove(pos);
+    }
+
+    /**
+     * Removes an entry from the Grid, potentially splitting it if needed. By calling this function, the caller asserts
+     * that this group contains the specified position; the function may misbehave if the group does not actually contain
+     * the specified position.
+     *
+     * @param pos The position of the entry to remove.
+     * @param split A consumer for the resulting fresh graphs from the split operation.
+     * @return The removed entry, guaranteed to not be null.
+     */
+    public C remove(long pos, Consumer<Grid<C>> split) {
         Objects.requireNonNull(split);
 
         if (!contains(pos)) {
-            throw new IllegalArgumentException("Tried to call Grid::remove with a position that does not exist within the grid.");
+            throw new IllegalArgumentException("Grid::remove: Tried to call with a position that does not exist within the grid.");
         }
 
         if (isExternal(pos)) {
             return removeFinal(pos);
         }
 
-        ArrayList<HashSet<Pos>> colored = new ArrayList<>();
+        ObjectList<LongLinkedOpenHashSet> colored = new ObjectArrayList<>();
 
         int bestColor = divider.divide(
             removed -> removed.add(pos),
             roots -> {
+                Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
-                    Pos side = pos.offset(direction);
+                    long face = position.offset(direction).get();
 
-                    if (this.linked(pos, direction, side)) {
-                        roots.add(side);
+                    if (linked(pos, direction, face)) {
+                        roots.add(face);
                     }
                 }
             },
             colored::add
         );
 
-        // TODO: Properly split / remove relevant linkedNodes, verify that this works.
-        HashSet<Pos> check = new HashSet<>();
+        // TODO: Properly split / remove relevant nodes, verify that this works.
+        LongSet check = new LongLinkedOpenHashSet();
 
         for (int i = 0; i < colored.size(); i++) {
             if (i == bestColor) {
@@ -169,41 +259,49 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
             }
 
             Grid<C> newGrid = new Grid<>();
-            HashSet<Pos> found = colored.get(i);
+            LongSet found = colored.get(i);
 
-            for (Pos reached : found) {
-                byte connectivity = linkedNodes.getByte(reached);
+            for (long reached : found) {
+                byte connectivity = nodes.get(reached);
 
                 if (connectivity != Byte.MAX_VALUE) {
                     check.add(reached);
-                    newGrid.linkedNodes.put(reached, connectivity);
+                    newGrid.nodes.put(reached, connectivity);
                 } else {
-                    newGrid.connectors.put(reached, this.connectors.remove(reached));
+                    newGrid.connectors.put(reached, connectors.remove(reached));
                 }
             }
 
             split.accept(newGrid);
         }
 
+        // TODO: Why is it here?
         C connector = removeFinal(pos);
 
-        for (Pos toCheck : check) {
+        for (long toCheck : check) {
             if (isExternal(toCheck)) {
-                linkedNodes.removeByte(toCheck);
+                nodes.remove(toCheck);
             }
         }
 
         return connector;
     }
 
-    private C removeFinal(Pos pos) {
-        C connector = this.connectors.remove(pos).value();
+    /**
+     * Removes connector by a position.
+     *
+     * @param pos The given position.
+     * @return The removed connector.
+     */
+    private C removeFinal(long pos) {
+        C connector = connectors.remove(pos).value();
 
+        Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
-            Pos face = pos.offset(direction);
+            long face = position.offset(direction).get();
 
-            if (linkedNodes.containsKey(face) && isExternal(face)) {
-                linkedNodes.removeByte(face);
+            if (nodes.containsKey(face) && isExternal(face)) {
+                nodes.remove(face);
             }
         }
 
@@ -213,20 +311,21 @@ public class Grid<C extends IConnectable> implements INodeContainer, VisitableGr
     /**
      * Tests if a particular position is only connected to the grid on a single side, or is the only entry in the grid.
      *
-     * @param pos The position to test
+     * @param pos The position to test.
      * @return Whether the position only has a single neighbor in the group, or is the only entry in the group.
      */
-    private boolean isExternal(Pos pos) {
+    private boolean isExternal(long pos) {
         // If the grid contains less than 2 blocks, neighbors cannot exist.
-        if (this.connectors.size() <= 1) {
+        if (connectors.size() <= 1) {
             return true;
         }
 
-        int neighbors = 0;
+        byte neighbors = 0;
+        Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
-            Pos face = pos.offset(direction);
+            long face = position.offset(direction).get();
 
-            if (!linkedNodes.containsKey(face) && this.linked(pos, direction, face)) {
+            if (!nodes.containsKey(face) && linked(pos, direction, face)) {
                 neighbors += 1;
             }
         }

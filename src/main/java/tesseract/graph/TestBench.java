@@ -1,25 +1,31 @@
 package tesseract.graph;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import tesseract.electric.api.IElectricCable;
 import tesseract.electric.api.IElectricLimits;
 import tesseract.electric.api.IElectricNode;
 import tesseract.electric.api.IElectricStorage;
 import tesseract.electric.base.ElectricLimits;
-import tesseract.graph.traverse.AStarPathfinder;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayDeque;
+import java.util.Iterator;
 import java.util.Optional;
 
-public class TestBench {
+import static tesseract.util.Pos.packAll;
+
+/**
+ * Testing purpose class.
+ */
+class TestBench {
 
     public static void main(String[] args) throws Exception {
 
         Graph<ExampleCable, ExampleNode> graph = new Graph<>();
-        Connectivity.Cache<ExampleNode> n = Connectivity.Cache.of(new ExampleNode());
-        Connectivity.Cache<ExampleCable> c = Connectivity.Cache.of(new ExampleCable());
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
@@ -28,19 +34,20 @@ public class TestBench {
             System.out.println(line);
 
             if (line.startsWith("add")) {
-                String[] adds = line.split(" ");
-                if (adds.length < 4) {
+                String[] points = line.split(" ");
+                if (points.length < 4) {
                     System.out.println("Usage: add <x> <y> <z> [node or connector]");
                     continue;
                 }
 
-                Pos pos = new Pos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
+                Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
+                long position = pos.get();
 
-                if (!graph.contains(pos)) {
-                    if (adds.length == 5 && adds[4].startsWith("c")) {
-                        graph.addConnector(pos, c);
+                if (!graph.contains(position)) {
+                    if (points.length == 5 && points[4].startsWith("c")) {
+                        graph.addConnector(position, Connectivity.Cache.of(new ExampleCable()));
                     } else {
-                        graph.addNode(pos, n);
+                        graph.addNode(position, Connectivity.Cache.of(new ExampleNode()));
                     }
 
                     System.out.println("Added " + pos + " to the graph");
@@ -49,64 +56,140 @@ public class TestBench {
                 }
 
             } else if (line.startsWith("remove")) {
-                String[] adds = line.split(" ");
-                if (adds.length < 4) {
+                String[] points = line.split(" ");
+                if (points.length < 4) {
                     System.out.println("Usage: remove <x> <y> <z>");
                     continue;
                 }
 
-                Pos pos = new Pos(Integer.parseInt(adds[1]), Integer.parseInt(adds[2]), Integer.parseInt(adds[3]));
+                Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
+                long position = pos.get();
 
-                Optional<Entry<ExampleCable, ExampleNode>> entry = graph.remove(pos);
+                Optional<Entry<ExampleCable, ExampleNode>> entry = graph.remove(position);
 
                 if (entry.isPresent()) {
                     entry.get().apply(
-                            connector -> System.out.println("Removed connector " + pos + " from the graph: " + connector),
-                            node -> System.out.println("Removed node " + pos + " from the graph: " + node)
+                        connector -> System.out.println("Removed connector " + pos + " from the graph: " + connector),
+                        node -> System.out.println("Removed node " + pos + " from the graph: " + node)
                     );
                 } else {
                     System.out.println("Error: " + pos + " doesn't exist in the graph");
                 }
-            }
-            else if (line.startsWith("a*")) {
-                String[] star = line.split(" ");
-                if (star.length < 7) {
-                    System.out.println("Usage: a* <x1> <y1> <z1> <x2> <y2> <z2>");
+            } else if (line.startsWith("a*")) {
+                String[] points = line.split(" ");
+                if (points.length < 7) {
+                    System.out.println("Usage: a* <x1> <y1> <z1> <x2> <y2> <z2> [crossroad]");
                     continue;
                 }
 
-                Pos start = new Pos(Integer.parseInt(star[1]), Integer.parseInt(star[2]), Integer.parseInt(star[3]));
-                Pos end = new Pos(Integer.parseInt(star[4]), Integer.parseInt(star[5]), Integer.parseInt(star[6]));
+                long start = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
+                long end = packAll(Integer.parseInt(points[4]), Integer.parseInt(points[5]), Integer.parseInt(points[6]));
 
                 System.out.println("findPath ->");
+                for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
+                    for (IGrid<ExampleCable> grid : group.getValue().getGrids().values()) {
+                        for (Pos pos : grid.findPath(start, end, points.length == 8 && points[7].startsWith("x"))) {
+                            System.out.println(pos);
+                        }
+                    }
+                }
+                continue;
+            } else if (line.startsWith("path")) {
+                String[] points = line.split(" ");
+                if (points.length < 3) {
+                    System.out.println("Usage: cross <x1> <y1> <z1>");
+                    continue;
+                }
 
-                graph.visit((groupId, group) -> {
-                    group.visitGrids(grid -> {
-                        grid.findPath(start, end, System.out::println);
-                    });
-                });
+                long pos = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
+                Optional<Group<ExampleCable, ExampleNode>> group = graph.findGroup(pos);
 
+                if (group.isPresent()) {
+
+                    Optional<Connectivity.Cache<ExampleNode>> node = group.get().findNode(pos);
+                    if (node.isPresent()) {
+
+                        for (Grid<ExampleCable> grid : group.get().findGrids(pos)) {
+                            for(ArrayDeque<Pos> path : grid.getPath(pos)) {
+                                Iterator<Pos> iterator = path.descendingIterator();
+
+                                while(iterator.hasNext()) {
+                                    System.out.println(iterator.next());
+                                }
+                                System.out.println("(-)");
+                            }
+                        }
+                    }
+                }
+            } else if (line.startsWith("cross")) {
+                String[] points = line.split(" ");
+                if (points.length < 3) {
+                    System.out.println("Usage: cross <x1> <y1> <z1>");
+                    continue;
+                }
+
+                long pos = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
+                Optional<Group<ExampleCable, ExampleNode>> group = graph.findGroup(pos);
+
+                if (group.isPresent()) {
+
+                    Optional<Connectivity.Cache<ExampleNode>> node = group.get().findNode(pos);
+                    if (node.isPresent()) {
+
+                        for (Grid<ExampleCable> grid : group.get().findGrids(pos)) {
+                            for(ArrayDeque<Pos> path : grid.getCrossroad(pos)) {
+                                Iterator<Pos> iterator = path.descendingIterator();
+
+                                while(iterator.hasNext()) {
+                                    System.out.println(iterator.next());
+                                }
+                                System.out.println("(-)");
+                            }
+                        }
+                    }
+                }
             } else if (line.startsWith("exit")) {
                 return;
             }
 
             System.out.println("Graph contains " + graph.countGroups() + " groups:");
 
-            graph.visit((groupId, group) -> {
-                System.out.println("  Group " + groupId + " contains " + group.countBlocks() + " blocks: ");
+            for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
+                System.out.println("  Group " + group.getIntKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
 
-                group.visitNodes((position, node) ->
-                    System.out.println("    Node at " + position + ": " + node)
-                );
+                for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
+                    System.out.println("    Node at " +  new Pos(node.getLongKey()) + ": " + node.getValue().value());
+                }
 
-                group.visitGrids(grid -> {
+                for (IGrid<ExampleCable> grid : group.getValue().getGrids().values()) {
                     System.out.println("    Grid contains " + grid.countConnectors() + " connectors:");
 
-                    grid.visitConnectors((position, connector) ->
-                        System.out.println("      Connector at " + position + ": " + connector)
-                    );
-                });
-            });
+                    for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleCable>> connector : grid.getConnectors().long2ObjectEntrySet()) {
+                        System.out.println("      Connector at " + new Pos(connector.getLongKey()) + ": " + connector.getValue().value());
+                    }
+
+                    int linked = grid.countNodes();
+                    if (linked != 0) {
+                        System.out.println("      Grid contains " + linked + " linked nodes:");
+                        for (long pos : grid.getNodes().keySet()) {
+                            System.out.println("          Node at " + new Pos(pos));
+                        }
+
+                        /*for (ObjectSet<LongSet> paths : grid.getCrossroads().values()) {
+                            System.out.println("              Start at");
+                            for (LongSet longs : paths) {
+                                System.out.println("                Group");
+                                for (long pos : longs) {
+                                    System.out.println("                  Pos at " + new Pos(pos));
+                                }
+                            }
+                            System.out.println("              Ended");
+                        }*/
+                    }
+                }
+            }
+
+            System.out.println("_____________________________________________________________________________");
         }
     }
 

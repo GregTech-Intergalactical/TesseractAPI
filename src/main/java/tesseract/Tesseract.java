@@ -7,7 +7,5 @@ public class Tesseract {
 
 	private static final Logger LOGGER = LogManager.getLogger();
 
-	public Tesseract() {
-
-	}
+	public Tesseract() { }
 }
