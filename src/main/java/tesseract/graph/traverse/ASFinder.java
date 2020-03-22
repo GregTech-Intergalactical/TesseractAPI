@@ -1,6 +1,5 @@
 package tesseract.graph.traverse;
 
-import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
@@ -17,8 +16,8 @@ import java.util.ConcurrentModificationException;
 public class ASFinder {
 
     private ArrayDeque<Node> open;
+    private ArrayDeque<Pos> path;
     private ObjectOpenHashSet<Node> closed;
-    private LongLinkedOpenHashSet path;
     private INode container;
 
     /**
@@ -29,32 +28,31 @@ public class ASFinder {
     public ASFinder(INode container) {
         open = new ArrayDeque<>();
         closed = new ObjectOpenHashSet<>();
-        path = new LongLinkedOpenHashSet();
         this.container = container;
     }
 
     /**
      * Begins a find operation from the specified start position to the end position.
      *
-     * @param origin    The start position of the finds operation.
-     * @param target    The end position of the finds operation.
+     * @param origin The start position of the finds operation.
+     * @param target The end position of the finds operation.
      * @param crossroad If true will generate path only with crossroad nodes, false for all nodes.
-     * @return          An set of the points calculated by the A Star algorithm.
+     * @return An set of the points calculated by the A Star algorithm.
      */
-    public LongLinkedOpenHashSet find(long origin, long target, boolean crossroad) {
+    public ArrayDeque<Pos> find(long origin, long target, boolean crossroad) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same ASFinder instance");
         }
 
         if (origin == target) {
-            throw new ConcurrentModificationException("Attempted to run find operation with invalid positions");
+            throw new IllegalStateException("ASFinder::find: Attempted to run find operation with invalid positions");
         }
 
-        path.clear();
+        path = new ArrayDeque<>();
 
         try {
-            Node start = new Node(origin);
-            Node end = new Node(target);
+            Node start = new Node(origin, false);
+            Node end = new Node(target, false);
 
             open.add(start);
 
@@ -103,26 +101,32 @@ public class ASFinder {
     /**
      * Adds all nodes to the path set.
      *
-     * @param current   The current node
+     * @param current The current node
      * @param crossroad If true will generate path only with crossroad nodes, false for all nodes.
      */
     public void retracePath(Node current, boolean crossroad) {
         Node temp = current;
-        path.add(current.get());
+        path.add(current);
 
-        while (temp.getParent() != null) {
-            Node parent = temp.getParent();
-            if (crossroad) {
-                if (isCrossroad(parent)) {
-                    path.add(parent.get());
+        if (crossroad) {
+            while (temp.getParent() != null) {
+                Node parent = temp.getParent();
+                if (parent.isValid()) {
+                    if (isCrossroad(parent)) {
+                        path.add(parent);
+                    }
+                } else {
+                    path.add(parent);
                 }
-            } else {
-                path.add(parent.get());
+                temp = parent;
             }
-            temp = parent;
+        } else {
+            while (temp.getParent() != null) {
+                Node parent = temp.getParent();
+                path.add(parent);
+                temp = parent;
+            }
         }
-
-        path.add(temp.get());
     }
 
     /**
@@ -153,7 +157,7 @@ public class ASFinder {
             long pos = current.offset(direction).get();
 
             if (container.contains(pos)) {
-                neighbors.add(new Node(pos));
+                neighbors.add(new Node(pos, true));
             }
         }
 
@@ -167,7 +171,7 @@ public class ASFinder {
      * @return True if node has more then 2 connections, false otherwise.
      */
     public boolean isCrossroad(Node current) {
-        int connections = 0;
+        byte connections = 0;
 
         for (Dir direction : Dir.VALUES) {
             long pos = current.offset(direction).get();
@@ -187,21 +191,11 @@ public class ASFinder {
 
         private Node parent;
         private int cost, heuristic, function;
+        private boolean valid;
 
-        public Node() {
-            super();
-        }
-
-        public Node(int x, int y, int z) {
-            super(x, y, z);
-        }
-
-        public Node(long value) {
+        public Node(long value, boolean valid) {
             super(value);
-        }
-
-        public Node(Pos pos) {
-            super(pos);
+            setValid(valid);
         }
 
         public int getCost() {
@@ -234,6 +228,14 @@ public class ASFinder {
 
         public void setParent(Node parent) {
             this.parent = parent;
+        }
+
+        public boolean isValid() {
+            return valid;
+        }
+
+        public void setValid(boolean valid) {
+            this.valid = valid;
         }
 
         public int heuristic(Node dest) {

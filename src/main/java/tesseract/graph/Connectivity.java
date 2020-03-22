@@ -3,24 +3,13 @@ package tesseract.graph;
 import tesseract.util.Dir;
 
 /**
- *
+ * A class that acts as a controller for a connectivity of the connectables.
  */
 public class Connectivity {
 
     /**
-     *
-     * @param connectivity
-     * @param side
-     * @return
-     */
-    public static byte with(byte connectivity, Dir side) {
-        return (byte) (connectivity | (1 << side.ordinal()));
-    }
-
-    /**
-     *
-     * @param connectable
-     * @return
+     * @param connectable The given instance.
+     * @return Gets the connectivity for instance.
      */
     public static byte of(IConnectable connectable) {
         byte connectivity = 0;
@@ -35,10 +24,18 @@ public class Connectivity {
     }
 
     /**
-     *
-     * @param connectivity
-     * @param side
-     * @return
+     * @param connectivity The provided state.
+     * @param side The direction index.
+     * @return Connectivity state for a connection.
+     */
+    public static byte with(byte connectivity, Dir side) {
+        return (byte) (connectivity | (1 << side.ordinal()));
+    }
+
+    /**
+     * @param connectivity The provided state.
+     * @param side The direction index.
+     * @return True if a  connection is exist, false otherwise.
      */
     public static boolean has(byte connectivity, Dir side) {
         return (connectivity & (1 << side.ordinal())) > 0;

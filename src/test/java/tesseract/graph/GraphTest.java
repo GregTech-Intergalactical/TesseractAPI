@@ -5,6 +5,12 @@ import org.junit.Test;
 import tesseract.electric.api.*;
 import tesseract.electric.base.*;
 import tesseract.util.Dir;
+import tesseract.util.Pos;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import static tesseract.util.Pos.packAll;
 import static org.junit.Assert.*;
@@ -34,24 +40,24 @@ public class GraphTest {
         graph.addConnector(packAll(0, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
         graph.addConnector(packAll(0, 4, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
         assertEquals(1, graph.countGroups());
-        LongSet set1 = new LongLinkedOpenHashSet();
+        ArrayDeque<Pos> set1 = new ArrayDeque<>();
         for (IGroup<TestCable, TestNode> group : graph.getGroups().values()) {
             for (IGrid<GraphTest.TestCable> grid : group.getGrids().values()) {
                 set1 = grid.findPath(packAll(0, -1, 0), packAll(0, 6, 0), false);
             }
         }
-        LongList set2 = new LongArrayList();
-        set2.add(packAll(0, 6, 0));
-        set2.add(packAll(0, 5, 0));
-        set2.add(packAll(0, 4, 0));
-        set2.add(packAll(0, 3, 0));
-        set2.add(packAll(0, 2, 0));
-        set2.add(packAll(0, 1, 0));
-        set2.add(packAll(0, 0, 0));
-        set2.add(packAll(0, -1, 0));
-        LongIterator iterator = set1.iterator();
-        for (int i = 0; i < set2.size(); i++) {
-            assertEquals(set2.getLong(i),  iterator.nextLong());
+        List<Pos> set2 = new ArrayList<>();
+        set2.add(new Pos(0, -1, 0));
+        set2.add(new Pos(0, 0, 0));
+        set2.add(new Pos(0, 1, 0));
+        set2.add(new Pos(0, 2, 0));
+        set2.add(new Pos(0, 3, 0));
+        set2.add(new Pos(0, 4, 0));
+        set2.add(new Pos(0, 5, 0));
+        set2.add(new Pos(0, 6, 0));
+        Iterator<Pos> iterator = set1.descendingIterator();
+        for (Pos pos : set2) {
+            assertEquals(pos, iterator.next());
         }
     }
 
@@ -154,19 +160,19 @@ public class GraphTest {
         graph.addConnector(packAll(88,0,0), Connectivity.Cache.of(new GraphTest.TestCable()));
         graph.addConnector(packAll(89,0,0), Connectivity.Cache.of(new GraphTest.TestCable()));
         graph.addNode(packAll(90,0,0), Connectivity.Cache.of(new GraphTest.TestNode()));
-        LongSet set1 = new LongLinkedOpenHashSet();
+        ArrayDeque<Pos> set1 = new ArrayDeque<>();
         for (IGroup<TestCable, TestNode> group : graph.getGroups().values()) {
             for (IGrid<GraphTest.TestCable> grid : group.getGrids().values()) {
                 set1 = grid.findPath(packAll(1, 0, 0), packAll(90, 0, 0), true);
             }
         }
-        LongList set2 = new LongArrayList();
-        set2.add(packAll(90, 0, 0));
-        set2.add(packAll(40, 0, 0));
-        set2.add(packAll(1, 0, 0));
-        LongIterator iterator = set1.iterator();
-        for (int i = 0; i < set2.size(); i++) {
-            assertEquals(set2.getLong(i),  iterator.nextLong());
+        List<Pos> set2 = new ArrayList<>();
+        set2.add(new Pos(1, 0, 0));
+        set2.add(new Pos(40, 0, 0));
+        set2.add(new Pos(90, 0, 0));
+        Iterator<Pos> iterator = set1.descendingIterator();
+        for (Pos pos : set2) {
+            assertEquals(pos, iterator.next());
         }
     }
 

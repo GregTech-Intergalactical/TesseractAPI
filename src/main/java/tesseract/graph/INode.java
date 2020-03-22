@@ -1,7 +1,6 @@
 package tesseract.graph;
 
 import tesseract.util.Dir;
-import tesseract.util.Pos;
 
 /**
  * A simple interface for representing objects that contain groups of positions that are connected in various ways.

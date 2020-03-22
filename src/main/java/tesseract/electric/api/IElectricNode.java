@@ -10,14 +10,14 @@ public interface IElectricNode extends IConnectable {
 
 	/**
 	 *
-	 * @param direction
+	 * @param direction The direction vector.
 	 * @return
 	 */
 	IElectricStorage getStorage(Dir direction);
 
 	/**
 	 *
-	 * @param direction
+	 * @param direction The direction vector.
 	 * @return
 	 */
 	IElectricLimits getReceiverLimits(Dir direction);
@@ -30,7 +30,7 @@ public interface IElectricNode extends IConnectable {
 
 	/**
 	 *
-	 * @param direction
+	 * @param direction The direction vector.
 	 * @return
 	 */
 	@Override

@@ -1,17 +1,17 @@
 package tesseract.graph;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
+import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectList;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
+import tesseract.util.ID;
 
 import java.util.ArrayDeque;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Class provides the functionality of any set of nodes.
@@ -19,12 +19,13 @@ import java.util.UUID;
  */
 public class Graph<C extends IConnectable, N extends IConnectable> implements INode {
 
-	private Object2ObjectMap<UUID, Group<C, N>> groups;
-	private Long2ObjectMap<UUID> positions; // group positions
+	private Int2ObjectMap<Group<C, N>> groups;
+	private Long2IntMap positions; // group positions
 
 	public Graph() {
-		groups = new Object2ObjectLinkedOpenHashMap<>();
-		positions = new Long2ObjectLinkedOpenHashMap<>();
+		groups = new Int2ObjectLinkedOpenHashMap<>();
+		positions = new Long2IntLinkedOpenHashMap();
+		positions.defaultReturnValue(ID.INVALID);
 	}
 
 	@Override
@@ -43,18 +44,16 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	}
 
 	/**
-	 *
-	 * @return
+	 * @return Gets the size of the groups map.
 	 */
 	public int countGroups() {
 		return groups.size();
 	}
 
 	/**
-	 *
-	 * @return
+	 * @return Gets the groups map.
 	 */
-	public Object2ObjectMap<UUID, Group<C, N>> getGroups() {
+	public Int2ObjectMap<Group<C, N>> getGroups() {
 		return groups;
 	}
 
@@ -92,24 +91,24 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @return An existing group, that the caller should add the entry to.
 	 */
 	private Group<C, N> add(long pos, Group<C, N> single) {
-		UUID uuid;
-		ArrayDeque<UUID> mergers = getNeighborsGroups(pos);
+		int id;
+		ArrayDeque<Integer> mergers = getNeighborsGroups(pos);
 		switch (mergers.size()) {
 			case 0:
-				uuid = getNewId();
-				positions.put(pos, uuid);
-				groups.put(uuid, single);
+				id = ID.getNewId();
+				positions.put(pos, id);
+				groups.put(id, single);
 				return null;
 
 			case 1:
-				uuid = mergers.peek();
-				positions.put(pos, uuid);
-				return groups.get(uuid);
+				id = mergers.peek();
+				positions.put(pos, id);
+				return groups.get(id);
 
 			default:
 				MergeData<C, N> data = beginMerge(mergers);
 				positions.put(pos, data.bestId);
-				for (Group<C, N> other: data.merged) {
+				for (Group<C, N> other : data.merged) {
 					data.best.mergeWith(other, pos);
 				}
 				return data.best;
@@ -117,54 +116,74 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	}
 
 	/**
+	 * Removes an entry from the Group, potentially splitting it if needed. By calling this function, the caller asserts
+	 * that this group contains the specified position; the function may misbehave if the group does not actually contain
+	 * the specified position.
 	 *
-	 * @param pos
-	 * @return
+	 * @param pos The position of the entry to remove.
+	 * @return The removed entry, guaranteed to not be null.
 	 */
 	public Optional<Entry<C, N>> remove(long pos) {
-		UUID uuid = positions.remove(pos);
+		int id = positions.remove(pos);
 
-		if (uuid == null) {
+		if (id == ID.INVALID) {
 			return Optional.empty();
 		}
 
-		Group<C, N> group = groups.get(uuid);
+		Group<C, N> group = groups.get(id);
 
 		Entry<C, N> entry = group.remove(pos, newGroup -> {
-			UUID newUuid = getNewId();
-			groups.put(newUuid, newGroup);
+			int newId = ID.getNewId();
+			groups.put(newId, newGroup);
 
 			// Mark the nodes as pointing at the new group
 			for (long part : newGroup.getNodes().keySet()) {
-				positions.put(part, newUuid);
+				positions.put(part, newId);
 			}
 
 			// Mark the connectors as pointing at the new group
 			for (IGrid<C> grid : newGroup.getGrids().values()) {
 				for (long part : grid.getConnectors().keySet()) {
-					positions.put(part, newUuid);
+					positions.put(part, newId);
 				}
 			}
 		});
 
 		if (group.countBlocks() == 0) {
-			groups.remove(uuid);
+			groups.remove(id);
 		}
 
 		return Optional.of(entry);
 	}
 
 	/**
+	 * Finds the group by a given position.
 	 *
-	 * @param mergers
-	 * @return
+	 * @param pos The position of the group.
+	 * @return The group pointer, guaranteed to not be null.
 	 */
-	private MergeData<C, N> beginMerge(ArrayDeque<UUID> mergers) {
-		UUID bestId = mergers.peek();
+	public Optional<Group<C, N>> findGroup(long pos) {
+		int id = positions.get(pos);
+
+		if (id == ID.INVALID) {
+			return Optional.empty();
+		}
+
+		return Optional.of(groups.get(id));
+	}
+
+	/**
+	 * Starts a merging process for a given groups.
+	 *
+	 * @param mergers An array of neighbors groups id.
+	 * @return The wrapper with groups which should be merged.
+	 */
+	private MergeData<C, N> beginMerge(ArrayDeque<Integer> mergers) {
+		int bestId = mergers.peek();
 		Group<C, N> best = groups.get(bestId);
 		int bestSize = best.countBlocks();
 
-		for (UUID id: mergers) {
+		for (int id : mergers) {
 			Group<C, N> candidate = groups.get(id);
 			int size = candidate.countBlocks();
 
@@ -175,10 +194,10 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			}
 		}
 
-		ObjectSet<Group<C, N>> mergeGroups = new ObjectLinkedOpenHashSet<>(mergers.size() - 1);
+		ObjectList<Group<C, N>> mergeGroups = new ObjectArrayList<>(mergers.size() - 1);
 
-		for (UUID id: mergers) {
-			if (id.equals(bestId)) {
+		for (int id : mergers) {
+			if (id == bestId) {
 				continue;
 			}
 
@@ -205,20 +224,20 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The search position.
 	 * @return The array of the groups which are neighbors to each other.
 	 */
-	private ArrayDeque<UUID> getNeighborsGroups(long pos) {
-		ArrayDeque<UUID> neighbors = new ArrayDeque<>(6);
+	private ArrayDeque<Integer> getNeighborsGroups(long pos) {
+		ArrayDeque<Integer> neighbors = new ArrayDeque<>(6);
 
 		Pos position = new Pos(pos);
 		for (Dir direction : Dir.VALUES) {
 			long face = position.offset(direction).get();
-			UUID group = positions.get(face);
+			int id = positions.get(face);
 
-			if (group == null) {
+			if (id == ID.INVALID) {
 				continue;
 			}
 
-			if (!neighbors.contains(group)) {
-				neighbors.add(group);
+			if (!neighbors.contains(id)) {
+				neighbors.add(id);
 			}
 		}
 
@@ -226,25 +245,11 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	}
 
 	/**
-	 * @return Pseudo randomly generates an immutable universally unique identifier.
-	 */
-	private UUID getNewId() {
-		UUID uuid = UUID.randomUUID();
-
-		while (groups.containsKey(uuid)) {
-			// Should never be called, but whatever.
-			uuid = UUID.randomUUID();
-		}
-
-		return uuid;
-	}
-
-	/**
 	 * @apiNote Wrapper for merged groups.
 	 */
 	private static class MergeData<C extends IConnectable, N extends IConnectable> {
-		UUID bestId;
+		int bestId;
 		Group<C, N> best;
-		ObjectSet<Group<C, N>> merged;
+		ObjectList<Group<C, N>> merged;
 	}
 }

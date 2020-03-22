@@ -2,8 +2,10 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.LongSet;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
+import it.unimi.dsi.fastutil.objects.ObjectList;
+import tesseract.util.Pos;
+
+import java.util.ArrayDeque;
 
 /**
  * A simple interface for representing objects that contain sets of positions that are linked to each other.
@@ -31,9 +33,18 @@ public interface IGrid<C extends IConnectable> {
 	Long2ByteMap getNodes();
 
 	/**
-	 * @return Returns crossroad paths map.
+	 * Lazily generates full paths from the linked node to another linked nodes.
+	 * @param pos The position of the linked node.
+	 * @return Returns full paths for the linked node.
 	 */
-	Long2ObjectMap<ObjectSet<LongSet>> getCrossroads();
+	ObjectList<ArrayDeque<Pos>> getPath(long pos);
+
+	/**
+	 * Lazily generates crossroad paths from the linked node to another linked nodes.
+	 * @param pos The position of the linked node.
+	 * @return Returns crossroad paths for the linked node.
+	 */
+	ObjectList<ArrayDeque<Pos>> getCrossroad(long pos);
 
 	/**
 	 * Begins a find operation from the specified start position to the end position.
@@ -42,5 +53,5 @@ public interface IGrid<C extends IConnectable> {
 	 * @param crossroad If true will generate path only with crossroad nodes, false for all nodes.
 	 * @return An set of path points.
 	 */
-	LongSet findPath(long start, long end, boolean crossroad);
+	ArrayDeque<Pos> findPath(long start, long end, boolean crossroad);
 }
