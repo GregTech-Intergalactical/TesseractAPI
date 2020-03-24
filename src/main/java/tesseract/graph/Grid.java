@@ -2,6 +2,8 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
+import jdk.internal.jline.internal.Nullable;
+import tesseract.util.Node;
 import tesseract.util.listener.Long2ByteMapListener;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
@@ -19,8 +21,7 @@ import java.util.function.Consumer;
 public class Grid<C extends IConnectable> implements INode, IGrid<C> {
 
     private Long2ObjectMap<Connectivity.Cache<C>> connectors;
-    private Long2ObjectMap<ObjectList<ArrayDeque<Pos>>> paths;
-    private Long2ObjectMap<ObjectList<ArrayDeque<Pos>>> roads;
+    private Long2ObjectMap<ObjectList<ArrayDeque<Node>>> paths;
     private Long2ByteMapListener nodes; // linked nodes
     private BFDivider divider;
     private ASFinder finder;
@@ -29,11 +30,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
     private Grid() {
         connectors = new Long2ObjectLinkedOpenHashMap<>();
         paths = new Long2ObjectLinkedOpenHashMap<>();
-        roads = new Long2ObjectLinkedOpenHashMap<>();
-        nodes = new Long2ByteMapListener(new Long2ByteLinkedOpenHashMap(), () -> {
-            paths.clear();
-            roads.clear();
-        });
+        nodes = new Long2ByteMapListener(new Long2ByteLinkedOpenHashMap(), () -> { paths.clear(); });
 
         divider = new BFDivider(this);
         finder = new ASFinder(this);
@@ -121,43 +118,25 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
     }
 
     @Override
-    public ObjectList<ArrayDeque<Pos>> getPath(long pos) {
-        return find(paths, pos, false);
-    }
-
-    @Override
-    public ObjectList<ArrayDeque<Pos>> getCrossroad(long pos) {
-        return find(roads, pos, true);
-    }
-
-    @Override
-    public ArrayDeque<Pos> findPath(long start, long end, boolean crossroad) {
-        return finder.find(start, end, crossroad);
-    }
-
-    /**
-     * Lazily generates paths from the linked node to another linked nodes.
-     *
-     * @param path The provided map.
-     * @param pos The position of the linked node.
-     * @param crossroad If true will generate path only with crossroad nodes, false for all nodes.
-     * @return Returns paths map for linked node.
-     */
-    private ObjectList<ArrayDeque<Pos>> find(Long2ObjectMap<ObjectList<ArrayDeque<Pos>>> path, long pos, boolean crossroad) {
-
-        if (!path.containsKey(pos)) {
-            ObjectList<ArrayDeque<Pos>> data = new ObjectArrayList<>();
+    public ObjectList<ArrayDeque<Node>> getPath(long pos) {
+        if (!paths.containsKey(pos)) {
+            ObjectList<ArrayDeque<Node>> data = new ObjectArrayList<>();
 
             for (long target : nodes.unwrap().keySet()) {
                 if (pos != target) {
-                    data.add(finder.find(pos, target, crossroad));
+                    data.add(finder.find(pos, target));
                 }
             }
 
-            path.put(pos, data);
+            paths.put(pos, data);
         }
 
-        return path.get(pos);
+        return paths.get(pos);
+    }
+
+    @Override
+    public ArrayDeque<Node> findPath(long start, long end) {
+        return finder.find(start, end);
     }
 
     /**

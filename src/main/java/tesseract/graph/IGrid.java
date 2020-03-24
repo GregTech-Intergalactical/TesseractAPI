@@ -3,7 +3,7 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectList;
-import tesseract.util.Pos;
+import tesseract.util.Node;
 
 import java.util.ArrayDeque;
 
@@ -37,21 +37,13 @@ public interface IGrid<C extends IConnectable> {
 	 * @param pos The position of the linked node.
 	 * @return Returns full paths for the linked node.
 	 */
-	ObjectList<ArrayDeque<Pos>> getPath(long pos);
-
-	/**
-	 * Lazily generates crossroad paths from the linked node to another linked nodes.
-	 * @param pos The position of the linked node.
-	 * @return Returns crossroad paths for the linked node.
-	 */
-	ObjectList<ArrayDeque<Pos>> getCrossroad(long pos);
+	ObjectList<ArrayDeque<Node>> getPath(long pos);
 
 	/**
 	 * Begins a find operation from the specified start position to the end position.
 	 * @param start The start position of the finds operation.
 	 * @param end The end position of the finds operation.
-	 * @param crossroad If true will generate path only with crossroad nodes, false for all nodes.
 	 * @return An set of path points.
 	 */
-	ArrayDeque<Pos> findPath(long start, long end, boolean crossroad);
+	ArrayDeque<Node> findPath(long start, long end);
 }

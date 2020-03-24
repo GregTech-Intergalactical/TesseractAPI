@@ -1,5 +1,6 @@
 package tesseract.electric.api;
 
+import net.minecraft.block.Block;
 import tesseract.util.Dir;
 import tesseract.graph.IConnectable;
 
@@ -8,33 +9,14 @@ import tesseract.graph.IConnectable;
  */
 public interface IElectricNode extends IConnectable {
 
-	/**
-	 *
-	 * @param direction The direction vector.
-	 * @return
-	 */
-	IElectricStorage getStorage(Dir direction);
-
-	/**
-	 *
-	 * @param direction The direction vector.
-	 * @return
-	 */
-	IElectricLimits getReceiverLimits(Dir direction);
-
-	/**
-	 *
-	 * @return
-	 */
-	int getOfferedPackets();
-
-	/**
-	 *
-	 * @param direction The direction vector.
-	 * @return
-	 */
-	@Override
-	default boolean connects(Dir direction) {
-		return getStorage(direction) != null;
-	}
+	long getEnergyStored();
+	long getEnergyCapacity();
+	long getOutputAmperage();
+	long getOutputVoltage();
+	long getInputAmperage();
+	long getInputVoltage();
+	//long receiveEnergy();
+	//long extractEnergy();
+	boolean canReceive();
+	boolean canExtract();
 }

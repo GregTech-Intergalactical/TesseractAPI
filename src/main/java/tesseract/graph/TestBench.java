@@ -3,18 +3,15 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import tesseract.electric.api.IElectricCable;
-import tesseract.electric.api.IElectricLimits;
 import tesseract.electric.api.IElectricNode;
-import tesseract.electric.api.IElectricStorage;
-import tesseract.electric.base.ElectricLimits;
 import tesseract.util.Dir;
+import tesseract.util.Node;
 import tesseract.util.Pos;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayDeque;
 import java.util.Iterator;
-import java.util.Optional;
 
 import static tesseract.util.Pos.packAll;
 
@@ -43,17 +40,18 @@ class TestBench {
                 Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
                 long position = pos.get();
 
-                if (!graph.contains(position)) {
-                    if (points.length == 5 && points[4].startsWith("c")) {
-                        graph.addConnector(position, Connectivity.Cache.of(new ExampleCable()));
-                    } else {
-                        graph.addNode(position, Connectivity.Cache.of(new ExampleNode()));
+                if (points.length == 5 && points[4].startsWith("c")) {
+                    if (!graph.addConnector(position, Connectivity.Cache.of(new ExampleCable()))) {
+                        System.out.println("Error: connector at" + pos + " already exists in the graph");
+                        continue;
                     }
-
-                    System.out.println("Added " + pos + " to the graph");
                 } else {
-                    System.out.println("Error: " + pos + " already exists in the graph");
+                    if (!graph.addNode(position, Connectivity.Cache.of(new ExampleNode()))) {
+                        System.out.println("Error: node at" + pos + " already exists in the graph");
+                        continue;
+                    }
                 }
+                System.out.println("Added " + pos + " to the graph");
 
             } else if (line.startsWith("remove")) {
                 String[] points = line.split(" ");
@@ -65,10 +63,10 @@ class TestBench {
                 Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
                 long position = pos.get();
 
-                Optional<Entry<ExampleCable, ExampleNode>> entry = graph.remove(position);
+                Entry<ExampleCable, ExampleNode> entry = graph.remove(position);
 
-                if (entry.isPresent()) {
-                    entry.get().apply(
+                if (entry != null) {
+                    entry.apply(
                         connector -> System.out.println("Removed connector " + pos + " from the graph: " + connector),
                         node -> System.out.println("Removed node " + pos + " from the graph: " + node)
                     );
@@ -88,8 +86,8 @@ class TestBench {
                 System.out.println("findPath ->");
                 for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                     for (IGrid<ExampleCable> grid : group.getValue().getGrids().values()) {
-                        for (Pos pos : grid.findPath(start, end, points.length == 8 && points[7].startsWith("x"))) {
-                            System.out.println(pos);
+                        for (Node node : grid.findPath(start, end)) {
+                            System.out.println(node);
                         }
                     }
                 }
@@ -102,16 +100,14 @@ class TestBench {
                 }
 
                 long pos = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
-                Optional<Group<ExampleCable, ExampleNode>> group = graph.findGroup(pos);
+                Group<ExampleCable, ExampleNode> group = graph.findGroup(pos);
+                if (group != null) {
+                    Connectivity.Cache<ExampleNode> node = group.getNodes().get(pos);
+                    if (node != null) {
 
-                if (group.isPresent()) {
-
-                    Optional<Connectivity.Cache<ExampleNode>> node = group.get().findNode(pos);
-                    if (node.isPresent()) {
-
-                        for (Grid<ExampleCable> grid : group.get().findGrids(pos)) {
-                            for(ArrayDeque<Pos> path : grid.getPath(pos)) {
-                                Iterator<Pos> iterator = path.descendingIterator();
+                        for (Grid<ExampleCable> grid : group.findGrids(pos)) {
+                            for (ArrayDeque<Node> path : grid.getPath(pos)) {
+                                Iterator<Node> iterator = path.descendingIterator();
 
                                 while(iterator.hasNext()) {
                                     System.out.println(iterator.next());
@@ -129,19 +125,19 @@ class TestBench {
                 }
 
                 long pos = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
-                Optional<Group<ExampleCable, ExampleNode>> group = graph.findGroup(pos);
-
-                if (group.isPresent()) {
-
-                    Optional<Connectivity.Cache<ExampleNode>> node = group.get().findNode(pos);
-                    if (node.isPresent()) {
-
-                        for (Grid<ExampleCable> grid : group.get().findGrids(pos)) {
-                            for(ArrayDeque<Pos> path : grid.getCrossroad(pos)) {
-                                Iterator<Pos> iterator = path.descendingIterator();
+                Group<ExampleCable, ExampleNode> group = graph.findGroup(pos);
+                if (group != null) {
+                    Connectivity.Cache<ExampleNode> node = group.getNodes().get(pos);
+                    if (node != null) {
+                        for (Grid<ExampleCable> grid : group.findGrids(pos)) {
+                            for (ArrayDeque<Node> path : grid.getPath(pos)) {
+                                Iterator<Node> iterator = path.descendingIterator();
 
                                 while(iterator.hasNext()) {
-                                    System.out.println(iterator.next());
+                                    Node current = iterator.next();
+                                    if (current.isCrossroad()) {
+                                        System.out.println(current);
+                                    }
                                 }
                                 System.out.println("(-)");
                             }
@@ -196,16 +192,6 @@ class TestBench {
     private static class ExampleCable implements IElectricCable, IConnectable {
 
         @Override
-        public long getLossPerBlock() {
-            return 0;
-        }
-
-        @Override
-        public IElectricLimits getPassageLimits() {
-            return ElectricLimits.UNLIMITED;
-        }
-
-        @Override
         public String toString() {
             return "ExampleCable";
         }
@@ -214,21 +200,24 @@ class TestBench {
         public boolean connects(Dir direction) {
             return true;
         }
+
+        @Override
+        public int getLoss() {
+            return 0;
+        }
+
+        @Override
+        public int getAmps() {
+            return 0;
+        }
+
+        @Override
+        public long getVoltage() {
+            return 0;
+        }
     }
 
     private static class ExampleNode implements IElectricNode, IConnectable {
-
-        public IElectricStorage getStorage(Dir direction) {
-            return null;
-        }
-
-        public IElectricLimits getReceiverLimits(Dir direction) {
-            return null;
-        }
-
-        public int getOfferedPackets() {
-            return 0;
-        }
 
         @Override
         public String toString() {
@@ -238,6 +227,46 @@ class TestBench {
         @Override
         public boolean connects(Dir direction) {
             return true;
+        }
+
+        @Override
+        public long getEnergyStored() {
+            return 0;
+        }
+
+        @Override
+        public long getEnergyCapacity() {
+            return 0;
+        }
+
+        @Override
+        public long getOutputAmperage() {
+            return 0;
+        }
+
+        @Override
+        public long getOutputVoltage() {
+            return 0;
+        }
+
+        @Override
+        public long getInputAmperage() {
+            return 0;
+        }
+
+        @Override
+        public long getInputVoltage() {
+            return 0;
+        }
+
+        @Override
+        public boolean canReceive() {
+            return false;
+        }
+
+        @Override
+        public boolean canExtract() {
+            return false;
         }
     }
 }

@@ -1,11 +1,13 @@
 package tesseract;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraftforge.fml.common.Mod;
+import tesseract.electric.ElectricSystem;
 
+@Mod(Constants.API_ID)
+@Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
 public class Tesseract {
 
-	private static final Logger LOGGER = LogManager.getLogger();
-
-	public Tesseract() { }
+	public Tesseract() {
+		new ElectricSystem();
+	}
 }

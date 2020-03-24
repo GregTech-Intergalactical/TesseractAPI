@@ -12,7 +12,6 @@ import tesseract.util.Pos;
 import tesseract.util.ID;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -439,10 +438,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         return list;
-    }
-
-    public Optional<Connectivity.Cache<N>> findNode(long pos) {
-        return Optional.of(nodes.get(pos));
     }
 
     /**

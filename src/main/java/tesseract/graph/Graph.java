@@ -6,18 +6,18 @@ import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
+import jdk.internal.jline.internal.Nullable;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 import tesseract.util.ID;
 
 import java.util.ArrayDeque;
-import java.util.Optional;
 
 /**
  * Class provides the functionality of any set of nodes.
- * @apiNote default parameters are nonnull, methods return nonnull.
+ * @apiNote default parameters are nonnull, some methods might return null.
  */
-public class Graph<C extends IConnectable, N extends IConnectable> implements INode {
+public class Graph<C extends IConnectable, N extends IConnectable> implements INode  {
 
 	private Int2ObjectMap<Group<C, N>> groups;
 	private Long2IntMap positions; // group positions
@@ -60,33 +60,49 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	/**
 	 * Adds a node to the graph at the specified position.
 	 *
-	 * @param pos The position at which the node will be added
-	 * @param node The node to add
+	 * @param pos The position at which the node will be added.
+	 * @param node The node to add.
+	 * @return True on success or false otherwise.
 	 */
-	public void addNode(long pos, Connectivity.Cache<N> node) {
-		Group<C, N> group = add(pos, Group.singleNode(pos, node));
-		if (group != null) {
-			group.addNode(pos, node);
+	public boolean addNode(long pos, Connectivity.Cache<N> node) {
+		if (!contains(pos)) {
+
+			Group<C, N> group = add(pos, Group.singleNode(pos, node));
+			if (group != null) {
+				group.addNode(pos, node);
+			}
+			
+			return true;
 		}
+
+		return false;
 	}
 
 	/**
 	 * Adds a connector to the graph at the specified position.
 	 *
-	 * @param pos The position at which the node will be added
-	 * @param connector The connector to add
+	 * @param pos The position at which the node will be added.
+	 * @param connector The connector to add.
+	 * @return True on success or false otherwise.
 	 */
-	public void addConnector(long pos, Connectivity.Cache<C> connector) {
-		Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
-		if (group != null) {
-			group.addConnector(pos, connector);
+	public boolean addConnector(long pos, Connectivity.Cache<C> connector) {
+		if (!contains(pos)) {
+
+			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
+			if (group != null) {
+				group.addConnector(pos, connector);
+			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/**
 	 * Adds an item to the Graph, in a manner generic across nodes and connectors.
 	 *
-	 * @param pos The position at which the item will be added
+	 * @param pos The position at which the item will be added.
 	 * @param single A group containing a single entry, if the position is not touching any existing positions.
 	 * @return An existing group, that the caller should add the entry to.
 	 */
@@ -121,13 +137,14 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * the specified position.
 	 *
 	 * @param pos The position of the entry to remove.
-	 * @return The removed entry, guaranteed to not be null.
+	 * @return The removed entry, might be null.
 	 */
-	public Optional<Entry<C, N>> remove(long pos) {
+	@Nullable
+	public Entry<C, N> remove(long pos) {
 		int id = positions.remove(pos);
 
 		if (id == ID.INVALID) {
-			return Optional.empty();
+			return null;
 		}
 
 		Group<C, N> group = groups.get(id);
@@ -153,23 +170,24 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			groups.remove(id);
 		}
 
-		return Optional.of(entry);
+		return entry;
 	}
 
 	/**
 	 * Finds the group by a given position.
 	 *
 	 * @param pos The position of the group.
-	 * @return The group pointer, guaranteed to not be null.
+	 * @return The group pointer, might be null.
 	 */
-	public Optional<Group<C, N>> findGroup(long pos) {
+	@Nullable
+	public Group<C, N> findGroup(long pos) {
 		int id = positions.get(pos);
 
 		if (id == ID.INVALID) {
-			return Optional.empty();
+			return null;
 		}
 
-		return Optional.of(groups.get(id));
+		return groups.get(id);
 	}
 
 	/**
