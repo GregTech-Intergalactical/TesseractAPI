@@ -1,10 +1,10 @@
-package tesseract.util.fast;
+package tesseract.graph;
 
 /**
  * Simple interface for a updates.
  */
 public interface IListener {
-    
+
     /**
      * Update callback method.
      */

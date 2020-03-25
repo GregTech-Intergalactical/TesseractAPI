@@ -9,7 +9,7 @@ import it.unimi.dsi.fastutil.objects.*;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
-import tesseract.util.NanoID;
+import tesseract.util.ID;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -31,7 +31,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         nodes = new Long2ObjectLinkedOpenHashMap<>();
         grids = new Int2ObjectLinkedOpenHashMap<>();
         connectors = new Long2IntLinkedOpenHashMap();
-        connectors.defaultReturnValue(NanoID.INVALID);
+        connectors.defaultReturnValue(ID.INVALID);
 
         divider = new BFDivider(this);
     }
@@ -56,7 +56,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      */
     public static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long at, Connectivity.Cache<C> connector) {
         Group<C, N> group = new Group<>();
-        int id = NanoID.getNewId();
+        int id = ID.getNewId();
 
         group.connectors.put(at, id);
         group.grids.put(id, Grid.singleConnector(at, connector));
@@ -149,7 +149,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
         Grid<C> bestGrid = null;
         int bestCount = 0;
-        int bestId = NanoID.INVALID;
+        int bestId = ID.INVALID;
 
         byte neighbors = 0;
         Pos position = new Pos(at);
@@ -161,7 +161,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             long offset = position.offset(direction).get();
             int id = connectors.get(offset);
 
-            if (id == NanoID.INVALID) {
+            if (id == ID.INVALID) {
                 // Collect joining nodes
                 if (nodes.containsKey(offset)) {
                     neighbors += 1;
@@ -191,7 +191,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         if (linked.isEmpty()) {
             // Single connector grid
-            bestId = NanoID.getNewId();
+            bestId = ID.getNewId();
             bestGrid = Grid.singleConnector(at, connector);
 
             connectors.put(at, bestId);
@@ -281,7 +281,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             C removed = grid.removeAt(
                 posToRemove,
                 newGrid -> {
-                    int newId = NanoID.getNewId();
+                    int newId = ID.getNewId();
                     grids.put(newId, newGrid);
 
                     for (long pos : newGrid.getConnectors().keySet()) {
@@ -328,7 +328,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         Entry<C, N> result;
 
         int centerGridId = connectors.get(posToRemove);
-        if (centerGridId != NanoID.INVALID) {
+        if (centerGridId != ID.INVALID) {
             Grid<C> centerGrid = grids.remove(centerGridId);
             splitGrids = new ObjectArrayList<>();
 
@@ -364,7 +364,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
                     // Just a node then, simply add it to the new group.
                     // The maps are mutated directly here in order to retain the cached connectivity.
-                    if (id == NanoID.INVALID) {
+                    if (id == ID.INVALID) {
                         newGroup.nodes.put(reached, Objects.requireNonNull(nodes.remove(reached)));
                         continue;
                     }
@@ -397,7 +397,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     long sample = grid.sampleConnector();
 
                     if (found.contains(sample)) {
-                        int newId = NanoID.getNewId();
+                        int newId = ID.getNewId();
 
                         newGroup.addGrid(newId, grid);
                         iterator.remove();
@@ -437,7 +437,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         ObjectList<Grid<C>> list = new ObjectArrayList<>();
 
         int grid = connectors.get(pos);
-        if (grid != NanoID.INVALID) {
+        if (grid != ID.INVALID) {
             list.add(grids.get(grid));
         }
 
@@ -492,7 +492,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         int pairing = connectors.get(at);
 
-        if (pairing != NanoID.INVALID) {
+        if (pairing != ID.INVALID) {
             Grid<C> currentGrid = grids.get(pairing);
 
             Pos position = new Pos(at);
@@ -505,7 +505,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
                 int id = other.connectors.get(offset);
 
-                if (id == NanoID.INVALID) {
+                if (id == ID.INVALID) {
                     continue;
                 }
 
@@ -542,7 +542,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             long face = position.offset(direction).get();
             int id = connectors.get(face);
 
-            if (id == NanoID.INVALID) {
+            if (id == ID.INVALID) {
                 continue;
             }
 

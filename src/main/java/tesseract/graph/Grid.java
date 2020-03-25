@@ -3,7 +3,6 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.util.*;
-import tesseract.util.fast.Long2ByteMapListener;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
 
@@ -19,16 +18,15 @@ import java.util.function.Consumer;
 public class Grid<C extends IConnectable> implements INode {
 
     private Long2ObjectMap<Connectivity.Cache<C>> connectors;
-    private Long2ObjectMap<ObjectSet<Path<C>>> paths;
-    private Long2ByteMapListener nodes; // linked nodes
+    private Long2ByteMap nodes; // linked nodes
     private BFDivider divider;
     private ASFinder finder;
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
         connectors = new Long2ObjectLinkedOpenHashMap<>();
-        paths = new Long2ObjectLinkedOpenHashMap<>();
-        nodes = new Long2ByteMapListener(new Long2ByteLinkedOpenHashMap(), () -> { paths.clear(); });
+        nodes = new Long2ByteLinkedOpenHashMap();
+        nodes.defaultReturnValue(Byte.MAX_VALUE);
 
         divider = new BFDivider(this);
         finder = new ASFinder(this);
@@ -106,7 +104,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @return Gets the number of linked nodes.
      */
     public int countNodes() {
-        return nodes.unwrap().size();
+        return nodes.size();
     }
 
     /**
@@ -120,7 +118,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @return Returns nodes map.
      */
     public Long2ByteMap getNodes() {
-        return nodes.unwrap();
+        return nodes;
     }
 
     /**
@@ -131,18 +129,14 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public ObjectSet<Path<C>> getPath(long pos) {
 
-        if (!paths.containsKey(pos)) {
-            ObjectSet<Path<C>> data = new ObjectLinkedOpenHashSet<>();
-            for (long target : nodes.unwrap().keySet()) {
-                if (pos != target) {
-                    data.add(new Path<>(connectors, finder.find(pos, target)));
-                }
+        ObjectSet<Path<C>> data = new ObjectLinkedOpenHashSet<>();
+        for (long target : nodes.keySet()) {
+            if (pos != target) {
+                data.add(new Path<>(connectors, finder.find(pos, target)));
             }
-
-            paths.put(pos, data);
         }
 
-        return paths.get(pos);
+        return data;
     }
 
     /**
@@ -338,7 +332,6 @@ public class Grid<C extends IConnectable> implements INode {
         private Pos target;
         private ObjectList<C> full;
         private ObjectList<C> cross;
-        private int hash;
 
         /**
          * Create a path instance.
@@ -363,7 +356,7 @@ public class Grid<C extends IConnectable> implements INode {
                 }
             }
 
-            hash = NanoID.getNewHash();
+            //hash = ID.getNewHash();
         }
 
         /**
@@ -392,11 +385,6 @@ public class Grid<C extends IConnectable> implements INode {
          */
         public ObjectList<C> getCross() {
             return cross;
-        }
-
-        @Override
-        public int hashCode() {
-            return hash;
         }
     }
 }

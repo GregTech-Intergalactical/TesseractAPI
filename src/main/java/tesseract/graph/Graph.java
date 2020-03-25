@@ -4,12 +4,13 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
-import jdk.internal.jline.internal.Nullable;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
-import tesseract.util.NanoID;
+import tesseract.util.ID;
 
 import java.util.ArrayDeque;
 import java.util.Optional;
@@ -22,11 +23,13 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 	private Int2ObjectMap<Group<C, N>> groups;
 	private Long2IntMap positions; // group positions
+	private Object2ObjectMap<N, IListener> listeners; // nodes listeners
 
 	public Graph() {
 		groups = new Int2ObjectLinkedOpenHashMap<>();
 		positions = new Long2IntLinkedOpenHashMap();
-		positions.defaultReturnValue(NanoID.INVALID);
+		positions.defaultReturnValue(ID.INVALID);
+		listeners = new Object2ObjectLinkedOpenHashMap<>();
 	}
 
 	@Override
@@ -63,16 +66,22 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 *
 	 * @param pos The position at which the node will be added.
 	 * @param node The node to add.
+	 * @param function The updating listener.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addNode(long pos, Connectivity.Cache<N> node) {
+	public boolean addNode(long pos, Connectivity.Cache<N> node, IListener function) {
 		if (!contains(pos)) {
 
 			Group<C, N> group = add(pos, Group.singleNode(pos, node));
 			if (group != null) {
 				group.addNode(pos, node);
 			}
-			
+
+			listeners.put(node.value(), function);
+			for (IListener listener : listeners.values()) {
+				listener.update();
+			}
+
 			return true;
 		}
 
@@ -94,6 +103,10 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 				group.addConnector(pos, connector);
 			}
 
+			for (IListener listener : listeners.values()) {
+				listener.update();
+			}
+
 			return true;
 		}
 
@@ -112,7 +125,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		ArrayDeque<Integer> mergers = getNeighborsGroups(pos);
 		switch (mergers.size()) {
 			case 0:
-				id = NanoID.getNewId();
+				id = ID.getNewId();
 				positions.put(pos, id);
 				groups.put(id, single);
 				return null;
@@ -143,14 +156,14 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public Entry<C, N> removeAt(long pos) {
 		int id = positions.remove(pos);
 
-		if (id == NanoID.INVALID) {
+		if (id == ID.INVALID) {
 			return Entry.empty();
 		}
 
 		Group<C, N> group = groups.get(id);
 
 		Entry<C, N> entry = group.removeAt(pos, newGroup -> {
-			int newId = NanoID.getNewId();
+			int newId = ID.getNewId();
 			groups.put(newId, newGroup);
 
 			// Mark the nodes as pointing at the new group
@@ -170,6 +183,14 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			groups.remove(id);
 		}
 
+		//
+		entry.asEndpoint().ifPresent(n -> listeners.remove(n));
+
+		// Call functions
+		for (IListener listener : listeners.values()) {
+			listener.update();
+		}
+
 		return entry;
 	}
 
@@ -182,7 +203,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public Entry<C, N> findAt(long pos) {
 		int id = positions.get(pos);
 
-		if (id == NanoID.INVALID) {
+		if (id == ID.INVALID) {
 			return Entry.empty();
 		}
 
@@ -215,7 +236,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public Optional<Group<C, N>> findGroup(long pos) {
 		int id = positions.get(pos);
 
-		if (id == NanoID.INVALID) {
+		if (id == ID.INVALID) {
 			return Optional.empty();
 		}
 
@@ -282,7 +303,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			long face = position.offset(direction).get();
 			int id = positions.get(face);
 
-			if (id == NanoID.INVALID) {
+			if (id == ID.INVALID) {
 				continue;
 			}
 
