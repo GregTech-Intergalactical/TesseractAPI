@@ -1,6 +1,5 @@
-package tesseract.util.listener;
+package tesseract.util.fast;
 
-import it.unimi.dsi.fastutil.longs.Long2ByteLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 
 /**

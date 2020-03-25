@@ -1,6 +1,5 @@
 package tesseract.graph;
 
-import it.unimi.dsi.fastutil.longs.*;
 import org.junit.Test;
 import tesseract.electric.api.*;
 import tesseract.util.Dir;
@@ -33,16 +32,16 @@ public class GraphTest {
         assertEquals(6, graph.countGroups());
         graph.addConnector(packAll(0, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
         assertEquals(1, graph.countGroups());
-        graph.remove(packAll(0, 0, 0));
+        graph.removeAt(packAll(0, 0, 0));
         assertEquals(6, graph.countGroups());
-        graph.remove(packAll(0, 4, 0));
+        graph.removeAt(packAll(0, 4, 0));
         assertEquals(7, graph.countGroups());
         graph.addConnector(packAll(0, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
         graph.addConnector(packAll(0, 4, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
         assertEquals(1, graph.countGroups());
         ArrayDeque<Node> set1 = new ArrayDeque<>();
-        for (IGroup<TestCable, TestNode> group : graph.getGroups().values()) {
-            for (IGrid<GraphTest.TestCable> grid : group.getGrids().values()) {
+        for (Group<TestCable, TestNode> group : graph.getGroups().values()) {
+            for (Grid<GraphTest.TestCable> grid : group.getGrids().values()) {
                 set1 = grid.findPath(packAll(0, -1, 0), packAll(0, 6, 0));
             }
         }
@@ -92,7 +91,7 @@ public class GraphTest {
     public void visit() {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
         graph.addNode(packAll(5, 5, 5), Connectivity.Cache.of(new GraphTest.TestNode()));
-        for (IGroup<TestCable, TestNode> group : graph.getGroups().values()) {
+        for (Group<TestCable, TestNode> group : graph.getGroups().values()) {
             assertEquals(1, group.countBlocks());
         }
     }
@@ -111,7 +110,7 @@ public class GraphTest {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
         long pos = packAll(5, 5, 5);
         graph.addNode(pos, Connectivity.Cache.of(new GraphTest.TestNode()));
-        for (IGroup<TestCable, TestNode> group : graph.getGroups().values()) {
+        for (Group<TestCable, TestNode> group : graph.getGroups().values()) {
             for (long position : group.getNodes().keySet()) {
                 assertEquals(position, pos);
             }
@@ -123,8 +122,8 @@ public class GraphTest {
         Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
         long pos = packAll(2, 2, 2);
         graph.addConnector(pos, Connectivity.Cache.of(new GraphTest.TestCable()));
-        for (IGroup<TestCable, TestNode> group : graph.getGroups().values()) {
-            for (IGrid<GraphTest.TestCable> grid : group.getGrids().values()) {
+        for (Group<TestCable, TestNode> group : graph.getGroups().values()) {
+            for (Grid<GraphTest.TestCable> grid : group.getGrids().values()) {
                 for (long position : grid.getConnectors().keySet()) {
                     assertEquals(position, pos);
                 }
@@ -138,7 +137,7 @@ public class GraphTest {
         long pos = packAll(0, 0, 0);
         graph.addNode(pos, Connectivity.Cache.of(new GraphTest.TestNode()));
         assertEquals(1, graph.countGroups());
-        graph.remove(pos);
+        graph.removeAt(pos);
         assertEquals(0, graph.countGroups());
     }
 

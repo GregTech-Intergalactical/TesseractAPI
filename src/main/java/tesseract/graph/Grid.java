@@ -2,15 +2,13 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
-import jdk.internal.jline.internal.Nullable;
-import tesseract.util.Node;
-import tesseract.util.listener.Long2ByteMapListener;
+import tesseract.util.*;
+import tesseract.util.fast.Long2ByteMapListener;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
-import tesseract.util.Dir;
-import tesseract.util.Pos;
 
 import java.util.ArrayDeque;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -18,10 +16,10 @@ import java.util.function.Consumer;
  * Grid provides the functionality of a set of linked nodes.
  * @apiNote default parameters are nonnull, methods return nonnull.
  */
-public class Grid<C extends IConnectable> implements INode, IGrid<C> {
+public class Grid<C extends IConnectable> implements INode {
 
     private Long2ObjectMap<Connectivity.Cache<C>> connectors;
-    private Long2ObjectMap<ObjectList<ArrayDeque<Node>>> paths;
+    private Long2ObjectMap<ObjectSet<Path<C>>> paths;
     private Long2ByteMapListener nodes; // linked nodes
     private BFDivider divider;
     private ASFinder finder;
@@ -97,34 +95,47 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
 
     // TODO: Count/visit linked nodes
 
-    @Override
+    /**
+     * @return Gets the number of connectors.
+     */
     public int countConnectors() {
         return connectors.size();
     }
 
-    @Override
+    /**
+     * @return Gets the number of linked nodes.
+     */
     public int countNodes() {
         return nodes.unwrap().size();
     }
 
-    @Override
+    /**
+     * @return Returns connectors map.
+     */
     public Long2ObjectMap<Connectivity.Cache<C>> getConnectors() {
         return connectors;
     }
 
-    @Override
+    /**
+     * @return Returns nodes map.
+     */
     public Long2ByteMap getNodes() {
         return nodes.unwrap();
     }
 
-    @Override
-    public ObjectList<ArrayDeque<Node>> getPath(long pos) {
-        if (!paths.containsKey(pos)) {
-            ObjectList<ArrayDeque<Node>> data = new ObjectArrayList<>();
+    /**
+     * Lazily generates full paths from the linked node to another linked nodes.
+     *
+     * @param pos The position of the linked node.
+     * @return Returns full paths for the linked node.
+     */
+    public ObjectSet<Path<C>> getPath(long pos) {
 
+        if (!paths.containsKey(pos)) {
+            ObjectSet<Path<C>> data = new ObjectLinkedOpenHashSet<>();
             for (long target : nodes.unwrap().keySet()) {
                 if (pos != target) {
-                    data.add(finder.find(pos, target));
+                    data.add(new Path<>(connectors, finder.find(pos, target)));
                 }
             }
 
@@ -134,7 +145,13 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
         return paths.get(pos);
     }
 
-    @Override
+    /**
+     * Begins a find operation from the specified start position to the end position.
+     *
+     * @param start The start position of the finds operation.
+     * @param end The end position of the finds operation.
+     * @return An set of path points.
+     */
     public ArrayDeque<Node> findPath(long start, long end) {
         return finder.find(start, end);
     }
@@ -200,7 +217,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
      * @param split A consumer for the resulting fresh graphs from the split operation.
      * @return The removed entry, guaranteed to not be null.
      */
-    public C remove(long pos, Consumer<Grid<C>> split) {
+    public C removeAt(long pos, Consumer<Grid<C>> split) {
         Objects.requireNonNull(split);
 
         if (!contains(pos)) {
@@ -310,5 +327,76 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
         }
 
         return neighbors <= 1;
+    }
+
+    /**
+     * The Path is a class that should work with paths for grids.
+     */
+    public static class Path<C extends IConnectable> {
+
+        private Pos origin;
+        private Pos target;
+        private ObjectList<C> full;
+        private ObjectList<C> cross;
+        private int hash;
+
+        /**
+         * Create a path instance.
+         *
+         * @param connectors The connectors array.
+         * @param path The path queue.
+         */
+        private Path(Long2ObjectMap<Connectivity.Cache<C>> connectors, ArrayDeque<Node> path) {
+            origin = path.pollLast();
+            target = path.pollFirst();
+
+            full = new ObjectArrayList<>();
+            cross = new ObjectArrayList<>();
+
+            Iterator<Node> iterator = path.descendingIterator();
+            while (iterator.hasNext()) {
+                Node node = iterator.next();
+                C cable = connectors.get(node.get()).value();
+                full.add(cable);
+                if (node.isCrossroad()) {
+                    cross.add(cable);
+                }
+            }
+
+            hash = NanoID.getNewHash();
+        }
+
+        /**
+         * @return Gets the origin position.
+         */
+        public Pos origin() {
+            return origin;
+        }
+
+        /**
+         * @return Gets the target position.
+         */
+        public Pos target() {
+            return target;
+        }
+
+        /**
+         * @return Gets the full connectors path.
+         */
+        public ObjectList<C> getFull() {
+            return full;
+        }
+
+        /**
+         * @return Gets the crossroad connectors path.
+         */
+        public ObjectList<C> getCross() {
+            return cross;
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
+        }
     }
 }

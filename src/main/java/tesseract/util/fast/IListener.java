@@ -1,4 +1,4 @@
-package tesseract.util.listener;
+package tesseract.util.fast;
 
 /**
  * Simple interface for a updates.

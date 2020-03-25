@@ -10,8 +10,6 @@ import tesseract.util.Pos;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.ArrayDeque;
-import java.util.Iterator;
 
 import static tesseract.util.Pos.packAll;
 
@@ -63,7 +61,7 @@ class TestBench {
                 Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
                 long position = pos.get();
 
-                Entry<ExampleCable, ExampleNode> entry = graph.remove(position);
+                Entry<ExampleCable, ExampleNode> entry = graph.removeAt(position);
 
                 if (entry != null) {
                     entry.apply(
@@ -85,14 +83,14 @@ class TestBench {
 
                 System.out.println("findPath ->");
                 for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
-                    for (IGrid<ExampleCable> grid : group.getValue().getGrids().values()) {
+                    for (Grid<ExampleCable> grid : group.getValue().getGrids().values()) {
                         for (Node node : grid.findPath(start, end)) {
                             System.out.println(node);
                         }
                     }
                 }
                 continue;
-            } else if (line.startsWith("path")) {
+            } /*else if (line.startsWith("path")) {
                 String[] points = line.split(" ");
                 if (points.length < 3) {
                     System.out.println("Usage: cross <x1> <y1> <z1>");
@@ -144,7 +142,7 @@ class TestBench {
                         }
                     }
                 }
-            } else if (line.startsWith("exit")) {
+            } */else if (line.startsWith("exit")) {
                 return;
             }
 
@@ -157,7 +155,7 @@ class TestBench {
                     System.out.println("    Node at " +  new Pos(node.getLongKey()) + ": " + node.getValue().value());
                 }
 
-                for (IGrid<ExampleCable> grid : group.getValue().getGrids().values()) {
+                for (Grid<ExampleCable> grid : group.getValue().getGrids().values()) {
                     System.out.println("    Grid contains " + grid.countConnectors() + " connectors:");
 
                     for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleCable>> connector : grid.getConnectors().long2ObjectEntrySet()) {

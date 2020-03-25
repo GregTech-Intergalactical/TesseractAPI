@@ -9,13 +9,14 @@ import it.unimi.dsi.fastutil.objects.ObjectList;
 import jdk.internal.jline.internal.Nullable;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
-import tesseract.util.ID;
+import tesseract.util.NanoID;
 
 import java.util.ArrayDeque;
+import java.util.Optional;
 
 /**
  * Class provides the functionality of any set of nodes.
- * @apiNote default parameters are nonnull, some methods might return null.
+ * @apiNote default parameters are nonnull, methods return nonnull.
  */
 public class Graph<C extends IConnectable, N extends IConnectable> implements INode  {
 
@@ -25,7 +26,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public Graph() {
 		groups = new Int2ObjectLinkedOpenHashMap<>();
 		positions = new Long2IntLinkedOpenHashMap();
-		positions.defaultReturnValue(ID.INVALID);
+		positions.defaultReturnValue(NanoID.INVALID);
 	}
 
 	@Override
@@ -111,7 +112,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		ArrayDeque<Integer> mergers = getNeighborsGroups(pos);
 		switch (mergers.size()) {
 			case 0:
-				id = ID.getNewId();
+				id = NanoID.getNewId();
 				positions.put(pos, id);
 				groups.put(id, single);
 				return null;
@@ -122,7 +123,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 				return groups.get(id);
 
 			default:
-				MergeData<C, N> data = beginMerge(mergers);
+				Merged<C, N> data = beginMerge(mergers);
 				positions.put(pos, data.bestId);
 				for (Group<C, N> other : data.merged) {
 					data.best.mergeWith(other, pos);
@@ -139,18 +140,17 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The position of the entry to remove.
 	 * @return The removed entry, might be null.
 	 */
-	@Nullable
-	public Entry<C, N> remove(long pos) {
+	public Entry<C, N> removeAt(long pos) {
 		int id = positions.remove(pos);
 
-		if (id == ID.INVALID) {
-			return null;
+		if (id == NanoID.INVALID) {
+			return Entry.empty();
 		}
 
 		Group<C, N> group = groups.get(id);
 
-		Entry<C, N> entry = group.remove(pos, newGroup -> {
-			int newId = ID.getNewId();
+		Entry<C, N> entry = group.removeAt(pos, newGroup -> {
+			int newId = NanoID.getNewId();
 			groups.put(newId, newGroup);
 
 			// Mark the nodes as pointing at the new group
@@ -159,7 +159,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			}
 
 			// Mark the connectors as pointing at the new group
-			for (IGrid<C> grid : newGroup.getGrids().values()) {
+			for (Grid<C> grid : newGroup.getGrids().values()) {
 				for (long part : grid.getConnectors().keySet()) {
 					positions.put(part, newId);
 				}
@@ -174,20 +174,52 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	}
 
 	/**
+	 * Finds an cache by a given position.
+	 *
+	 * @param pos The position of the cache to find.
+	 * @return The found cache, might be null.
+	 */
+	public Entry<C, N> findAt(long pos) {
+		int id = positions.get(pos);
+
+		if (id == NanoID.INVALID) {
+			return Entry.empty();
+		}
+
+		Group<C, N> group = groups.get(id);
+
+		if (group != null) {
+			Connectivity.Cache<N> node = group.getNodes().get(pos);
+
+			if (node != null) {
+				return Entry.node(node.value());
+			} else {
+				for (Grid<C> grid : group.getGrids().values()) {
+					Connectivity.Cache<C> cable = grid.getConnectors().get(pos);
+					if (cable != null) {
+						return Entry.connector(cable.value());
+					}
+				}
+			}
+		}
+
+		return Entry.empty();
+	}
+
+	/**
 	 * Finds the group by a given position.
 	 *
 	 * @param pos The position of the group.
 	 * @return The group pointer, might be null.
 	 */
-	@Nullable
-	public Group<C, N> findGroup(long pos) {
+	public Optional<Group<C, N>> findGroup(long pos) {
 		int id = positions.get(pos);
 
-		if (id == ID.INVALID) {
-			return null;
+		if (id == NanoID.INVALID) {
+			return Optional.empty();
 		}
 
-		return groups.get(id);
+		return Optional.of(groups.get(id));
 	}
 
 	/**
@@ -196,7 +228,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param mergers An array of neighbors groups id.
 	 * @return The wrapper with groups which should be merged.
 	 */
-	private MergeData<C, N> beginMerge(ArrayDeque<Integer> mergers) {
+	private Merged<C, N> beginMerge(ArrayDeque<Integer> mergers) {
 		int bestId = mergers.peek();
 		Group<C, N> best = groups.get(bestId);
 		int bestSize = best.countBlocks();
@@ -229,7 +261,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			mergeGroups.add(removed);
 		}
 
-		MergeData<C, N> data = new MergeData<>();
+		Merged<C, N> data = new Merged<>();
 		data.best = best;
 		data.bestId = bestId;
 		data.merged = mergeGroups;
@@ -250,7 +282,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			long face = position.offset(direction).get();
 			int id = positions.get(face);
 
-			if (id == ID.INVALID) {
+			if (id == NanoID.INVALID) {
 				continue;
 			}
 
@@ -265,7 +297,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	/**
 	 * @apiNote Wrapper for merged groups.
 	 */
-	private static class MergeData<C extends IConnectable, N extends IConnectable> {
+	private static class Merged<C extends IConnectable, N extends IConnectable> {
 		int bestId;
 		Group<C, N> best;
 		ObjectList<Group<C, N>> merged;

@@ -65,14 +65,24 @@ public class Connectivity {
             return cache;
         }
 
+        /**
+         * @param direction The direction index.
+         * @return True when connect, false otherwise.
+         */
         public boolean connects(Dir direction) {
             return Connectivity.has(connectivity, direction);
         }
 
+        /**
+         * @return Returns the connection state.
+         */
         public byte connectivity() {
             return connectivity;
         }
 
+        /**
+         * @return Returns the cache object.
+         */
         public C value() {
             return value;
         }

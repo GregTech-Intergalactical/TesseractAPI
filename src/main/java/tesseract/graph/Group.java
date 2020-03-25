@@ -9,7 +9,7 @@ import it.unimi.dsi.fastutil.objects.*;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
-import tesseract.util.ID;
+import tesseract.util.NanoID;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -18,7 +18,7 @@ import java.util.function.Consumer;
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
  * @apiNote default parameters are nonnull, methods return nonnull.
  */
-public class Group<C extends IConnectable, N extends IConnectable> implements INode, IGroup<C, N> {
+public class Group<C extends IConnectable, N extends IConnectable> implements INode {
 
     private Long2ObjectMap<Connectivity.Cache<N>> nodes;
     private Int2ObjectMap<Grid<C>> grids;
@@ -31,7 +31,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         nodes = new Long2ObjectLinkedOpenHashMap<>();
         grids = new Int2ObjectLinkedOpenHashMap<>();
         connectors = new Long2IntLinkedOpenHashMap();
-        connectors.defaultReturnValue(ID.INVALID);
+        connectors.defaultReturnValue(NanoID.INVALID);
 
         divider = new BFDivider(this);
     }
@@ -56,7 +56,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      */
     public static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long at, Connectivity.Cache<C> connector) {
         Group<C, N> group = new Group<>();
-        int id = ID.getNewId();
+        int id = NanoID.getNewId();
 
         group.connectors.put(at, id);
         group.grids.put(id, Grid.singleConnector(at, connector));
@@ -79,25 +79,33 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         return contains(position);
     }
 
-    @Override
+    /**
+     * @return Gets the number of blocks.
+     */
     public int countBlocks() {
         return nodes.size() + connectors.size();
     }
 
-    @Override
-    public LongList getBlocks() {
-        LongList merge = new LongArrayList();
+    /**
+     * @return Returns blocks set.
+     */
+    public LongSet getBlocks() {
+        LongSet merge = new LongLinkedOpenHashSet();
         merge.addAll(nodes.keySet());
         merge.addAll(connectors.keySet());
         return merge;
     }
 
-    @Override
+    /**
+     * @return Returns nodes map.
+     */
     public Long2ObjectMap<Connectivity.Cache<N>> getNodes() {
         return nodes;
     }
 
-    @Override
+    /**
+     * @return Returns grids set.
+     */
     public Int2ObjectMap<Grid<C>> getGrids() {
         return grids;
     }
@@ -141,7 +149,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
         Grid<C> bestGrid = null;
         int bestCount = 0;
-        int bestId = ID.INVALID;
+        int bestId = NanoID.INVALID;
 
         byte neighbors = 0;
         Pos position = new Pos(at);
@@ -153,7 +161,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             long offset = position.offset(direction).get();
             int id = connectors.get(offset);
 
-            if (id == ID.INVALID) {
+            if (id == NanoID.INVALID) {
                 // Collect joining nodes
                 if (nodes.containsKey(offset)) {
                     neighbors += 1;
@@ -183,7 +191,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         if (linked.isEmpty()) {
             // Single connector grid
-            bestId = ID.getNewId();
+            bestId = NanoID.getNewId();
             bestGrid = Grid.singleConnector(at, connector);
 
             connectors.put(at, bestId);
@@ -245,7 +253,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param split A consumer for the resulting fresh graphs from the split operation.
      * @return The removed entry, guaranteed to not be null.
      */
-    public Entry<C, N> remove(long posToRemove, Consumer<Group<C, N>> split) {
+    public Entry<C, N> removeAt(long posToRemove, Consumer<Group<C, N>> split) {
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.
         if (!contains(posToRemove)) {
@@ -270,10 +278,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
             // No check is needed here, because the caller already asserts that the Group contains the specified position.
             // Thus, if this is not a node, then it is guaranteed to be a connector.
-            C removed = grid.remove(
+            C removed = grid.removeAt(
                 posToRemove,
                 newGrid -> {
-                    int newId = ID.getNewId();
+                    int newId = NanoID.getNewId();
                     grids.put(newId, newGrid);
 
                     for (long pos : newGrid.getConnectors().keySet()) {
@@ -320,7 +328,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         Entry<C, N> result;
 
         int centerGridId = connectors.get(posToRemove);
-        if (centerGridId != ID.INVALID) {
+        if (centerGridId != NanoID.INVALID) {
             Grid<C> centerGrid = grids.remove(centerGridId);
             splitGrids = new ObjectArrayList<>();
 
@@ -329,7 +337,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 excluded.add(move);
             }
 
-            result = Entry.connector(centerGrid.remove(posToRemove, splitGrids::add));
+            result = Entry.connector(centerGrid.removeAt(posToRemove, splitGrids::add));
             splitGrids.add(centerGrid);
         } else {
             // Remove removing node from nearest grid
@@ -356,7 +364,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
                     // Just a node then, simply add it to the new group.
                     // The maps are mutated directly here in order to retain the cached connectivity.
-                    if (id == ID.INVALID) {
+                    if (id == NanoID.INVALID) {
                         newGroup.nodes.put(reached, Objects.requireNonNull(nodes.remove(reached)));
                         continue;
                     }
@@ -389,7 +397,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     long sample = grid.sampleConnector();
 
                     if (found.contains(sample)) {
-                        int newId = ID.getNewId();
+                        int newId = NanoID.getNewId();
 
                         newGroup.addGrid(newId, grid);
                         iterator.remove();
@@ -429,7 +437,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         ObjectList<Grid<C>> list = new ObjectArrayList<>();
 
         int grid = connectors.get(pos);
-        if (grid != ID.INVALID) {
+        if (grid != NanoID.INVALID) {
             list.add(grids.get(grid));
         }
 
@@ -484,7 +492,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         int pairing = connectors.get(at);
 
-        if (pairing != ID.INVALID) {
+        if (pairing != NanoID.INVALID) {
             Grid<C> currentGrid = grids.get(pairing);
 
             Pos position = new Pos(at);
@@ -497,7 +505,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
                 int id = other.connectors.get(offset);
 
-                if (id == ID.INVALID) {
+                if (id == NanoID.INVALID) {
                     continue;
                 }
 
@@ -534,7 +542,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             long face = position.offset(direction).get();
             int id = connectors.get(face);
 
-            if (id == ID.INVALID) {
+            if (id == NanoID.INVALID) {
                 continue;
             }
 

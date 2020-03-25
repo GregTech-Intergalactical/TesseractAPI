@@ -3,19 +3,17 @@ package tesseract.electric;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectList;
-import jdk.internal.jline.internal.Nullable;
 import net.minecraft.block.Block;
+import net.minecraft.item.Item;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import tesseract.electric.api.IElectricCable;
 import tesseract.electric.api.IElectricNode;
 import tesseract.graph.*;
-import tesseract.util.Node;
-import tesseract.util.Pos;
+import tesseract.util.fast.ObjectLinkedStaticHashSet;
 
-import java.util.ArrayDeque;
-import java.util.Iterator;
+import java.util.Optional;
 
 /**
  * Parent holder for electric system.
@@ -29,89 +27,91 @@ public class ElectricSystem {
         }
     }
 
-    public static Graph<IElectricCable, IElectricNode> instance(World world) {
+    private static Graph<IElectricCable, IElectricNode> instance(World world) {
         return ELECTRICITY.get(world.getDimension().getType().getId());
     }
 
-    public static boolean addCable(World world, BlockPos pos, IElectricCable cable) {
-        return !world.isRemote && instance(world).addConnector(pos.toLong(), Connectivity.Cache.of(cable));
-    }
-
-    public static boolean addNode(World world, BlockPos pos, IElectricNode node) {
-        return !world.isRemote && instance(world).addNode(pos.toLong(), Connectivity.Cache.of(node));
-    }
-
-    public static boolean remove(World world, BlockPos pos) {
-        return !world.isRemote && instance(world).remove(pos.toLong()) != null;
-    }
-
-    public static void requestEnergyUnit(World world, BlockPos pos, IElectricNode node) {
-        //node.getInputAmperage();
-        //node.getInputVoltage();
-        //ObjectList<ObjectList<ArrayDeque<Node>>> path;
-        long loss = 0L;
-        long at = pos.toLong();
-        Group<IElectricCable, IElectricNode> group = instance(world).findGroup(at);
-        for (Grid<IElectricCable> grid : group.findGrids(at)) {
-            for (ArrayDeque<Node> path : grid.getPath(at)) {
-                Iterator<Node> iterator = path.descendingIterator();
-
-                while(iterator.hasNext()) {
-                    Node current = iterator.next();
-                    IConnectable object = get(world, current);
-                    if (object instanceof IElectricCable) {
-
-                    }
-                }
-            }
+    public static void register(World world, BlockPos pos, Object o) {
+        if (!world.isRemote) {
+            if (o instanceof IElectricCable) instance(world).addConnector(pos.toLong(), Connectivity.Cache.of(o));
+            else if (o instanceof IElectricNode) instance(world).addNode(pos.toLong(), Connectivity.Cache.of(o));
         }
     }
 
-    private static class PathData {
-        Block dest;
-        long loss;
-        long amperage;
-        ArrayDeque<Pos> path;
+    public static boolean unregister(World world, BlockPos pos) {
+        return !world.isRemote && instance(world).removeAt(pos.toLong()) != null;
     }
 
+    /**
+     * @see ObjectLinkedStaticHashSet
+     */
+    public static void requestEnergyUnit(World world, BlockPos pos, ObjectLinkedStaticHashSet<Package> senders) {
+        long at = pos.toLong();
+        Graph<IElectricCable, IElectricNode> graph = instance(world);
+        Optional<Group<IElectricCable, IElectricNode>> entry = graph.findGroup(at);
+        if (!entry.isPresent()) return; // What if node wasn't initialized or removed at same time ?
+        Group<IElectricCable, IElectricNode> group = entry.get();
 
-    /*Group<IElectricCable, IElectricNode> group = instance(world).findGroup(at);
-        if (group != null) {
-        Connectivity.Cache<IElectricNode> node = group.getNodes().get(at);
-        if (node != null) {
+        // Calculate loss, amp, paths
+
+        // Build paths hash for the updating information about grids around
+        int hash = 0;
+        for (Grid<IElectricCable> grid : group.findGrids(at)) {
+            for (Grid.Path<IElectricCable> path : grid.getPath(at)) {
+                hash += path.hashCode();
+            }
+        }
+
+        //
+        Optional<Integer> prev = senders.getHash();
+        if (!prev.isPresent() || hash != prev.get()) {
+            hash = 0;
+            senders.clear();
+
             for (Grid<IElectricCable> grid : group.findGrids(at)) {
-                for (ArrayDeque<Node> path : grid.getPath(at)) {
-                    Iterator<Node> iterator = path.descendingIterator();
-
-                    while(iterator.hasNext()) {
-                        Node current = iterator.next();
-                        if (current.isCrossroad()) {
-                            System.out.println(current);
+                for (Grid.Path<IElectricCable> path : grid.getPath(at)) {
+                    hash += path.hashCode();
+                    Optional<IElectricNode> node = graph.findAt(path.target().get()).asEndpoint();
+                    if (node.isPresent()) {
+                        IElectricNode sender = node.get();
+                        if (sender.canExtract()) {
+                            senders.add(new Package(sender, path));
                         }
                     }
                 }
             }
-        }
-    }*/
 
-    @Nullable
-    public static IConnectable get(World world, Pos pos) {
-        long at = pos.get();
-        Group<IElectricCable, IElectricNode> group = instance(world).findGroup(at);
-        if (group != null) {
-            Connectivity.Cache<IElectricNode> node = group.getNodes().get(at);
-            if (node != null) {
-                return node.value();
-            } else {
-                for (Grid<IElectricCable> grid : group.getGrids().values()) {
-                    Connectivity.Cache<IElectricCable> cable = grid.getConnectors().get(at);
-                    if (cable != null) {
-                        return cable.value();
-                    }
-                }
+            senders.setHash(hash);
+        }
+    }
+
+    /*public boolean isGridWasChanged(Group<IElectricCable, IElectricNode> group, long pos, ObjectSet<Package> senders) {
+
+        for (Grid<IElectricCable> grid : group.findGrids(pos)) {
+            ObjectSet<Grid.Path<IElectricCable>> paths = grid.getPath(pos);
+            int code = paths.hashCode();
+            if (code != senders.hashCode()) {
+                //new ObjectLinkedStaticHashSet<>(code); /// Create obj with same hash
             }
         }
 
-        return null;
+
+
+        return false;
+    }*/
+
+    public static class Package {
+
+        private long loss;
+        private IElectricNode sender;
+        private ObjectList<IElectricCable> cables;
+
+        public Package(IElectricNode sender, Grid.Path<IElectricCable> path) {
+            this.sender = sender;
+            for (IElectricCable cable : path.getFull()) {
+                loss += cable.getLoss();
+            }
+            cables = path.getCross();
+        }
     }
 }
