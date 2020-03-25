@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.objects.*;
 import tesseract.util.*;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
+import tesseract.util.fast.Long2ByteWrapperMap;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
@@ -18,15 +19,14 @@ import java.util.function.Consumer;
 public class Grid<C extends IConnectable> implements INode {
 
     private Long2ObjectMap<Connectivity.Cache<C>> connectors;
-    private Long2ByteMap nodes; // linked nodes
+    private Long2ByteWrapperMap nodes; // linked nodes
     private BFDivider divider;
     private ASFinder finder;
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
         connectors = new Long2ObjectLinkedOpenHashMap<>();
-        nodes = new Long2ByteLinkedOpenHashMap();
-        nodes.defaultReturnValue(Byte.MAX_VALUE);
+        nodes = new Long2ByteWrapperMap(Byte.MAX_VALUE);
 
         divider = new BFDivider(this);
         finder = new ASFinder(this);
@@ -104,7 +104,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @return Gets the number of linked nodes.
      */
     public int countNodes() {
-        return nodes.size();
+        return nodes.getMap().size();
     }
 
     /**
@@ -118,19 +118,19 @@ public class Grid<C extends IConnectable> implements INode {
      * @return Returns nodes map.
      */
     public Long2ByteMap getNodes() {
-        return nodes;
+        return nodes.getMap();
     }
 
     /**
-     * Lazily generates full paths from the linked node to another linked nodes.
+     * Gets paths from the position to another linked nodes.
      *
      * @param pos The position of the linked node.
      * @return Returns full paths for the linked node.
      */
-    public ObjectSet<Path<C>> getPath(long pos) {
+    public ObjectSet<Path<C>> getPaths(long pos) {
 
         ObjectSet<Path<C>> data = new ObjectLinkedOpenHashSet<>();
-        for (long target : nodes.keySet()) {
+        for (long target : nodes.getMap().keySet()) {
             if (pos != target) {
                 data.add(new Path<>(connectors, finder.find(pos, target)));
             }
@@ -181,6 +181,7 @@ public class Grid<C extends IConnectable> implements INode {
     public void addConnector(long pos, Connectivity.Cache<C> connector) {
         // TODO: Validate that the other grid touches the specified position.
         connectors.put(pos, Objects.requireNonNull(connector));
+        nodes.update();
     }
 
     /**
@@ -188,9 +189,10 @@ public class Grid<C extends IConnectable> implements INode {
      *
      * @param pos The given position.
      * @param connectivity The connectivity state.
+     * @param function The updating listener.
      */
-    public void addNode(long pos, byte connectivity) {
-        nodes.put(pos, connectivity);
+    public void addNode(long pos, byte connectivity, Connectivity.IListener function) {
+        nodes.put(pos, connectivity, function);
     }
 
     /**
@@ -256,7 +258,7 @@ public class Grid<C extends IConnectable> implements INode {
 
                 if (connectivity != Byte.MAX_VALUE) {
                     check.add(reached);
-                    newGrid.nodes.put(reached, connectivity);
+                    newGrid.nodes.put(reached, connectivity, nodes.getListeners().get(reached));
                 } else {
                     newGrid.connectors.put(reached, connectors.remove(reached));
                 }

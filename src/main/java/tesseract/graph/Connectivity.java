@@ -2,6 +2,7 @@ package tesseract.graph;
 
 import tesseract.util.Dir;
 
+
 /**
  * A class that acts as a controller for a connectivity of the connectables.
  */
@@ -42,19 +43,32 @@ public class Connectivity {
     }
 
     /**
+     * Simple interface for a updates.
+     */
+    public interface IListener {
+
+        /**
+         * Update callback method.
+         */
+        void update();
+    }
+
+    /**
      * The Cache is a class that should work with connections.
      */
     public static class Cache<C> {
 
         private byte connectivity;
         private C value;
+        private IListener listener;
 
         private Cache() { }
 
-        public static <C> Cache<C> ofDelegated(C value, IConnectable delegate) {
+        public static <C extends IConnectable> Cache<C> of(C value, IListener listener) {
             Cache<C> cache = new Cache<>();
             cache.value = value;
-            cache.connectivity = Connectivity.of(delegate);
+            cache.connectivity = Connectivity.of(value);
+            cache.listener = listener;
             return cache;
         }
 
@@ -62,6 +76,7 @@ public class Connectivity {
             Cache<C> cache = new Cache<>();
             cache.value = value;
             cache.connectivity = Connectivity.of(value);
+            cache.listener = () -> { };
             return cache;
         }
 
@@ -85,6 +100,13 @@ public class Connectivity {
          */
         public C value() {
             return value;
+        }
+
+        /**
+         * @return Returns the cache listener.
+         */
+        public IListener listener() {
+            return listener;
         }
     }
 }

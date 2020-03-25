@@ -130,7 +130,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 long offset = position.offset(direction).get();
 
                 if (grid.connects(offset, direction.invert())) {
-                    grid.addNode(at, node.connectivity());
+                    grid.addNode(at, node.connectivity(), node.listener());
                 }
             }
         }
@@ -210,7 +210,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             Connectivity.Cache<N> node = nodes.get(pos);
 
             if (node.value().connects(direction.invert())) {
-                bestGrid.addNode(pos, node.connectivity());
+                bestGrid.addNode(pos, node.connectivity(), node.listener());
             }
         }
 

@@ -4,8 +4,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import tesseract.util.Dir;
@@ -23,13 +21,11 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 	private Int2ObjectMap<Group<C, N>> groups;
 	private Long2IntMap positions; // group positions
-	private Object2ObjectMap<N, IListener> listeners; // nodes listeners
 
 	public Graph() {
 		groups = new Int2ObjectLinkedOpenHashMap<>();
 		positions = new Long2IntLinkedOpenHashMap();
 		positions.defaultReturnValue(ID.INVALID);
-		listeners = new Object2ObjectLinkedOpenHashMap<>();
 	}
 
 	@Override
@@ -66,20 +62,14 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 *
 	 * @param pos The position at which the node will be added.
 	 * @param node The node to add.
-	 * @param function The updating listener.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addNode(long pos, Connectivity.Cache<N> node, IListener function) {
+	public boolean addNode(long pos, Connectivity.Cache<N> node) {
 		if (!contains(pos)) {
 
 			Group<C, N> group = add(pos, Group.singleNode(pos, node));
 			if (group != null) {
 				group.addNode(pos, node);
-			}
-
-			listeners.put(node.value(), function);
-			for (IListener listener : listeners.values()) {
-				listener.update();
 			}
 
 			return true;
@@ -101,10 +91,6 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
 			if (group != null) {
 				group.addConnector(pos, connector);
-			}
-
-			for (IListener listener : listeners.values()) {
-				listener.update();
 			}
 
 			return true;
@@ -181,14 +167,6 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 		if (group.countBlocks() == 0) {
 			groups.remove(id);
-		}
-
-		//
-		entry.asEndpoint().ifPresent(n -> listeners.remove(n));
-
-		// Call functions
-		for (IListener listener : listeners.values()) {
-			listener.update();
 		}
 
 		return entry;
