@@ -165,7 +165,7 @@ public class GraphTest {
 
         @Override
         public long getVoltage() {
-            return 0;
+            return 0L;
         }
     }
 
@@ -182,42 +182,52 @@ public class GraphTest {
         }
 
         @Override
-        public long getEnergyStored() {
-            return 0;
+        public long insert(long maxReceive, boolean simulate) {
+            return 0L;
         }
 
         @Override
-        public long getEnergyCapacity() {
-            return 0;
+        public long extract(long maxExtract, boolean simulate) {
+            return 0L;
+        }
+
+        @Override
+        public long getPower() {
+            return 0L;
+        }
+
+        @Override
+        public long getCapacity() {
+            return 0L;
         }
 
         @Override
         public long getOutputAmperage() {
-            return 0;
+            return 0L;
         }
 
         @Override
         public long getOutputVoltage() {
-            return 0;
+            return 0L;
         }
 
         @Override
         public long getInputAmperage() {
-            return 0;
+            return 0L;
         }
 
         @Override
         public long getInputVoltage() {
-            return 0;
+            return 0L;
         }
 
         @Override
-        public boolean canReceive() {
+        public boolean canInput() {
             return false;
         }
 
         @Override
-        public boolean canExtract() {
+        public boolean canOutput() {
             return false;
         }
     }

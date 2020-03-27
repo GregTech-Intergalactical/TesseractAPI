@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.objects.*;
 import tesseract.util.*;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
-import tesseract.util.fast.Long2ByteWrapperMap;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
@@ -19,17 +18,17 @@ import java.util.function.Consumer;
 public class Grid<C extends IConnectable> implements INode {
 
     private Long2ObjectMap<Connectivity.Cache<C>> connectors;
-    private Long2ByteWrapperMap nodes; // linked nodes
     private BFDivider divider;
     private ASFinder finder;
+    private Listener nodes;
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
         connectors = new Long2ObjectLinkedOpenHashMap<>();
-        nodes = new Long2ByteWrapperMap(Byte.MAX_VALUE);
 
         divider = new BFDivider(this);
         finder = new ASFinder(this);
+        nodes = new Listener();
     }
 
     /**
@@ -91,8 +90,6 @@ public class Grid<C extends IConnectable> implements INode {
         return Connectivity.has(connectivity, towards);
     }
 
-    // TODO: Count/visit linked nodes
-
     /**
      * @return Gets the number of connectors.
      */
@@ -104,7 +101,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @return Gets the number of linked nodes.
      */
     public int countNodes() {
-        return nodes.getMap().size();
+        return nodes.size();
     }
 
     /**
@@ -130,7 +127,7 @@ public class Grid<C extends IConnectable> implements INode {
     public ObjectSet<Path<C>> getPaths(long pos) {
 
         ObjectSet<Path<C>> data = new ObjectLinkedOpenHashSet<>();
-        for (long target : nodes.getMap().keySet()) {
+        for (long target : nodes.keySet()) {
             if (pos != target) {
                 data.add(new Path<>(connectors, finder.find(pos, target)));
             }
@@ -160,6 +157,7 @@ public class Grid<C extends IConnectable> implements INode {
         // TODO: Validate that the other grid touches the specified position.
         connectors.putAll(other.connectors);
         nodes.putAll(other.nodes);
+        nodes.update();
     }
 
     /**
@@ -188,11 +186,11 @@ public class Grid<C extends IConnectable> implements INode {
      * Adds a new node to the grid.
      *
      * @param pos The given position.
-     * @param connectivity The connectivity state.
-     * @param function The updating listener.
+     * @param node The given node.
      */
-    public void addNode(long pos, byte connectivity, Connectivity.IListener function) {
-        nodes.put(pos, connectivity, function);
+    public void addNode(long pos, Connectivity.Cache<?> node) {
+        nodes.put(pos, node.connectivity(), node.listener());
+        nodes.update();
     }
 
     /**
@@ -202,6 +200,7 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public void removeNode(long pos) {
         nodes.remove(pos);
+        nodes.update();
     }
 
     /**
@@ -221,7 +220,7 @@ public class Grid<C extends IConnectable> implements INode {
         }
 
         if (isExternal(pos)) {
-            return removeFinal(pos);
+            return removeFinal(pos, null);
         }
 
         ObjectList<LongLinkedOpenHashSet> colored = new ObjectArrayList<>();
@@ -241,7 +240,6 @@ public class Grid<C extends IConnectable> implements INode {
             colored::add
         );
 
-        // TODO: Properly split / remove relevant nodes, verify that this works.
         LongSet check = new LongLinkedOpenHashSet();
 
         for (int i = 0; i < colored.size(); i++) {
@@ -267,25 +265,17 @@ public class Grid<C extends IConnectable> implements INode {
             split.accept(newGrid);
         }
 
-        // TODO: Why is it here?
-        C connector = removeFinal(pos);
-
-        for (long toCheck : check) {
-            if (isExternal(toCheck)) {
-                nodes.remove(toCheck);
-            }
-        }
-
-        return connector;
+        return removeFinal(pos, check);
     }
 
     /**
      * Removes connector by a position.
      *
      * @param pos The given position.
+     * @param found The set with nodes to check.
      * @return The removed connector.
      */
-    private C removeFinal(long pos) {
+    private C removeFinal(long pos, LongSet found) {
         C connector = connectors.remove(pos).value();
 
         Pos position = new Pos(pos);
@@ -297,6 +287,15 @@ public class Grid<C extends IConnectable> implements INode {
             }
         }
 
+        if (found != null) {
+            for (long reached : found) {
+                if (isExternal(reached)) {
+                    nodes.remove(reached);
+                }
+            }
+        }
+
+        nodes.update();
         return connector;
     }
 
@@ -336,7 +335,7 @@ public class Grid<C extends IConnectable> implements INode {
         private ObjectList<C> cross;
 
         /**
-         * Create a path instance.
+         * Creates a path instance.
          *
          * @param connectors The connectors array.
          * @param path The path queue.
@@ -357,8 +356,6 @@ public class Grid<C extends IConnectable> implements INode {
                     cross.add(cable);
                 }
             }
-
-            //hash = ID.getNewHash();
         }
 
         /**
@@ -387,6 +384,111 @@ public class Grid<C extends IConnectable> implements INode {
          */
         public ObjectList<C> getCross() {
             return cross;
+        }
+    }
+
+    /**
+     * Wrapper for a Long2ByteMap class and listener for updates.
+     */
+    private static class Listener {
+
+        Long2ByteMap map;
+        Long2ObjectMap<Connectivity.IListener> listeners;
+
+        /**
+         * Constructs a new Long2ByteMap with the same mappings as the specified Map.
+         */
+        Listener() {
+            map = new Long2ByteLinkedOpenHashMap();
+            map.defaultReturnValue(Byte.MAX_VALUE);
+            listeners = new Long2ObjectLinkedOpenHashMap<>();
+        }
+
+        /**
+         * Returns true if this map contains a mapping for the specified key.
+         *
+         * @param key The key value.
+         * @return True or false.
+         */
+        boolean containsKey(long key) {
+            return map.containsKey(key);
+        }
+
+        /**
+         * @return Gets the value to which the specified key is mapped, or null if this map contains no mapping for the key.
+         */
+        byte get(long key) {
+            return map.get(key);
+        }
+
+        /**
+         * Associates the specified value with the specified key in this map.
+         *
+         * @param key The key value.
+         * @param value The provided value.
+         * @param listener The listener function.
+         */
+        byte put(long key, byte value, Connectivity.IListener listener) {
+            map.put(key, value);
+            listeners.put(key, listener);
+            return value;
+        }
+
+        /**
+         * Copies all of the mappings from the specified map to this map.
+         *
+         * @param wrapper The other object.
+         */
+        void putAll(Listener wrapper) {
+            map.putAll(wrapper.map);
+            listeners.putAll(wrapper.listeners);
+        }
+
+        /**
+         * @param key The key value.
+         * @return Gets the mapping for the specified key from this map if present.
+         */
+        byte remove(long key) {
+            byte value = map.remove(key);
+            listeners.remove(key);
+            return value;
+        }
+
+        /**
+         * @return Gets map size.
+         */
+        int size() {
+            return map.size();
+        }
+
+        /**
+         * @return Gets keys set.
+         */
+        LongSet keySet() {
+            return map.keySet();
+        }
+
+        /**
+         * @return Gets original map.
+         */
+        Long2ByteMap getMap() {
+            return map;
+        }
+
+        /**
+         * @return Gets listeners map.
+         */
+        Long2ObjectMap<Connectivity.IListener> getListeners() {
+            return listeners;
+        }
+
+        /**
+         * Call attached listeners.
+         */
+        void update() {
+            for (Connectivity.IListener listener : listeners.values()) {
+                listener.update();
+            }
         }
     }
 }

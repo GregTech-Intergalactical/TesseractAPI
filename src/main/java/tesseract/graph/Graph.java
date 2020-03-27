@@ -137,7 +137,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * the specified position.
 	 *
 	 * @param pos The position of the entry to remove.
-	 * @return The removed entry, might be null.
+	 * @return The removed entry, guaranteed to not be null.
 	 */
 	public Entry<C, N> removeAt(long pos) {
 		int id = positions.remove(pos);
@@ -173,10 +173,10 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	}
 
 	/**
-	 * Finds an cache by a given position.
+	 * Finds an entry by a given position.
 	 *
 	 * @param pos The position of the cache to find.
-	 * @return The found cache, might be null.
+	 * @return The found cache, guaranteed to not be null.
 	 */
 	public Entry<C, N> findAt(long pos) {
 		int id = positions.get(pos);
@@ -209,7 +209,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * Finds the group by a given position.
 	 *
 	 * @param pos The position of the group.
-	 * @return The group pointer, might be null.
+	 * @return The group, guaranteed to not be null.
 	 */
 	public Optional<Group<C, N>> findGroup(long pos) {
 		int id = positions.get(pos);

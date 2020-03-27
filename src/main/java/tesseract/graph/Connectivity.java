@@ -64,6 +64,9 @@ public class Connectivity {
 
         private Cache() { }
 
+        /**
+         * Creates a cache with a listener.
+         */
         public static <C extends IConnectable> Cache<C> of(C value, IListener listener) {
             Cache<C> cache = new Cache<>();
             cache.value = value;
@@ -72,6 +75,9 @@ public class Connectivity {
             return cache;
         }
 
+        /**
+         * Creates a cache instance.
+         */
         public static <C extends IConnectable> Cache<C> of(C value) {
             Cache<C> cache = new Cache<>();
             cache.value = value;
@@ -89,21 +95,21 @@ public class Connectivity {
         }
 
         /**
-         * @return Returns the connection state.
+         * @return Gets the connection state.
          */
         public byte connectivity() {
             return connectivity;
         }
 
         /**
-         * @return Returns the cache object.
+         * @return Gets the cache object.
          */
         public C value() {
             return value;
         }
 
         /**
-         * @return Returns the cache listener.
+         * @return Gets the cache listener.
          */
         public IListener listener() {
             return listener;

@@ -1,10 +1,9 @@
 package tesseract.electric.api;
 
-import net.minecraft.block.Block;
 import tesseract.graph.IConnectable;
 
 /**
- * Provides data for a given electric cable.
+ * An electric cable is the unit of interaction with electric inventories.
  */
 public interface IElectricCable extends IConnectable {
 

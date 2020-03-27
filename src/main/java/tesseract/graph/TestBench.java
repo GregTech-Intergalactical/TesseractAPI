@@ -59,18 +59,12 @@ class TestBench {
                 }
 
                 Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
-                long position = pos.get();
 
-                Entry<ExampleCable, ExampleNode> entry = graph.removeAt(position);
+                graph.removeAt(pos.get()).apply(
+                    connector -> System.out.println("Removed connector " + pos + " from the graph: " + connector),
+                    node -> System.out.println("Removed node " + pos + " from the graph: " + node)
+                );
 
-                if (entry != null) {
-                    entry.apply(
-                        connector -> System.out.println("Removed connector " + pos + " from the graph: " + connector),
-                        node -> System.out.println("Removed node " + pos + " from the graph: " + node)
-                    );
-                } else {
-                    System.out.println("Error: " + pos + " doesn't exist in the graph");
-                }
             } else if (line.startsWith("a*")) {
                 String[] points = line.split(" ");
                 if (points.length < 7) {
@@ -90,7 +84,7 @@ class TestBench {
                     }
                 }
                 continue;
-            } /*else if (line.startsWith("path")) {
+            }/*else if (line.startsWith("path")) {
                 String[] points = line.split(" ");
                 if (points.length < 3) {
                     System.out.println("Usage: cross <x1> <y1> <z1>");
@@ -98,51 +92,17 @@ class TestBench {
                 }
 
                 long pos = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
-                Group<ExampleCable, ExampleNode> group = graph.findGroup(pos);
-                if (group != null) {
-                    Connectivity.Cache<ExampleNode> node = group.getNodes().get(pos);
-                    if (node != null) {
-
-                        for (Grid<ExampleCable> grid : group.findGrids(pos)) {
-                            for (ArrayDeque<Node> path : grid.getPath(pos)) {
-                                Iterator<Node> iterator = path.descendingIterator();
-
-                                while(iterator.hasNext()) {
-                                    System.out.println(iterator.next());
-                                }
-                                System.out.println("(-)");
+                graph.findGroup(pos).ifPresent(group -> {
+                    for (Grid<ExampleCable> grid : group.findGrids(pos)) {
+                        for (Grid.Path<ExampleCable> path : grid.getPaths(pos)) {
+                            for (ExampleCable cable : path.getFull()) {
+                                System.out.println(cable);
                             }
+                            System.out.println("(-)");
                         }
                     }
-                }
-            } else if (line.startsWith("cross")) {
-                String[] points = line.split(" ");
-                if (points.length < 3) {
-                    System.out.println("Usage: cross <x1> <y1> <z1>");
-                    continue;
-                }
-
-                long pos = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
-                Group<ExampleCable, ExampleNode> group = graph.findGroup(pos);
-                if (group != null) {
-                    Connectivity.Cache<ExampleNode> node = group.getNodes().get(pos);
-                    if (node != null) {
-                        for (Grid<ExampleCable> grid : group.findGrids(pos)) {
-                            for (ArrayDeque<Node> path : grid.getPath(pos)) {
-                                Iterator<Node> iterator = path.descendingIterator();
-
-                                while(iterator.hasNext()) {
-                                    Node current = iterator.next();
-                                    if (current.isCrossroad()) {
-                                        System.out.println(current);
-                                    }
-                                }
-                                System.out.println("(-)");
-                            }
-                        }
-                    }
-                }
-            } */else if (line.startsWith("exit")) {
+                });
+            }*/ else if (line.startsWith("exit")) {
                 return;
             }
 
@@ -168,17 +128,6 @@ class TestBench {
                         for (long pos : grid.getNodes().keySet()) {
                             System.out.println("          Node at " + new Pos(pos));
                         }
-
-                        /*for (ObjectSet<LongSet> paths : grid.getCrossroads().values()) {
-                            System.out.println("              Start at");
-                            for (LongSet longs : paths) {
-                                System.out.println("                Group");
-                                for (long pos : longs) {
-                                    System.out.println("                  Pos at " + new Pos(pos));
-                                }
-                            }
-                            System.out.println("              Ended");
-                        }*/
                     }
                 }
             }
@@ -211,7 +160,7 @@ class TestBench {
 
         @Override
         public long getVoltage() {
-            return 0;
+            return 0L;
         }
     }
 
@@ -228,42 +177,52 @@ class TestBench {
         }
 
         @Override
-        public long getEnergyStored() {
-            return 0;
+        public long insert(long maxReceive, boolean simulate) {
+            return 0L;
         }
 
         @Override
-        public long getEnergyCapacity() {
-            return 0;
+        public long extract(long maxExtract, boolean simulate) {
+            return 0L;
+        }
+
+        @Override
+        public long getPower() {
+            return 0L;
+        }
+
+        @Override
+        public long getCapacity() {
+            return 0L;
         }
 
         @Override
         public long getOutputAmperage() {
-            return 0;
+            return 0L;
         }
 
         @Override
         public long getOutputVoltage() {
-            return 0;
+            return 0L;
         }
 
         @Override
         public long getInputAmperage() {
-            return 0;
+            return 0L;
         }
 
         @Override
         public long getInputVoltage() {
-            return 0;
+            return 0L;
         }
 
         @Override
-        public boolean canReceive() {
+        public boolean canInput() {
             return false;
         }
 
         @Override
-        public boolean canExtract() {
+        public boolean canOutput() {
             return false;
         }
     }

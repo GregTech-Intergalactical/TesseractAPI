@@ -130,7 +130,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 long offset = position.offset(direction).get();
 
                 if (grid.connects(offset, direction.invert())) {
-                    grid.addNode(at, node.connectivity(), node.listener());
+                    grid.addNode(at, node);
                 }
             }
         }
@@ -209,8 +209,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             Dir direction = entry.getValue();
             Connectivity.Cache<N> node = nodes.get(pos);
 
-            if (node.value().connects(direction.invert())) {
-                bestGrid.addNode(pos, node.connectivity(), node.listener());
+            if (node.connects(direction.invert())) {
+                bestGrid.addNode(pos, node);
             }
         }
 
@@ -266,7 +266,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             int pairing = connectors.remove(posToRemove);
 
             if (node != null) {
-                // Remove removing node from nearest grid
+                // Clear removing node from nearest grid
                 for (int id : getNeighborsGrids(posToRemove)) {
                     grids.get(id).removeNode(posToRemove);
                 }
@@ -340,7 +340,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             result = Entry.connector(centerGrid.removeAt(posToRemove, splitGrids::add));
             splitGrids.add(centerGrid);
         } else {
-            // Remove removing node from nearest grid
+            // Clear removing node from nearest grid
             for (int id : getNeighborsGrids(posToRemove)) {
                 grids.get(id).removeNode(posToRemove);
             }
