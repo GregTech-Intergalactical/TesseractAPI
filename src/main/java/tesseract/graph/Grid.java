@@ -385,6 +385,13 @@ public class Grid<C extends IConnectable> implements INode {
         public ObjectList<C> getCross() {
             return cross;
         }
+
+        /**
+         * @return Checks that the path is empty.
+         */
+        public boolean isEmpty() {
+            return origin == null || target == null;
+        }
     }
 
     /**

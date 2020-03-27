@@ -65,7 +65,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @return True on success or false otherwise.
 	 */
 	public boolean addNode(long pos, Connectivity.Cache<N> node) {
-		if (!contains(pos)) {
+		if (!contains(pos)/* && node != null*/) {
 
 			Group<C, N> group = add(pos, Group.singleNode(pos, node));
 			if (group != null) {
@@ -86,7 +86,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @return True on success or false otherwise.
 	 */
 	public boolean addConnector(long pos, Connectivity.Cache<C> connector) {
-		if (!contains(pos)) {
+		if (!contains(pos)/* && connector != null*/) {
 
 			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
 			if (group != null) {

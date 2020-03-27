@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.electric.api.*;
 import tesseract.graph.*;
+import tesseract.util.Pos;
 
 /**
  * Handler provides the functionality of a electricity with usage of graphs.
@@ -14,25 +15,28 @@ public class ElectricHandler {
 
     private long position;
     private IElectricNode producer;
-    private Graph<IElectricCable, IElectricNode> graph;
-    private ObjectSet<Consumer> consumers;
+    private static Graph<IElectricCable, IElectricNode> graph;
+    private static ObjectSet<Consumer> consumers = new ObjectLinkedOpenHashSet<>();
 
     /**
      *
      * @param dim
      * @param pos
-     * @param producer
+     * @param node
      */
-    public ElectricHandler(int dim, long pos, IElectricNode producer) {
+    public ElectricHandler(int dim, long pos, IElectricNode node) {
         graph = ElectricNet.instance(dim);
         position = pos;
-        consumers = new ObjectLinkedOpenHashSet<>();
+        producer = node;
+
         graph.addNode(position, Connectivity.Cache.of(producer, () -> {
             graph.findGroup(position).ifPresent(group -> {
                 consumers.clear();
 
                 for (Grid<IElectricCable> grid : group.findGrids(position)) {
                     for (Grid.Path<IElectricCable> path : grid.getPaths(position)) {
+                        if(path.isEmpty()) continue;
+
                         graph.findAt(path.target().get()).asEndpoint().ifPresent(consumer -> {
                             if (consumer.canInput()) {
                                 if (producer.getOutputVoltage() > consumer.getInputVoltage()) {
@@ -46,7 +50,6 @@ public class ElectricHandler {
                 }
             });
         }));
-        this.producer = producer;
     }
 
     /**
@@ -65,11 +68,12 @@ public class ElectricHandler {
     /**
      *
      */
-    public void update() {
+    public void send() {
         if (producer.canOutput()) {
             long amps = producer.getOutputAmperage();
             for (Consumer consumer : consumers) {
                 if (amps <= 0) break;
+
                 if (consumer.isValid()) {
                     Packet required = consumer.getEnergyRequired(producer.getOutputVoltage());
                     long amperage = required.get(amps);
