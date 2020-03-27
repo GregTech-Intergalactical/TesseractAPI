@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.objects.ObjectList;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.electric.api.*;
 import tesseract.graph.*;
-import tesseract.util.Pos;
 
 /**
  * Handler provides the functionality of a electricity with usage of graphs.
@@ -13,25 +12,23 @@ import tesseract.util.Pos;
  */
 public class ElectricHandler {
 
-    private long position;
-    private IElectricNode producer;
-    private static Graph<IElectricCable, IElectricNode> graph;
-    private static ObjectSet<Consumer> consumers = new ObjectLinkedOpenHashSet<>();
+    private static long position;
 
+    private static Graph<IElectricCable, IElectricNode> graph;
+    private static final ObjectSet<Consumer> CONSUMERS = new ObjectLinkedOpenHashSet<>();
+    
     /**
      *
      * @param dim
      * @param pos
-     * @param node
+     * @param producer
      */
-    public ElectricHandler(int dim, long pos, IElectricNode node) {
-        graph = ElectricNet.instance(dim);
+    public ElectricHandler(int dim, long pos, IElectricNode producer) {
         position = pos;
-        producer = node;
-
+        graph = ElectricNet.instance(dim);
         graph.addNode(position, Connectivity.Cache.of(producer, () -> {
             graph.findGroup(position).ifPresent(group -> {
-                consumers.clear();
+                CONSUMERS.clear();
 
                 for (Grid<IElectricCable> grid : group.findGrids(position)) {
                     for (Grid.Path<IElectricCable> path : grid.getPaths(position)) {
@@ -42,7 +39,7 @@ public class ElectricHandler {
                                 if (producer.getOutputVoltage() > consumer.getInputVoltage()) {
                                     // Explode
                                 } else {
-                                    consumers.add(new Consumer(consumer, path));
+                                    CONSUMERS.add(new Consumer(consumer, path));
                                 }
                             }
                         });
@@ -59,19 +56,18 @@ public class ElectricHandler {
      * @param cable
      */
     public ElectricHandler(int dim, long pos, IElectricCable cable) {
-        graph = ElectricNet.instance(dim);
         position = pos;
-
+        graph = ElectricNet.instance(dim);
         graph.addConnector(pos, Connectivity.Cache.of(cable));
     }
 
     /**
      *
      */
-    public void send() {
+    public void send(IElectricNode producer) {
         if (producer.canOutput()) {
             long amps = producer.getOutputAmperage();
-            for (Consumer consumer : consumers) {
+            for (Consumer consumer : CONSUMERS) {
                 if (amps <= 0) break;
 
                 if (consumer.isValid()) {
@@ -85,8 +81,6 @@ public class ElectricHandler {
                 }
             }
         }
-
-
     }
 
     /**
