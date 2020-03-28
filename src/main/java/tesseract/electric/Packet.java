@@ -4,6 +4,7 @@ package tesseract.electric;
  * The Packet is a class that should wrap data.
  */
 public class Packet {
+
     private long send;
     private long used;
     private long amps;
@@ -25,7 +26,7 @@ public class Packet {
      * @param amperage The current provider amperage.
      * @return Gets new amps for the provider.
      */
-    public long get(long amperage) {
+    public long update(long amperage) {
         long temp = amperage - amps;
         if (temp < 0) {
             amps = amperage;
@@ -35,7 +36,7 @@ public class Packet {
     }
 
     /**
-     * @return Gets amperage.
+     * @return Gets full amperage amount.
      */
     public long getAmps() {
         return amps;

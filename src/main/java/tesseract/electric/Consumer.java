@@ -41,16 +41,17 @@ public class Consumer {
     }
 
     /**
+     * Inserts the packet into consumer's buffer.
+     * @param packet The provided packet.
+     */
+    public void insertEnergy(Packet packet) {
+        node.insert(packet.getSend() * packet.getAmps(), false);
+    }
+
+    /**
      * @return Checks that consumer is able to receive energy.
      */
     public boolean isValid() {
         return node.getPower() < node.getCapacity() && loss < node.getInputVoltage();
-    }
-
-    /**
-     * @return Gets the consumer node.
-     */
-    public IElectricNode getNode() {
-        return node;
     }
 }

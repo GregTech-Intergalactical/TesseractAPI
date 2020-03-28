@@ -32,13 +32,22 @@ public class Producer implements IListener {
 
     @Override
     public void update() {
+        //consumers.size();
         graph.findGroup(position).ifPresent(group -> {
             consumers.clear();
 
             for (Grid<IElectricCable> grid : group.findGrids(position)) {
                 for (Path<IElectricCable> path : grid.getPaths(position)) {
                     if (!path.isEmpty()) {
-                        graph.findAt(path.target().get()).asEndpoint().ifPresent(consumer -> add(consumer, path));
+                        graph.findAt(path.target().get()).asEndpoint().ifPresent(consumer -> {
+                            if (consumer.canInput()) {
+                                if (node.getOutputVoltage() > consumer.getInputVoltage()) {
+                                    // Explode
+                                } else {
+                                    consumers.add(new Consumer(consumer, path));
+                                }
+                            }
+                        });
                     }
                 }
             }
@@ -51,25 +60,41 @@ public class Producer implements IListener {
      * @param consumer The consumer node.
      * @param path The path to consumer data.
      */
-    private void add(IElectricNode consumer, Path<IElectricCable> path) {
-        if (consumer.canInput()) {
-            if (node.getOutputVoltage() > consumer.getInputVoltage()) {
-                // Explode
-            } else {
-                consumers.add(new Consumer(consumer, path));
-            }
-        }
-    }
+    /*private void add(IElectricNode consumer, Path<IElectricCable> path) {
+
+    }*/
 
     /**
-     * @return Gets the producer node.
+     * @return Gets if this producer can have energy extracted.
      */
-    public IElectricNode getNode() {
-        return node;
+    public boolean canOutput() {
+        return node.canOutput();
     }
 
     /**
-     * @return Gets the consumers set.
+     * @return Gets the output amperage.
+     */
+    public long getOutputAmperage() {
+        return node.getOutputAmperage();
+    }
+
+    /**
+     * @return Gets the output voltage.
+     */
+    public long getOutputVoltage() {
+        return node.getOutputVoltage();
+    }
+
+    /**
+     * Extracts the packet from producers's buffer.
+     * @param packet The provided packet.
+     */
+    public void extractEnergy(Packet packet) {
+        node.extract(packet.getUsed() * packet.getAmps(), false);
+    }
+
+    /**
+     * @return Gets the consumers array.
      */
     public ObjectSet<Consumer> getConsumers() {
         return consumers;

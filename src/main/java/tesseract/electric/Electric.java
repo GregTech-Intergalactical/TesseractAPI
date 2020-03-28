@@ -21,7 +21,7 @@ public class Electric {
      * @param position The position at which the node will be added.
      */
     private Electric(int dimension, long position) {
-        this.graph = Constants.instance(dimension);
+        this.graph = Constants.electric(dimension);
         this.position = position;
     }
 
@@ -66,17 +66,17 @@ public class Electric {
      * Sends the energy to available consumers.
      */
     public void update() {
-        if (producer.getNode().canOutput()) {
-            long amps = producer.getNode().getOutputAmperage();
+        if (producer.canOutput()) {
+            long amps = producer.getOutputAmperage();
             for (Consumer consumer : producer.getConsumers()) {
                 if (amps <= 0) break;
 
                 if (consumer.isValid()) {
-                    Packet required = consumer.getEnergyRequired(producer.getNode().getOutputVoltage());
-                    long amperage = required.get(amps);
+                    Packet required = consumer.getEnergyRequired(producer.getOutputVoltage());
+                    long amperage = required.update(amps);
 
-                    producer.getNode().extract(required.getUsed() * required.getAmps(), false);
-                    consumer.getNode().insert(required.getSend() * required.getAmps(), false);
+                    producer.extractEnergy(required);
+                    consumer.insertEnergy(required);
 
                     amps = amperage;
                 }
