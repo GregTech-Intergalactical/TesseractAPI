@@ -7,7 +7,6 @@ import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
 
 import java.util.ArrayDeque;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -325,82 +324,12 @@ public class Grid<C extends IConnectable> implements INode {
     }
 
     /**
-     * The Path is a class that should work with paths for grids.
-     */
-    public static class Path<C extends IConnectable> {
-
-        private Pos origin;
-        private Pos target;
-        private ObjectList<C> full;
-        private ObjectList<C> cross;
-
-        /**
-         * Creates a path instance.
-         *
-         * @param connectors The connectors array.
-         * @param path The path queue.
-         */
-        private Path(Long2ObjectMap<Connectivity.Cache<C>> connectors, ArrayDeque<Node> path) {
-            origin = path.pollLast();
-            target = path.pollFirst();
-
-            full = new ObjectArrayList<>();
-            cross = new ObjectArrayList<>();
-
-            Iterator<Node> iterator = path.descendingIterator();
-            while (iterator.hasNext()) {
-                Node node = iterator.next();
-                C cable = connectors.get(node.get()).value();
-                full.add(cable);
-                if (node.isCrossroad()) {
-                    cross.add(cable);
-                }
-            }
-        }
-
-        /**
-         * @return Gets the origin position.
-         */
-        public Pos origin() {
-            return origin;
-        }
-
-        /**
-         * @return Gets the target position.
-         */
-        public Pos target() {
-            return target;
-        }
-
-        /**
-         * @return Gets the full connectors path.
-         */
-        public ObjectList<C> getFull() {
-            return full;
-        }
-
-        /**
-         * @return Gets the crossroad connectors path.
-         */
-        public ObjectList<C> getCross() {
-            return cross;
-        }
-
-        /**
-         * @return Checks that the path is empty.
-         */
-        public boolean isEmpty() {
-            return origin == null || target == null;
-        }
-    }
-
-    /**
-     * Wrapper for a Long2ByteMap class and listener for updates.
+     * @apiNote Wrapper for a Long2ByteMap class and listener for updates.
      */
     private static class Listener {
 
         Long2ByteMap map;
-        Long2ObjectMap<Connectivity.IListener> listeners;
+        Long2ObjectMap<IListener> listeners;
 
         /**
          * Constructs a new Long2ByteMap with the same mappings as the specified Map.
@@ -435,7 +364,7 @@ public class Grid<C extends IConnectable> implements INode {
          * @param value The provided value.
          * @param listener The listener function.
          */
-        byte put(long key, byte value, Connectivity.IListener listener) {
+        byte put(long key, byte value, IListener listener) {
             map.put(key, value);
             listeners.put(key, listener);
             return value;
@@ -485,7 +414,7 @@ public class Grid<C extends IConnectable> implements INode {
         /**
          * @return Gets listeners map.
          */
-        Long2ObjectMap<Connectivity.IListener> getListeners() {
+        Long2ObjectMap<IListener> getListeners() {
             return listeners;
         }
 
@@ -493,7 +422,7 @@ public class Grid<C extends IConnectable> implements INode {
          * Call attached listeners.
          */
         void update() {
-            for (Connectivity.IListener listener : listeners.values()) {
+            for (IListener listener : listeners.values()) {
                 listener.update();
             }
         }

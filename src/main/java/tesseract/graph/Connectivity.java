@@ -43,17 +43,6 @@ public class Connectivity {
     }
 
     /**
-     * Simple interface for a updates.
-     */
-    public interface IListener {
-
-        /**
-         * Update callback method.
-         */
-        void update();
-    }
-
-    /**
      * The Cache is a class that should work with connections.
      */
     public static class Cache<C> {
