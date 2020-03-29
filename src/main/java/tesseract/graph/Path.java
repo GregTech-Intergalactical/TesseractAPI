@@ -1,5 +1,7 @@
 package tesseract.graph;
 
+import it.unimi.dsi.fastutil.longs.Long2ByteLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
@@ -16,8 +18,8 @@ public class Path<C extends IConnectable> {
 
     private Pos origin;
     private Pos target;
-    private ObjectList<C> full;
-    private ObjectList<C> cross;
+    private Long2ObjectMap<C> full;
+    private Long2ObjectMap<C> cross;
 
     /**
      * Creates a path instance.
@@ -25,20 +27,21 @@ public class Path<C extends IConnectable> {
      * @param connectors The connectors array.
      * @param path The path queue.
      */
-    public Path(Long2ObjectMap<Connectivity.Cache<C>> connectors, ArrayDeque<Node> path) {
+    protected Path(Long2ObjectMap<Connectivity.Cache<C>> connectors, ArrayDeque<Node> path) {
         origin = path.pollLast();
         target = path.pollFirst();
 
-        full = new ObjectArrayList<>();
-        cross = new ObjectArrayList<>();
+        full = new Long2ObjectLinkedOpenHashMap<>();
+        cross = new Long2ObjectLinkedOpenHashMap<>();
 
         Iterator<Node> iterator = path.descendingIterator();
         while (iterator.hasNext()) {
             Node node = iterator.next();
-            C cable = connectors.get(node.get()).value();
-            full.add(cable);
+            long pos = node.get();
+            C cable = connectors.get(pos).value();
+            full.put(pos, cable);
             if (node.isCrossroad()) {
-                cross.add(cable);
+                cross.put(pos, cable);
             }
         }
     }
@@ -60,14 +63,14 @@ public class Path<C extends IConnectable> {
     /**
      * @return Gets the full connectors path.
      */
-    public ObjectList<C> getFull() {
+    public Long2ObjectMap<C> getFull() {
         return full;
     }
 
     /**
      * @return Gets the crossroad connectors path.
      */
-    public ObjectList<C> getCross() {
+    public Long2ObjectMap<C> getCross() {
         return cross;
     }
 

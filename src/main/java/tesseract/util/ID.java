@@ -10,7 +10,7 @@ public class ID {
     public static final int INVALID = Integer.MAX_VALUE;
     public static final int DEFAULT = Integer.MIN_VALUE;
 
-    private static AtomicInteger root = new AtomicInteger(DEFAULT);
+    private static final AtomicInteger root = new AtomicInteger(DEFAULT);
 
     /**
      * @return Increments id and return.

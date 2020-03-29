@@ -1,12 +1,9 @@
 package tesseract.graph.traverse;
 
-import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
+import it.unimi.dsi.fastutil.objects.*;
 import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Node;
-import tesseract.util.Pos;
 
 import java.util.ArrayDeque;
 import java.util.ConcurrentModificationException;
@@ -157,8 +154,8 @@ public class ASFinder {
      * @param current The given node.
      * @return The set of nodes.
      */
-    public ObjectSet<Node> getNeighborsNodes(Node current) {
-        ObjectSet<Node> neighbors = new ObjectLinkedOpenHashSet<>(6);
+    public ObjectList<Node> getNeighborsNodes(Node current) {
+        ObjectList<Node> neighbors = new ObjectArrayList<>(6);
 
         for (Dir direction : Dir.VALUES) {
             long pos = current.offset(direction).get();

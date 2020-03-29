@@ -1,30 +1,37 @@
 package tesseract.electric;
 
-import it.unimi.dsi.fastutil.objects.ObjectList;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import tesseract.electric.api.IElectricCable;
 import tesseract.electric.api.IElectricNode;
 import tesseract.graph.Path;
 
 /**
- * The Consumer is a class that should wrap consumer data.
+ * A class that acts as a container for a consumer.
  */
 public class Consumer {
 
     private long loss;
+    private long voltage;
+    private long amperage;
     private IElectricNode node;
-    //private ObjectList<IElectricCable> cables;
+    private Long2ObjectMap<IElectricCable> full;
+    private Long2ObjectMap<IElectricCable> cross;
 
     /**
-     * Creates instance of consumer.
+     * Creates instance of the consumer.
      *
      * @param node The consumer node.
      * @param path The path information.
      */
     protected Consumer(IElectricNode node, Path<IElectricCable> path) {
         this.node = node;
-        //this.cables = path.getCross();
-        for (IElectricCable cable : path.getFull()) {
-            this.loss += cable.getLoss();
+        this.full = path.getFull();
+        this.cross = path.getCross();
+
+        for (IElectricCable cable : full.values()) {
+            loss += cable.getLoss();
+            voltage = Math.min(voltage, cable.getVoltage());
+            amperage = Math.min(amperage, cable.getAmps());
         }
     }
 
@@ -41,15 +48,44 @@ public class Consumer {
     }
 
     /**
-     * Inserts the packet into consumer's buffer.
-     * @param packet The provided packet.
+     * Adds energy to the node. Returns quantity of energy that was accepted.
+     * @param maxReceive Maximum amount of energy to be inserted.
+     * @param simulate If true, the insertion will only be simulated.
      */
-    public void insertEnergy(Packet packet) {
-        node.insert(packet.getSend() * packet.getAmps(), false);
+    public void insert(long maxReceive, boolean simulate) {
+        node.insert(maxReceive, simulate);
+    }
+
+    /**
+     * @param crossroad If true will return crossroad cables, false to get full amount.
+     * @return Gets the cables list.
+     */
+    public Long2ObjectMap<IElectricCable> getCables(boolean crossroad) {
+        return crossroad ? cross : full;
+    }
+
+    /**
+     * @return Gets the consumer connection type.
+     */
+    public ConnectionType getConnectionType() {
+        if (cross.size() == 0) {
+            if (full.size() == 2) return ConnectionType.ADJACENT;
+            else if (full.size() > 2) return ConnectionType.SINGLE;
+            else return ConnectionType.INVALID; // How it possible ???
+        }
+        return ConnectionType.VARIATE;
     }
 
     /**
      * @return Checks that consumer is able to receive energy.
+     */
+    public boolean canReceive(Packet packet) {
+        // Fast check by the lowest cost cable
+        return amperage >= packet.getAmps() || voltage * amperage >= packet.getSend();
+    }
+
+    /**
+     * @return Checks that consumer is need energy.
      */
     public boolean isValid() {
         return node.getPower() < node.getCapacity() && loss < node.getInputVoltage();

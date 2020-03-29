@@ -1,7 +1,7 @@
 package tesseract.electric;
 
 /**
- * The Packet is a class that should wrap data.
+ * A class that acts as a container for an energy packet.
  */
 public class Packet {
 
@@ -10,7 +10,7 @@ public class Packet {
     private long amps;
 
     /**
-     * Creates instance of packet.
+     * Creates instance of the packet.
      *
      * @param send The amount of energy with loss.
      * @param used The full amount of energy.

@@ -1,7 +1,9 @@
 package tesseract.electric;
 
 import tesseract.Constants;
-import tesseract.electric.api.*;
+import tesseract.electric.api.IElectricCable;
+import tesseract.electric.api.IElectricEvent;
+import tesseract.electric.api.IElectricNode;
 import tesseract.graph.*;
 
 /**
@@ -29,11 +31,12 @@ public class Electric {
      * @param dimension The dimension id where the node will be added.
      * @param position The position at which the node will be added.
      * @param node The node ref.
+     * @param event The event listener.
      * @return Create a instance of a class for a given producer/consumer node.
      */
-    public static Electric ofProducer(int dimension, long position, IElectricNode node) {
+    public static Electric ofProducer(int dimension, long position, IElectricNode node, IElectricEvent event) {
         Electric system = new Electric(dimension, position);
-        system.producer = new Producer(system.graph, node, system.position);
+        system.producer = new Producer(system.graph, position, node, event);
         system.graph.addNode(position, Connectivity.Cache.of(node, system.producer));
         return system;
     }
@@ -66,22 +69,7 @@ public class Electric {
      * Sends the energy to available consumers.
      */
     public void update() {
-        if (producer.canOutput()) {
-            long amps = producer.getOutputAmperage();
-            for (Consumer consumer : producer.getConsumers()) {
-                if (amps <= 0) break;
-
-                if (consumer.isValid()) {
-                    Packet required = consumer.getEnergyRequired(producer.getOutputVoltage());
-                    long amperage = required.update(amps);
-
-                    producer.extractEnergy(required);
-                    consumer.insertEnergy(required);
-
-                    amps = amperage;
-                }
-            }
-        }
+        producer.send();
     }
 
     /**

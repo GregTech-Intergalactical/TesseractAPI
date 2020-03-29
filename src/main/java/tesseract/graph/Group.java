@@ -1,9 +1,6 @@
 package tesseract.graph;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.graph.traverse.BFDivider;
@@ -41,7 +38,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param node The given node.
      * @return Create a instance of a class for a given position and node.
      */
-    public static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long at, Connectivity.Cache<N> node) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long at, Connectivity.Cache<N> node) {
         Group<C, N> group = new Group<>();
 
         group.addNode(at, node);
@@ -54,7 +51,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param connector The given connector.
      * @return Create a instance of a class for a given position and connector.
      */
-    public static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long at, Connectivity.Cache<C> connector) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long at, Connectivity.Cache<C> connector) {
         Group<C, N> group = new Group<>();
         int id = ID.getNewId();
 
@@ -89,8 +86,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * @return Returns blocks set.
      */
-    public LongSet getBlocks() {
-        LongSet merge = new LongLinkedOpenHashSet();
+    public LongList getBlocks() { // LongSet before, to check
+        LongList merge = new LongArrayList();
         merge.addAll(nodes.keySet());
         merge.addAll(connectors.keySet());
         return merge;

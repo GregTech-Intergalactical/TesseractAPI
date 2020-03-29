@@ -1,5 +1,6 @@
 package tesseract.electric.api;
 
+import tesseract.electric.Packet;
 import tesseract.graph.IConnectable;
 
 /**
@@ -24,4 +25,11 @@ public interface IElectricCable extends IConnectable {
 	 * @return A positive integer representing the maximum accepted energy, zero or negative indicates that this component accepts no energy.
 	 */
 	long getVoltage();
+
+	/**
+	 * @return Checks that cable is able to handle single packet.
+	 */
+	default boolean canHandle(Packet packet) {
+		return getAmps() >= packet.getAmps() ||  getVoltage() * getAmps() >= packet.getSend();
+	}
 }

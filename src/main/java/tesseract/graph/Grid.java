@@ -35,7 +35,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param connector The given connector.
      * @return Create a instance of a class for a given position and connector.
      */
-    public static <C extends IConnectable> Grid<C> singleConnector(long pos, Connectivity.Cache<C> connector) {
+    protected static <C extends IConnectable> Grid<C> singleConnector(long pos, Connectivity.Cache<C> connector) {
         Grid<C> grid = new Grid<>();
         grid.connectors.put(pos, Objects.requireNonNull(connector));
         return grid;
@@ -123,9 +123,9 @@ public class Grid<C extends IConnectable> implements INode {
      * @param pos The position of the linked node.
      * @return Returns full paths for the linked node.
      */
-    public ObjectSet<Path<C>> getPaths(long pos) {
+    public ObjectList<Path<C>> getPaths(long pos) {
+        ObjectList<Path<C>> data = new ObjectArrayList<>();
 
-        ObjectSet<Path<C>> data = new ObjectLinkedOpenHashSet<>();
         for (long target : nodes.keySet()) {
             if (pos != target) {
                 data.add(new Path<>(connectors, finder.find(pos, target)));
