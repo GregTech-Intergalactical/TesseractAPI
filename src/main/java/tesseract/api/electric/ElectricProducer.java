@@ -5,12 +5,13 @@ import it.unimi.dsi.fastutil.ints.Int2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
+import tesseract.api.GraphWrapper;
 import tesseract.graph.*;
 
 /**
  * A class that acts as a container for a producer.
  */
-public class ElectricProducer extends ElectricWrapper implements IGridListener {
+public class ElectricProducer extends GraphWrapper implements IGridListener {
 
     private IElectricNode node;
     private Int2LongMap checks;

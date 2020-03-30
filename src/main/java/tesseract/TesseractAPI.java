@@ -2,6 +2,7 @@ package tesseract;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import tesseract.api.GraphWrapper;
 import tesseract.api.electric.*;
 import tesseract.graph.Connectivity;
 import tesseract.graph.Graph;
@@ -53,10 +54,10 @@ public class TesseractAPI {
      * @param node The node ref.
      * @return Create a instance of a class for a given consumer node.
      */
-    public static ElectricWrapper asElectricConsumer(int dimension, long position, IElectricNode node) {
+    public static GraphWrapper asElectricConsumer(int dimension, long position, IElectricNode node) {
         Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dimension);
         graph.addNode(position, Connectivity.Cache.of(node));
-        return new ElectricWrapper(graph, position);
+        return new GraphWrapper(graph, position);
     }
 
     /**
@@ -65,9 +66,9 @@ public class TesseractAPI {
      * @param cable The cable ref.
      * @return Create a instance of a class for a given cable connector.
      */
-    public static ElectricWrapper asElectricCable(int dimension, long position, IElectricCable cable) {
+    public static GraphWrapper asElectricCable(int dimension, long position, IElectricCable cable) {
         Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dimension);
         graph.addConnector(position, Connectivity.Cache.of(cable));
-        return new ElectricWrapper(graph, position);
+        return new GraphWrapper(graph, position);
     }
 }

@@ -1,13 +1,15 @@
-package tesseract.api.electric;
+package tesseract.api;
 
+import tesseract.api.electric.IElectricCable;
+import tesseract.api.electric.IElectricNode;
 import tesseract.graph.Graph;
 
-public class ElectricWrapper {
+public class GraphWrapper {
 
     protected Graph<IElectricCable, IElectricNode> graph;
     protected long position;
 
-    public ElectricWrapper(Graph<IElectricCable, IElectricNode> graph, long position) {
+    public GraphWrapper(Graph<IElectricCable, IElectricNode> graph, long position) {
         this.graph = graph;
         this.position = position;
     }
