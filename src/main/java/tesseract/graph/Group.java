@@ -1,9 +1,6 @@
 package tesseract.graph;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.graph.traverse.BFDivider;
@@ -12,14 +9,13 @@ import tesseract.util.Pos;
 import tesseract.util.ID;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
  * @apiNote default parameters are nonnull, methods return nonnull.
  */
-public class Group<C extends IConnectable, N extends IConnectable> implements INode, IGroup<C, N> {
+public class Group<C extends IConnectable, N extends IConnectable> implements INode {
 
     private Long2ObjectMap<Connectivity.Cache<N>> nodes;
     private Int2ObjectMap<Grid<C>> grids;
@@ -42,7 +38,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param node The given node.
      * @return Create a instance of a class for a given position and node.
      */
-    public static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long at, Connectivity.Cache<N> node) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long at, Connectivity.Cache<N> node) {
         Group<C, N> group = new Group<>();
 
         group.addNode(at, node);
@@ -55,7 +51,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param connector The given connector.
      * @return Create a instance of a class for a given position and connector.
      */
-    public static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long at, Connectivity.Cache<C> connector) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long at, Connectivity.Cache<C> connector) {
         Group<C, N> group = new Group<>();
         int id = ID.getNewId();
 
@@ -80,25 +76,33 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         return contains(position);
     }
 
-    @Override
+    /**
+     * @return Gets the number of blocks.
+     */
     public int countBlocks() {
         return nodes.size() + connectors.size();
     }
 
-    @Override
-    public LongList getBlocks() {
+    /**
+     * @return Returns blocks set.
+     */
+    public LongList getBlocks() { // LongSet before, to check
         LongList merge = new LongArrayList();
         merge.addAll(nodes.keySet());
         merge.addAll(connectors.keySet());
         return merge;
     }
 
-    @Override
+    /**
+     * @return Returns nodes map.
+     */
     public Long2ObjectMap<Connectivity.Cache<N>> getNodes() {
         return nodes;
     }
 
-    @Override
+    /**
+     * @return Returns grids set.
+     */
     public Int2ObjectMap<Grid<C>> getGrids() {
         return grids;
     }
@@ -123,7 +127,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 long offset = position.offset(direction).get();
 
                 if (grid.connects(offset, direction.invert())) {
-                    grid.addNode(at, node.connectivity());
+                    grid.addNode(at, node);
                 }
             }
         }
@@ -202,8 +206,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             Dir direction = entry.getValue();
             Connectivity.Cache<N> node = nodes.get(pos);
 
-            if (node.value().connects(direction.invert())) {
-                bestGrid.addNode(pos, node.connectivity());
+            if (node.connects(direction.invert())) {
+                bestGrid.addNode(pos, node);
             }
         }
 
@@ -246,7 +250,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param split A consumer for the resulting fresh graphs from the split operation.
      * @return The removed entry, guaranteed to not be null.
      */
-    public Entry<C, N> remove(long posToRemove, Consumer<Group<C, N>> split) {
+    public Entry<C, N> removeAt(long posToRemove, Consumer<Group<C, N>> split) {
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.
         if (!contains(posToRemove)) {
@@ -259,7 +263,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             int pairing = connectors.remove(posToRemove);
 
             if (node != null) {
-                // Remove removing node from nearest grid
+                // Clear removing node from nearest grid
                 for (int id : getNeighborsGrids(posToRemove)) {
                     grids.get(id).removeNode(posToRemove);
                 }
@@ -271,7 +275,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
             // No check is needed here, because the caller already asserts that the Group contains the specified position.
             // Thus, if this is not a node, then it is guaranteed to be a connector.
-            C removed = grid.remove(
+            C removed = grid.removeAt(
                 posToRemove,
                 newGrid -> {
                     int newId = ID.getNewId();
@@ -330,10 +334,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 excluded.add(move);
             }
 
-            result = Entry.connector(centerGrid.remove(posToRemove, splitGrids::add));
+            result = Entry.connector(centerGrid.removeAt(posToRemove, splitGrids::add));
             splitGrids.add(centerGrid);
         } else {
-            // Remove removing node from nearest grid
+            // Clear removing node from nearest grid
             for (int id : getNeighborsGrids(posToRemove)) {
                 grids.get(id).removeNode(posToRemove);
             }
@@ -439,10 +443,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         return list;
-    }
-
-    public Optional<Connectivity.Cache<N>> findNode(long pos) {
-        return Optional.of(nodes.get(pos));
     }
 
     /**

@@ -24,11 +24,14 @@ import java.util.function.Function;
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public final class Entry<C, N> {
 
-	public static <C, N> Entry<C, N> connector(C value) {
+	protected static <C, N> Entry<C, N> connector(C value) {
 		return new Entry<>(Optional.of(value), Optional.empty());
 	}
-	public static <C, N> Entry<C, N> node(N value) {
+	protected static <C, N> Entry<C, N> node(N value) {
 		return new Entry<>(Optional.empty(), Optional.of(value));
+	}
+	protected static <C, N> Entry<C, N> empty() {
+		return new Entry<>(Optional.empty(), Optional.empty());
 	}
 
 	private final Optional<C> connector;

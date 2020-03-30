@@ -1,11 +1,11 @@
 package tesseract;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraftforge.fml.common.Mod;
 
+@Mod(Constants.API_ID)
+@Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
 public class Tesseract {
 
-	private static final Logger LOGGER = LogManager.getLogger();
-
 	public Tesseract() { }
+
 }

@@ -8,12 +8,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ID {
 
     public static final int INVALID = Integer.MAX_VALUE;
-    private static AtomicInteger root = new AtomicInteger(Integer.MIN_VALUE);
+    public static final int DEFAULT = Integer.MIN_VALUE;
+
+    private static final AtomicInteger root = new AtomicInteger(DEFAULT);
 
     /**
      * @return Increments id and return.
      */
     public static int getNewId() {
-        return root.incrementAndGet();
+        int id = root.incrementAndGet();
+        if (id == INVALID) {
+            id = DEFAULT;
+        }
+        return id;
     }
 }

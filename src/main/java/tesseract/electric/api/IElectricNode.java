@@ -1,40 +1,73 @@
 package tesseract.electric.api;
 
-import tesseract.util.Dir;
+import net.minecraftforge.energy.EnergyStorage;
 import tesseract.graph.IConnectable;
 
 /**
+ * An electric node is the unit of interaction with electric inventories.
+ * <p>
+ * A reference implementation can be found at {@link EnergyStorage}.
  *
+ * Derived from the Redstone Flux power system designed by King Lemming and originally utilized in Thermal Expansion and related mods.
+ * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
  */
 public interface IElectricNode extends IConnectable {
 
 	/**
-	 *
-	 * @param direction The direction vector.
-	 * @return
+	 * Adds energy to the node. Returns quantity of energy that was accepted.
+	 * @param maxReceive Maximum amount of energy to be inserted.
+	 * @param simulate If true, the insertion will only be simulated.
+	 * @return Amount of energy that was (or would have been, if simulated) accepted by the storage.
 	 */
-	IElectricStorage getStorage(Dir direction);
+	long insert(long maxReceive, boolean simulate);
 
 	/**
-	 *
-	 * @param direction The direction vector.
-	 * @return
+	 * Removes energy from the node. Returns quantity of energy that was removed.
+	 * @param maxExtract Maximum amount of energy to be extracted.
+	 * @param simulate If true, the extraction will only be simulated.
+	 * @return Amount of energy that was (or would have been, if simulated) extracted from the storage.
 	 */
-	IElectricLimits getReceiverLimits(Dir direction);
+	long extract(long maxExtract, boolean simulate);
 
 	/**
-	 *
-	 * @return
+	 * @return Gets the amount of energy currently stored.
 	 */
-	int getOfferedPackets();
+	long getPower();
 
 	/**
-	 *
-	 * @param direction The direction vector.
-	 * @return
+	 * @return Gets the maximum amount of energy that can be stored.
 	 */
-	@Override
-	default boolean connects(Dir direction) {
-		return getStorage(direction) != null;
-	}
+	long getCapacity();
+
+	/**
+	 * @return Gets the maximum amount of amperage that can be output.
+	 */
+	long getOutputAmperage();
+
+	/**
+	 * @return Gets the maximum amount of voltage that can be output.
+	 */
+	long getOutputVoltage();
+
+	/**
+	 * @return Gets the maximum amount of amperage that can be input.
+	 */
+	long getInputAmperage();
+
+	/**
+	 * @return Gets the maximum amount of voltage that can be input.
+	 */
+	long getInputVoltage();
+
+	/**
+	 * Gets if this storage can have energy extracted.
+	 * @return If this is false, then any calls to extractEnergy will return 0.
+	 */
+	boolean canInput();
+
+	/**
+	 * Used to determine if this storage can receive energy.
+	 * @return If this is false, then any calls to receiveEnergy will return 0.
+	 */
+	boolean canOutput();
 }

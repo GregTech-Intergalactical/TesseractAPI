@@ -2,11 +2,9 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
-import tesseract.util.listener.Long2ByteMapListener;
+import tesseract.util.*;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
-import tesseract.util.Dir;
-import tesseract.util.Pos;
 
 import java.util.ArrayDeque;
 import java.util.Objects;
@@ -16,27 +14,20 @@ import java.util.function.Consumer;
  * Grid provides the functionality of a set of linked nodes.
  * @apiNote default parameters are nonnull, methods return nonnull.
  */
-public class Grid<C extends IConnectable> implements INode, IGrid<C> {
+public class Grid<C extends IConnectable> implements INode {
 
     private Long2ObjectMap<Connectivity.Cache<C>> connectors;
-    private Long2ObjectMap<ObjectList<ArrayDeque<Pos>>> paths;
-    private Long2ObjectMap<ObjectList<ArrayDeque<Pos>>> roads;
-    private Long2ByteMapListener nodes; // linked nodes
     private BFDivider divider;
     private ASFinder finder;
+    private Listener nodes;
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
         connectors = new Long2ObjectLinkedOpenHashMap<>();
-        paths = new Long2ObjectLinkedOpenHashMap<>();
-        roads = new Long2ObjectLinkedOpenHashMap<>();
-        nodes = new Long2ByteMapListener(new Long2ByteLinkedOpenHashMap(), () -> {
-            paths.clear();
-            roads.clear();
-        });
 
         divider = new BFDivider(this);
         finder = new ASFinder(this);
+        nodes = new Listener();
     }
 
     /**
@@ -44,7 +35,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
      * @param connector The given connector.
      * @return Create a instance of a class for a given position and connector.
      */
-    public static <C extends IConnectable> Grid<C> singleConnector(long pos, Connectivity.Cache<C> connector) {
+    protected static <C extends IConnectable> Grid<C> singleConnector(long pos, Connectivity.Cache<C> connector) {
         Grid<C> grid = new Grid<>();
         grid.connectors.put(pos, Objects.requireNonNull(connector));
         return grid;
@@ -98,66 +89,61 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
         return Connectivity.has(connectivity, towards);
     }
 
-    // TODO: Count/visit linked nodes
-
-    @Override
+    /**
+     * @return Gets the number of connectors.
+     */
     public int countConnectors() {
         return connectors.size();
     }
 
-    @Override
+    /**
+     * @return Gets the number of linked nodes.
+     */
     public int countNodes() {
-        return nodes.unwrap().size();
+        return nodes.size();
     }
 
-    @Override
+    /**
+     * @return Returns connectors map.
+     */
     public Long2ObjectMap<Connectivity.Cache<C>> getConnectors() {
         return connectors;
     }
 
-    @Override
+    /**
+     * @return Returns nodes map.
+     */
     public Long2ByteMap getNodes() {
-        return nodes.unwrap();
-    }
-
-    @Override
-    public ObjectList<ArrayDeque<Pos>> getPath(long pos) {
-        return find(paths, pos, false);
-    }
-
-    @Override
-    public ObjectList<ArrayDeque<Pos>> getCrossroad(long pos) {
-        return find(roads, pos, true);
-    }
-
-    @Override
-    public ArrayDeque<Pos> findPath(long start, long end, boolean crossroad) {
-        return finder.find(start, end, crossroad);
+        return nodes.getMap();
     }
 
     /**
-     * Lazily generates paths from the linked node to another linked nodes.
+     * Gets paths from the position to another linked nodes.
      *
-     * @param path The provided map.
      * @param pos The position of the linked node.
-     * @param crossroad If true will generate path only with crossroad nodes, false for all nodes.
-     * @return Returns paths map for linked node.
+     * @return Returns full paths for the linked node.
      */
-    private ObjectList<ArrayDeque<Pos>> find(Long2ObjectMap<ObjectList<ArrayDeque<Pos>>> path, long pos, boolean crossroad) {
+    public ObjectList<Path<C>> getPaths(long pos) {
+        ObjectList<Path<C>> data = new ObjectArrayList<>();
 
-        if (!path.containsKey(pos)) {
-            ObjectList<ArrayDeque<Pos>> data = new ObjectArrayList<>();
-
-            for (long target : nodes.unwrap().keySet()) {
-                if (pos != target) {
-                    data.add(finder.find(pos, target, crossroad));
-                }
+        for (long target : nodes.keySet()) {
+            if (pos != target) {
+                data.add(new Path<>(connectors, finder.find(pos, target)));
             }
-
-            path.put(pos, data);
         }
 
-        return path.get(pos);
+        return data;
+    }
+
+    /**
+     * Begins a find operation from the specified start position to the end position.
+     *
+     * @param start The start position of the finds operation.
+     * @param end The end position of the finds operation.
+     * @return An set of path points.
+     */
+    public ArrayDeque<Node> findPath(long start, long end) {
+        return finder.find(start, end);
     }
 
     /**
@@ -170,6 +156,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
         // TODO: Validate that the other grid touches the specified position.
         connectors.putAll(other.connectors);
         nodes.putAll(other.nodes);
+        nodes.update();
     }
 
     /**
@@ -191,16 +178,18 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
     public void addConnector(long pos, Connectivity.Cache<C> connector) {
         // TODO: Validate that the other grid touches the specified position.
         connectors.put(pos, Objects.requireNonNull(connector));
+        nodes.update();
     }
 
     /**
      * Adds a new node to the grid.
      *
      * @param pos The given position.
-     * @param connectivity The connectivity state.
+     * @param node The given node.
      */
-    public void addNode(long pos, byte connectivity) {
-        nodes.put(pos, connectivity);
+    public void addNode(long pos, Connectivity.Cache<?> node) {
+        nodes.put(pos, node.connectivity(), node.listener());
+        nodes.update();
     }
 
     /**
@@ -210,6 +199,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
      */
     public void removeNode(long pos) {
         nodes.remove(pos);
+        nodes.update();
     }
 
     /**
@@ -221,7 +211,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
      * @param split A consumer for the resulting fresh graphs from the split operation.
      * @return The removed entry, guaranteed to not be null.
      */
-    public C remove(long pos, Consumer<Grid<C>> split) {
+    public C removeAt(long pos, Consumer<Grid<C>> split) {
         Objects.requireNonNull(split);
 
         if (!contains(pos)) {
@@ -229,7 +219,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
         }
 
         if (isExternal(pos)) {
-            return removeFinal(pos);
+            return removeFinal(pos, null);
         }
 
         ObjectList<LongLinkedOpenHashSet> colored = new ObjectArrayList<>();
@@ -249,7 +239,6 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
             colored::add
         );
 
-        // TODO: Properly split / remove relevant nodes, verify that this works.
         LongSet check = new LongLinkedOpenHashSet();
 
         for (int i = 0; i < colored.size(); i++) {
@@ -266,7 +255,7 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
 
                 if (connectivity != Byte.MAX_VALUE) {
                     check.add(reached);
-                    newGrid.nodes.put(reached, connectivity);
+                    newGrid.nodes.put(reached, connectivity, nodes.getListeners().get(reached));
                 } else {
                     newGrid.connectors.put(reached, connectors.remove(reached));
                 }
@@ -275,25 +264,17 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
             split.accept(newGrid);
         }
 
-        // TODO: Why is it here?
-        C connector = removeFinal(pos);
-
-        for (long toCheck : check) {
-            if (isExternal(toCheck)) {
-                nodes.remove(toCheck);
-            }
-        }
-
-        return connector;
+        return removeFinal(pos, check);
     }
 
     /**
      * Removes connector by a position.
      *
      * @param pos The given position.
+     * @param found The set with nodes to check.
      * @return The removed connector.
      */
-    private C removeFinal(long pos) {
+    private C removeFinal(long pos, LongSet found) {
         C connector = connectors.remove(pos).value();
 
         Pos position = new Pos(pos);
@@ -305,6 +286,15 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
             }
         }
 
+        if (found != null) {
+            for (long reached : found) {
+                if (isExternal(reached)) {
+                    nodes.remove(reached);
+                }
+            }
+        }
+
+        nodes.update();
         return connector;
     }
 
@@ -331,5 +321,110 @@ public class Grid<C extends IConnectable> implements INode, IGrid<C> {
         }
 
         return neighbors <= 1;
+    }
+
+    /**
+     * @apiNote Wrapper for a Long2ByteMap class and listener for updates.
+     */
+    private static class Listener {
+
+        Long2ByteMap map;
+        Long2ObjectMap<IListener> listeners;
+
+        /**
+         * Constructs a new Long2ByteMap with the same mappings as the specified Map.
+         */
+        Listener() {
+            map = new Long2ByteLinkedOpenHashMap();
+            map.defaultReturnValue(Byte.MAX_VALUE);
+            listeners = new Long2ObjectLinkedOpenHashMap<>();
+        }
+
+        /**
+         * Returns true if this map contains a mapping for the specified key.
+         *
+         * @param key The key value.
+         * @return True or false.
+         */
+        boolean containsKey(long key) {
+            return map.containsKey(key);
+        }
+
+        /**
+         * @return Gets the value to which the specified key is mapped, or null if this map contains no mapping for the key.
+         */
+        byte get(long key) {
+            return map.get(key);
+        }
+
+        /**
+         * Associates the specified value with the specified key in this map.
+         *
+         * @param key The key value.
+         * @param value The provided value.
+         * @param listener The listener function.
+         */
+        byte put(long key, byte value, IListener listener) {
+            map.put(key, value);
+            listeners.put(key, listener);
+            return value;
+        }
+
+        /**
+         * Copies all of the mappings from the specified map to this map.
+         *
+         * @param wrapper The other object.
+         */
+        void putAll(Listener wrapper) {
+            map.putAll(wrapper.map);
+            listeners.putAll(wrapper.listeners);
+        }
+
+        /**
+         * @param key The key value.
+         * @return Gets the mapping for the specified key from this map if present.
+         */
+        byte remove(long key) {
+            byte value = map.remove(key);
+            listeners.remove(key);
+            return value;
+        }
+
+        /**
+         * @return Gets map size.
+         */
+        int size() {
+            return map.size();
+        }
+
+        /**
+         * @return Gets keys set.
+         */
+        LongSet keySet() {
+            return map.keySet();
+        }
+
+        /**
+         * @return Gets original map.
+         */
+        Long2ByteMap getMap() {
+            return map;
+        }
+
+        /**
+         * @return Gets listeners map.
+         */
+        Long2ObjectMap<IListener> getListeners() {
+            return listeners;
+        }
+
+        /**
+         * Call attached listeners.
+         */
+        void update() {
+            for (IListener listener : listeners.values()) {
+                listener.update();
+            }
+        }
     }
 }

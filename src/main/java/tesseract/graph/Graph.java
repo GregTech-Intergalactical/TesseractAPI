@@ -17,7 +17,7 @@ import java.util.Optional;
  * Class provides the functionality of any set of nodes.
  * @apiNote default parameters are nonnull, methods return nonnull.
  */
-public class Graph<C extends IConnectable, N extends IConnectable> implements INode {
+public class Graph<C extends IConnectable, N extends IConnectable> implements INode  {
 
 	private Int2ObjectMap<Group<C, N>> groups;
 	private Long2IntMap positions; // group positions
@@ -60,33 +60,49 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	/**
 	 * Adds a node to the graph at the specified position.
 	 *
-	 * @param pos The position at which the node will be added
-	 * @param node The node to add
+	 * @param pos The position at which the node will be added.
+	 * @param node The node to add.
+	 * @return True on success or false otherwise.
 	 */
-	public void addNode(long pos, Connectivity.Cache<N> node) {
-		Group<C, N> group = add(pos, Group.singleNode(pos, node));
-		if (group != null) {
-			group.addNode(pos, node);
+	public boolean addNode(long pos, Connectivity.Cache<N> node) {
+		if (!contains(pos)/* && node != null*/) {
+
+			Group<C, N> group = add(pos, Group.singleNode(pos, node));
+			if (group != null) {
+				group.addNode(pos, node);
+			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/**
 	 * Adds a connector to the graph at the specified position.
 	 *
-	 * @param pos The position at which the node will be added
-	 * @param connector The connector to add
+	 * @param pos The position at which the node will be added.
+	 * @param connector The connector to add.
+	 * @return True on success or false otherwise.
 	 */
-	public void addConnector(long pos, Connectivity.Cache<C> connector) {
-		Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
-		if (group != null) {
-			group.addConnector(pos, connector);
+	public boolean addConnector(long pos, Connectivity.Cache<C> connector) {
+		if (!contains(pos)/* && connector != null*/) {
+
+			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
+			if (group != null) {
+				group.addConnector(pos, connector);
+			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/**
 	 * Adds an item to the Graph, in a manner generic across nodes and connectors.
 	 *
-	 * @param pos The position at which the item will be added
+	 * @param pos The position at which the item will be added.
 	 * @param single A group containing a single entry, if the position is not touching any existing positions.
 	 * @return An existing group, that the caller should add the entry to.
 	 */
@@ -106,7 +122,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 				return groups.get(id);
 
 			default:
-				MergeData<C, N> data = beginMerge(mergers);
+				Merged<C, N> data = beginMerge(mergers);
 				positions.put(pos, data.bestId);
 				for (Group<C, N> other : data.merged) {
 					data.best.mergeWith(other, pos);
@@ -123,16 +139,16 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The position of the entry to remove.
 	 * @return The removed entry, guaranteed to not be null.
 	 */
-	public Optional<Entry<C, N>> remove(long pos) {
+	public Entry<C, N> removeAt(long pos) {
 		int id = positions.remove(pos);
 
 		if (id == ID.INVALID) {
-			return Optional.empty();
+			return Entry.empty();
 		}
 
 		Group<C, N> group = groups.get(id);
 
-		Entry<C, N> entry = group.remove(pos, newGroup -> {
+		Entry<C, N> entry = group.removeAt(pos, newGroup -> {
 			int newId = ID.getNewId();
 			groups.put(newId, newGroup);
 
@@ -142,7 +158,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			}
 
 			// Mark the connectors as pointing at the new group
-			for (IGrid<C> grid : newGroup.getGrids().values()) {
+			for (Grid<C> grid : newGroup.getGrids().values()) {
 				for (long part : grid.getConnectors().keySet()) {
 					positions.put(part, newId);
 				}
@@ -153,14 +169,47 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			groups.remove(id);
 		}
 
-		return Optional.of(entry);
+		return entry;
+	}
+
+	/**
+	 * Finds an entry by a given position.
+	 *
+	 * @param pos The position of the cache to find.
+	 * @return The found cache, guaranteed to not be null.
+	 */
+	public Entry<C, N> findAt(long pos) {
+		int id = positions.get(pos);
+
+		if (id == ID.INVALID) {
+			return Entry.empty();
+		}
+
+		Group<C, N> group = groups.get(id);
+
+		if (group != null) {
+			Connectivity.Cache<N> node = group.getNodes().get(pos);
+
+			if (node != null) {
+				return Entry.node(node.value());
+			} else {
+				for (Grid<C> grid : group.getGrids().values()) {
+					Connectivity.Cache<C> cable = grid.getConnectors().get(pos);
+					if (cable != null) {
+						return Entry.connector(cable.value());
+					}
+				}
+			}
+		}
+
+		return Entry.empty();
 	}
 
 	/**
 	 * Finds the group by a given position.
 	 *
 	 * @param pos The position of the group.
-	 * @return The group pointer, guaranteed to not be null.
+	 * @return The group, guaranteed to not be null.
 	 */
 	public Optional<Group<C, N>> findGroup(long pos) {
 		int id = positions.get(pos);
@@ -178,7 +227,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param mergers An array of neighbors groups id.
 	 * @return The wrapper with groups which should be merged.
 	 */
-	private MergeData<C, N> beginMerge(ArrayDeque<Integer> mergers) {
+	private Merged<C, N> beginMerge(ArrayDeque<Integer> mergers) {
 		int bestId = mergers.peek();
 		Group<C, N> best = groups.get(bestId);
 		int bestSize = best.countBlocks();
@@ -211,7 +260,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			mergeGroups.add(removed);
 		}
 
-		MergeData<C, N> data = new MergeData<>();
+		Merged<C, N> data = new Merged<>();
 		data.best = best;
 		data.bestId = bestId;
 		data.merged = mergeGroups;
@@ -247,7 +296,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	/**
 	 * @apiNote Wrapper for merged groups.
 	 */
-	private static class MergeData<C extends IConnectable, N extends IConnectable> {
+	private static class Merged<C extends IConnectable, N extends IConnectable> {
 		int bestId;
 		Group<C, N> best;
 		ObjectList<Group<C, N>> merged;

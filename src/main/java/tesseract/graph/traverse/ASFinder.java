@@ -1,11 +1,9 @@
 package tesseract.graph.traverse;
 
-import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
+import it.unimi.dsi.fastutil.objects.*;
 import tesseract.graph.INode;
 import tesseract.util.Dir;
-import tesseract.util.Pos;
+import tesseract.util.Node;
 
 import java.util.ArrayDeque;
 import java.util.ConcurrentModificationException;
@@ -16,14 +14,14 @@ import java.util.ConcurrentModificationException;
 public class ASFinder {
 
     private ArrayDeque<Node> open;
-    private ArrayDeque<Pos> path;
+    private ArrayDeque<Node> path;
     private ObjectOpenHashSet<Node> closed;
     private INode container;
 
     /**
      * Creates a reusable AStarPathfinder instance that will search the provided container.
      *
-     * @param container The container to use for search operations
+     * @param container The container to use for find operations
      */
     public ASFinder(INode container) {
         open = new ArrayDeque<>();
@@ -36,10 +34,9 @@ public class ASFinder {
      *
      * @param origin The start position of the finds operation.
      * @param target The end position of the finds operation.
-     * @param crossroad If true will generate path only with crossroad nodes, false for all nodes.
      * @return An set of the points calculated by the A Star algorithm.
      */
-    public ArrayDeque<Pos> find(long origin, long target, boolean crossroad) {
+    public ArrayDeque<Node> find(long origin, long target) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same ASFinder instance");
         }
@@ -51,8 +48,8 @@ public class ASFinder {
         path = new ArrayDeque<>();
 
         try {
-            Node start = new Node(origin, false);
-            Node end = new Node(target, false);
+            Node start = new Node(origin).setValid(true);
+            Node end = new Node(target);
 
             open.add(start);
 
@@ -60,7 +57,8 @@ public class ASFinder {
                 Node current = getLowestF();
 
                 if (current.equals(end)) {
-                    retracePath(current, crossroad);
+                    retracePath(current);
+                    break;
                 }
 
                 open.remove(current);
@@ -72,15 +70,15 @@ public class ASFinder {
                         continue;
                     }
 
-                    int tempScore = current.getCost() + current.distanceTo(n);
+                    int score = current.getCost() + current.distanceTo(n);
 
                     if (open.contains(n)) {
-                        if (tempScore < n.getCost()) {
-                            n.setCost(tempScore);
+                        if (score < n.getCost()) {
+                            n.setCost(score);
                             n.setParent(current);
                         }
                     } else {
-                        n.setCost(tempScore);
+                        n.setCost(score);
                         open.add(n);
                         n.setParent(current);
                     }
@@ -102,31 +100,37 @@ public class ASFinder {
      * Adds all nodes to the path set.
      *
      * @param current The current node
-     * @param crossroad If true will generate path only with crossroad nodes, false for all nodes.
      */
-    public void retracePath(Node current, boolean crossroad) {
+    public void retracePath(Node current) {
         Node temp = current;
-        path.add(current);
+        temp.setCrossroad(true); // Consider tail as a part of the crossroad
+        path.add(temp);
 
-        if (crossroad) {
-            while (temp.getParent() != null) {
-                Node parent = temp.getParent();
-                if (parent.isValid()) {
-                    if (isCrossroad(parent)) {
-                        path.add(parent);
-                    }
-                } else {
-                    path.add(parent);
-                }
-                temp = parent;
-            }
-        } else {
-            while (temp.getParent() != null) {
-                Node parent = temp.getParent();
-                path.add(parent);
-                temp = parent;
+        while ((temp = current.getParent()) != null) {
+            temp.setCrossroad(temp.isValid() || retraceNode(temp));
+            path.add(temp);
+            current = temp;
+        }
+    }
+
+    /**
+     * Validates the crossroads state of the node.
+     *
+     * @param current The current node
+     * @return True or false.
+     */
+    public boolean retraceNode(Node current) {
+        byte connections = 0;
+
+        for (Dir direction : Dir.VALUES) {
+            long pos = current.offset(direction).get();
+
+            if (container.connects(pos, direction)) {
+                connections++;
             }
         }
+
+        return connections > 2;
     }
 
     /**
@@ -150,105 +154,17 @@ public class ASFinder {
      * @param current The given node.
      * @return The set of nodes.
      */
-    public ObjectSet<Node> getNeighborsNodes(Node current) {
-        ObjectSet<Node> neighbors = new ObjectLinkedOpenHashSet<>(6);
+    public ObjectList<Node> getNeighborsNodes(Node current) {
+        ObjectList<Node> neighbors = new ObjectArrayList<>(6);
 
         for (Dir direction : Dir.VALUES) {
             long pos = current.offset(direction).get();
 
             if (container.contains(pos)) {
-                neighbors.add(new Node(pos, true));
+                neighbors.add(new Node(pos));
             }
         }
 
         return neighbors;
-    }
-
-    /**
-     * Validates the crossroads state of the node.
-     *
-     * @param current The given node.
-     * @return True if node has more then 2 connections, false otherwise.
-     */
-    public boolean isCrossroad(Node current) {
-        byte connections = 0;
-
-        for (Dir direction : Dir.VALUES) {
-            long pos = current.offset(direction).get();
-
-            if (container.connects(pos, direction)) {
-                connections++;
-            }
-        }
-
-        return connections > 2;
-    }
-
-    /**
-     * The Node is a pretty straightforward class resembling regular nodes.
-     */
-    private static class Node extends Pos {
-
-        private Node parent;
-        private int cost, heuristic, function;
-        private boolean valid;
-
-        public Node(long value, boolean valid) {
-            super(value);
-            setValid(valid);
-        }
-
-        public int getCost() {
-            return cost;
-        }
-
-        public void setCost(int cost) {
-            this.cost = cost;
-        }
-
-        public int getHeuristic() {
-            return heuristic;
-        }
-
-        public void setHeuristic(int heuristic) {
-            this.heuristic = heuristic;
-        }
-
-        public int getFunction() {
-            return function;
-        }
-
-        public void setFunction(int function) {
-            this.function = function;
-        }
-
-        public Node getParent() {
-            return parent;
-        }
-
-        public void setParent(Node parent) {
-            this.parent = parent;
-        }
-
-        public boolean isValid() {
-            return valid;
-        }
-
-        public void setValid(boolean valid) {
-            this.valid = valid;
-        }
-
-        public int heuristic(Node dest) {
-            return distanceTo(dest);
-        }
-
-        public int distanceTo(Node dest) {
-            return Math.abs(getX() - dest.getX()) + Math.abs(getY() - dest.getY()) + Math.abs(getZ() - dest.getZ());
-        }
-
-        @Override
-        public String toString() {
-            return "(" + getX() + ", " + getY() + ", " + getZ() + ")" + " [Cost: " + getCost() + " | Heuristic: " + getHeuristic() + " | Function: " + getFunction() + "]";
-        }
     }
 }
