@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
-import tesseract.util.ID;
+import tesseract.util.Utils;
 
 import java.util.ArrayDeque;
 import java.util.Optional;
@@ -25,7 +25,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public Graph() {
 		groups = new Int2ObjectLinkedOpenHashMap<>();
 		positions = new Long2IntLinkedOpenHashMap();
-		positions.defaultReturnValue(ID.INVALID);
+		positions.defaultReturnValue(Utils.INVALID);
 	}
 
 	@Override
@@ -111,7 +111,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		ArrayDeque<Integer> mergers = getNeighborsGroups(pos);
 		switch (mergers.size()) {
 			case 0:
-				id = ID.getNewId();
+				id = Utils.getNewId();
 				positions.put(pos, id);
 				groups.put(id, single);
 				return null;
@@ -142,14 +142,14 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public Entry<C, N> removeAt(long pos) {
 		int id = positions.remove(pos);
 
-		if (id == ID.INVALID) {
+		if (id == Utils.INVALID) {
 			return Entry.empty();
 		}
 
 		Group<C, N> group = groups.get(id);
 
 		Entry<C, N> entry = group.removeAt(pos, newGroup -> {
-			int newId = ID.getNewId();
+			int newId = Utils.getNewId();
 			groups.put(newId, newGroup);
 
 			// Mark the nodes as pointing at the new group
@@ -181,7 +181,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public Entry<C, N> findAt(long pos) {
 		int id = positions.get(pos);
 
-		if (id == ID.INVALID) {
+		if (id == Utils.INVALID) {
 			return Entry.empty();
 		}
 
@@ -214,7 +214,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public Optional<Group<C, N>> findGroup(long pos) {
 		int id = positions.get(pos);
 
-		if (id == ID.INVALID) {
+		if (id == Utils.INVALID) {
 			return Optional.empty();
 		}
 
@@ -281,7 +281,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			long face = position.offset(direction).get();
 			int id = positions.get(face);
 
-			if (id == ID.INVALID) {
+			if (id == Utils.INVALID) {
 				continue;
 			}
 

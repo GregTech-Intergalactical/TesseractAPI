@@ -1,10 +1,11 @@
 package tesseract.electric;
 
-import tesseract.Constants;
+import tesseract.TesseractAPI;
 import tesseract.electric.api.IElectricCable;
 import tesseract.electric.api.IElectricEvent;
 import tesseract.electric.api.IElectricNode;
-import tesseract.graph.*;
+import tesseract.graph.Connectivity;
+import tesseract.graph.Graph;
 
 /**
  * Class provides the functionality of a electricity with usage of graphs.
@@ -23,7 +24,7 @@ public class Electric {
      * @param position The position at which the node will be added.
      */
     private Electric(int dimension, long position) {
-        this.graph = Constants.electric(dimension);
+        this.graph = TesseractAPI.getElectricGraph(dimension);
         this.position = position;
     }
 

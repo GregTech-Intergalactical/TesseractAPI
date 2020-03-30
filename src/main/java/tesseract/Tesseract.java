@@ -2,9 +2,12 @@ package tesseract;
 
 import net.minecraftforge.fml.common.Mod;
 
-@Mod(Constants.API_ID)
+@Mod(Tesseract.API_ID)
 @Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
 public class Tesseract {
+
+	public static final String API_ID = "tesseract";
+	public static final String API_NAME = "Tesseract API";
 
 	public Tesseract() { }
 

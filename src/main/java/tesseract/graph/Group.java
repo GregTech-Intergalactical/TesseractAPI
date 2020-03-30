@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.objects.*;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
-import tesseract.util.ID;
+import tesseract.util.Utils;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -28,7 +28,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         nodes = new Long2ObjectLinkedOpenHashMap<>();
         grids = new Int2ObjectLinkedOpenHashMap<>();
         connectors = new Long2IntLinkedOpenHashMap();
-        connectors.defaultReturnValue(ID.INVALID);
+        connectors.defaultReturnValue(Utils.INVALID);
 
         divider = new BFDivider(this);
     }
@@ -53,7 +53,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      */
     protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long at, Connectivity.Cache<C> connector) {
         Group<C, N> group = new Group<>();
-        int id = ID.getNewId();
+        int id = Utils.getNewId();
 
         group.connectors.put(at, id);
         group.grids.put(id, Grid.singleConnector(at, connector));
@@ -146,7 +146,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
         Grid<C> bestGrid = null;
         int bestCount = 0;
-        int bestId = ID.INVALID;
+        int bestId = Utils.INVALID;
 
         byte neighbors = 0;
         Pos position = new Pos(at);
@@ -158,7 +158,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             long offset = position.offset(direction).get();
             int id = connectors.get(offset);
 
-            if (id == ID.INVALID) {
+            if (id == Utils.INVALID) {
                 // Collect joining nodes
                 if (nodes.containsKey(offset)) {
                     neighbors += 1;
@@ -188,7 +188,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         if (linked.isEmpty()) {
             // Single connector grid
-            bestId = ID.getNewId();
+            bestId = Utils.getNewId();
             bestGrid = Grid.singleConnector(at, connector);
 
             connectors.put(at, bestId);
@@ -278,7 +278,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             C removed = grid.removeAt(
                 posToRemove,
                 newGrid -> {
-                    int newId = ID.getNewId();
+                    int newId = Utils.getNewId();
                     grids.put(newId, newGrid);
 
                     for (long pos : newGrid.getConnectors().keySet()) {
@@ -325,7 +325,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         Entry<C, N> result;
 
         int centerGridId = connectors.get(posToRemove);
-        if (centerGridId != ID.INVALID) {
+        if (centerGridId != Utils.INVALID) {
             Grid<C> centerGrid = grids.remove(centerGridId);
             splitGrids = new ObjectArrayList<>();
 
@@ -361,7 +361,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
                     // Just a node then, simply add it to the new group.
                     // The maps are mutated directly here in order to retain the cached connectivity.
-                    if (id == ID.INVALID) {
+                    if (id == Utils.INVALID) {
                         newGroup.nodes.put(reached, Objects.requireNonNull(nodes.remove(reached)));
                         continue;
                     }
@@ -394,7 +394,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     long sample = grid.sampleConnector();
 
                     if (found.contains(sample)) {
-                        int newId = ID.getNewId();
+                        int newId = Utils.getNewId();
 
                         newGroup.addGrid(newId, grid);
                         iterator.remove();
@@ -434,7 +434,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         ObjectList<Grid<C>> list = new ObjectArrayList<>();
 
         int grid = connectors.get(pos);
-        if (grid != ID.INVALID) {
+        if (grid != Utils.INVALID) {
             list.add(grids.get(grid));
         }
 
@@ -489,7 +489,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         int pairing = connectors.get(at);
 
-        if (pairing != ID.INVALID) {
+        if (pairing != Utils.INVALID) {
             Grid<C> currentGrid = grids.get(pairing);
 
             Pos position = new Pos(at);
@@ -502,7 +502,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
                 int id = other.connectors.get(offset);
 
-                if (id == ID.INVALID) {
+                if (id == Utils.INVALID) {
                     continue;
                 }
 
@@ -539,7 +539,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             long face = position.offset(direction).get();
             int id = connectors.get(face);
 
-            if (id == ID.INVALID) {
+            if (id == Utils.INVALID) {
                 continue;
             }
 
