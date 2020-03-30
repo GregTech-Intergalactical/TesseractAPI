@@ -1,6 +1,4 @@
-package tesseract.electric;
-
-import tesseract.electric.api.IElectricCable;
+package tesseract.api.electric;
 
 /**
  * A class that acts as a container for a cable.

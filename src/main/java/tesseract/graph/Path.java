@@ -1,10 +1,8 @@
 package tesseract.graph;
 
-import it.unimi.dsi.fastutil.longs.Long2ByteLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectList;
+import tesseract.api.IConnectable;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 

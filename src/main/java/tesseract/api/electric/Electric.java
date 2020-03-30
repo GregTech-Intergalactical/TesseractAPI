@@ -1,9 +1,6 @@
-package tesseract.electric;
+package tesseract.api.electric;
 
 import tesseract.TesseractAPI;
-import tesseract.electric.api.IElectricCable;
-import tesseract.electric.api.IElectricEvent;
-import tesseract.electric.api.IElectricNode;
 import tesseract.graph.Connectivity;
 import tesseract.graph.Graph;
 

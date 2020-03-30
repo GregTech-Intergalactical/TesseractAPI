@@ -1,7 +1,7 @@
-package tesseract.electric.api;
+package tesseract.api.electric;
 
 import net.minecraftforge.energy.EnergyStorage;
-import tesseract.graph.IConnectable;
+import tesseract.api.IConnectable;
 
 /**
  * An electric node is the unit of interaction with electric inventories.

@@ -1,4 +1,4 @@
-package tesseract.electric;
+package tesseract.api;
 
 /**
  * Enumerator used for classification of connections between producer/consumer.

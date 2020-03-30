@@ -1,4 +1,4 @@
-package tesseract.electric.api;
+package tesseract.api.electric;
 
 /**
  * Interface for handling an electric events. (Producer will handle them)

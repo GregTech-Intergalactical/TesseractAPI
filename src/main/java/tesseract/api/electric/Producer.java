@@ -1,13 +1,10 @@
-package tesseract.electric;
+package tesseract.api.electric;
 
 import it.unimi.dsi.fastutil.ints.Int2LongLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
-import tesseract.electric.api.IElectricCable;
-import tesseract.electric.api.IElectricEvent;
-import tesseract.electric.api.IElectricNode;
 import tesseract.graph.*;
 
 /**

@@ -1,7 +1,6 @@
-package tesseract.electric.api;
+package tesseract.api.electric;
 
-import tesseract.electric.Packet;
-import tesseract.graph.IConnectable;
+import tesseract.api.IConnectable;
 
 /**
  * An electric cable is the unit of interaction with electric inventories.

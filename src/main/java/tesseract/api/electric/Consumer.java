@@ -1,8 +1,7 @@
-package tesseract.electric;
+package tesseract.api.electric;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import tesseract.electric.api.IElectricCable;
-import tesseract.electric.api.IElectricNode;
+import tesseract.api.ConnectionType;
 import tesseract.graph.Path;
 
 /**

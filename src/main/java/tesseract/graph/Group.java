@@ -3,6 +3,7 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
+import tesseract.api.IConnectable;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Dir;
 import tesseract.util.Pos;

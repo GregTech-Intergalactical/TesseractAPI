@@ -1,4 +1,4 @@
-package tesseract.electric;
+package tesseract.api.electric;
 
 /**
  * A class that acts as a container for an energy packet.

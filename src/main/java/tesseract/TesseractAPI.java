@@ -2,8 +2,8 @@ package tesseract;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import tesseract.electric.api.IElectricCable;
-import tesseract.electric.api.IElectricNode;
+import tesseract.api.electric.IElectricCable;
+import tesseract.api.electric.IElectricNode;
 import tesseract.graph.Graph;
 
 public class TesseractAPI {
