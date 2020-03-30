@@ -3,7 +3,7 @@ package tesseract.api.electric;
 /**
  * A class that acts as a container for an energy packet.
  */
-public class Packet {
+public class ElectricPacket {
 
     private long send;
     private long used;
@@ -16,7 +16,7 @@ public class Packet {
      * @param used The full amount of energy.
      * @param amps The needed amperage.
      */
-    protected Packet(double send, double used, double amps) {
+    protected ElectricPacket(double send, double used, double amps) {
         this.send = (long) send;
         this.used = (long) used;
         this.amps = (long) amps;

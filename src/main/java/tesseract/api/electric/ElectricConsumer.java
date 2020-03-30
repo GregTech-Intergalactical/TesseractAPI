@@ -7,7 +7,7 @@ import tesseract.graph.Path;
 /**
  * A class that acts as a container for a consumer.
  */
-public class Consumer {
+public class ElectricConsumer {
 
     private long loss;
     private long voltage = Long.MAX_VALUE;
@@ -22,7 +22,7 @@ public class Consumer {
      * @param node The consumer node.
      * @param path The path information.
      */
-    protected Consumer(IElectricNode node, Path<IElectricCable> path) {
+    protected ElectricConsumer(IElectricNode node, Path<IElectricCable> path) {
         this.node = node;
         this.full = path.getFull();
         this.cross = path.getCross();
@@ -38,12 +38,12 @@ public class Consumer {
      * @param voltage The producer voltage.
      * @return Gets the packet required for consumer.
      */
-    public Packet getEnergyRequired(long voltage) {
+    public ElectricPacket getEnergyRequired(long voltage) {
         double required = node.getCapacity() - node.getPower();
         double energy = voltage - loss;
         double packs = Math.ceil(required / energy);
         double amperage = Math.min(packs, node.getInputAmperage());
-        return new Packet(energy, voltage, amperage);
+        return new ElectricPacket(energy, voltage, amperage);
     }
 
     /**
@@ -78,7 +78,7 @@ public class Consumer {
     /**
      * @return Checks that consumer is able to receive energy.
      */
-    public boolean canReceive(Packet packet) {
+    public boolean canReceive(ElectricPacket packet) {
         // Fast check by the lowest cost cable
         return amperage >= packet.getAmps() && voltage * amperage >= packet.getSend();
     }

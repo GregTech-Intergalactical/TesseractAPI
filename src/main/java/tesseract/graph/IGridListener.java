@@ -3,10 +3,10 @@ package tesseract.graph;
 /**
  * Simple interface for a updates.
  */
-public interface IListener {
+public interface IGridListener {
 
     /**
      * Update callback method.
      */
-    void update();
+    void onGridUpdate();
 }

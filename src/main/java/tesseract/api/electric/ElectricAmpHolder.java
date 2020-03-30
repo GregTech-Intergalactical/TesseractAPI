@@ -1,9 +1,9 @@
 package tesseract.api.electric;
 
 /**
- * A class that acts as a container for a cable.
+ * A container for a cable and to keep track of the amps that has passed
  */
-public class Cable {
+public class ElectricAmpHolder {
 
     private long amperage;
     private IElectricCable cable;
@@ -14,7 +14,7 @@ public class Cable {
      * @param cable The cable connector.
      * @param amperage The initial amps amount.
      */
-    protected Cable(IElectricCable cable, long amperage) {
+    protected ElectricAmpHolder(IElectricCable cable, long amperage) {
         this.cable = cable;
         this.amperage = amperage;
     }

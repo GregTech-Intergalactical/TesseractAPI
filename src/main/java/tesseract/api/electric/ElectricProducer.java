@@ -10,14 +10,12 @@ import tesseract.graph.*;
 /**
  * A class that acts as a container for a producer.
  */
-public class Producer implements IListener {
+public class ElectricProducer extends ElectricWrapper implements IGridListener {
 
-    private long position;
     private IElectricNode node;
     private Int2LongMap checks;
-    private Long2ObjectMap<Cable> ampers;
-    private ObjectList<Consumer> consumers;
-    private Graph<IElectricCable, IElectricNode> graph;
+    private Long2ObjectMap<ElectricAmpHolder> ampers;
+    private ObjectList<ElectricConsumer> consumers;
     private IElectricEvent event;
 
     /**
@@ -28,18 +26,17 @@ public class Producer implements IListener {
      * @param node The producer node.
      * @param event The event listener.
      */
-    protected Producer(Graph<IElectricCable, IElectricNode> graph, long position, IElectricNode node, IElectricEvent event) {
+    public ElectricProducer(Graph<IElectricCable, IElectricNode> graph, long position, IElectricNode node, IElectricEvent event) {
+        super(graph, position);
         this.node = node;
-        this.graph = graph;
         this.event = event;
-        this.position = position;
         this.consumers = new ObjectArrayList<>();
         this.checks = new Int2LongLinkedOpenHashMap();
         this.ampers = new Long2ObjectLinkedOpenHashMap<>();
     }
 
     @Override
-    public void update() {
+    public void onGridUpdate() {
         graph.findGroup(position).ifPresent(group -> {
             consumers.clear();
 
@@ -51,7 +48,7 @@ public class Producer implements IListener {
                                 if (node.getOutputVoltage() > consumer.getInputVoltage()) {
                                     event.onOverVoltage(consumer); // Here we can send pos or consumer ref
                                 } else {
-                                    consumers.add(new Consumer(consumer, path));
+                                    consumers.add(new ElectricConsumer(consumer, path));
                                 }
                             }
                         });
@@ -59,6 +56,11 @@ public class Producer implements IListener {
                 }
             }
         });
+    }
+
+    @Override
+    public void update() {
+        send();
     }
 
     /**
@@ -75,9 +77,9 @@ public class Producer implements IListener {
             for (int i = 0; i < consumers.size(); i++) {
                 if (amps <= 0) break;
 
-                Consumer consumer = consumers.get(i);
+                ElectricConsumer consumer = consumers.get(i);
                 if (consumer.isValid()) {
-                    Packet energy = consumer.getEnergyRequired(node.getOutputVoltage());
+                    ElectricPacket energy = consumer.getEnergyRequired(node.getOutputVoltage());
                     long amperage = energy.update(amps); // Update amps to the available amount
 
                     node.extract(energy.getUsed() * energy.getAmps(), false);
@@ -103,13 +105,13 @@ public class Producer implements IListener {
             if (checks.size() > 1) {
                 for (Int2LongMap.Entry check : checks.int2LongEntrySet()) {
 
-                    Consumer consumer = consumers.get(check.getIntKey());
+                    ElectricConsumer consumer = consumers.get(check.getIntKey());
                     switch (consumer.getConnectionType()) {
                         case VARIATE:
                             for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(true).long2ObjectEntrySet()) {
-                                Cable cable = ampers.get(entry.getLongKey());
+                                ElectricAmpHolder cable = ampers.get(entry.getLongKey());
                                 if (cable == null) {
-                                    ampers.put(entry.getLongKey(), new Cable(entry.getValue(), check.getLongValue()));
+                                    ampers.put(entry.getLongKey(), new ElectricAmpHolder(entry.getValue(), check.getLongValue()));
                                 } else {
                                     cable.add(check.getLongValue());
                                 }
@@ -123,7 +125,7 @@ public class Producer implements IListener {
                     }
                 }
 
-                for (Cable cable : ampers.values()) {
+                for (ElectricAmpHolder cable : ampers.values()) {
                     if (!cable.isValid()) {
                         event.onOverAmperage(cable.getCable());
                     }

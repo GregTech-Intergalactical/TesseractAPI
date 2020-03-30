@@ -330,7 +330,7 @@ public class Grid<C extends IConnectable> implements INode {
     private static class Listener {
 
         Long2ByteMap map;
-        Long2ObjectMap<IListener> listeners;
+        Long2ObjectMap<IGridListener> listeners;
 
         /**
          * Constructs a new Long2ByteMap with the same mappings as the specified Map.
@@ -365,7 +365,7 @@ public class Grid<C extends IConnectable> implements INode {
          * @param value The provided value.
          * @param listener The listener function.
          */
-        byte put(long key, byte value, IListener listener) {
+        byte put(long key, byte value, IGridListener listener) {
             map.put(key, value);
             listeners.put(key, listener);
             return value;
@@ -415,7 +415,7 @@ public class Grid<C extends IConnectable> implements INode {
         /**
          * @return Gets listeners map.
          */
-        Long2ObjectMap<IListener> getListeners() {
+        Long2ObjectMap<IGridListener> getListeners() {
             return listeners;
         }
 
@@ -423,8 +423,8 @@ public class Grid<C extends IConnectable> implements INode {
          * Call attached listeners.
          */
         void update() {
-            for (IListener listener : listeners.values()) {
-                listener.update();
+            for (IGridListener listener : listeners.values()) {
+                listener.onGridUpdate();
             }
         }
     }
