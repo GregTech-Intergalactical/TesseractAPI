@@ -49,11 +49,10 @@ public class Producer implements IListener {
             for (Grid<IElectricCable> grid : group.findGrids(position)) {
                 for (Path<IElectricCable> path : grid.getPaths(position)) {
                     if (!path.isEmpty()) {
-                        long pos = path.target().get();
-                        graph.findAt(pos).asEndpoint().ifPresent(consumer -> {
+                        graph.findAt(path.target().get()).asEndpoint().ifPresent(consumer -> {
                             if (consumer.canInput()) {
                                 if (node.getOutputVoltage() > consumer.getInputVoltage()) {
-                                    event.onOverVoltage(pos); // Here we can send pos or consumer ref
+                                    event.onOverVoltage(consumer); // Here we can send pos or consumer ref
                                 } else {
                                     consumers.add(new Consumer(consumer, path));
                                 }
@@ -90,9 +89,9 @@ public class Producer implements IListener {
                     // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
                     if (!consumer.canReceive(energy)) { // Fast check by the lowest cost cable
                         // Find corrupt cable and return
-                        for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(false).long2ObjectEntrySet()) {
-                            if (!entry.getValue().canHandle(energy)) {
-                                event.onOverAmperage(entry.getLongKey());
+                        for (IElectricCable cable : consumer.getCables(false).values()) {
+                            if (!cable.canHandle(energy)) {
+                                event.onOverAmperage(cable);
                             }
                         }
                         return;
@@ -127,9 +126,9 @@ public class Producer implements IListener {
                     }
                 }
 
-                for (Long2ObjectMap.Entry<Cable> entry : ampers.long2ObjectEntrySet()) {
-                    if (!entry.getValue().isValid()) {
-                        event.onOverAmperage(entry.getLongKey());
+                for (Cable cable : ampers.values()) {
+                    if (!cable.isValid()) {
+                        event.onOverAmperage(cable.getCable());
                     }
                 }
             }
