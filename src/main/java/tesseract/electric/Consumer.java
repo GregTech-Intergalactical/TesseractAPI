@@ -11,8 +11,8 @@ import tesseract.graph.Path;
 public class Consumer {
 
     private long loss;
-    private long voltage;
-    private long amperage;
+    private long voltage = Long.MAX_VALUE;
+    private long amperage = Long.MAX_VALUE;
     private IElectricNode node;
     private Long2ObjectMap<IElectricCable> full;
     private Long2ObjectMap<IElectricCable> cross;
@@ -81,7 +81,7 @@ public class Consumer {
      */
     public boolean canReceive(Packet packet) {
         // Fast check by the lowest cost cable
-        return amperage >= packet.getAmps() || voltage * amperage >= packet.getSend();
+        return amperage >= packet.getAmps() && voltage * amperage >= packet.getSend();
     }
 
     /**

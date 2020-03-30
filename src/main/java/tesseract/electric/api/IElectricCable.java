@@ -30,6 +30,6 @@ public interface IElectricCable extends IConnectable {
 	 * @return Checks that cable is able to handle single packet.
 	 */
 	default boolean canHandle(Packet packet) {
-		return getAmps() >= packet.getAmps() ||  getVoltage() * getAmps() >= packet.getSend();
+		return getAmps() >= packet.getAmps() &&  getVoltage() * getAmps() >= packet.getSend();
 	}
 }

@@ -1,19 +1,19 @@
 package tesseract.electric.api;
 
 /**
- * Interface for handling an electric events.
+ * Interface for handling an electric events. (Producer will handle them)
  */
 public interface IElectricEvent {
 
     /**
      * Executes when the node trying to receive higher amount of voltage than can.
-     * @param node The node ref.
+     * @param position The consumer position.
      */
-    void onOverVoltage(IElectricNode node);
+    void onOverVoltage(long position);
 
     /**
      * Executes when the cable trying to transport higher amount of amperage than can.
-     * @param cable The cable ref.
+     * @param position The cable position.
      */
-    void onOverAmperage(IElectricCable cable);
+    void onOverAmperage(long position);
 }
