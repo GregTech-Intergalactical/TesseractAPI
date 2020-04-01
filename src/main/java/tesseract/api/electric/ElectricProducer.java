@@ -3,14 +3,13 @@ package tesseract.api.electric;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectList;
-import it.unimi.dsi.fastutil.objects.ObjectListIterator;
 
 /**
  * A class that acts as a container for a producer.
  */
 public class ElectricProducer {
 
-    private int index; // customer index
+    private int it;
     private long voltage;
     private long amperage;
     private IElectricNode producer;
@@ -22,7 +21,7 @@ public class ElectricProducer {
     /**
      * Creates instance of the producer.
      *
-     * @param controller The producer and consumer controller.
+     * @param controller The controller map.
      */
     protected ElectricProducer(Object2ObjectMap<IElectricNode, ObjectList<ElectricConsumer>> controller) {
         this.controller = controller;
@@ -40,6 +39,7 @@ public class ElectricProducer {
             voltage = producer.getOutputVoltage();
             amperage = producer.getOutputAmperage();
             consumers = controller.get(producer);
+            consumer = null; // Reset here for next()
         }
         return true;
     }
@@ -49,18 +49,11 @@ public class ElectricProducer {
      */
     public ElectricConsumer next() {
         while (consumer == null || !consumer.isValid()) {
-            if (consumers.size() == index) return null;
-            consumer = consumers.get(index);
-            index++;
+            if (consumers.size() == it) return null;
+            consumer = consumers.get(it);
+            it++; // As as same iterator for producers
         }
         return consumer;
-    }
-
-    /**
-     * @return
-     */
-    public int index() {
-        return index;
     }
 
     /**
@@ -72,7 +65,7 @@ public class ElectricProducer {
         if (temp < 0) {
             amperage = this.amperage;
             this.amperage = 0;
-            index--; // Move back, we run out of amps
+            it--; // Move back, we run out of amps for that producer
         } else {
             this.amperage = temp;
         }

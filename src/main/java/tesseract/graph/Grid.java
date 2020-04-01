@@ -364,15 +364,13 @@ public class Grid<C extends IConnectable> implements INode {
 
         /**
          * Associates the specified value with the specified key in this map.
-         *
          * @param key The key value.
          * @param value The provided value.
          * @param listener The listener function.
          */
-        byte put(long key, byte value, IGridListener listener) {
+        void put(long key, byte value, IGridListener listener) {
             map.put(key, value);
             listeners.put(key, listener);
-            return value;
         }
 
         /**
@@ -387,12 +385,10 @@ public class Grid<C extends IConnectable> implements INode {
 
         /**
          * @param key The key value.
-         * @return Gets the mapping for the specified key from this map if present.
          */
-        byte remove(long key) {
+        void remove(long key) {
             byte value = map.remove(key);
             listeners.remove(key);
-            return value;
         }
 
         /**
@@ -429,7 +425,7 @@ public class Grid<C extends IConnectable> implements INode {
         void update() {
             int i = 0;
             for (IGridListener iGridListener : listeners.values()) {
-                iGridListener.change(i == 0); // If true will be primary cotroller
+                iGridListener.change(i == 0); // Set first as primary
                 i++;
             }
         }

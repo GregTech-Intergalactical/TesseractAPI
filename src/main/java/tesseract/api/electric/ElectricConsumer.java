@@ -10,7 +10,7 @@ import tesseract.graph.Path;
 public class ElectricConsumer {
 
     private long loss;
-    public long impulse;
+    public long impulse; // (voltage - loss)
     private long voltage = Long.MAX_VALUE;
     private long amperage = Long.MAX_VALUE;
     private IElectricNode consumer;
@@ -28,6 +28,7 @@ public class ElectricConsumer {
         this.full = path.getFull();
         this.cross = path.getCross();
 
+        // Gets the total loss and min voltage and amperage
         for (IElectricCable cable : full.values()) {
             loss += cable.getLoss();
             voltage = Math.min(voltage, cable.getVoltage());
@@ -86,9 +87,12 @@ public class ElectricConsumer {
      */
     public ConnectionType getConnectionType() {
         if (cross.size() == 0) {
-            if (full.size() == 2) return ConnectionType.ADJACENT;
-            else if (full.size() > 2) return ConnectionType.SINGLE;
-            else return ConnectionType.INVALID; // How it possible ???
+            switch (full.size()) {
+                case 0:
+                case 1:  return ConnectionType.INVALID;
+                case 2:  return ConnectionType.ADJACENT;
+                default: return ConnectionType.SINGLE;
+            }
         }
         return ConnectionType.VARIATE;
     }
@@ -103,7 +107,7 @@ public class ElectricConsumer {
     }
 
     /**
-     * @return Checks that consumer is need energy.
+     * @return Checks that consumer is need energy and can receive it.
      */
     public boolean isValid() {
         return consumer.getPower() < consumer.getCapacity() && loss < consumer.getInputVoltage();

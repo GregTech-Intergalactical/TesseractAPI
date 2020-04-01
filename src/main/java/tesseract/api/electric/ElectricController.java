@@ -1,17 +1,13 @@
 package tesseract.api.electric;
 
-import it.unimi.dsi.fastutil.ints.Int2LongMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.api.GraphWrapper;
 import tesseract.graph.*;
 
 /**
- *
+ * @es
  */
 public class ElectricController extends GraphWrapper implements IGridListener {
 
@@ -26,13 +22,25 @@ public class ElectricController extends GraphWrapper implements IGridListener {
      * @param position The position of node.
      * @param event The event listener.
      */
-    public ElectricController(Graph<IElectricCable, IElectricNode> graph, long position, IElectricEvent event) {
+    protected ElectricController(Graph<IElectricCable, IElectricNode> graph, long position, IElectricEvent event) {
         super(graph, position);
         this.event = event;
         this.ampers = new Long2ObjectLinkedOpenHashMap<>();
         this.controller = new Object2ObjectArrayMap<>();
     }
 
+    /**
+     * Called when grid is update.
+     * <p>
+     * Method is execute mainly for a primary node in Grid. This node will act as main update controller.
+     * Firstly, it clear previous controller map, after it lookup for the position of node and looks for the around grids.
+     * Secondly, it collect all producers and collectors for the grid and store it into controller map.
+     * Finally, it will prebuilt consumer objects which are available for the producers. So each producer has a list of possible
+     * consumers with unique information about paths, loss, ect. Therefore production object will be act as double iterated map.
+     * </p>
+     * @see tesseract.graph.Grid (Listener)
+     * @param primary If true will be consider as a first node in grid.
+     */
     @Override
     public void change(boolean primary) {
         controller.clear();
@@ -41,12 +49,10 @@ public class ElectricController extends GraphWrapper implements IGridListener {
         if (primary) {
             graph.findGroup(position).ifPresent(group -> {
                 for (Grid<IElectricCable> grid : group.findGrids(position)) {
-                    LongSet arr = grid.getNodes().keySet();
-                    for (long pos : arr) {
+                    for (long pos : grid.getNodes().keySet()) {
                         IElectricNode producer = group.getNodes().get(pos).value();
                         if (producer.canOutput() && producer.getOutputAmperage() > 0) {
                             ObjectList<ElectricConsumer> consumers = new ObjectArrayList<>();
-
                             for (Path<IElectricCable> path : grid.getPaths(pos)) {
                                 if (!path.isEmpty()) {
                                     IElectricNode consumer = group.getNodes().get(path.target().get()).value();
@@ -55,9 +61,9 @@ public class ElectricController extends GraphWrapper implements IGridListener {
                                             event.onOverVoltage(consumer);
                                         } else {
                                             ElectricConsumer electric = new ElectricConsumer(consumer, path);
-                                            long require = producer.getOutputVoltage() - electric.getLoss();
-                                            if (require > 0) {
-                                                electric.setVoltage(require);
+                                            long voltage = producer.getOutputVoltage() - electric.getLoss();
+                                            if (voltage > 0) {
+                                                electric.setVoltage(voltage);
                                                 consumers.add(electric);
                                             }
                                         }
@@ -76,7 +82,16 @@ public class ElectricController extends GraphWrapper implements IGridListener {
     }
 
     /**
-     * .
+     * Call on the updates to send energy.
+     * <p>
+     * Most of the magic going in producer class which acts as wrapper double iterator around controller map.
+     * Firstly, method will look for the available producer and consumer.
+     * Secondly, some amperage calculation is going using the consumer and producer data.
+     * Thirdly, it will check the voltage and amperage for the single impulse by the lowest cost cable.
+     * </p>
+     * If that function will find corrupted cables, it will execute loop to find the corrupted cables and exit.
+     * However, if corrupted cables wasn't found, it will looks for variate connection type and store the amp for that path.
+     * After energy was send, loop will check the amp holder instances on ampers map to find cross-nodes where amps/voltage is exceed max limit.
      */
     @Override
     public void update() {
@@ -85,7 +100,7 @@ public class ElectricController extends GraphWrapper implements IGridListener {
         try {
             long amperage;
 
-            ElectricProducer producer = new ElectricProducer(controller);
+            ElectricProducer producer = new ElectricProducer(controller);// loop:
             while (producer.hasNext()) {
                 ElectricConsumer consumer = producer.next();
                 if (consumer == null) break;
@@ -107,6 +122,7 @@ public class ElectricController extends GraphWrapper implements IGridListener {
                     return;
                 }
 
+                // Stores the amp into holder for path only for variate connection
                 switch (consumer.getConnectionType()) {
                     case VARIATE:
                         for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(true).long2ObjectEntrySet()) {
@@ -120,7 +136,7 @@ public class ElectricController extends GraphWrapper implements IGridListener {
                         break;
                     case SINGLE:
                     case ADJACENT:
-                        return;
+                        break;
                     default:
                         throw new IllegalStateException();
                 }
