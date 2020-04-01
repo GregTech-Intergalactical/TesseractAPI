@@ -72,7 +72,7 @@ public class Connectivity {
             Cache<C> cache = new Cache<>();
             cache.value = value;
             cache.connectivity = Connectivity.of(value);
-            cache.listener = () -> { };
+            cache.listener = grid -> { };
             return cache;
         }
 

@@ -45,7 +45,7 @@ class TestBench {
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, Connectivity.Cache.of(new ExampleNode(), () -> { System.out.println(" -> updated"); }))) {
+                    if (!graph.addNode(position, Connectivity.Cache.of(new ExampleNode()))) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }

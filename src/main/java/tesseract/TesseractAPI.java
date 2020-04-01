@@ -39,22 +39,22 @@ public class TesseractAPI {
      * @param position The position at which the node will be added.
      * @param node The node ref.
      * @param event The event listener.
-     * @return Create a instance of a class for a given producer/consumer node.
+     * @return Create a instance of a class for a given node with controller.
      */
-    public static ElectricProducer asElectricProducer(int dimension, long position, IElectricNode node, IElectricEvent event) {
+    public static ElectricController asElectricController(int dimension, long position, IElectricNode node, IElectricEvent event) {
         Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dimension);
-        ElectricProducer producer = new ElectricProducer(graph, position, node, event);
-        graph.addNode(position, Connectivity.Cache.of(node, producer));
-        return producer;
+        ElectricController controller = new ElectricController(graph, position, event);
+        graph.addNode(position, Connectivity.Cache.of(node, controller));
+        return controller;
     }
 
     /**
      * @param dimension The dimension id where the node will be added.
      * @param position The position at which the node will be added.
      * @param node The node ref.
-     * @return Create a instance of a class for a given consumer node.
+     * @return Create a instance of a class for a given node.
      */
-    public static GraphWrapper asElectricConsumer(int dimension, long position, IElectricNode node) {
+    public static GraphWrapper asElectricNode(int dimension, long position, IElectricNode node) {
         Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dimension);
         graph.addNode(position, Connectivity.Cache.of(node));
         return new GraphWrapper(graph, position);

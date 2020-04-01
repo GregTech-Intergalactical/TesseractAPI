@@ -189,6 +189,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param node The given node.
      */
     public void addNode(long pos, Connectivity.Cache<?> node) {
+        Objects.requireNonNull(node);
         nodes.put(pos, node.connectivity(), node.listener());
         nodes.update();
     }
@@ -260,7 +261,10 @@ public class Grid<C extends IConnectable> implements INode {
                 } else {
                     newGrid.connectors.put(reached, connectors.remove(reached));
                 }
+
             }
+
+            newGrid.nodes.update();
 
             split.accept(newGrid);
         }
@@ -307,7 +311,7 @@ public class Grid<C extends IConnectable> implements INode {
      */
     private boolean isExternal(long pos) {
         // If the grid contains less than 2 blocks, neighbors cannot exist.
-        if (connectors.size() <= 1) {
+        if (countConnectors() <= 1) {
             return true;
         }
 
@@ -423,8 +427,10 @@ public class Grid<C extends IConnectable> implements INode {
          * Call attached listeners.
          */
         void update() {
-            for (IGridListener listener : listeners.values()) {
-                listener.onGridUpdate();
+            int i = 0;
+            for (IGridListener iGridListener : listeners.values()) {
+                iGridListener.change(i == 0); // If true will be primary cotroller
+                i++;
             }
         }
     }

@@ -179,7 +179,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The position of the cache to find.
 	 * @return The found cache, guaranteed to not be null.
 	 */
-	public Entry<C, N> findAt(long pos) {
+	/*public Entry<C, N> findAt(long pos) {
 		int id = positions.get(pos);
 
 		if (id == Utils.INVALID) {
@@ -204,7 +204,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		}
 
 		return Entry.empty();
-	}
+	}*/
 
 	/**
 	 * Finds the group by a given position.

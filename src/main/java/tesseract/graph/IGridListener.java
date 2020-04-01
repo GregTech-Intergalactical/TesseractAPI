@@ -6,7 +6,7 @@ package tesseract.graph;
 public interface IGridListener {
 
     /**
-     * Update callback method.
+     * Change callback method.
      */
-    void onGridUpdate();
+    void change(boolean primary);
 }
