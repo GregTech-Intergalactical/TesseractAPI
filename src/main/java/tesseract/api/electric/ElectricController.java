@@ -79,6 +79,10 @@ public class ElectricController extends GraphWrapper implements IController {
                     }
                 }
             });
+
+            /*if (data.isEmpty() {
+
+            }*/
         }
     }
 
@@ -96,7 +100,7 @@ public class ElectricController extends GraphWrapper implements IController {
      */
     @Override
     public void update() {
-        if (data.size() == 0) return;
+        if (data.isEmpty()) return;
 
         try {
             Producer producer = new Producer(data); Consumer consumer;
@@ -121,22 +125,15 @@ public class ElectricController extends GraphWrapper implements IController {
                 }
 
                 // Stores the amp into holder for path only for variate connection
-                switch (consumer.getConnectionType()) {
-                    case VARIATE:
-                        for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(true).long2ObjectEntrySet()) {
-                            Holder holder = amps.get(entry.getLongKey());
-                            if (holder == null) {
-                                amps.put(entry.getLongKey(), new Holder(entry.getValue(), amperage));
-                            } else {
-                                holder.add(amperage);
-                            }
+                if (consumer.getConnectionType() == ConnectionType.VARIATE) {
+                    for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(true).long2ObjectEntrySet()) {
+                        Holder holder = amps.get(entry.getLongKey());
+                        if (holder == null) {
+                            amps.put(entry.getLongKey(), new Holder(entry.getValue(), amperage));
+                        } else {
+                            holder.add(amperage);
                         }
-                        break;
-                    case SINGLE:
-                    case ADJACENT:
-                        break;
-                    default:
-                        throw new IllegalStateException();
+                    }
                 }
             }
 
@@ -352,7 +349,7 @@ public class ElectricController extends GraphWrapper implements IController {
              * Resets the amperage on the new iteration for all consumers
              * Because we already modified amperage of the consumers before.
              */
-            for(ObjectList<Consumer> consumers : data.values()) {
+            for (ObjectList<Consumer> consumers : data.values()) {
                 for (Consumer consumer : consumers) {
                     consumer.resetAmperage();
                 }
@@ -388,8 +385,7 @@ public class ElectricController extends GraphWrapper implements IController {
                 if (consumers.size() == id) return null;
                 consumer = consumers.get(id);
                 if (none && prev > 0) { //  means that we moved previous consumer to next producer
-                    consumer.setAmperage(prev);
-                    none = false; // Move to substractor
+                    consumer.setAmperage(prev); none = false;
                 }
                 id++;
             }
