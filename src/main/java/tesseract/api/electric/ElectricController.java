@@ -3,17 +3,18 @@ package tesseract.api.electric;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
+import tesseract.api.ConnectionType;
 import tesseract.api.GraphWrapper;
 import tesseract.graph.*;
 
 /**
  * @es
  */
-public class ElectricController extends GraphWrapper implements IGridListener {
+public class ElectricController extends GraphWrapper implements IController {
 
     private IElectricEvent event;
-    private Long2ObjectMap<AmpHolder> ampers;
-    private Object2ObjectArrayMap<IElectricNode, ObjectList<ElectricConsumer>> controller;
+    private Long2ObjectMap<Holder> amps;
+    private Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data;
 
     /**
      * Creates instance of the controller.
@@ -22,11 +23,11 @@ public class ElectricController extends GraphWrapper implements IGridListener {
      * @param position The position of node.
      * @param event The event listener.
      */
-    protected ElectricController(Graph<IElectricCable, IElectricNode> graph, long position, IElectricEvent event) {
+    public ElectricController(Graph<IElectricCable, IElectricNode> graph, long position, IElectricEvent event) {
         super(graph, position);
         this.event = event;
-        this.ampers = new Long2ObjectLinkedOpenHashMap<>();
-        this.controller = new Object2ObjectArrayMap<>();
+        this.amps = new Long2ObjectLinkedOpenHashMap<>();
+        this.data = new Object2ObjectLinkedOpenHashMap<>();
     }
 
     /**
@@ -43,7 +44,7 @@ public class ElectricController extends GraphWrapper implements IGridListener {
      */
     @Override
     public void change(boolean primary) {
-        controller.clear();
+        data.clear();
 
         // If true then producer will act as controller
         if (primary) {
@@ -52,19 +53,19 @@ public class ElectricController extends GraphWrapper implements IGridListener {
                     for (long pos : grid.getNodes().keySet()) {
                         IElectricNode producer = group.getNodes().get(pos).value();
                         if (producer.canOutput() && producer.getOutputAmperage() > 0) {
-                            ObjectList<ElectricConsumer> consumers = new ObjectArrayList<>();
+                            ObjectList<Consumer> consumers = new ObjectArrayList<>();
                             for (Path<IElectricCable> path : grid.getPaths(pos)) {
                                 if (!path.isEmpty()) {
-                                    IElectricNode consumer = group.getNodes().get(path.target().get()).value();
-                                    if (consumer.canInput()) {
-                                        if (producer.getOutputVoltage() > consumer.getInputVoltage()) {
-                                            event.onOverVoltage(consumer);
+                                    IElectricNode node = group.getNodes().get(path.target().get()).value();
+                                    if (node.canInput()) {
+                                        if (producer.getOutputVoltage() > node.getInputVoltage()) {
+                                            event.onOverVoltage(node);
                                         } else {
-                                            ElectricConsumer electric = new ElectricConsumer(consumer, path);
-                                            long voltage = producer.getOutputVoltage() - electric.getLoss();
+                                            Consumer consumer = new Consumer(node, path);
+                                            long voltage = producer.getOutputVoltage() - consumer.getLoss();
                                             if (voltage > 0) {
-                                                electric.setVoltage(voltage);
-                                                consumers.add(electric);
+                                                consumer.setVoltage(voltage);
+                                                consumers.add(consumer);
                                             }
                                         }
                                     }
@@ -72,7 +73,7 @@ public class ElectricController extends GraphWrapper implements IGridListener {
                             }
 
                             if (!consumers.isEmpty()) {
-                                controller.put(producer, consumers);
+                                data.put(producer, consumers);
                             }
                         }
                     }
@@ -95,21 +96,18 @@ public class ElectricController extends GraphWrapper implements IGridListener {
      */
     @Override
     public void update() {
-        if (controller.size() == 0) return;
+        if (data.size() == 0) return;
 
         try {
-            long amperage;
+            Producer producer = new Producer(data); Consumer consumer;
+            while ((consumer = producer.getConsumer()) != null) {
 
-            ElectricProducer producer = new ElectricProducer(controller);// loop:
-            while (producer.hasNext()) {
-                ElectricConsumer consumer = producer.next();
-                if (consumer == null) break;
+                long amperage = producer.getAmperage(consumer.getRequiredAmperage());
 
-                amperage = consumer.getRequiredAmperage();
-                amperage = producer.updateAmperage(amperage);
+                consumer.setAmperage(consumer.getAmperage() - amperage);
 
-                consumer.insert(consumer.getVoltage() * amperage, false);
-                producer.extract(producer.getVoltage() * amperage, false);
+                consumer.insert(consumer.getVoltage() * amperage);
+                producer.extract(producer.getVoltage() * amperage);
 
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
                 if (!consumer.canReceive(producer.getVoltage(), amperage)) { // Fast check by the lowest cost cable
@@ -126,9 +124,9 @@ public class ElectricController extends GraphWrapper implements IGridListener {
                 switch (consumer.getConnectionType()) {
                     case VARIATE:
                         for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(true).long2ObjectEntrySet()) {
-                            AmpHolder holder = ampers.get(entry.getLongKey());
+                            Holder holder = amps.get(entry.getLongKey());
                             if (holder == null) {
-                                ampers.put(entry.getLongKey(), new AmpHolder(entry.getValue(), amperage));
+                                amps.put(entry.getLongKey(), new Holder(entry.getValue(), amperage));
                             } else {
                                 holder.add(amperage);
                             }
@@ -142,24 +140,24 @@ public class ElectricController extends GraphWrapper implements IGridListener {
                 }
             }
 
-            for (AmpHolder cable : ampers.values()) {
-                if (!cable.canHandle()) {
-                    event.onOverAmperage(cable.getCable());
+            for (Holder holder : amps.values()) {
+                if (!holder.canHandle()) {
+                    event.onOverAmperage(holder.getCable());
                 }
             }
 
         } finally {
-            ampers.clear();
+            amps.clear();
         }
     }
 
     /**
-     * @apiNote Wrapper for a cable and to keep track of the amps that has passed.
+     * A class that acts as holder of the amps that has passed.
      */
-    private static class AmpHolder {
+    private static class Holder {
 
-        long amperage;
-        IElectricCable cable;
+        private long amperage;
+        private IElectricCable cable;
 
         /**
          * Creates instance of the holder.
@@ -167,30 +165,274 @@ public class ElectricController extends GraphWrapper implements IGridListener {
          * @param cable The cable node.
          * @param amperage The initial amps amount.
          */
-        AmpHolder(IElectricCable cable, long amperage) {
+        Holder(IElectricCable cable, long amperage) {
             this.cable = cable;
             this.amperage = amperage;
         }
 
         /**
          * Adds a new value to the amperage.
+         * @param amperage The added value.
          */
-        void add(long value) {
-            amperage += value;
+        void add(long amperage) {
+            this.amperage += amperage;
         }
 
         /**
-         * @return Checks that cable is able to transfer energy.
+         * @return Checks that the cable is able to transfer energy.
          */
         boolean canHandle() {
             return cable.getAmps() >= amperage;
         }
 
         /**
-         * @return Gets the cables ref.
+         * @return Gets the cables object.
          */
         IElectricCable getCable() {
             return cable;
+        }
+    }
+
+    /**
+     * A class that acts as a container for a consumer.
+     */
+    private static class Consumer {
+
+        private long loss;
+        private long voltage;
+        private long amperage;
+        private IElectricNode consumer;
+        private Long2ObjectMap<IElectricCable> full;
+        private Long2ObjectMap<IElectricCable> cross;
+
+        private long min_voltage = Long.MAX_VALUE;
+        private long min_amperage = Long.MAX_VALUE;
+
+        /**
+         * Creates instance of the consumer.
+         *
+         * @param consumer The consumer node.
+         * @param path The path information.
+         */
+        Consumer(IElectricNode consumer, Path<IElectricCable> path) {
+            this.consumer = consumer;
+            this.full = path.getFull();
+            this.cross = path.getCross();
+
+            // Gets the total loss and min voltage and amperage
+            for (IElectricCable cable : full.values()) {
+                loss += cable.getLoss();
+                min_voltage = Math.min(min_voltage, cable.getVoltage());
+                min_amperage = Math.min(min_amperage, cable.getAmps());
+            }
+        }
+
+        /**
+         * Adds energy to the node. Returns quantity of energy that was accepted.
+         * @param energy Amount of energy to be inserted.
+         */
+        void insert(long energy) {
+            consumer.insert(energy, false);
+        }
+
+        /**
+         * @param crossroad If true will return crossroad cables, false to get full amount.
+         * @return Gets the cables list.
+         */
+        Long2ObjectMap<IElectricCable> getCables(boolean crossroad) {
+            return crossroad ? cross : full;
+        }
+
+        /**
+         * @return Gets the cables loss.
+         */
+        long getLoss() {
+            return loss;
+        }
+
+        /**
+         * Sets the voltage.
+         * @param voltage The voltage value with loss.
+         */
+        void setVoltage(long voltage) {
+            this.voltage = voltage;
+        }
+
+        /**
+         * @return Gets the voltage.
+         */
+        long getVoltage() {
+            return voltage;
+        }
+
+        /**
+         * Sets the amperage.
+         * @param amperage The amperage value.
+         */
+        void setAmperage(long amperage) {
+            this.amperage = amperage;
+        }
+
+        /**
+         * @return Gets the voltage.
+         */
+        long getAmperage() {
+            return amperage;
+        }
+
+        /**
+         * Resets the amperage.
+         */
+        void resetAmperage() {
+            amperage = consumer.getInputAmperage();
+        }
+
+        /**
+         * @return Gets the amperage required for the consumer.
+         */
+        long getRequiredAmperage() {
+            return Math.min(((consumer.getCapacity() - consumer.getPower()) + voltage - 1) / voltage, amperage);
+        }
+
+        /**
+         * @return Gets the consumer connection type.
+         */
+        ConnectionType getConnectionType() {
+            if (cross.size() == 0) {
+                if (full.size() == 0) {
+                    return ConnectionType.ADJACENT;
+                }
+                return ConnectionType.SINGLE;
+            }
+            return ConnectionType.VARIATE;
+        }
+
+        /**
+         * @param voltage The current voltage.
+         * @param amperage The current amperage.
+         * @return Checks that the consumer is able to receive energy.
+         */
+        boolean canReceive(long voltage, long amperage) {
+            return this.min_voltage >= voltage && this.min_amperage >= amperage;
+        }
+
+        /**
+         * @return Checks that the consumer is need energy and can receive it.
+         */
+        boolean isValid() {
+            return consumer.getPower() < consumer.getCapacity() && loss < consumer.getInputVoltage() && amperage > 0;
+        }
+    }
+
+    /**
+     * A class that acts as a container for a producer.
+     */
+    private static class Producer {
+
+        private int id; // Consumers global iterator between data dims
+        private long voltage;
+        private long amperage;
+
+        private Consumer consumer;
+        private IElectricNode producer;
+        private ObjectList<Consumer> consumers;
+        private ObjectIterator<IElectricNode> producers;
+        private Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data;
+
+        /**
+         * Creates instance of the producer.
+         *
+         * @param data The map with a data.
+         */
+        Producer(Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data) {
+            this.data = data;
+            this.producers = data.keySet().iterator();
+
+            /*
+             * Resets the amperage on the new iteration for all consumers
+             * Because we already modified amperage of the consumers before.
+             */
+            for(ObjectList<Consumer> consumers : data.values()) {
+                for (Consumer consumer : consumers) {
+                    consumer.resetAmperage();
+                }
+            }
+        }
+
+        /**
+         * Moves to the next available producer.
+         * @return Gets the next needed consumer.
+         */
+        Consumer getConsumer() {
+
+            /*
+             * When we shift to an another producer dim, update amps for the same consumer index.
+             * This can happen when consumer receive parts of requirement amps from different producers.
+             */
+            long prev = (consumer != null) ? consumer.getAmperage() : -1;
+
+            // Lookup for the available producer
+            while (!isValid()) {
+                if (!producers.hasNext()) return null;
+                producer = producers.next();
+                voltage = producer.getOutputVoltage();
+                amperage = producer.getOutputAmperage();
+
+                consumers = data.get(producer);
+                consumer = null;
+            }
+
+            // Lookup for the available consumer
+            boolean none = (consumer == null);
+            while (consumer == null || !consumer.isValid()) {
+                if (consumers.size() == id) return null;
+                consumer = consumers.get(id);
+                if (none && prev > 0) { //  means that we moved previous consumer to next producer
+                    consumer.setAmperage(prev);
+                    none = false; // Move to substractor
+                }
+                id++;
+            }
+
+            return consumer;
+        }
+
+        /**
+         * @param amperage The amperage of the consumer.
+         * @return Gets the amperage required for the producer.
+         */
+        long getAmperage(long amperage) {
+            long temp = this.amperage - amperage;
+            if (temp < 0) {
+                amperage = this.amperage;
+                this.amperage = 0;
+                id--; // Moved back to ask next producer again
+            } else {
+                this.amperage = temp;
+            }
+            return amperage;
+        }
+
+        /**
+         * @return Gets the producer voltage.
+         */
+        long getVoltage() {
+            return voltage;
+        }
+
+        /**
+         * Removes energy from the node. Returns quantity of energy that was removed.
+         * @param energy Amount of energy to be extracted.
+         */
+        void extract(long energy) {
+            producer.extract(energy, false);
+        }
+
+        /**
+         * @return Checks that the provider can supply energy.
+         */
+        boolean isValid() {
+            return producer != null && producer.getPower() > 0 && amperage > 0;
         }
     }
 }

@@ -28,7 +28,7 @@ public interface IElectricCable extends IConnectable {
 	/**
 	 * @param voltage The current voltage.
 	 * @param amperage The current amperage.
-	 * @return Checks that cable is able to handle single packet.
+	 * @return Checks that the cable is able to handle single packet.
 	 */
 	default boolean canHandle(long voltage, long amperage) {
 		return getVoltage() >= voltage && getAmps() >= amperage;

@@ -37,7 +37,7 @@ public class TesseractAPI {
     /**
      * @param dimension The dimension id where the node will be added.
      * @param position The position at which the node will be added.
-     * @param node The node ref.
+     * @param node The node object.
      * @param event The event listener.
      * @return Create a instance of a class for a given node with controller.
      */
@@ -51,7 +51,7 @@ public class TesseractAPI {
     /**
      * @param dimension The dimension id where the node will be added.
      * @param position The position at which the node will be added.
-     * @param node The node ref.
+     * @param node The node object.
      * @return Create a instance of a class for a given node.
      */
     public static GraphWrapper asElectricNode(int dimension, long position, IElectricNode node) {
@@ -63,7 +63,7 @@ public class TesseractAPI {
     /**
      * @param dimension The dimension id where the cable will be added.
      * @param position The position at which the cable will be added.
-     * @param cable The cable ref.
+     * @param cable The cable object.
      * @return Create a instance of a class for a given cable connector.
      */
     public static GraphWrapper asElectricCable(int dimension, long position, IElectricCable cable) {
