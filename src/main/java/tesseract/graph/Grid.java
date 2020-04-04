@@ -18,9 +18,9 @@ import java.util.function.Consumer;
 public class Grid<C extends IConnectable> implements INode {
 
     private Long2ObjectMap<Connectivity.Cache<C>> connectors;
+    private Long2ByteCache nodes;
     private BFDivider divider;
     private ASFinder finder;
-    private Listener nodes;
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
@@ -28,7 +28,7 @@ public class Grid<C extends IConnectable> implements INode {
 
         divider = new BFDivider(this);
         finder = new ASFinder(this);
-        nodes = new Listener();
+        nodes = new Long2ByteCache();
     }
 
     /**
@@ -182,7 +182,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param connector The given connector.
      */
     public void addConnector(long pos, Connectivity.Cache<C> connector) {
-        connectors.put(pos, Objects.requireNonNull(connector));
+        connectors.put(pos, connector);
         nodes.update();
     }
 
@@ -193,7 +193,6 @@ public class Grid<C extends IConnectable> implements INode {
      * @param node The given node.
      */
     public void addNode(long pos, Connectivity.Cache<?> node) {
-        Objects.requireNonNull(node);
         nodes.put(pos, node.connectivity(), node.listener());
         nodes.update();
     }
@@ -217,7 +216,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param split A consumer for the resulting fresh graphs from the split operation.
      * @return True on success, false otherwise.
      */
-    public boolean removeAt(long pos, Consumer<Grid<C>> split) {
+    public boolean remove(long pos, Consumer<Grid<C>> split) {
         Objects.requireNonNull(split);
 
         if (!contains(pos)) {
@@ -332,17 +331,17 @@ public class Grid<C extends IConnectable> implements INode {
     }
 
     /**
-     * @apiNote Wrapper for a Long2ByteMap class and listener for updates.
+     * @apiNote Wrapper for a nodes with listeners for updates.
      */
-    private static class Listener {
+    private static class Long2ByteCache {
 
         private Long2ByteMap map;
-        private Long2ObjectMap<IController> listeners;
+        private Long2ObjectMap<IListener> listeners;
 
         /**
          * Constructs a new Long2ByteMap with the same mappings as the specified Map.
          */
-        Listener() {
+        Long2ByteCache() {
             map = new Long2ByteLinkedOpenHashMap();
             map.defaultReturnValue(Byte.MAX_VALUE);
             listeners = new Long2ObjectLinkedOpenHashMap<>();
@@ -371,9 +370,11 @@ public class Grid<C extends IConnectable> implements INode {
          * @param value The provided value.
          * @param listener The listener function.
          */
-        void put(long key, byte value, IController listener) {
+        void put(long key, byte value, IListener listener) {
             map.put(key, value);
-            listeners.put(key, listener);
+            if (listener != null) {
+                listeners.put(key, listener);
+            }
         }
 
         /**
@@ -381,7 +382,7 @@ public class Grid<C extends IConnectable> implements INode {
          *
          * @param wrapper The other object.
          */
-        void putAll(Listener wrapper) {
+        void putAll(Long2ByteCache wrapper) {
             map.putAll(wrapper.map);
             listeners.putAll(wrapper.listeners);
         }
@@ -418,7 +419,7 @@ public class Grid<C extends IConnectable> implements INode {
         /**
          * @return Gets listeners map.
          */
-        Long2ObjectMap<IController> getListeners() {
+        Long2ObjectMap<IListener> getListeners() {
             return listeners;
         }
 
@@ -427,7 +428,7 @@ public class Grid<C extends IConnectable> implements INode {
          */
         void update() {
             boolean primary = true;
-            for (IController listener : listeners.values()) {
+            for (IListener listener : listeners.values()) {
                 listener.change(primary); primary = false;
             }
         }

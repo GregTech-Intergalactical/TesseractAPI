@@ -6,7 +6,6 @@ import tesseract.api.GraphWrapper;
 import tesseract.api.electric.*;
 import tesseract.graph.Connectivity;
 import tesseract.graph.Graph;
-import tesseract.util.Dir;
 
 public class TesseractAPI {
 

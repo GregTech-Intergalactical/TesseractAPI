@@ -2,6 +2,8 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -11,8 +13,6 @@ import tesseract.util.Dir;
 import tesseract.util.Pos;
 import tesseract.util.Utils;
 
-import java.util.ArrayDeque;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -68,12 +68,8 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 */
 	public boolean addNode(long pos, Connectivity.Cache<N> node) {
 		if (!contains(pos)) {
-
 			Group<C, N> group = add(pos, Group.singleNode(pos, node));
-			if (group != null) {
-				group.addNode(pos, node);
-			}
-
+			if (group != null) group.addNode(pos, node);
 			return true;
 		}
 
@@ -89,12 +85,8 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 */
 	public boolean addConnector(long pos, Connectivity.Cache<C> connector) {
 		if (!contains(pos)) {
-
 			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
-			if (group != null) {
-				group.addConnector(pos, connector);
-			}
-
+			if (group != null) group.addConnector(pos, connector);
 			return true;
 		}
 
@@ -110,7 +102,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 */
 	private Group<C, N> add(long pos, Group<C, N> single) {
 		int id;
-		ArrayDeque<Integer> mergers = getNeighboringGroups(pos);
+		IntSet mergers = getNeighboringGroups(pos);
 		switch (mergers.size()) {
 			case 0:
 				id = Utils.getNewId();
@@ -119,7 +111,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 				return null;
 
 			case 1:
-				id = mergers.peek();
+				id = mergers.iterator().nextInt();
 				positions.put(pos, id);
 				return groups.get(id);
 
@@ -141,7 +133,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The position of the entry to remove.
 	 * @return True on success, false otherwise.
 	 */
-	public boolean removeAt(long pos) {
+	public boolean remove(long pos) {
 		int id = positions.remove(pos);
 
 		if (id == Utils.INVALID) {
@@ -150,7 +142,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 		Group<C, N> group = groups.get(id);
 
-		boolean removed = group.removeAt(pos, newGroup -> {
+		boolean removed = group.remove(pos, newGroup -> {
 			int newId = Utils.getNewId();
 			groups.put(newId, newGroup);
 
@@ -180,7 +172,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The position of the group.
 	 * @return The group, guaranteed to not be null.
 	 */
-	public Optional<Group<C, N>> getGroupAt(long pos) {
+	public Optional<Group<C, N>> getGroup(long pos) {
 		int id = positions.get(pos);
 
 		if (id == Utils.INVALID) {
@@ -196,8 +188,8 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param mergers An array of neighbors groups id.
 	 * @return The wrapper with groups which should be merged.
 	 */
-	private Merged<C, N> beginMerge(ArrayDeque<Integer> mergers) {
-		int bestId = mergers.peek();
+	private Merged<C, N> beginMerge(IntSet mergers) {
+		int bestId = mergers.iterator().nextInt();
 		Group<C, N> best = groups.get(bestId);
 		int bestSize = best.countBlocks();
 
@@ -242,8 +234,8 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The search position.
 	 * @return The array of the groups which are neighbors to each other.
 	 */
-	private ArrayDeque<Integer> getNeighboringGroups(long pos) {
-		ArrayDeque<Integer> neighbors = new ArrayDeque<>(6);
+	private IntSet getNeighboringGroups(long pos) {
+		IntSet neighbors = new IntLinkedOpenHashSet(6);
 
 		Pos position = new Pos(pos);
 		for (Dir direction : Dir.VALUES) {
@@ -251,9 +243,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			int id = positions.get(side);
 
 			if (id != Utils.INVALID) {
-				if (!neighbors.contains(id)) {
-					neighbors.add(id);
-				}
+				neighbors.add(id);
 			}
 		}
 

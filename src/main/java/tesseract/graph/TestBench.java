@@ -45,7 +45,7 @@ class TestBench {
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, Connectivity.Cache.of(new ExampleNode(), grid -> System.out.println("update")))) {
+                    if (!graph.addNode(position, Connectivity.Cache.of(new ExampleNode(), new Listener(pos)))) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }
@@ -61,7 +61,7 @@ class TestBench {
 
                 Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
 
-                graph.removeAt(pos.get());
+                graph.remove(pos.get());
 
                 System.out.println("Removed " + pos + " from the graph");
 
@@ -75,7 +75,6 @@ class TestBench {
                 long origin = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
                 long target = packAll(Integer.parseInt(points[4]), Integer.parseInt(points[5]), Integer.parseInt(points[6]));
 
-                System.out.println("findPath ->");
                 for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                     for (Grid<ExampleCable> grid : group.getValue().getGrids().values()) {
                         for (Node node : grid.getPath(origin, target)) {
@@ -224,6 +223,20 @@ class TestBench {
         @Override
         public boolean canOutput() {
             return false;
+        }
+    }
+
+    public static class Listener implements IListener {
+
+        Pos pos;
+
+        public Listener(Pos pos) {
+            this.pos = pos;
+        }
+
+        @Override
+        public void change(boolean primary) {
+            System.out.println(pos + (primary ? " [primary]" : " []"));
         }
     }
 }

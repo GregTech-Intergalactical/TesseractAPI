@@ -132,14 +132,18 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             } else {
 
                 if (nodes.containsKey(side)) {
-                    boolean updated = false;
+                    boolean found = false;
                     for (Grid<C> grid : grids.values()) {
-                        if (updated = grid.getNodes().keySet().contains(side)) {
+                        if (grid.contains(side)) {
                             grid.update();
+                            found = true;
                         }
                     }
-                    //TODO: Check how this works
-                    //if (!updated) nodes.get(side).listener().change(true);
+
+                    /*IListener listener = nodes.get(side).listener();
+                    if (listener != null) {
+                        listener.change(!found);
+                    }*/
                 }
             }
         }
@@ -263,7 +267,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param split A consumer for the resulting fresh graphs from the split operation.
      * @return True on success, false otherwise.
      */
-    public boolean removeAt(long posToRemove, Consumer<Group<C, N>> split) {
+    public boolean remove(long posToRemove, Consumer<Group<C, N>> split) {
         Objects.requireNonNull(split);
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.
@@ -289,7 +293,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
             // No check is needed here, because the caller already asserts that the Group contains the specified position.
             // Thus, if this is not a node, then it is guaranteed to be a connector.
-            boolean removed = grid.removeAt(
+            boolean removed = grid.remove(
                 posToRemove,
                 newGrid -> {
                     int newId = Utils.getNewId();
@@ -346,7 +350,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 excluded.add(move);
             }
 
-            centerGrid.removeAt(posToRemove, splitGrids::add);
+            centerGrid.remove(posToRemove, splitGrids::add);
             splitGrids.add(centerGrid);
         } else {
             // Clear removing node from nearest grid

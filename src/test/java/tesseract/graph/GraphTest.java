@@ -34,9 +34,9 @@ public class GraphTest {
         assertEquals(6, graph.countGroups());
         graph.addConnector(packAll(0, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
         assertEquals(1, graph.countGroups());
-        graph.removeAt(packAll(0, 0, 0));
+        graph.remove(packAll(0, 0, 0));
         assertEquals(6, graph.countGroups());
-        graph.removeAt(packAll(0, 4, 0));
+        graph.remove(packAll(0, 4, 0));
         assertEquals(7, graph.countGroups());
         graph.addConnector(packAll(0, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
         graph.addConnector(packAll(0, 4, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
@@ -139,7 +139,7 @@ public class GraphTest {
         long pos = packAll(0, 0, 0);
         graph.addNode(pos, Connectivity.Cache.of(new GraphTest.TestNode()));
         assertEquals(1, graph.countGroups());
-        graph.removeAt(pos);
+        graph.remove(pos);
         assertEquals(0, graph.countGroups());
     }
 

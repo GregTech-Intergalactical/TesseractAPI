@@ -10,7 +10,7 @@ import tesseract.graph.*;
 /**
  * @es
  */
-public class ElectricController extends GraphWrapper implements IController {
+public class ElectricController extends GraphWrapper implements IListener {
 
     private byte output;
     private IElectricEvent event;
@@ -33,6 +33,8 @@ public class ElectricController extends GraphWrapper implements IController {
         this.amps = new Long2ObjectLinkedOpenHashMap<>();
         this.data = new Object2ObjectLinkedOpenHashMap<>();
 
+        //graph.getGroup(position)
+
         //connection = ConnectionType.INVALID;
     }
 
@@ -54,8 +56,8 @@ public class ElectricController extends GraphWrapper implements IController {
 
         // If true then producer will act as controller
         if (primary) {
-            graph.getGroupAt(position).ifPresent(group -> {
-                ObjectSet<Grid<IElectricCable>> grids = group.getGridsAt(position, output);
+            /*graph.getGroup(position).ifPresent(group -> {
+                ObjectSet<Grid<IElectricCable>> grids = group.getGridsFor(position, output);
 
                 for (Grid<IElectricCable> grid : grids) {
                     for (long pos : grid.getNodes().keySet()) {
@@ -89,7 +91,7 @@ public class ElectricController extends GraphWrapper implements IController {
                 }
             });
 
-            /*if (data.isEmpty()) {
+            if (data.isEmpty()) {
                 connection = ConnectionType.SINGLE;
             } else {
                 connection = ConnectionType.VARIATE;
