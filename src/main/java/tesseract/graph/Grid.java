@@ -157,11 +157,9 @@ public class Grid<C extends IConnectable> implements INode {
     /**
      * Merges all of the elements from the other provided grid into this grid.
      *
-     * @param at unknown.
      * @param other The other grid to merge elements from.
      */
-    public void mergeWith(long at, Grid<C> other) {
-        // TODO: Validate that the other grid touches the specified position.
+    public void mergeWith(Grid<C> other) {
         connectors.putAll(other.connectors);
         nodes.putAll(other.nodes);
         nodes.update();
@@ -184,7 +182,6 @@ public class Grid<C extends IConnectable> implements INode {
      * @param connector The given connector.
      */
     public void addConnector(long pos, Connectivity.Cache<C> connector) {
-        // TODO: Validate that the other grid touches the specified position.
         connectors.put(pos, Objects.requireNonNull(connector));
         nodes.update();
     }

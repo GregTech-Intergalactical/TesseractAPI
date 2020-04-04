@@ -246,7 +246,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 continue;
             }
 
-            bestGrid.mergeWith(at, grid);
+            bestGrid.mergeWith(grid);
             for (long item : grid.getConnectors().keySet()) {
                 connectors.put(item, bestId);
             }
@@ -538,7 +538,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 }
 
                 if (grid.connects(side, direction.invert())) {
-                    currentGrid.mergeWith(at, grid);
+                    currentGrid.mergeWith(grid);
                     for (long pos : grid.getConnectors().keySet()) {
                         connectors.put(pos, pairing);
                     }
