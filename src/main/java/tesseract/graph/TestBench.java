@@ -73,13 +73,13 @@ class TestBench {
                     continue;
                 }
 
-                long start = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
-                long end = packAll(Integer.parseInt(points[4]), Integer.parseInt(points[5]), Integer.parseInt(points[6]));
+                long origin = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
+                long target = packAll(Integer.parseInt(points[4]), Integer.parseInt(points[5]), Integer.parseInt(points[6]));
 
                 System.out.println("findPath ->");
                 for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                     for (Grid<ExampleCable> grid : group.getValue().getGrids().values()) {
-                        for (Node node : grid.getPath(start, end)) {
+                        for (Node node : grid.getPath(origin, target)) {
                             System.out.println(node);
                         }
                     }

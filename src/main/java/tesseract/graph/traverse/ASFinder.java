@@ -32,8 +32,8 @@ public class ASFinder {
     /**
      * Begins a traverse operation from the specified start position to the end position.
      *
-     * @param origin The start position of the finds operation.
-     * @param target The end position of the finds operation.
+     * @param origin The start position of the traverse operation.
+     * @param target The end position of the traverse operation.
      * @return An set of the points calculated by the A Star algorithm.
      */
     public ArrayDeque<Node> traverse(long origin, long target) {
@@ -64,7 +64,7 @@ public class ASFinder {
                 open.remove(current);
                 closed.add(current);
 
-                for (Node n : getNeighborsNodes(current)) {
+                for (Node n : getNeighboringNodes(current)) {
 
                     if (closed.contains(n)) {
                         continue;
@@ -154,7 +154,7 @@ public class ASFinder {
      * @param current The given node.
      * @return The set of nodes.
      */
-    public ObjectList<Node> getNeighborsNodes(Node current) {
+    public ObjectList<Node> getNeighboringNodes(Node current) {
         ObjectList<Node> neighbors = new ObjectArrayList<>(6);
 
         for (Dir direction : Dir.VALUES) {

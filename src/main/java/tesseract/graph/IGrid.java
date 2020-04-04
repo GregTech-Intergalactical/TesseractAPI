@@ -3,11 +3,11 @@ package tesseract.graph;
 /**
  * Simple interface for a updates.
  */
-public interface IController {
+public interface IGrid {
 
     /**
-     * Change callback method.
+     * Executes when the grid is having any updates of any nodes/connectors inside.
      * @param primary True when node is a first in the grid.
      */
-    void change(boolean primary);
+    void onGridChange(boolean primary);
 }

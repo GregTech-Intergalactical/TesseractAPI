@@ -10,10 +10,11 @@ import tesseract.graph.*;
 /**
  * @es
  */
-public class ElectricController extends GraphWrapper implements IController {
+public class ElectricController extends GraphWrapper implements IGrid, IGroup {
 
     private byte output;
     private IElectricEvent event;
+    //private ConnectionType connection;
     private Long2ObjectMap<Holder> amps;
     private Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data;
 
@@ -31,10 +32,12 @@ public class ElectricController extends GraphWrapper implements IController {
         this.output = output;
         this.amps = new Long2ObjectLinkedOpenHashMap<>();
         this.data = new Object2ObjectLinkedOpenHashMap<>();
+
+        //connection = ConnectionType.INVALID;
     }
 
     /**
-     * Called when grid is update.
+     * Executes when the grid is having any updates of any nodes/connectors inside.
      * <p>
      * Method is execute mainly for a primary node in Grid. This node will act as main update controller.
      * Firstly, it clear previous controller map, after it lookup for the position of node and looks for the around grids.
@@ -46,13 +49,15 @@ public class ElectricController extends GraphWrapper implements IController {
      * @param primary If true will be consider as a first node in grid.
      */
     @Override
-    public void change(boolean primary) {
+    public void onGridChange(boolean primary) {
         data.clear();
 
         // If true then producer will act as controller
         if (primary) {
             graph.getGroupAt(position).ifPresent(group -> {
-                for (Grid<IElectricCable> grid : group.getGridsAt(position, output)) {
+                ObjectSet<Grid<IElectricCable>> grids = group.getGridsAt(position, output);
+
+                for (Grid<IElectricCable> grid : grids) {
                     for (long pos : grid.getNodes().keySet()) {
                         IElectricNode producer = group.getNodes().get(pos).value();
                         if (producer.canOutput() && producer.getOutputAmperage() > 0) {
@@ -84,10 +89,21 @@ public class ElectricController extends GraphWrapper implements IController {
                 }
             });
 
-            /*if (data.isEmpty() {
-
+            /*if (data.isEmpty()) {
+                connection = ConnectionType.SINGLE;
+            } else {
+                connection = ConnectionType.VARIATE;
             }*/
         }
+    }
+
+    /**
+     * Executes when the group is having any updates of any nodes inside.
+     * @see tesseract.graph.Group (Listener)
+     */
+    @Override
+    public void onGroupChange() {
+
     }
 
     /**
@@ -133,7 +149,7 @@ public class ElectricController extends GraphWrapper implements IController {
                     for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(true).long2ObjectEntrySet()) {
                         Holder holder = amps.get(entry.getLongKey());
                         if (holder == null) {
-                            amps.put(entry.getLongKey(), new Holder(entry.getValue(), amperage));
+                            amps.put(entry.getLongKey(), new Holder(entry.getValue().getAmps(), amperage));
                         } else {
                             holder.add(amperage);
                         }
@@ -157,17 +173,17 @@ public class ElectricController extends GraphWrapper implements IController {
      */
     private static class Holder {
 
+        private long max;
         private long amperage;
-        private IElectricCable cable;
 
         /**
          * Creates instance of the holder.
          *
-         * @param cable The cable node.
-         * @param amperage The initial amps amount.
+         * @param max The cable amperage limit.
+         * @param amperage The current amps amount.
          */
-        Holder(IElectricCable cable, long amperage) {
-            this.cable = cable;
+        Holder(long max, long amperage) {
+            this.max = max;
             this.amperage = amperage;
         }
 
@@ -183,14 +199,7 @@ public class ElectricController extends GraphWrapper implements IController {
          * @return Checks that the cable is able to transfer energy.
          */
         boolean canHandle() {
-            return cable.getAmps() >= amperage;
-        }
-
-        /**
-         * @return Gets the cables object.
-         */
-        IElectricCable getCable() {
-            return cable;
+            return max >= amperage;
         }
     }
 

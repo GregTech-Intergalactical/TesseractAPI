@@ -12,6 +12,7 @@ import tesseract.util.Pos;
 import tesseract.util.Utils;
 
 import java.util.ArrayDeque;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -109,7 +110,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 */
 	private Group<C, N> add(long pos, Group<C, N> single) {
 		int id;
-		ArrayDeque<Integer> mergers = getNeighborsGroups(pos);
+		ArrayDeque<Integer> mergers = getNeighboringGroups(pos);
 		switch (mergers.size()) {
 			case 0:
 				id = Utils.getNewId();
@@ -138,18 +139,18 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * the specified position.
 	 *
 	 * @param pos The position of the entry to remove.
-	 * @return The removed entry, guaranteed to not be null.
+	 * @return True on success, false otherwise.
 	 */
-	public Entry<C, N> removeAt(long pos) {
+	public boolean removeAt(long pos) {
 		int id = positions.remove(pos);
 
 		if (id == Utils.INVALID) {
-			return Entry.empty();
+			return false;
 		}
 
 		Group<C, N> group = groups.get(id);
 
-		Entry<C, N> entry = group.removeAt(pos, newGroup -> {
+		boolean removed = group.removeAt(pos, newGroup -> {
 			int newId = Utils.getNewId();
 			groups.put(newId, newGroup);
 
@@ -170,41 +171,8 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			groups.remove(id);
 		}
 
-		return entry;
+		return removed;
 	}
-
-	/**
-	 * Finds an entry by a given position.
-	 *
-	 * @param pos The position of the cache to find.
-	 * @return The found cache, guaranteed to not be null.
-	 */
-	/*public Entry<C, N> getEntryAt(long pos) {
-		int id = positions.get(pos);
-
-		if (id == Utils.INVALID) {
-			return Entry.empty();
-		}
-
-		Group<C, N> group = groups.get(id);
-
-		if (group != null) {
-			Connectivity.Cache<N> node = group.getNodes().get(pos);
-
-			if (node != null) {
-				return Entry.node(node.value());
-			} else {
-				for (Grid<C> grid : group.getGrids().values()) {
-					Connectivity.Cache<C> cable = grid.getConnectors().get(pos);
-					if (cable != null) {
-						return Entry.connector(cable.value());
-					}
-				}
-			}
-		}
-
-		return Entry.empty();
-	}*/
 
 	/**
 	 * Gets the group by a given position.
@@ -274,7 +242,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The search position.
 	 * @return The array of the groups which are neighbors to each other.
 	 */
-	private ArrayDeque<Integer> getNeighborsGroups(long pos) {
+	private ArrayDeque<Integer> getNeighboringGroups(long pos) {
 		ArrayDeque<Integer> neighbors = new ArrayDeque<>(6);
 
 		Pos position = new Pos(pos);

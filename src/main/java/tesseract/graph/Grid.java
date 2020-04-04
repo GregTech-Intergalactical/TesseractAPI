@@ -139,12 +139,12 @@ public class Grid<C extends IConnectable> implements INode {
     /**
      * Begins a find operation from the specified start position to the end position.
      *
-     * @param start The start position of the finds operation.
-     * @param end The end position of the finds operation.
+     * @param origin The start position of the traverse operation.
+     * @param target The end position of the traverse operation.
      * @return An set of path points.
      */
-    public ArrayDeque<Node> getPath(long start, long end) {
-        return finder.traverse(start, end);
+    public ArrayDeque<Node> getPath(long origin, long target) {
+        return finder.traverse(origin, target);
     }
 
     /**
@@ -211,9 +211,9 @@ public class Grid<C extends IConnectable> implements INode {
      *
      * @param pos The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
-     * @return The removed entry, guaranteed to not be null.
+     * @return True on success, false otherwise.
      */
-    public C removeAt(long pos, Consumer<Grid<C>> split) {
+    public boolean removeAt(long pos, Consumer<Grid<C>> split) {
         Objects.requireNonNull(split);
 
         if (!contains(pos)) {
@@ -261,7 +261,6 @@ public class Grid<C extends IConnectable> implements INode {
                 } else {
                     newGrid.connectors.put(reached, connectors.remove(reached));
                 }
-
             }
 
             newGrid.nodes.update();
@@ -279,7 +278,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param found The set with nodes to check.
      * @return The removed connector.
      */
-    private C removeFinal(long pos, LongSet found) {
+    private boolean removeFinal(long pos, LongSet found) {
         C connector = connectors.remove(pos).value();
 
         Pos position = new Pos(pos);
@@ -300,7 +299,7 @@ public class Grid<C extends IConnectable> implements INode {
         }
 
         nodes.update();
-        return connector;
+        return connector != null;
     }
 
     /**
@@ -334,7 +333,7 @@ public class Grid<C extends IConnectable> implements INode {
     private static class Listener {
 
         private Long2ByteMap map;
-        private Long2ObjectMap<IController> listeners;
+        private Long2ObjectMap<IGrid> listeners;
 
         /**
          * Constructs a new Long2ByteMap with the same mappings as the specified Map.
@@ -368,7 +367,7 @@ public class Grid<C extends IConnectable> implements INode {
          * @param value The provided value.
          * @param listener The listener function.
          */
-        void put(long key, byte value, IController listener) {
+        void put(long key, byte value, IGrid listener) {
             map.put(key, value);
             listeners.put(key, listener);
         }
@@ -387,7 +386,7 @@ public class Grid<C extends IConnectable> implements INode {
          * @param key The key value.
          */
         void remove(long key) {
-            byte value = map.remove(key);
+            map.remove(key);
             listeners.remove(key);
         }
 
@@ -415,7 +414,7 @@ public class Grid<C extends IConnectable> implements INode {
         /**
          * @return Gets listeners map.
          */
-        Long2ObjectMap<IController> getListeners() {
+        Long2ObjectMap<IGrid> getListeners() {
             return listeners;
         }
 
@@ -424,8 +423,8 @@ public class Grid<C extends IConnectable> implements INode {
          */
         void update() {
             boolean primary = true;
-            for (IController listener : listeners.values()) {
-                listener.change(primary); primary = false;
+            for (IGrid listener : listeners.values()) {
+                listener.onGridChange(primary); primary = false;
             }
         }
     }

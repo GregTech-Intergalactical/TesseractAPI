@@ -50,14 +50,14 @@ public class Connectivity {
 
         private byte connectivity;
         private C value;
-        private IController listener;
+        private IGrid listener;
 
         private Cache() { }
 
         /**
          * Creates a cache with a listener.
          */
-        public static <C extends IConnectable> Cache<C> of(C value, IController listener) {
+        public static <C extends IConnectable> Cache<C> of(C value, IGrid listener) {
             Cache<C> cache = new Cache<>();
             cache.value = value;
             cache.connectivity = Connectivity.of(value);
@@ -101,7 +101,7 @@ public class Connectivity {
         /**
          * @return Gets the cache listener.
          */
-        public IController listener() {
+        public IGrid listener() {
             return listener;
         }
     }
