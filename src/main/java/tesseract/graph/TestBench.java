@@ -79,7 +79,7 @@ class TestBench {
                 System.out.println("findPath ->");
                 for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                     for (Grid<ExampleCable> grid : group.getValue().getGrids().values()) {
-                        for (Node node : grid.findPath(start, end)) {
+                        for (Node node : grid.getPath(start, end)) {
                             System.out.println(node);
                         }
                     }

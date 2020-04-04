@@ -12,6 +12,7 @@ import tesseract.graph.*;
  */
 public class ElectricController extends GraphWrapper implements IController {
 
+    private byte output;
     private IElectricEvent event;
     private Long2ObjectMap<Holder> amps;
     private Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data;
@@ -21,11 +22,13 @@ public class ElectricController extends GraphWrapper implements IController {
      *
      * @param graph The graph instance.
      * @param position The position of node.
+     * @param output The output sides.
      * @param event The event listener.
      */
-    public ElectricController(Graph<IElectricCable, IElectricNode> graph, long position, IElectricEvent event) {
+    public ElectricController(Graph<IElectricCable, IElectricNode> graph, long position, byte output, IElectricEvent event) {
         super(graph, position);
         this.event = event;
+        this.output = output;
         this.amps = new Long2ObjectLinkedOpenHashMap<>();
         this.data = new Object2ObjectLinkedOpenHashMap<>();
     }
@@ -48,18 +51,19 @@ public class ElectricController extends GraphWrapper implements IController {
 
         // If true then producer will act as controller
         if (primary) {
-            graph.findGroup(position).ifPresent(group -> {
-                for (Grid<IElectricCable> grid : group.findGrids(position)) {
+            graph.getGroupAt(position).ifPresent(group -> {
+                for (Grid<IElectricCable> grid : group.getGridsAt(position, output)) {
                     for (long pos : grid.getNodes().keySet()) {
                         IElectricNode producer = group.getNodes().get(pos).value();
                         if (producer.canOutput() && producer.getOutputAmperage() > 0) {
                             ObjectList<Consumer> consumers = new ObjectArrayList<>();
                             for (Path<IElectricCable> path : grid.getPaths(pos)) {
                                 if (!path.isEmpty()) {
-                                    IElectricNode node = group.getNodes().get(path.target().get()).value();
+                                    long position = path.target().get();
+                                    IElectricNode node = group.getNodes().get(position).value();
                                     if (node.canInput()) {
                                         if (producer.getOutputVoltage() > node.getInputVoltage()) {
-                                            event.onOverVoltage(node);
+                                            event.onOverVoltage(position);
                                         } else {
                                             Consumer consumer = new Consumer(node, path);
                                             long voltage = producer.getOutputVoltage() - consumer.getLoss();
@@ -116,9 +120,9 @@ public class ElectricController extends GraphWrapper implements IController {
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
                 if (!consumer.canReceive(producer.getVoltage(), amperage)) { // Fast check by the lowest cost cable
                     // Find corrupt cable and return
-                    for (IElectricCable cable : consumer.getCables(false).values()) {
-                        if (!cable.canHandle(producer.getVoltage(), amperage)) {
-                            event.onOverAmperage(cable);
+                    for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(false).long2ObjectEntrySet()) {
+                        if (!entry.getValue().canHandle(producer.getVoltage(), amperage)) {
+                            event.onOverAmperage(entry.getLongKey());
                         }
                     }
                     return;
@@ -137,9 +141,9 @@ public class ElectricController extends GraphWrapper implements IController {
                 }
             }
 
-            for (Holder holder : amps.values()) {
-                if (!holder.canHandle()) {
-                    event.onOverAmperage(holder.getCable());
+            for (Long2ObjectMap.Entry<Holder> entry : amps.long2ObjectEntrySet()) {
+                if (!entry.getValue().canHandle()) {
+                    event.onOverAmperage(entry.getLongKey());
                 }
             }
 
@@ -373,7 +377,7 @@ public class ElectricController extends GraphWrapper implements IController {
                 if (!producers.hasNext()) return null;
                 producer = producers.next();
                 voltage = producer.getOutputVoltage();
-                amperage = producer.getOutputAmperage();
+                amperage = getAvailableAmperage();
 
                 consumers = data.get(producer);
                 consumer = null;
@@ -402,7 +406,7 @@ public class ElectricController extends GraphWrapper implements IController {
             if (temp < 0) {
                 amperage = this.amperage;
                 this.amperage = 0;
-                id--; // Moved back to ask next producer again
+                id--; // Moved back to ask next producer again to supply to the same consumer
             } else {
                 this.amperage = temp;
             }
@@ -414,6 +418,13 @@ public class ElectricController extends GraphWrapper implements IController {
          */
         long getVoltage() {
             return voltage;
+        }
+
+        /**
+         * @return Gets the available amperage of the producer.
+         */
+        long getAvailableAmperage() {
+            return Math.min(producer.getPower() / voltage, producer.getOutputAmperage());
         }
 
         /**

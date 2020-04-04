@@ -37,7 +37,7 @@ public class Connectivity {
     /**
      * @param connectivity The provided state.
      * @param side The direction index.
-     * @return True if a  connection is exist, false otherwise.
+     * @return True if a connection is exist, false otherwise.
      */
     public static boolean has(byte connectivity, Dir side) {
         return (connectivity & (1 << side.ordinal())) > 0;

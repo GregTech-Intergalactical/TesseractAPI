@@ -44,7 +44,7 @@ public class GraphTest {
         ArrayDeque<Node> set1 = new ArrayDeque<>();
         for (Group<TestCable, TestNode> group : graph.getGroups().values()) {
             for (Grid<GraphTest.TestCable> grid : group.getGrids().values()) {
-                set1 = grid.findPath(packAll(0, -1, 0), packAll(0, 6, 0));
+                set1 = grid.getPath(packAll(0, -1, 0), packAll(0, 6, 0));
             }
         }
         List<Pos> set2 = new ArrayList<>();

@@ -66,7 +66,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @return True on success or false otherwise.
 	 */
 	public boolean addNode(long pos, Connectivity.Cache<N> node) {
-		if (!contains(pos)/* && node != null*/) {
+		if (!contains(pos)) {
 
 			Group<C, N> group = add(pos, Group.singleNode(pos, node));
 			if (group != null) {
@@ -87,7 +87,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @return True on success or false otherwise.
 	 */
 	public boolean addConnector(long pos, Connectivity.Cache<C> connector) {
-		if (!contains(pos)/* && connector != null*/) {
+		if (!contains(pos)) {
 
 			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
 			if (group != null) {
@@ -179,7 +179,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The position of the cache to find.
 	 * @return The found cache, guaranteed to not be null.
 	 */
-	/*public Entry<C, N> findAt(long pos) {
+	/*public Entry<C, N> getEntryAt(long pos) {
 		int id = positions.get(pos);
 
 		if (id == Utils.INVALID) {
@@ -207,12 +207,12 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	}*/
 
 	/**
-	 * Finds the group by a given position.
+	 * Gets the group by a given position.
 	 *
 	 * @param pos The position of the group.
 	 * @return The group, guaranteed to not be null.
 	 */
-	public Optional<Group<C, N>> findGroup(long pos) {
+	public Optional<Group<C, N>> getGroupAt(long pos) {
 		int id = positions.get(pos);
 
 		if (id == Utils.INVALID) {

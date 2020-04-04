@@ -129,7 +129,7 @@ public class Grid<C extends IConnectable> implements INode {
 
         for (long target : nodes.keySet()) {
             if (pos != target) {
-                data.add(new Path<>(connectors, finder.find(pos, target)));
+                data.add(new Path<>(connectors, finder.traverse(pos, target)));
             }
         }
 
@@ -143,8 +143,8 @@ public class Grid<C extends IConnectable> implements INode {
      * @param end The end position of the finds operation.
      * @return An set of path points.
      */
-    public ArrayDeque<Node> findPath(long start, long end) {
-        return finder.find(start, end);
+    public ArrayDeque<Node> getPath(long start, long end) {
+        return finder.traverse(start, end);
     }
 
     /**

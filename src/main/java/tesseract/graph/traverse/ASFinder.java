@@ -30,19 +30,19 @@ public class ASFinder {
     }
 
     /**
-     * Begins a find operation from the specified start position to the end position.
+     * Begins a traverse operation from the specified start position to the end position.
      *
      * @param origin The start position of the finds operation.
      * @param target The end position of the finds operation.
      * @return An set of the points calculated by the A Star algorithm.
      */
-    public ArrayDeque<Node> find(long origin, long target) {
+    public ArrayDeque<Node> traverse(long origin, long target) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same ASFinder instance");
         }
 
         if (origin == target) {
-            throw new IllegalStateException("ASFinder::find: Attempted to run find operation with invalid positions");
+            throw new IllegalStateException("ASFinder::traverse: Attempted to run traverse operation with invalid positions");
         }
 
         path = new ArrayDeque<>();

@@ -6,6 +6,7 @@ import tesseract.api.GraphWrapper;
 import tesseract.api.electric.*;
 import tesseract.graph.Connectivity;
 import tesseract.graph.Graph;
+import tesseract.util.Dir;
 
 public class TesseractAPI {
 
@@ -14,13 +15,13 @@ public class TesseractAPI {
     //TODO use this static default implementation
     public static final IElectricEvent DEFAULT_ELECTRIC_EVENT = new IElectricEvent() {
         @Override
-        public void onOverVoltage(IElectricNode node) {
-            //NOOP
+        public void onOverVoltage(long node) {
+
         }
 
         @Override
-        public void onOverAmperage(IElectricCable cable) {
-            //NOOP
+        public void onOverAmperage(long cable) {
+
         }
     };
 
@@ -37,13 +38,14 @@ public class TesseractAPI {
     /**
      * @param dimension The dimension id where the node will be added.
      * @param position The position at which the node will be added.
+     * @param output The output sides to which energy will be send.
      * @param node The node object.
      * @param event The event listener.
      * @return Create a instance of a class for a given node with controller.
      */
-    public static ElectricController asElectricController(int dimension, long position, IElectricNode node, IElectricEvent event) {
+    public static ElectricController asElectricController(int dimension, long position, byte output, IElectricNode node, IElectricEvent event) {
         Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dimension);
-        ElectricController controller = new ElectricController(graph, position, event);
+        ElectricController controller = new ElectricController(graph, position, output, event);
         graph.addNode(position, Connectivity.Cache.of(node, controller));
         return controller;
     }

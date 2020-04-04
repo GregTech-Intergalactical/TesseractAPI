@@ -426,24 +426,38 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
-     * Finds grids by a given position.
+     * Gets near grids by a given position and connectivity value.
      *
      * @param pos The position of the grid.
-     * @return The grid list, guaranteed to not be null.
+     * @param connectivity The connectivity sides.
+     * @return The grid set, guaranteed to not be null.
      */
-    public ObjectList<Grid<C>> findGrids(long pos) {
-        ObjectList<Grid<C>> list = new ObjectArrayList<>();
+    public ObjectSet<Grid<C>> getGridsAt(long pos, byte connectivity) {
+        ObjectSet<Grid<C>> neighbors = new ObjectLinkedOpenHashSet<>();
 
         int grid = connectors.get(pos);
+
+        // If we found connector stop
         if (grid != Utils.INVALID) {
-            list.add(grids.get(grid));
+            neighbors.add(grids.get(grid));
+            return neighbors; // exit here
         }
 
-        for (int id : getNeighborsGrids(pos)) {
-            list.add(grids.get(id));
+        Pos position = new Pos(pos);
+        for (Dir direction : Dir.VALUES) {
+            long face = position.offset(direction).get();
+            int id = connectors.get(face);
+
+            if (id == Utils.INVALID) {
+                continue;
+            }
+
+            if (Connectivity.has(connectivity, direction)) {
+                neighbors.add(grids.get(id));
+            }
         }
 
-        return list;
+        return neighbors;
     }
 
     /**

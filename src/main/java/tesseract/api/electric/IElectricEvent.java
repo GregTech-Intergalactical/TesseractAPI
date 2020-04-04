@@ -7,13 +7,13 @@ public interface IElectricEvent {
 
     /**
      * Executes when the node trying to receive higher amount of voltage than can.
-     * @param node The node object.
+     * @param node The node position.
      */
-    void onOverVoltage(IElectricNode node);
+    void onOverVoltage(long node);
 
     /**
      * Executes when the cable trying to transport higher amount of amperage than can.
-     * @param cable The cable object.
+     * @param cable The cable position.
      */
-    void onOverAmperage(IElectricCable cable);
+    void onOverAmperage(long cable);
 }
