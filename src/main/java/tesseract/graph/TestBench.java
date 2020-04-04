@@ -45,7 +45,7 @@ class TestBench {
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, Connectivity.Cache.of(new ExampleNode()))) {
+                    if (!graph.addNode(position, Connectivity.Cache.of(new ExampleNode(), grid -> System.out.println("update")))) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }
@@ -61,10 +61,9 @@ class TestBench {
 
                 Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
 
-                graph.removeAt(pos.get()).apply(
-                    connector -> System.out.println("Removed connector " + pos + " from the graph: " + connector),
-                    node -> System.out.println("Removed node " + pos + " from the graph: " + node)
-                );
+                graph.removeAt(pos.get());
+
+                System.out.println("Removed " + pos + " from the graph");
 
             } else if (line.startsWith("a*")) {
                 String[] points = line.split(" ");

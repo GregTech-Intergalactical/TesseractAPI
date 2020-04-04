@@ -247,15 +247,13 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 		Pos position = new Pos(pos);
 		for (Dir direction : Dir.VALUES) {
-			long face = position.offset(direction).get();
-			int id = positions.get(face);
+			long side = position.offset(direction).get();
+			int id = positions.get(side);
 
-			if (id == Utils.INVALID) {
-				continue;
-			}
-
-			if (!neighbors.contains(id)) {
-				neighbors.add(id);
+			if (id != Utils.INVALID) {
+				if (!neighbors.contains(id)) {
+					neighbors.add(id);
+				}
 			}
 		}
 

@@ -10,7 +10,7 @@ import tesseract.graph.*;
 /**
  * @es
  */
-public class ElectricController extends GraphWrapper implements IGrid, IGroup {
+public class ElectricController extends GraphWrapper implements IController {
 
     private byte output;
     private IElectricEvent event;
@@ -49,7 +49,7 @@ public class ElectricController extends GraphWrapper implements IGrid, IGroup {
      * @param primary If true will be consider as a first node in grid.
      */
     @Override
-    public void onGridChange(boolean primary) {
+    public void change(boolean primary) {
         data.clear();
 
         // If true then producer will act as controller
@@ -95,15 +95,6 @@ public class ElectricController extends GraphWrapper implements IGrid, IGroup {
                 connection = ConnectionType.VARIATE;
             }*/
         }
-    }
-
-    /**
-     * Executes when the group is having any updates of any nodes inside.
-     * @see tesseract.graph.Group (Listener)
-     */
-    @Override
-    public void onGroupChange() {
-
     }
 
     /**

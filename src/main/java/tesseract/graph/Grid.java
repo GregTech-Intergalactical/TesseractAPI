@@ -119,6 +119,13 @@ public class Grid<C extends IConnectable> implements INode {
     }
 
     /**
+     * Updates node listeners.
+     */
+    public void update() {
+        nodes.update();
+    }
+
+    /**
      * Gets paths from the position to another linked nodes.
      *
      * @param pos The position of the linked node.
@@ -231,10 +238,10 @@ public class Grid<C extends IConnectable> implements INode {
             roots -> {
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
-                    long face = position.offset(direction).get();
+                    long side = position.offset(direction).get();
 
-                    if (linked(pos, direction, face)) {
-                        roots.add(face);
+                    if (linked(pos, direction, side)) {
+                        roots.add(side);
                     }
                 }
             },
@@ -283,10 +290,10 @@ public class Grid<C extends IConnectable> implements INode {
 
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
-            long face = position.offset(direction).get();
+            long side = position.offset(direction).get();
 
-            if (nodes.containsKey(face) && isExternal(face)) {
-                nodes.remove(face);
+            if (nodes.containsKey(side) && isExternal(side)) {
+                nodes.remove(side);
             }
         }
 
@@ -317,9 +324,9 @@ public class Grid<C extends IConnectable> implements INode {
         byte neighbors = 0;
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
-            long face = position.offset(direction).get();
+            long side = position.offset(direction).get();
 
-            if (!nodes.containsKey(face) && linked(pos, direction, face)) {
+            if (!nodes.containsKey(side) && linked(pos, direction, side)) {
                 neighbors += 1;
             }
         }
@@ -333,7 +340,7 @@ public class Grid<C extends IConnectable> implements INode {
     private static class Listener {
 
         private Long2ByteMap map;
-        private Long2ObjectMap<IGrid> listeners;
+        private Long2ObjectMap<IController> listeners;
 
         /**
          * Constructs a new Long2ByteMap with the same mappings as the specified Map.
@@ -367,7 +374,7 @@ public class Grid<C extends IConnectable> implements INode {
          * @param value The provided value.
          * @param listener The listener function.
          */
-        void put(long key, byte value, IGrid listener) {
+        void put(long key, byte value, IController listener) {
             map.put(key, value);
             listeners.put(key, listener);
         }
@@ -414,7 +421,7 @@ public class Grid<C extends IConnectable> implements INode {
         /**
          * @return Gets listeners map.
          */
-        Long2ObjectMap<IGrid> getListeners() {
+        Long2ObjectMap<IController> getListeners() {
             return listeners;
         }
 
@@ -423,8 +430,8 @@ public class Grid<C extends IConnectable> implements INode {
          */
         void update() {
             boolean primary = true;
-            for (IGrid listener : listeners.values()) {
-                listener.onGridChange(primary); primary = false;
+            for (IController listener : listeners.values()) {
+                listener.change(primary); primary = false;
             }
         }
     }
