@@ -112,6 +112,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      */
     public void addNode(long at, Connectivity.Cache<N> node) {
         nodes.put(at, Objects.requireNonNull(node));
+        IListener listener = node.listener();
+        if (listener != null) {
+            listener.change(true);
+        }
 
         Pos position = new Pos(at);
         for (Dir direction : Dir.VALUES) {
@@ -140,10 +144,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                         }
                     }
 
-                    /*IListener listener = nodes.get(side).listener();
+                    listener = nodes.get(side).listener();
                     if (listener != null) {
                         listener.change(!found);
-                    }*/
+                    }
                 }
             }
         }

@@ -45,7 +45,7 @@ class TestBench {
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, Connectivity.Cache.of(new ExampleNode(), new Listener(pos)))) {
+                    if (!graph.addNode(position, points.length == 5 && points[4].startsWith("l") ? Connectivity.Cache.of(new ExampleNode(), new Listener(pos)) : Connectivity.Cache.of(new ExampleNode()))) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }
@@ -105,7 +105,7 @@ class TestBench {
                 return;
             }
 
-            System.out.println("Graph contains " + graph.countGroups() + " groups:");
+            /*System.out.println("Graph contains " + graph.countGroups() + " groups:");
 
             for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                 System.out.println("  Group " + group.getIntKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
@@ -131,7 +131,7 @@ class TestBench {
                 }
             }
 
-            System.out.println("_____________________________________________________________________________");
+            System.out.println("_____________________________________________________________________________");*/
         }
     }
 
