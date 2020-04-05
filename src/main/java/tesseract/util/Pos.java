@@ -282,10 +282,10 @@ public class Pos {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof Pos) {
-            Pos o = (Pos) obj;
-            return (value == o.value);
+    public boolean equals(Object o) {
+        if (o instanceof Pos) {
+            Pos obj = (Pos) o;
+            return (value == obj.value);
         }
         return false;
     }

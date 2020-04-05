@@ -42,6 +42,13 @@ public class Grid<C extends IConnectable> implements INode {
         return grid;
     }
 
+    /**
+     * @return Create a instance of a class for a given position and connector.
+     */
+    protected static <C extends IConnectable> Grid<C> empty() {
+        return new Grid<>();
+    }
+
     @Override
     public boolean contains(long pos) {
         return connectors.containsKey(pos) || nodes.containsKey(pos);
@@ -339,7 +346,7 @@ public class Grid<C extends IConnectable> implements INode {
         private Long2ObjectMap<IListener> listeners;
 
         /**
-         * Constructs a new Long2ByteMap with the same mappings as the specified Map.
+         * Constructs a new Long2ByteMap with the same mappings as the specified map.
          */
         Long2ByteCache() {
             map = new Long2ByteLinkedOpenHashMap();

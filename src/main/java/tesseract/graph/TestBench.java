@@ -83,29 +83,11 @@ class TestBench {
                     }
                 }
                 continue;
-            }/*else if (line.startsWith("path")) {
-                String[] points = line.split(" ");
-                if (points.length < 3) {
-                    System.out.println("Usage: cross <x1> <y1> <z1>");
-                    continue;
-                }
-
-                long pos = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
-                graph.findGroup(pos).ifPresent(group -> {
-                    for (Grid<ExampleCable> grid : group.findGrids(pos)) {
-                        for (Grid.Path<ExampleCable> path : grid.getPaths(pos)) {
-                            for (ExampleCable cable : path.getFull()) {
-                                System.out.println(cable);
-                            }
-                            System.out.println("(-)");
-                        }
-                    }
-                });
-            }*/ else if (line.startsWith("exit")) {
+            } else if (line.startsWith("exit")) {
                 return;
             }
 
-            /*System.out.println("Graph contains " + graph.countGroups() + " groups:");
+            System.out.println("Graph contains " + graph.countGroups() + " groups:");
 
             for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                 System.out.println("  Group " + group.getIntKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
@@ -131,7 +113,7 @@ class TestBench {
                 }
             }
 
-            System.out.println("_____________________________________________________________________________");*/
+            System.out.println("_____________________________________________________________________________");
         }
     }
 

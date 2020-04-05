@@ -20,6 +20,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
     private Long2ObjectMap<Connectivity.Cache<N>> nodes;
     private Int2ObjectMap<Grid<C>> grids;
+    private Object2IntMap<Paired> pairs; // nodes pairs
     private Long2IntMap connectors; // connectors pairing
 
     private BFDivider divider;
@@ -28,6 +29,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     private Group() {
         nodes = new Long2ObjectLinkedOpenHashMap<>();
         grids = new Int2ObjectLinkedOpenHashMap<>();
+        pairs = new Object2IntLinkedOpenHashMap<>();
+        pairs.defaultReturnValue(Utils.INVALID);
         connectors = new Long2IntLinkedOpenHashMap();
         connectors.defaultReturnValue(Utils.INVALID);
 
@@ -112,10 +115,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      */
     public void addNode(long at, Connectivity.Cache<N> node) {
         nodes.put(at, Objects.requireNonNull(node));
-        IListener listener = node.listener();
-        if (listener != null) {
-            listener.change(true);
-        }
 
         Pos position = new Pos(at);
         for (Dir direction : Dir.VALUES) {
@@ -126,6 +125,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             long side = position.offset(direction).get();
             int id = connectors.get(side);
 
+            // Add a node to the neighboring grid ?
             if (id != Utils.INVALID) {
                 Grid<C> grid = grids.get(id);
                 side = position.offset(direction).get();
@@ -134,20 +134,16 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     grid.addNode(at, node);
                 }
             } else {
+                // Pair of linked node connection create an empty grid
+                Connectivity.Cache<N> neighbor = nodes.get(side);
+                if (neighbor != null && neighbor.connects(direction.invert())) {
+                    Grid<C> grid = Grid.empty();
+                    grid.addNode(at, node);
+                    grid.addNode(side, neighbor);
 
-                if (nodes.containsKey(side)) {
-                    boolean found = false;
-                    for (Grid<C> grid : grids.values()) {
-                        if (grid.contains(side)) {
-                            grid.update();
-                            found = true;
-                        }
-                    }
-
-                    listener = nodes.get(side).listener();
-                    if (listener != null) {
-                        listener.change(!found);
-                    }
+                    id = Utils.getNewId();
+                    grids.put(id, grid);
+                    pairs.put(new Paired(at, side), id);
                 }
             }
         }
@@ -282,7 +278,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         // If removing the entry would not cause a group split, then it is safe to remove the entry directly.
         if (isExternal(posToRemove)) {
             Connectivity.Cache<N> node = nodes.remove(posToRemove);
-            int pairing = connectors.remove(posToRemove);
 
             if (node != null) {
                 // Clear removing node from nearest grid
@@ -290,9 +285,16 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     grids.get(id).removeNode(posToRemove);
                 }
 
+                // Remove the empty grid for pair
+                int id = pairs.getInt(new Paired(posToRemove));
+                if (id != Utils.INVALID) {
+                    grids.remove(id);
+                }
+
                 return true;
             }
 
+            int pairing = connectors.remove(posToRemove);
             Grid<C> grid = grids.get(pairing);
 
             // No check is needed here, because the caller already asserts that the Group contains the specified position.
@@ -363,6 +365,12 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             }
 
             nodes.remove(posToRemove);
+
+            // Remove the empty grid for pair
+            int id = pairs.getInt(new Paired(posToRemove));
+            if (id != Utils.INVALID) {
+                grids.remove(id);
+            }
         }
 
         for (int i = 0; i < colored.size(); i++) {
@@ -382,7 +390,14 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     // Just a node then, simply add it to the new group.
                     // The maps are mutated directly here in order to retain the cached connectivity.
                     if (id == Utils.INVALID) {
-                        newGroup.nodes.put(reached, Objects.requireNonNull(nodes.remove(reached)));
+                        Connectivity.Cache<N> node = Objects.requireNonNull(nodes.remove(reached));
+                        newGroup.nodes.put(reached, node);
+
+                        // Remove the empty grid for pair
+                        id = pairs.getInt(new Paired(reached));
+                        if (id != Utils.INVALID) {
+                            grids.remove(id);
+                        }
                         continue;
                     }
 
@@ -603,5 +618,39 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         return neighbors;
+    }
+
+    /**
+     * @apiNote Wrapper for paired nodes.
+     */
+    private static class Paired {
+
+        private long x;
+        private long y;
+
+        /**
+         * Constructs a new Pair of the linked nodes.
+         */
+        Paired(long x, long y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        /**
+         * Constructs a new Pair of the linked nodes.
+         */
+        Paired(long z) {
+            this.x = z;
+            this.y = z;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof Paired) {
+                Paired obj = (Paired) o;
+                return (obj.x == x || obj.y == y);
+            }
+            return false;
+        }
     }
 }
