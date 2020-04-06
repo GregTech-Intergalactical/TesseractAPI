@@ -480,8 +480,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param connectivity The connectivity sides.
      * @return The grid map, guaranteed to not be null.
      */
-    public Int2ObjectMap<Grid<C>> getGridsAt(long pos, byte connectivity) {
-        Int2ObjectMap<Grid<C>> neighbors = new Int2ObjectLinkedOpenHashMap<>(6);
+    public ObjectSet<Grid<C>> getGridsAt(long pos, byte connectivity) {
+        ObjectSet<Grid<C>> neighbors = new ObjectLinkedOpenHashSet<>(6);
 
         Set<Integer> pairing = pairs.get(pos);
         Pos position = new Pos(pos);
@@ -499,7 +499,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
             if (id != Utils.INVALID) {
                 if (Connectivity.has(connectivity, direction.invert())) {
-                    neighbors.put(direction.getIndex(), grids.get(id));
+                    neighbors.add(grids.get(id));
                 }
             }
         }

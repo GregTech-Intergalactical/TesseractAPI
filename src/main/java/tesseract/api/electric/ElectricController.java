@@ -16,7 +16,7 @@ public class ElectricController extends GraphWrapper implements IListener {
     private byte output;
     private IElectricEvent event;
     private Long2ObjectMap<Holder> amps;
-    private Int2ObjectMap<Object2ObjectMap<IElectricNode, ObjectList<Consumer>>> table;
+    private ObjectSet<Object2ObjectMap<IElectricNode, ObjectList<Consumer>>> data;
 
     /**
      * Creates instance of the controller.
@@ -31,7 +31,7 @@ public class ElectricController extends GraphWrapper implements IListener {
         this.event = event;
         this.output = output;
         this.amps = new Long2ObjectLinkedOpenHashMap<>();
-        this.table = new Object2ObjectLinkedOpenHashMap<>();
+        this.data = new ObjectLinkedOpenHashSet<>();
     }
 
     /**
@@ -44,28 +44,16 @@ public class ElectricController extends GraphWrapper implements IListener {
      * consumers with unique information about paths, loss, ect. Therefore production object will be act as double iterated map.
      * </p>
      * @see tesseract.graph.Grid (Cache)
+     * @param container The grid to use for cache operations.
      * @param primary True when node is a first in the grid.
      */
     @Override
-    public void change(boolean primary) {
-        if (!primary) {
-            table.clear();
-            return;
-        }
-        
+    public void change(INode container, boolean primary) {
+        data.clear();
+        if (primary) return;
         Group<IElectricCable, IElectricNode> group = graph.getGroupAt(position).orElseThrow(NullPointerException::new);
-        for (Int2ObjectMap.Entry<Grid<IElectricCable>> entry : group.getGridsAt(position, output).int2ObjectEntrySet()) {
-            int direction = entry.getIntKey();
-            Grid<IElectricCable> grid = entry.getValue();
-
-            Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data = table.get(direction);
-            if (data != null) {
-                data.clear();
-            } else {
-                data = new Object2ObjectLinkedOpenHashMap<>();
-                table.put(direction, data);
-            }
-
+        for (Grid<IElectricCable> grid : group.getGridsAt(position, output)) {
+            Object2ObjectMap<IElectricNode, ObjectList<Consumer>> neighbours = new Object2ObjectLinkedOpenHashMap<>();
             for (long origin : grid.getNodes().keySet()) {
                 IElectricNode producer = group.getNodes().get(origin).value();
                 if (producer.canOutput() && producer.getOutputAmperage() > 0) {
@@ -88,12 +76,10 @@ public class ElectricController extends GraphWrapper implements IListener {
                             }
                         }
                     }
-
-                    if (!consumers.isEmpty()) {
-                        data.put(producer, consumers);
-                    }
+                    if (!consumers.isEmpty()) neighbours.put(producer, consumers);
                 }
             }
+            if (!neighbours.isEmpty()) data.add(neighbours);
         }
     }
 
@@ -111,11 +97,9 @@ public class ElectricController extends GraphWrapper implements IListener {
      */
     @Override
     public void update() {
-        for (Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data : table.values()) {
-            if (data.isEmpty()) continue;
-
+        for (Object2ObjectMap<IElectricNode, ObjectList<Consumer>> grid : data) {
             try {
-                Producer producer = new Producer(data);
+                Producer producer = new Producer(grid);
                 Consumer consumer;
                 while ((consumer = producer.getConsumer()) != null) {
 

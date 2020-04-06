@@ -217,8 +217,8 @@ class TestBench {
         }
 
         @Override
-        public void change(boolean primary) {
-            if (primary) System.out.println(pos + " get update on some grid");
+        public void change(INode container, boolean primary) {
+            System.out.println(pos + " " + container.toString() + (primary ? " [primary]" : ""));
         }
     }
 }
