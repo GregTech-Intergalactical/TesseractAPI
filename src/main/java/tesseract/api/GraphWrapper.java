@@ -19,6 +19,8 @@ public class GraphWrapper {
     }
 
     public void remove() {
-        graph.removeAt(position);
+        if (graph.removeAt(position)) {
+            //NOOP
+        }
     }
 }

@@ -69,10 +69,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public boolean addNode(long pos, Connectivity.Cache<N> node) {
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleNode(pos, node));
-			if (group != null) {
-				group.addNode(pos, node);
-			}
-
+			if (group != null) group.addNode(pos, node);
 			return true;
 		}
 
@@ -89,10 +86,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public boolean addConnector(long pos, Connectivity.Cache<C> connector) {
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
-			if (group != null) {
-				group.addConnector(pos, connector);
-			}
-
+			if (group != null) group.addConnector(pos, connector);
 			return true;
 		}
 
@@ -229,7 +223,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * Lookups for neighbors groups around given position.
 	 *
 	 * @param pos The search position.
-	 * @return The array of the groups which are neighbors to each other.
+	 * @return The set of the groups which are neighbors to each other.
 	 */
 	private IntSet getNeighboringGroups(long pos) {
 		IntSet neighbors = new IntLinkedOpenHashSet(6);

@@ -8,6 +8,7 @@ import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
 
 import java.util.ArrayDeque;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -25,10 +26,10 @@ public class Grid<C extends IConnectable> implements INode {
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
         connectors = new Long2ObjectLinkedOpenHashMap<>();
+        nodes = new Long2ByteCache(this);
 
         divider = new BFDivider(this);
         finder = new ASFinder(this);
-        nodes = new Long2ByteCache(this);
     }
 
     /**
@@ -130,14 +131,14 @@ public class Grid<C extends IConnectable> implements INode {
      * @return Returns nodes map.
      */
     public Long2ByteMap getNodes() {
-        return nodes.asMap();
+        return nodes;
     }
 
     /**
      * Gets paths from the position to another linked nodes.
      *
      * @param from The position of the linked node.
-     * @return Returns full paths for the linked node.
+     * @return Returns paths from the linked node.
      */
     public ObjectList<Path<C>> getPaths(long from) {
         ObjectList<Path<C>> data = new ObjectArrayList<>();
@@ -341,11 +342,10 @@ public class Grid<C extends IConnectable> implements INode {
     /**
      * @apiNote Wrapper for a nodes with listeners for updates.
      */
-    private static class Long2ByteCache {
+    private static class Long2ByteCache extends Long2ByteLinkedOpenHashMap {
 
-        private Long2ByteMap map;
-        private Long2ObjectMap<IListener> listeners;
         private INode container;
+        private Long2ObjectMap<IListener> listeners;
 
         /**
          * Constructs a new Long2ByteMap with the same mappings as the specified map.
@@ -353,37 +353,20 @@ public class Grid<C extends IConnectable> implements INode {
          * @param container The container to use for cache operations.
          */
         Long2ByteCache(INode container) {
-            map = new Long2ByteLinkedOpenHashMap();
-            map.defaultReturnValue(Byte.MAX_VALUE);
+            defaultReturnValue(Byte.MAX_VALUE);
             listeners = new Long2ObjectLinkedOpenHashMap<>();
             this.container = container;
         }
 
         /**
-         * Returns true if this map contains a mapping for the specified key.
-         *
-         * @param key The key value.
-         * @return True or false.
-         */
-        boolean containsKey(long key) {
-            return map.containsKey(key);
-        }
-
-        /**
-         * @return Gets the value to which the specified key is mapped, or null if this map contains no mapping for the key.
-         */
-        byte get(long key) {
-            return map.get(key);
-        }
-
-        /**
          * Associates the specified value with the specified key in this map.
+         *
          * @param key The key value.
          * @param value The provided value.
          * @param listener The listener function.
          */
         void put(long key, byte value, IListener listener) {
-            map.put(key, value);
+            super.put(key, value);
             if (listener != null) {
                 listeners.put(key, listener);
             }
@@ -395,7 +378,7 @@ public class Grid<C extends IConnectable> implements INode {
          * @param wrapper The other object.
          */
         void putAll(Long2ByteCache wrapper) {
-            map.putAll(wrapper.map);
+            super.putAll(wrapper);
             listeners.putAll(wrapper.listeners);
         }
 
@@ -404,30 +387,23 @@ public class Grid<C extends IConnectable> implements INode {
          *
          * @param key The key value.
          */
-        void remove(long key) {
-            map.remove(key);
+        @Override
+        public byte remove(long key) {
+            byte value = super.remove(key);
             listeners.remove(key);
+            return value;
         }
 
-        /**
-         * @return Gets map size.
-         */
-        int size() {
-            return map.size();
+        @Override
+        @Deprecated
+        public byte put(long k, byte v) {
+            return super.put(k, v);
         }
 
-        /**
-         * @return Gets keys set.
-         */
-        LongSet keySet() {
-            return map.keySet();
-        }
-
-        /**
-         * @return Gets original map.
-         */
-        Long2ByteMap asMap() {
-            return map;
+        @Override
+        @Deprecated
+        public void putAll(Map<? extends Long, ? extends Byte> m) {
+            super.putAll(m);
         }
 
         /**
@@ -438,13 +414,6 @@ public class Grid<C extends IConnectable> implements INode {
          */
         IListener getListener(long key) {
             return listeners.get(key);
-        }
-
-        /**
-         * Removes all of the value from the map.
-         */
-        void clear() {
-            map.clear();
         }
 
         /**

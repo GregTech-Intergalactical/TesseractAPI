@@ -1,6 +1,5 @@
 package tesseract.graph;
 
-import com.google.common.collect.HashMultimap;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
@@ -10,9 +9,7 @@ import tesseract.util.Dir;
 import tesseract.util.Pos;
 import tesseract.util.Utils;
 
-import java.util.Iterator;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -22,8 +19,8 @@ import java.util.function.Consumer;
 public class Group<C extends IConnectable, N extends IConnectable> implements INode {
 
     private Long2ObjectMap<Connectivity.Cache<N>> nodes;
-    private HashMultimap<Long, Integer> pairs; // nodes pairs
     private Int2ObjectMap<Grid<C>> grids;
+    private Long2IntMultiMap pairs; // nodes pairs
     private Long2IntMap connectors; // connectors pairing
 
     private BFDivider divider;
@@ -32,10 +29,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     private Group() {
         nodes = new Long2ObjectLinkedOpenHashMap<>();
         grids = new Int2ObjectLinkedOpenHashMap<>();
+        pairs = new Long2IntMultiMap();
         connectors = new Long2IntLinkedOpenHashMap();
         connectors.defaultReturnValue(Utils.INVALID);
 
-        pairs = HashMultimap.create();
         divider = new BFDivider(this);
     }
 
@@ -146,8 +143,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     id = Utils.getNewId();
                     grids.put(id, grid);
 
-                    pairs.put(pos, id);
-                    pairs.put(side, id);
+                    pairs.add(pos, id);
+                    pairs.add(side, id);
                 }
             }
         }
@@ -450,7 +447,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 grids.remove(id);
             }
 
-            pairs.values().removeIf(i -> i == id);
+            pairs.remove(id);
         }
     }
 
@@ -478,7 +475,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     public ObjectSet<Grid<C>> getGridsAt(long pos, byte connectivity) {
         ObjectSet<Grid<C>> neighbors = new ObjectLinkedOpenHashSet<>(6);
 
-        Set<Integer> pairing = pairs.get(pos);
+        IntList pairing = pairs.getAll(pos);
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
             long side = position.offset(direction).asLong();
@@ -526,8 +523,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         return neighbors <= 1;
     }
-
-    // Graph controlled interface
 
     /**
      * Merges one group to the another.
@@ -580,5 +575,88 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         grids.putAll(other.grids);
+    }
+
+    /**
+     * @apiNote Wrapper for a primitive map with multiple keys.
+     */
+    private static class Long2IntMultiMap extends Long2ObjectLinkedOpenHashMap<IntList> {
+
+        Long2IntMultiMap() {
+            super();
+        }
+
+        /**
+         * Associates the specified value with the specified key in this map.
+         *
+         * @param key The key value.
+         * @param value The provided value.
+         */
+        void add(long key, int value) {
+            IntList list = get(key);
+            if (list == null) {
+                list = new IntArrayList(6);
+                put(key, list);
+            }
+            list.add(value);
+        }
+
+        /**
+         * Returns a view collection of the values associated with key in this multimap, if any.
+         *
+         * @param key The key value.
+         * @return Gets the values that were found (possibly empty). The returned collection may be modifiable, but updating it will have no effect on the multimap.
+         */
+        IntList getAll(long key) {
+            IntList list = get(key);
+            return list != null ? list : new IntArrayList(0);
+        }
+
+        /**
+         * Removes all values associated with the key.
+         *
+         * @param key The key value.
+         * @return Gets the values that were removed (possibly empty). The returned collection may be modifiable, but updating it will have no effect on the multimap.
+         */
+        IntList removeAll(long key) {
+            IntList list = remove(key);
+            return list != null ? list : new IntArrayList(0);
+        }
+
+        /**
+         * Removes all entries associated with the value.
+         *
+         * @param value The provided value.
+         */
+        void remove(int value) {
+            ObjectIterator<IntList> iterator = values().iterator();
+            while (iterator.hasNext()) {
+
+                IntList list = iterator.next();
+
+                IntIterator each = list.iterator();
+                while (each.hasNext()) {
+                    if (each.nextInt() == value) {
+                        each.remove();
+                    }
+                }
+
+                if (list.isEmpty()) {
+                    iterator.remove();
+                }
+            }
+        }
+
+        /**
+         * Returns true if this multimap contains at least one key-value pair with the key and the value.
+         *
+         * @param key The key value.
+         * @param value The provided value.
+         * @return True or false.
+         */
+        boolean containsEntry(long key, int value) {
+            IntList list = get(key);
+            return list != null && list.contains(value);
+        }
     }
 }
