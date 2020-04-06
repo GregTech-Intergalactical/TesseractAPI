@@ -37,7 +37,7 @@ class TestBench {
                 }
 
                 Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
-                long position = pos.get();
+                long position = pos.asLong();
 
                 if (points.length == 5 && points[4].startsWith("c")) {
                     if (!graph.addConnector(position, Connectivity.Cache.of(new ExampleCable()))) {
@@ -61,7 +61,7 @@ class TestBench {
 
                 Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
 
-                graph.remove(pos.get());
+                graph.removeAt(pos.asLong());
 
                 System.out.println("Removed " + pos + " from the graph");
 
@@ -217,8 +217,8 @@ class TestBench {
         }
 
         @Override
-        public void change(boolean primary) {
-            System.out.println(pos + (primary ? " [primary]" : " []"));
+        public void change(INode container) {
+            System.out.println(pos + " " + container.toString());
         }
     }
 }

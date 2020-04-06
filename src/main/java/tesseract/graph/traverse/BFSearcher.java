@@ -80,7 +80,7 @@ public class BFSearcher {
                 Pos position = new Pos(current);
                 // Discover new nodes
                 for (Dir direction : Dir.VALUES) {
-                    long pos = position.offset(direction).get();
+                    long pos = position.offset(direction).asLong();
 
                     if (closed.contains(pos)) {
                         // Already seen, prevent infinite loops.

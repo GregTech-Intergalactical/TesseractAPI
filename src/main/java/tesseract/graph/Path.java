@@ -35,8 +35,10 @@ public class Path<C extends IConnectable> {
         Iterator<Node> iterator = path.descendingIterator();
         while (iterator.hasNext()) {
             Node node = iterator.next();
-            long pos = node.get();
+            long pos = node.asLong();
+
             C cable = connectors.get(pos).value();
+
             full.put(pos, cable);
             if (node.isCrossroad()) {
                 cross.put(pos, cable);

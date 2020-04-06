@@ -21,7 +21,7 @@ public class ASFinder {
     /**
      * Creates a reusable AStarPathfinder instance that will search the provided container.
      *
-     * @param container The container to use for find operations
+     * @param container The container to use for find operations.
      */
     public ASFinder(INode container) {
         open = new ArrayDeque<>();
@@ -99,7 +99,7 @@ public class ASFinder {
     /**
      * Adds all nodes to the path set.
      *
-     * @param current The current node
+     * @param current The current node.
      */
     public void retracePath(Node current) {
         Node temp = current;
@@ -116,14 +116,14 @@ public class ASFinder {
     /**
      * Validates the crossroads state of the node.
      *
-     * @param current The current node
+     * @param current The current node.
      * @return True or false.
      */
     public boolean retraceNode(Node current) {
         byte connections = 0;
 
         for (Dir direction : Dir.VALUES) {
-            long pos = current.offset(direction).get();
+            long pos = current.offset(direction).asLong();
 
             if (container.connects(pos, direction)) {
                 connections++;
@@ -158,7 +158,7 @@ public class ASFinder {
         ObjectList<Node> neighbors = new ObjectArrayList<>(6);
 
         for (Dir direction : Dir.VALUES) {
-            long pos = current.offset(direction).get();
+            long pos = current.offset(direction).asLong();
 
             if (container.contains(pos)) {
                 neighbors.add(new Node(pos));

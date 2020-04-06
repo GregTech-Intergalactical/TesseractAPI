@@ -210,7 +210,7 @@ public class Pos {
     /**
      * @return Gets the compressed coordinate.
      */
-    public long get() {
+    public long asLong() {
         return value;
     }
 

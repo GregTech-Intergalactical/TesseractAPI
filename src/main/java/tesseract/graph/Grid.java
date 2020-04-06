@@ -28,7 +28,14 @@ public class Grid<C extends IConnectable> implements INode {
 
         divider = new BFDivider(this);
         finder = new ASFinder(this);
-        nodes = new Long2ByteCache();
+        nodes = new Long2ByteCache(this);
+    }
+
+    /**
+     * @return Create a instance of a class no content.
+     */
+    protected static <C extends IConnectable> Grid<C> emptyConnector() {
+        return new Grid<>();
     }
 
     /**
@@ -40,13 +47,6 @@ public class Grid<C extends IConnectable> implements INode {
         Grid<C> grid = new Grid<>();
         grid.connectors.put(pos, Objects.requireNonNull(connector));
         return grid;
-    }
-
-    /**
-     * @return Create a instance of a class for a given position and connector.
-     */
-    protected static <C extends IConnectable> Grid<C> empty() {
-        return new Grid<>();
     }
 
     @Override
@@ -82,9 +82,9 @@ public class Grid<C extends IConnectable> implements INode {
     }
 
     @Override
-    public boolean connects(long position, Dir towards) {
-        Connectivity.Cache<C> cache = connectors.get(position);
-        byte connectivity = nodes.get(position);
+    public boolean connects(long pos, Dir towards) {
+        Connectivity.Cache<C> cache = connectors.get(pos);
+        byte connectivity = nodes.get(pos);
 
         if (cache != null) {
             connectivity = cache.connectivity();
@@ -95,6 +95,14 @@ public class Grid<C extends IConnectable> implements INode {
         }
 
         return Connectivity.has(connectivity, towards);
+    }
+
+    /**
+     * Clears nodes from the grid.
+     */
+    public void clear() {
+        nodes.clear();
+        nodes.update();
     }
 
     /**
@@ -122,28 +130,21 @@ public class Grid<C extends IConnectable> implements INode {
      * @return Returns nodes map.
      */
     public Long2ByteMap getNodes() {
-        return nodes.getMap();
-    }
-
-    /**
-     * Updates node listeners.
-     */
-    public void update() {
-        nodes.update();
+        return nodes.asMap();
     }
 
     /**
      * Gets paths from the position to another linked nodes.
      *
-     * @param pos The position of the linked node.
+     * @param from The position of the linked node.
      * @return Returns full paths for the linked node.
      */
-    public ObjectList<Path<C>> getPaths(long pos) {
+    public ObjectList<Path<C>> getPaths(long from) {
         ObjectList<Path<C>> data = new ObjectArrayList<>();
 
-        for (long target : nodes.keySet()) {
-            if (pos != target) {
-                data.add(new Path<>(connectors, finder.traverse(pos, target)));
+        for (long to : nodes.keySet()) {
+            if (from != to) {
+                data.add(new Path<>(connectors, finder.traverse(from, to)));
             }
         }
 
@@ -223,7 +224,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param split A consumer for the resulting fresh graphs from the split operation.
      * @return True on success, false otherwise.
      */
-    public boolean remove(long pos, Consumer<Grid<C>> split) {
+    public boolean removeAt(long pos, Consumer<Grid<C>> split) {
         Objects.requireNonNull(split);
 
         if (!contains(pos)) {
@@ -241,7 +242,7 @@ public class Grid<C extends IConnectable> implements INode {
             roots -> {
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
-                    long side = position.offset(direction).get();
+                    long side = position.offset(direction).asLong();
 
                     if (linked(pos, direction, side)) {
                         roots.add(side);
@@ -293,7 +294,7 @@ public class Grid<C extends IConnectable> implements INode {
 
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
-            long side = position.offset(direction).get();
+            long side = position.offset(direction).asLong();
 
             if (nodes.containsKey(side) && isExternal(side)) {
                 nodes.remove(side);
@@ -327,7 +328,7 @@ public class Grid<C extends IConnectable> implements INode {
         byte neighbors = 0;
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
-            long side = position.offset(direction).get();
+            long side = position.offset(direction).asLong();
 
             if (!nodes.containsKey(side) && linked(pos, direction, side)) {
                 neighbors += 1;
@@ -344,14 +345,18 @@ public class Grid<C extends IConnectable> implements INode {
 
         private Long2ByteMap map;
         private Long2ObjectMap<IListener> listeners;
+        private INode container;
 
         /**
          * Constructs a new Long2ByteMap with the same mappings as the specified map.
+         *
+         * @param container The container to use for cache operations.
          */
-        Long2ByteCache() {
+        Long2ByteCache(INode container) {
             map = new Long2ByteLinkedOpenHashMap();
             map.defaultReturnValue(Byte.MAX_VALUE);
             listeners = new Long2ObjectLinkedOpenHashMap<>();
+            this.container = container;
         }
 
         /**
@@ -419,7 +424,7 @@ public class Grid<C extends IConnectable> implements INode {
         /**
          * @return Gets original map.
          */
-        Long2ByteMap getMap() {
+        Long2ByteMap asMap() {
             return map;
         }
 
@@ -431,12 +436,18 @@ public class Grid<C extends IConnectable> implements INode {
         }
 
         /**
+         * Removes all of the value from the map.
+         */
+        void clear() {
+            map.clear();
+        }
+
+        /**
          * Call attached listeners.
          */
         void update() {
-            boolean primary = true;
             for (IListener listener : listeners.values()) {
-                listener.change(primary); primary = false;
+                listener.change(container);
             }
         }
     }

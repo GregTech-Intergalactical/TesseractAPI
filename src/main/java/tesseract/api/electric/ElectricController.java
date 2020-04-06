@@ -14,9 +14,8 @@ public class ElectricController extends GraphWrapper implements IListener {
 
     private byte output;
     private IElectricEvent event;
-    //private ConnectionType connection;
     private Long2ObjectMap<Holder> amps;
-    private Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data;
+    private Object2ObjectMap<INode, Object2ObjectMap<IElectricNode, ObjectList<Consumer>>> table;
 
     /**
      * Creates instance of the controller.
@@ -31,11 +30,7 @@ public class ElectricController extends GraphWrapper implements IListener {
         this.event = event;
         this.output = output;
         this.amps = new Long2ObjectLinkedOpenHashMap<>();
-        this.data = new Object2ObjectLinkedOpenHashMap<>();
-
-        //graph.getGroup(position)
-
-        //connection = ConnectionType.INVALID;
+        this.table = new Object2ObjectLinkedOpenHashMap<>();
     }
 
     /**
@@ -47,55 +42,49 @@ public class ElectricController extends GraphWrapper implements IListener {
      * Finally, it will prebuilt consumer objects which are available for the producers. So each producer has a list of possible
      * consumers with unique information about paths, loss, ect. Therefore production object will be act as double iterated map.
      * </p>
-     * @see tesseract.graph.Grid (Listener)
-     * @param primary If true will be consider as a first node in grid.
+     * @see tesseract.graph.Grid (Cache)
+     * @param container The grid to use for cache operations.
      */
     @Override
-    public void change(boolean primary) {
-        data.clear();
+    public void change(INode container) {
+        Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data = table.get(container);
+        if (data != null) {
+            data.clear();
+        } else {
+            data = new Object2ObjectLinkedOpenHashMap<>();
+            table.put(container, data);
+        }
 
-        // If true then producer will act as controller
-        if (primary) {
-            /*graph.getGroup(position).ifPresent(group -> {
-                ObjectSet<Grid<IElectricCable>> grids = group.getGridsFor(position, output);
-
-                for (Grid<IElectricCable> grid : grids) {
-                    for (long pos : grid.getNodes().keySet()) {
-                        IElectricNode producer = group.getNodes().get(pos).value();
-                        if (producer.canOutput() && producer.getOutputAmperage() > 0) {
-                            ObjectList<Consumer> consumers = new ObjectArrayList<>();
-                            for (Path<IElectricCable> path : grid.getPaths(pos)) {
-                                if (!path.isEmpty()) {
-                                    long position = path.target().get();
-                                    IElectricNode node = group.getNodes().get(position).value();
-                                    if (node.canInput()) {
-                                        if (producer.getOutputVoltage() > node.getInputVoltage()) {
-                                            event.onOverVoltage(position);
-                                        } else {
-                                            Consumer consumer = new Consumer(node, path);
-                                            long voltage = producer.getOutputVoltage() - consumer.getLoss();
-                                            if (voltage > 0) {
-                                                consumer.setVoltage(voltage);
-                                                consumers.add(consumer);
-                                            }
-                                        }
+        Group<IElectricCable, IElectricNode> group = graph.getGroupAt(position).orElseThrow(NullPointerException::new);
+        for (Grid<IElectricCable> grid : group.getGridsAt(position, output)) {
+            for (long origin : grid.getNodes().keySet()) {
+                IElectricNode producer = group.getNodes().get(origin).value();
+                if (producer.canOutput() && producer.getOutputAmperage() > 0) {
+                    ObjectList<Consumer> consumers = new ObjectArrayList<>();
+                    for (Path<IElectricCable> path : grid.getPaths(origin)) {
+                        if (!path.isEmpty()) {
+                            long target = path.target().asLong();
+                            IElectricNode node = group.getNodes().get(target).value();
+                            if (node.canInput()) {
+                                if (producer.getOutputVoltage() > node.getInputVoltage()) {
+                                    event.onOverVoltage(target);
+                                } else {
+                                    Consumer consumer = new Consumer(node, path);
+                                    long voltage = producer.getOutputVoltage() - consumer.getLoss();
+                                    if (voltage > 0) {
+                                        consumer.setVoltage(voltage);
+                                        consumers.add(consumer);
                                     }
                                 }
                             }
-
-                            if (!consumers.isEmpty()) {
-                                data.put(producer, consumers);
-                            }
                         }
                     }
-                }
-            });
 
-            if (data.isEmpty()) {
-                connection = ConnectionType.SINGLE;
-            } else {
-                connection = ConnectionType.VARIATE;
-            }*/
+                    if (!consumers.isEmpty()) {
+                        data.put(producer, consumers);
+                    }
+                }
+            }
         }
     }
 
@@ -113,51 +102,54 @@ public class ElectricController extends GraphWrapper implements IListener {
      */
     @Override
     public void update() {
-        if (data.isEmpty()) return;
+        for (Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data : table.values()) {
+            if (data.isEmpty()) continue;
 
-        try {
-            Producer producer = new Producer(data); Consumer consumer;
-            while ((consumer = producer.getConsumer()) != null) {
+            try {
+                Producer producer = new Producer(data);
+                Consumer consumer;
+                while ((consumer = producer.getConsumer()) != null) {
 
-                long amperage = producer.getAmperage(consumer.getRequiredAmperage());
+                    long amperage = producer.getAmperage(consumer.getRequiredAmperage());
 
-                consumer.setAmperage(consumer.getAmperage() - amperage);
+                    consumer.setAmperage(consumer.getAmperage() - amperage);
 
-                consumer.insert(consumer.getVoltage() * amperage);
-                producer.extract(producer.getVoltage() * amperage);
+                    consumer.insert(consumer.getVoltage() * amperage);
+                    producer.extract(producer.getVoltage() * amperage);
 
-                // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
-                if (!consumer.canReceive(producer.getVoltage(), amperage)) { // Fast check by the lowest cost cable
-                    // Find corrupt cable and return
-                    for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(false).long2ObjectEntrySet()) {
-                        if (!entry.getValue().canHandle(producer.getVoltage(), amperage)) {
-                            event.onOverAmperage(entry.getLongKey());
+                    // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
+                    if (!consumer.canReceive(producer.getVoltage(), amperage)) { // Fast check by the lowest cost cable
+                        // Find corrupt cable and return
+                        for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(false).long2ObjectEntrySet()) {
+                            if (!entry.getValue().canHandle(producer.getVoltage(), amperage)) {
+                                event.onOverAmperage(entry.getLongKey());
+                            }
+                        }
+                        return;
+                    }
+
+                    // Stores the amp into holder for path only for variate connection
+                    if (consumer.getConnectionType() == ConnectionType.VARIATE) {
+                        for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(true).long2ObjectEntrySet()) {
+                            Holder holder = amps.get(entry.getLongKey());
+                            if (holder == null) {
+                                amps.put(entry.getLongKey(), new Holder(entry.getValue().getAmps(), amperage));
+                            } else {
+                                holder.add(amperage);
+                            }
                         }
                     }
-                    return;
                 }
 
-                // Stores the amp into holder for path only for variate connection
-                if (consumer.getConnectionType() == ConnectionType.VARIATE) {
-                    for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(true).long2ObjectEntrySet()) {
-                        Holder holder = amps.get(entry.getLongKey());
-                        if (holder == null) {
-                            amps.put(entry.getLongKey(), new Holder(entry.getValue().getAmps(), amperage));
-                        } else {
-                            holder.add(amperage);
-                        }
+                for (Long2ObjectMap.Entry<Holder> entry : amps.long2ObjectEntrySet()) {
+                    if (!entry.getValue().canHandle()) {
+                        event.onOverAmperage(entry.getLongKey());
                     }
                 }
-            }
 
-            for (Long2ObjectMap.Entry<Holder> entry : amps.long2ObjectEntrySet()) {
-                if (!entry.getValue().canHandle()) {
-                    event.onOverAmperage(entry.getLongKey());
-                }
+            } finally {
+                amps.clear();
             }
-
-        } finally {
-            amps.clear();
         }
     }
 

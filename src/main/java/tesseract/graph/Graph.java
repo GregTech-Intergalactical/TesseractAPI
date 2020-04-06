@@ -41,8 +41,8 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	}
 
 	@Override
-	public boolean connects(long position, Dir towards) {
-		return contains(position);
+	public boolean connects(long pos, Dir towards) {
+		return contains(pos);
 	}
 
 	/**
@@ -139,7 +139,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The position of the entry to remove.
 	 * @return True on success, false otherwise.
 	 */
-	public boolean remove(long pos) {
+	public boolean removeAt(long pos) {
 		int id = positions.remove(pos);
 
 		if (id == Utils.INVALID) {
@@ -148,7 +148,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 		Group<C, N> group = groups.get(id);
 
-		boolean removed = group.remove(pos, newGroup -> {
+		boolean removed = group.removeAt(pos, newGroup -> {
 			int newId = Utils.getNewId();
 			groups.put(newId, newGroup);
 
@@ -178,14 +178,9 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The position of the group.
 	 * @return The group, guaranteed to not be null.
 	 */
-	public Optional<Group<C, N>> getGroup(long pos) {
+	public Optional<Group<C, N>> getGroupAt(long pos) {
 		int id = positions.get(pos);
-
-		if (id == Utils.INVALID) {
-			return Optional.empty();
-		}
-
-		return Optional.of(groups.get(id));
+		return (id == Utils.INVALID) ? Optional.empty() : Optional.of(groups.get(id));
 	}
 
 	/**
@@ -220,18 +215,14 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			Group<C, N> removed = groups.remove(id);
 
 			// Remap each position to point to the correct group.
-			for (long position : removed.getBlocks()) {
-				positions.put(position, bestId);
+			for (long pos : removed.getBlocks()) {
+				positions.put(pos, bestId);
 			}
 
 			mergeGroups.add(removed);
 		}
 
-		Merged<C, N> data = new Merged<>();
-		data.best = best;
-		data.bestId = bestId;
-		data.merged = mergeGroups;
-		return data;
+		return new Merged<>(bestId, best, mergeGroups);
 	}
 
 	/**
@@ -245,7 +236,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 		Pos position = new Pos(pos);
 		for (Dir direction : Dir.VALUES) {
-			long side = position.offset(direction).get();
+			long side = position.offset(direction).asLong();
 			int id = positions.get(side);
 
 			if (id != Utils.INVALID) {
@@ -260,8 +251,18 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @apiNote Wrapper for merged groups.
 	 */
 	private static class Merged<C extends IConnectable, N extends IConnectable> {
+
 		int bestId;
 		Group<C, N> best;
 		ObjectList<Group<C, N>> merged;
+
+		/**
+		 * Constructs a new Merged of the groups.
+		 */
+		Merged(int bestId, Group<C, N> best, ObjectList<Group<C, N>> merged) {
+			this.best = best;
+			this.bestId = bestId;
+			this.merged = merged;
+		}
 	}
 }
