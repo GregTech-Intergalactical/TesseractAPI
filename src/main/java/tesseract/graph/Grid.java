@@ -268,7 +268,7 @@ public class Grid<C extends IConnectable> implements INode {
 
                 if (connectivity != Byte.MAX_VALUE) {
                     check.add(reached);
-                    newGrid.nodes.put(reached, connectivity, nodes.getListeners().get(reached));
+                    newGrid.nodes.put(reached, connectivity, nodes.getListener(reached));
                 } else {
                     newGrid.connectors.put(reached, connectors.remove(reached));
                 }
@@ -400,6 +400,8 @@ public class Grid<C extends IConnectable> implements INode {
         }
 
         /**
+         * Removes the entry by the given key.
+         *
          * @param key The key value.
          */
         void remove(long key) {
@@ -429,10 +431,13 @@ public class Grid<C extends IConnectable> implements INode {
         }
 
         /**
-         * @return Gets listeners map.
+         * Gets the listener for a given key.
+         *
+         * @param key The key value.
+         * @return Gets listener.
          */
-        Long2ObjectMap<IListener> getListeners() {
-            return listeners;
+        IListener getListener(long key) {
+            return listeners.get(key);
         }
 
         /**

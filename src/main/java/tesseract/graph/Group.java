@@ -10,6 +10,7 @@ import tesseract.util.Dir;
 import tesseract.util.Pos;
 import tesseract.util.Utils;
 
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -35,7 +36,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         connectors.defaultReturnValue(Utils.INVALID);
 
         pairs = HashMultimap.create();
-
         divider = new BFDivider(this);
     }
 
@@ -273,6 +273,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      */
     public boolean removeAt(long pos, Consumer<Group<C, N>> split) {
         Objects.requireNonNull(split);
+
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.
         if (!contains(pos)) {
@@ -285,19 +286,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
             if (node != null) {
                 // Clear removing node from nearest grid
-                for (int id : getNeighboringGrids(pos)) {
-                    grids.get(id).removeNode(pos);
-                }
-
-                // Remove the empty grid for pair
-                for (int id : pairs.removeAll(pos)) {
-                    Grid<C> grid = grids.get(id);
-                    if (grid != null) {
-                        grid.clear();
-                        grids.remove(id);
-                    }
-                }
-
+                removeNode(pos);
                 return true;
             }
 
@@ -368,20 +357,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         } else {
             // Clear removing node from nearest grid
-            for (int id : getNeighboringGrids(pos)) {
-                grids.get(id).removeNode(pos);
-            }
-
+            removeNode(pos);
             nodes.remove(pos);
-
-            // Remove the empty grid for pair
-            for (int id : pairs.removeAll(pos)) {
-                Grid<C> grid = grids.get(id);
-                if (grid != null) {
-                    grid.clear();
-                    grids.remove(id);
-                }
-            }
         }
 
         for (int i = 0; i < colored.size(); i++) {
@@ -402,16 +379,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     // The maps are mutated directly here in order to retain the cached connectivity.
                     if (id == Utils.INVALID) {
                         newGroup.nodes.put(reached, Objects.requireNonNull(nodes.remove(reached)));
-
-                        //TODO: Refactor
-                        // Remove the empty grid for pair
-                        /*for (int x : pairs.removeAll(reached)) {
-                            Grid<C> grid = grids.get(x);
-                            if (grid != null) {
-                                grid.clear();
-                                grids.remove(x);
-                            }
-                        }*/
                         continue;
                     }
 
@@ -457,6 +424,34 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         return true;
+    }
+
+    /**
+     * Removes the nodes from nearest grids and pairs.
+     * @param pos The position of the node.
+     */
+    private void removeNode(long pos) {
+        // Clear removing node from nearest grid
+        Pos position = new Pos(pos);
+        for (Dir direction : Dir.VALUES) {
+            long side = position.offset(direction).asLong();
+            int id = connectors.get(side);
+
+            if (id != Utils.INVALID) {
+                grids.get(id).removeNode(pos);
+            }
+        }
+
+        // Remove the empty grid for the pair
+        for (int id : pairs.removeAll(pos)) {
+            Grid<C> grid = grids.get(id);
+            if (grid != null) {
+                grid.clear();
+                grids.remove(id);
+            }
+
+            pairs.values().removeIf(i -> i == id);
+        }
     }
 
     /**
@@ -585,27 +580,5 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         grids.putAll(other.grids);
-    }
-
-    /**
-     * Lookups for neighbors grids around given position.
-     *
-     * @param pos The search position.
-     * @return The set of the grids which are neighbors to each other.
-     */
-    private IntSet getNeighboringGrids(long pos) {
-        IntSet neighbors = new IntLinkedOpenHashSet(6);
-
-        Pos position = new Pos(pos);
-        for (Dir direction : Dir.VALUES) {
-            long side = position.offset(direction).asLong();
-            int id = connectors.get(side);
-
-            if (id != Utils.INVALID) {
-                neighbors.add(id);
-            }
-        }
-
-        return neighbors;
     }
 }
