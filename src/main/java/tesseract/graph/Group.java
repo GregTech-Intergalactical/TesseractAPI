@@ -11,6 +11,7 @@ import tesseract.util.Pos;
 import tesseract.util.Utils;
 
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -32,6 +33,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         grids = new Int2ObjectLinkedOpenHashMap<>();
         connectors = new Long2IntLinkedOpenHashMap();
         connectors.defaultReturnValue(Utils.INVALID);
+
         pairs = HashMultimap.create();
 
         divider = new BFDivider(this);
@@ -400,6 +402,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     // The maps are mutated directly here in order to retain the cached connectivity.
                     if (id == Utils.INVALID) {
                         newGroup.nodes.put(reached, Objects.requireNonNull(nodes.remove(reached)));
+
+                        //TODO: Refactor
                         // Remove the empty grid for pair
                         /*for (int x : pairs.removeAll(reached)) {
                             Grid<C> grid = grids.get(x);
@@ -474,32 +478,28 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      *
      * @param pos The position of the grid.
      * @param connectivity The connectivity sides.
-     * @return The grid set, guaranteed to not be null.
+     * @return The grid map, guaranteed to not be null.
      */
-    public ObjectSet<Grid<C>> getGridsAt(long pos, byte connectivity) {
-        ObjectSet<Grid<C>> neighbors = new ObjectLinkedOpenHashSet<>();
+    public Int2ObjectMap<Grid<C>> getGridsAt(long pos, byte connectivity) {
+        Int2ObjectMap<Grid<C>> neighbors = new Int2ObjectLinkedOpenHashMap<>(6);
 
-        int id = connectors.get(pos);
-
-        // If we found connector, the stop
-        if (id != Utils.INVALID) {
-            neighbors.add(grids.get(id));
-            return neighbors;
-        }
-
-        // Found grids for the paired connection
-        /*while ((id = pairs.getInt(new Paired(pos))) != Utils.INVALID) {
-            neighbors.add(grids.get(id));
-        }*/
-
+        Set<Integer> pairing = pairs.get(pos);
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
             long side = position.offset(direction).asLong();
-            id = connectors.get(side);
+            int id = connectors.get(side);
+
+            if (id == Utils.INVALID) {
+                for (int pair : pairing) {
+                    if (pairs.containsEntry(pos, pair)) {
+                        id = pair;
+                    }
+                }
+            }
 
             if (id != Utils.INVALID) {
                 if (Connectivity.has(connectivity, direction.invert())) {
-                    neighbors.add(grids.get(id));
+                    neighbors.put(direction.getIndex(), grids.get(id));
                 }
             }
         }

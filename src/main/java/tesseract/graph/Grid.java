@@ -446,8 +446,9 @@ public class Grid<C extends IConnectable> implements INode {
          * Call attached listeners.
          */
         void update() {
+            boolean primary = true;
             for (IListener listener : listeners.values()) {
-                listener.change(container);
+                listener.change(primary); primary = false;
             }
         }
     }
