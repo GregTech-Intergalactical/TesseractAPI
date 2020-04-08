@@ -4,33 +4,28 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.api.ConnectionType;
-import tesseract.api.GraphWrapper;
 import tesseract.graph.*;
 
 /**
  * @es
  */
-public class ElectricController extends GraphWrapper implements IListener {
-
-    private byte output;
+public class ElectricController implements ITickingController {
     private IElectricEvent event;
     private Long2ObjectMap<Holder> amps;
     private ObjectSet<Object2ObjectMap<IElectricNode, ObjectList<Consumer>>> data;
+    Group<IElectricCable, IElectricNode> group;
 
     /**
      * Creates instance of the controller.
      *
-     * @param graph The graph instance.
-     * @param position The position of node.
-     * @param output The output sides.
+     * @param group The group this controller handles.
      * @param event The event listener.
      */
-    public ElectricController(Graph<IElectricCable, IElectricNode> graph, long position, byte output, IElectricEvent event) {
-        super(graph, position);
+    public ElectricController(Group<IElectricCable, IElectricNode> group, IElectricEvent event) {
         this.event = event;
-        this.output = output;
         this.amps = new Long2ObjectLinkedOpenHashMap<>();
         this.data = new ObjectLinkedOpenHashSet<>();
+        this.group = group;
     }
 
     /**
@@ -44,14 +39,11 @@ public class ElectricController extends GraphWrapper implements IListener {
      * </p>
      * @see tesseract.graph.Grid (Cache)
      * @param container The grid to use for cache operations.
-     * @param primary True when node is a first in the grid.
      */
     @Override
-    public void change(INode container, boolean primary) {
+    public void change(INode container) {
         data.clear();
-        if (primary) return;
-        Group<IElectricCable, IElectricNode> group = graph.getGroupAt(position).orElseThrow(NullPointerException::new);
-        for (Grid<IElectricCable> grid : group.getGridsAt(position, output)) {
+/*        for (Grid<IElectricCable> grid : group.getGridsAt(position, output)) {
             Object2ObjectMap<IElectricNode, ObjectList<Consumer>> neighbours = new Object2ObjectLinkedOpenHashMap<>();
             for (long origin : grid.getNodes().keySet()) {
                 IElectricNode producer = group.getNodes().get(origin).value();
@@ -80,6 +72,7 @@ public class ElectricController extends GraphWrapper implements IListener {
             }
             if (!neighbours.isEmpty()) data.add(neighbours);
         }
+ */
     }
 
     /**
@@ -95,7 +88,7 @@ public class ElectricController extends GraphWrapper implements IListener {
      * After energy was send, loop will check the amp holder instances on ampers map to find cross-nodes where amps/voltage is exceed max limit.
      */
     @Override
-    public void update() {
+    public void tick() {
         for (Object2ObjectMap<IElectricNode, ObjectList<Consumer>> grid : data) {
             try {
                 Producer producer = new Producer(grid);

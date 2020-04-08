@@ -37,7 +37,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 	@Override
 	public boolean linked(long from, Dir towards, long to) {
-		return positions.containsKey(from) && positions.containsKey(to);
+		return positions.containsKey(from) && positions.containsKey(to) && positions.get(from) == positions.get(to);
 	}
 
 	@Override

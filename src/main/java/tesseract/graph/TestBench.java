@@ -45,7 +45,7 @@ class TestBench {
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, points.length == 5 && points[4].startsWith("l") ? Connectivity.Cache.of(new ExampleNode(), new Listener(pos)) : Connectivity.Cache.of(new ExampleNode()))) {
+                    if (!graph.addNode(position, Connectivity.Cache.of(new ExampleNode()))) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }
@@ -202,23 +202,25 @@ class TestBench {
             return false;
         }
 
+        /**
+         * Used to determine which sides can output energy (if any).
+         * Output cannot be used as input.
+         *
+         * @param direction Direction to test
+         * @return Returns true if the given direction is output side
+         */
+        @Override
+        public boolean canOutput(Dir direction) {
+            return false;
+        }
+
         @Override
         public boolean canOutput() {
             return false;
         }
-    }
-
-    public static class Listener implements IListener {
-
-        Pos pos;
-
-        public Listener(Pos pos) {
-            this.pos = pos;
-        }
 
         @Override
-        public void change(INode container, boolean primary) {
-            System.out.println(pos + " " + container.toString() + (primary ? " [primary]" : ""));
+        public void reset(ITickingController oldController, ITickingController newController) {
         }
     }
 }

@@ -18,19 +18,13 @@ import java.util.function.Consumer;
  */
 public class Grid<C extends IConnectable> implements INode {
 
-    private Long2ObjectMap<Connectivity.Cache<C>> connectors;
-    private Long2ByteCache nodes;
-    private BFDivider divider;
-    private ASFinder finder;
+    private Long2ObjectMap<Connectivity.Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
+    private Long2ByteLinkedOpenHashMap nodes = new Long2ByteLinkedOpenHashMap();
+    private BFDivider divider = new BFDivider(this);
+    private ASFinder finder = new ASFinder(this);
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
-    private Grid() {
-        connectors = new Long2ObjectLinkedOpenHashMap<>();
-        nodes = new Long2ByteCache(this);
-
-        divider = new BFDivider(this);
-        finder = new ASFinder(this);
-    }
+    private Grid() {}
 
     /**
      * @return Create a instance of a class no content.
@@ -103,7 +97,6 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public void clear() {
         nodes.clear();
-        nodes.update();
     }
 
     /**
@@ -171,7 +164,6 @@ public class Grid<C extends IConnectable> implements INode {
     public void mergeWith(Grid<C> other) {
         connectors.putAll(other.connectors);
         nodes.putAll(other.nodes);
-        nodes.update();
     }
 
     /**
@@ -192,7 +184,6 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public void addConnector(long pos, Connectivity.Cache<C> connector) {
         connectors.put(pos, connector);
-        nodes.update();
     }
 
     /**
@@ -202,8 +193,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param node The given node.
      */
     public void addNode(long pos, Connectivity.Cache<?> node) {
-        nodes.put(pos, node.connectivity(), node.listener());
-        nodes.update();
+        nodes.put(pos, node.connectivity());
     }
 
     /**
@@ -213,7 +203,6 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public void removeNode(long pos) {
         nodes.remove(pos);
-        nodes.update();
     }
 
     /**
@@ -269,14 +258,11 @@ public class Grid<C extends IConnectable> implements INode {
 
                 if (connectivity != Byte.MAX_VALUE) {
                     check.add(reached);
-                    newGrid.nodes.put(reached, connectivity, nodes.getListener(reached));
+                    newGrid.nodes.put(reached, connectivity);
                 } else {
                     newGrid.connectors.put(reached, connectors.remove(reached));
                 }
             }
-
-            newGrid.nodes.update();
-
             split.accept(newGrid);
         }
 
@@ -309,8 +295,6 @@ public class Grid<C extends IConnectable> implements INode {
                 }
             }
         }
-
-        nodes.update();
         return connector != null;
     }
 
@@ -337,93 +321,5 @@ public class Grid<C extends IConnectable> implements INode {
         }
 
         return neighbors <= 1;
-    }
-
-    /**
-     * @apiNote Wrapper for a nodes with listeners for updates.
-     */
-    private static class Long2ByteCache extends Long2ByteLinkedOpenHashMap {
-
-        private INode container;
-        private Long2ObjectMap<IListener> listeners;
-
-        /**
-         * Constructs a new Long2ByteMap with the same mappings as the specified map.
-         *
-         * @param container The container to use for cache operations.
-         */
-        Long2ByteCache(INode container) {
-            defaultReturnValue(Byte.MAX_VALUE);
-            listeners = new Long2ObjectLinkedOpenHashMap<>();
-            this.container = container;
-        }
-
-        /**
-         * Associates the specified value with the specified key in this map.
-         *
-         * @param key The key value.
-         * @param value The provided value.
-         * @param listener The listener function.
-         */
-        void put(long key, byte value, IListener listener) {
-            super.put(key, value);
-            if (listener != null) {
-                listeners.put(key, listener);
-            }
-        }
-
-        /**
-         * Copies all of the mappings from the specified map to this map.
-         *
-         * @param wrapper The other object.
-         */
-        void putAll(Long2ByteCache wrapper) {
-            super.putAll(wrapper);
-            listeners.putAll(wrapper.listeners);
-        }
-
-        /**
-         * Removes the entry by the given key.
-         *
-         * @param key The key value.
-         */
-        @Override
-        public byte remove(long key) {
-            byte value = super.remove(key);
-            listeners.remove(key);
-            return value;
-        }
-
-        @Override
-        @Deprecated
-        public byte put(long k, byte v) {
-            return super.put(k, v);
-        }
-
-        @Override
-        @Deprecated
-        public void putAll(Map<? extends Long, ? extends Byte> m) {
-            super.putAll(m);
-        }
-
-        /**
-         * Gets the listener for a given key.
-         *
-         * @param key The key value.
-         * @return Gets listener.
-         */
-        IListener getListener(long key) {
-            return listeners.get(key);
-        }
-
-        /**
-         * Call attached listeners.
-         */
-        void update() {
-            boolean primary = true;
-            for (IListener listener : listeners.values()) {
-                listener.change(container, primary); primary = false;
-            }
-        }
     }
 }

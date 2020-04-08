@@ -3,6 +3,7 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
+import org.antlr.v4.runtime.misc.FlexibleHashMap;
 import tesseract.api.IConnectable;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Dir;
@@ -22,7 +23,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     private Int2ObjectMap<Grid<C>> grids;
     private Long2IntMultiMap pairs; // nodes pairs
     private Long2IntMap connectors; // connectors pairing
-
+    public ITickingController controller = null;
+    public ITickHost currentTickHost = null;
     private BFDivider divider;
 
     // Prevent the creation of empty groups externally, a caller needs to use singleNode/singleConnector.
@@ -32,7 +34,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         pairs = new Long2IntMultiMap();
         connectors = new Long2IntLinkedOpenHashMap();
         connectors.defaultReturnValue(Utils.INVALID);
-
         divider = new BFDivider(this);
     }
 
@@ -75,6 +76,24 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         return contains(pos);
     }
 
+    private void resetControllerHost(Connectivity.Cache<N> node) {
+        if (currentTickHost != null && node.value() instanceof ITickHost && (ITickHost)node.value() == currentTickHost) {
+            currentTickHost.reset(controller, null);
+            currentTickHost = null;
+            if (controller != null) {
+                for(Long2ObjectMap.Entry<Connectivity.Cache<N>> n : nodes.long2ObjectEntrySet()){
+                    if (n.getValue() == node || !(n.getValue() instanceof ITickHost))
+                        continue;
+                    currentTickHost = (ITickHost)n.getValue();
+                    break;
+                }
+                if (currentTickHost == null)
+                    controller = null;
+                else
+                    currentTickHost.reset(null, controller);
+            }
+        }
+    }
     /**
      * @return Gets the number of blocks.
      */
@@ -276,6 +295,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         if (!contains(pos)) {
             throw new IllegalArgumentException("Group::remove: Tried to call with a position that does not exist within the group.");
         }
+        resetControllerHost(nodes.get(pos));
 
         // If removing the entry would not cause a group split, then it is safe to remove the entry directly.
         if (isExternal(pos)) {

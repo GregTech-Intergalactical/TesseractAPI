@@ -228,9 +228,26 @@ public class GraphTest {
             return false;
         }
 
+        /**
+         * Used to determine which sides can output energy (if any).
+         * Output cannot be used as input.
+         *
+         * @param direction Direction to test
+         * @return Returns true if the given direction is output side
+         */
+        @Override
+        public boolean canOutput(Dir direction) {
+            return false;
+        }
+
         @Override
         public boolean canOutput() {
             return false;
+        }
+
+        @Override
+        public void reset(ITickingController oldController, ITickingController newController) {
+
         }
     }
 }
