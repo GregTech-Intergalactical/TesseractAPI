@@ -27,13 +27,6 @@ public class Grid<C extends IConnectable> implements INode {
     private Grid() {}
 
     /**
-     * @return Create a instance of a class no content.
-     */
-    protected static <C extends IConnectable> Grid<C> emptyConnector() {
-        return new Grid<>();
-    }
-
-    /**
      * @param pos The position of the connector.
      * @param connector The given connector.
      * @return Create a instance of a class for a given position and connector.

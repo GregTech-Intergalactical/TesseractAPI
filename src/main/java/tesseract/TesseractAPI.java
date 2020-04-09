@@ -44,8 +44,9 @@ public class TesseractAPI {
         Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dimension);
         graph.addNode(position, Connectivity.Cache.of(node));
         Group<IElectricCable, IElectricNode> g = graph.getGroupAt(position).get();
-        if (g.controller == null) {
+        if (g.controller == null)
             g.controller = new ElectricController(g, event);
+        if (g.currentTickHost == null) {
             g.currentTickHost = node;
             node.reset(null, g.controller);
         }

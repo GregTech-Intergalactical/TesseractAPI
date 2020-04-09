@@ -10,6 +10,7 @@ import tesseract.util.Dir;
 import tesseract.util.Pos;
 import tesseract.util.Utils;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -19,20 +20,15 @@ import java.util.function.Consumer;
  */
 public class Group<C extends IConnectable, N extends IConnectable> implements INode {
 
-    private Long2ObjectMap<Connectivity.Cache<N>> nodes;
-    private Int2ObjectMap<Grid<C>> grids;
-    private Long2IntMultiMap pairs; // nodes pairs
-    private Long2IntMap connectors; // connectors pairing
+    private Long2ObjectMap<Connectivity.Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
+    private Int2ObjectMap<Grid<C>> grids = new Int2ObjectLinkedOpenHashMap<>();
+    private Long2IntMap connectors = new Long2IntLinkedOpenHashMap(); // connectors pairing
     public ITickingController controller = null;
     public ITickHost currentTickHost = null;
     private BFDivider divider;
 
     // Prevent the creation of empty groups externally, a caller needs to use singleNode/singleConnector.
     private Group() {
-        nodes = new Long2ObjectLinkedOpenHashMap<>();
-        grids = new Int2ObjectLinkedOpenHashMap<>();
-        pairs = new Long2IntMultiMap();
-        connectors = new Long2IntLinkedOpenHashMap();
         connectors.defaultReturnValue(Utils.INVALID);
         divider = new BFDivider(this);
     }
@@ -77,22 +73,29 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     private void resetControllerHost(Connectivity.Cache<N> node) {
-        if (currentTickHost != null && node.value() instanceof ITickHost && (ITickHost)node.value() == currentTickHost) {
+        if (currentTickHost != null && node.value() instanceof ITickHost && node.value() == currentTickHost) {
             currentTickHost.reset(controller, null);
-            currentTickHost = null;
-            if (controller != null) {
-                for(Long2ObjectMap.Entry<Connectivity.Cache<N>> n : nodes.long2ObjectEntrySet()){
-                    if (n.getValue() == node || !(n.getValue() instanceof ITickHost))
-                        continue;
-                    currentTickHost = (ITickHost)n.getValue();
-                    break;
-                }
-                if (currentTickHost == null)
-                    controller = null;
-                else
-                    currentTickHost.reset(null, controller);
-            }
+            findNextValidHost(node);
         }
+    }
+
+    private void findNextValidHost(Connectivity.Cache<N> node) {
+        if (controller == null)
+            return;
+        currentTickHost = null;
+        for (Long2ObjectMap.Entry<Connectivity.Cache<N>> n : nodes.long2ObjectEntrySet()) {
+            if (n.getValue() == node || !(n.getValue() instanceof ITickHost))
+                continue;
+            currentTickHost = (ITickHost) n.getValue();
+            break;
+        }
+        if (currentTickHost != null)
+            currentTickHost.reset(null, controller);
+    }
+
+    void releaseController(){
+        if (controller != null && currentTickHost != null)
+            currentTickHost.reset(controller, null);
     }
     /**
      * @return Gets the number of blocks.
@@ -150,20 +153,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
                 if (grid.connects(side, direction.invert())) {
                     grid.addNode(pos, node);
-                }
-            } else {
-                // Pair of linked node connection create an empty grid
-                Connectivity.Cache<N> neighbor = nodes.get(side);
-                if (neighbor != null && neighbor.connects(direction.invert())) {
-                    Grid<C> grid = Grid.emptyConnector();
-                    grid.addNode(pos, node);
-                    grid.addNode(side, neighbor);
-
-                    id = Utils.getNewId();
-                    grids.put(id, grid);
-
-                    pairs.add(pos, id);
-                    pairs.add(side, id);
                 }
             }
         }
@@ -295,11 +284,11 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         if (!contains(pos)) {
             throw new IllegalArgumentException("Group::remove: Tried to call with a position that does not exist within the group.");
         }
-        resetControllerHost(nodes.get(pos));
 
         // If removing the entry would not cause a group split, then it is safe to remove the entry directly.
         if (isExternal(pos)) {
             Connectivity.Cache<N> node = nodes.remove(pos);
+            resetControllerHost(node);
 
             if (node != null) {
                 // Clear removing node from nearest grid
@@ -437,6 +426,14 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
             if (i != bestColor) {
                 split.accept(newGroup);
+                if (controller != null) {
+                    newGroup.controller = controller.clone(newGroup);
+                    newGroup.findNextValidHost(null);
+                }
+            }
+            else {
+                releaseController();
+                findNextValidHost(null);
             }
         }
 
@@ -458,17 +455,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 grids.get(id).removeNode(pos);
             }
         }
-
-        // Remove the empty grid for the pair
-        for (int id : pairs.removeAll(pos)) {
-            Grid<C> grid = grids.get(id);
-            if (grid != null) {
-                grid.clear();
-                grids.remove(id);
-            }
-
-            pairs.remove(id);
-        }
     }
 
     /**
@@ -486,37 +472,21 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
-     * Gets near grids by a given position and connectivity value.
+     * Gets near grid by a given position and direction value.
      *
      * @param pos The position of the grid.
-     * @param connectivity The connectivity sides.
+     * @param direction The direction we are looking to.
      * @return The grid map, guaranteed to not be null.
      */
-    public ObjectSet<Grid<C>> getGridsAt(long pos, byte connectivity) {
-        ObjectSet<Grid<C>> neighbors = new ObjectLinkedOpenHashSet<>(6);
-
-        IntList pairing = pairs.getAll(pos);
-        Pos position = new Pos(pos);
-        for (Dir direction : Dir.VALUES) {
-            long side = position.offset(direction).asLong();
-            int id = connectors.get(side);
-
-            if (id == Utils.INVALID) {
-                for (int pair : pairing) {
-                    if (pairs.containsEntry(pos, pair)) {
-                        id = pair;
-                    }
-                }
-            }
-
-            if (id != Utils.INVALID) {
-                if (Connectivity.has(connectivity, direction.invert())) {
-                    neighbors.add(grids.get(id));
-                }
-            }
+    @Nullable
+    public Grid<C> getGridAt(long pos, Dir direction) {
+        int id = connectors.get(pos);
+        if (id != Utils.INVALID) {
+            Grid<C> g = grids.get(id);
+            if (g.connects(pos, direction.invert()))
+                return g;
         }
-
-        return neighbors;
+        return null;
     }
 
     /**
@@ -551,6 +521,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      */
     public void mergeWith(Group<C, N> other, long pos) {
         nodes.putAll(other.nodes);
+        other.releaseController();
         connectors.putAll(other.connectors);
 
         for (int id : other.grids.keySet()) {

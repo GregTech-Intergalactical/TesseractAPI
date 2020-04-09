@@ -1,6 +1,27 @@
 package tesseract.graph;
 
+import javax.annotation.Nonnull;
+
+/**
+ * Interface abstracting ticking behaviour for the groups in the graph.
+ */
 public interface ITickingController {
+    /**
+     * Server tick handler.
+     */
     void tick();
-    void change(INode container);
+
+    /**
+     * Notify the controller about group structure change
+     * @param position Where change has happened
+     */
+    void change(long position);
+
+    /**
+     * Create new controller for split group.
+     * @param group New group.
+     * @return New controller for the group.
+     */
+    @Nonnull
+    ITickingController clone(INode group);
 }
