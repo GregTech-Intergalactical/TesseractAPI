@@ -2,10 +2,10 @@ package tesseract;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import tesseract.api.GraphWrapper;
 import tesseract.api.electric.*;
 import tesseract.graph.Connectivity;
 import tesseract.graph.Graph;
+import tesseract.graph.Group;
 
 public class TesseractAPI {
 
@@ -37,28 +37,19 @@ public class TesseractAPI {
     /**
      * @param dimension The dimension id where the node will be added.
      * @param position The position at which the node will be added.
-     * @param output The output sides to which energy will be send.
-     * @param node The node object.
-     * @param event The event listener.
-     * @return Create a instance of a class for a given node with controller.
-     */
-    public static ElectricController asElectricController(int dimension, long position, byte output, IElectricNode node, IElectricEvent event) {
-        Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dimension);
-        ElectricController controller = new ElectricController(graph, position, output, event);
-        graph.addNode(position, Connectivity.Cache.of(node, controller));
-        return controller;
-    }
-
-    /**
-     * @param dimension The dimension id where the node will be added.
-     * @param position The position at which the node will be added.
      * @param node The node object.
      * @return Create a instance of a class for a given node.
      */
-    public static GraphWrapper asElectricNode(int dimension, long position, IElectricNode node) {
+    public static void addElectricNode(int dimension, long position, IElectricNode node, IElectricEvent event) {
         Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dimension);
         graph.addNode(position, Connectivity.Cache.of(node));
-        return new GraphWrapper(graph, position);
+        Group<IElectricCable, IElectricNode> g = graph.getGroupAt(position).get();
+        if (g.controller == null)
+            g.controller = new ElectricController(g, event);
+        if (g.currentTickHost == null) {
+            g.currentTickHost = node;
+            node.reset(null, g.controller);
+        }
     }
 
     /**
@@ -67,9 +58,12 @@ public class TesseractAPI {
      * @param cable The cable object.
      * @return Create a instance of a class for a given cable connector.
      */
-    public static GraphWrapper asElectricCable(int dimension, long position, IElectricCable cable) {
-        Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dimension);
-        graph.addConnector(position, Connectivity.Cache.of(cable));
-        return new GraphWrapper(graph, position);
+    public static void addElectricCable(int dimension, long position, IElectricCable cable) {
+        getElectricGraph(dimension).addConnector(position, Connectivity.Cache.of(cable));
     }
+
+    public static void removeNode(int dimension, long position){
+        getElectricGraph(dimension).removeAt(position);
+    }
+
 }
