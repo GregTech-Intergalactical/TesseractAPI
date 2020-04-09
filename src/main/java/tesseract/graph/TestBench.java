@@ -202,13 +202,6 @@ class TestBench {
             return false;
         }
 
-        /**
-         * Used to determine which sides can output energy (if any).
-         * Output cannot be used as input.
-         *
-         * @param direction Direction to test
-         * @return Returns true if the given direction is output side
-         */
         @Override
         public boolean canOutput(Dir direction) {
             return false;
@@ -220,7 +213,6 @@ class TestBench {
         }
 
         @Override
-        public void reset(ITickingController oldController, ITickingController newController) {
-        }
+        public void reset(ITickingController oldController, ITickingController newController) { }
     }
 }

@@ -12,10 +12,10 @@ public interface ITickingController {
     void tick();
 
     /**
-     * Notify the controller about group structure change
-     * @param position Where change has happened
+     * Notify the controller about group structure change.
+     * @param pos Where change has happened.
      */
-    void change(long position);
+    void change(long pos);
 
     /**
      * Create new controller for split group.

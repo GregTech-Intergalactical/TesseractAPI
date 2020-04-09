@@ -13,20 +13,18 @@ import tesseract.util.Dir;
 import tesseract.util.Pos;
 import tesseract.util.Utils;
 
-import java.util.Optional;
+import javax.annotation.Nullable;
+import java.util.Objects;
 
 /**
  * Class provides the functionality of any set of nodes.
- * @apiNote default parameters are nonnull, methods return nonnull.
  */
 public class Graph<C extends IConnectable, N extends IConnectable> implements INode  {
 
-	private Int2ObjectMap<Group<C, N>> groups;
-	private Long2IntMap positions; // group positions
+	private Int2ObjectMap<Group<C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
+	private Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
 
 	public Graph() {
-		groups = new Int2ObjectLinkedOpenHashMap<>();
-		positions = new Long2IntLinkedOpenHashMap();
 		positions.defaultReturnValue(Utils.INVALID);
 	}
 
@@ -67,6 +65,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @return True on success or false otherwise.
 	 */
 	public boolean addNode(long pos, Connectivity.Cache<N> node) {
+
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleNode(pos, node));
 			if (group != null) group.addNode(pos, node);
@@ -84,6 +83,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @return True on success or false otherwise.
 	 */
 	public boolean addConnector(long pos, Connectivity.Cache<C> connector) {
+
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
 			if (group != null) group.addConnector(pos, connector);
@@ -172,9 +172,10 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The position of the group.
 	 * @return The group, guaranteed to not be null.
 	 */
-	public Optional<Group<C, N>> getGroupAt(long pos) {
+	@Nullable
+	public Group<C, N> getGroupAt(long pos) {
 		int id = positions.get(pos);
-		return (id == Utils.INVALID) ? Optional.empty() : Optional.of(groups.get(id));
+		return (id == Utils.INVALID) ? null : groups.get(id);
 	}
 
 	/**

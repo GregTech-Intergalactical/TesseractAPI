@@ -2,6 +2,7 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
+import jdk.internal.jline.internal.Nullable;
 import tesseract.api.IConnectable;
 import tesseract.util.*;
 import tesseract.graph.traverse.ASFinder;
@@ -14,7 +15,6 @@ import java.util.function.Consumer;
 
 /**
  * Grid provides the functionality of a set of linked nodes.
- * @apiNote default parameters are nonnull, methods return nonnull.
  */
 public class Grid<C extends IConnectable> implements INode {
 
@@ -33,7 +33,7 @@ public class Grid<C extends IConnectable> implements INode {
      */
     protected static <C extends IConnectable> Grid<C> singleConnector(long pos, Connectivity.Cache<C> connector) {
         Grid<C> grid = new Grid<>();
-        grid.connectors.put(pos, Objects.requireNonNull(connector));
+        grid.connectors.put(pos, connector);
         return grid;
     }
 
@@ -83,13 +83,6 @@ public class Grid<C extends IConnectable> implements INode {
         }
 
         return Connectivity.has(connectivity, towards);
-    }
-
-    /**
-     * Clears nodes from the grid.
-     */
-    public void clear() {
-        nodes.clear();
     }
 
     /**
@@ -208,7 +201,6 @@ public class Grid<C extends IConnectable> implements INode {
      * @return True on success, false otherwise.
      */
     public boolean removeAt(long pos, Consumer<Grid<C>> split) {
-        Objects.requireNonNull(split);
 
         if (!contains(pos)) {
             throw new IllegalArgumentException("Grid::remove: Tried to call with a position that does not exist within the grid.");
@@ -269,7 +261,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param found The set with nodes to check.
      * @return The removed connector.
      */
-    private boolean removeFinal(long pos, LongSet found) {
+    private boolean removeFinal(long pos, @Nullable LongSet found) {
         C connector = connectors.remove(pos).value();
 
         Pos position = new Pos(pos);
@@ -288,6 +280,7 @@ public class Grid<C extends IConnectable> implements INode {
                 }
             }
         }
+
         return connector != null;
     }
 

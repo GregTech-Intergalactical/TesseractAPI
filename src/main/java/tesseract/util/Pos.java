@@ -69,12 +69,7 @@ public class Pos {
     /**
      * Creates position instance.
      */
-    public Pos() {
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
-        this.value = 0;
-    }
+    public Pos() { }
 
     /**
      * Creates position instance.

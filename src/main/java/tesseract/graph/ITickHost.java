@@ -1,4 +1,5 @@
 package tesseract.graph;
+
 import javax.annotation.Nullable;
 
 /**
@@ -6,8 +7,8 @@ import javax.annotation.Nullable;
  */
 public interface ITickHost {
     /**
-     * Set new controller pointer (or null)
-     * If the host already contains new non-null controller, then don't reset it to null
+     * Set new controller pointer (or null).
+     * If the host already contains new non-null controller, then don't reset it to null.
      * @param oldController
      * @param newController
      */

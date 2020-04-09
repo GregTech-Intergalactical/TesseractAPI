@@ -39,27 +39,29 @@ public class ElectricController implements ITickingController {
      * consumers with unique information about paths, loss, ect. Therefore production object will be act as double iterated map.
      * </p>
      * @see tesseract.graph.Grid (Cache)
-     * @param position Where change has happened
+     * @param pos Where change has happened
      */
     @Override
-    public void change(long position) {
-        if (position < 0) { // recalculate whole group
+    public void change(long pos) {
+        if (pos < 0) { // recalculate whole group
             data.clear();
-            group.getNodes().forEach((pos, node) -> {
-                IElectricNode producer = node.value();
+            for (Long2ObjectMap.Entry<Connectivity.Cache<IElectricNode>> entry : group.getNodes().long2ObjectEntrySet()) {
+                IElectricNode producer = entry.getValue().value();
+                pos = entry.getLongKey();
+
                 if (producer.canOutput() && producer.getOutputAmperage() > 0) {
-                    Pos p = new Pos(pos);
-                    for (Dir dir : Dir.values()) {
-                        if (producer.canOutput(dir)) {
+                    Pos position = new Pos(pos);
+                    for (Dir direction : Dir.VALUES) {
+                        if (producer.canOutput(direction)) {
                             ObjectList<Consumer> consumers = new ObjectArrayList<>();
-                            long offset = p.offset(dir).asLong();
+                            long offset = position.offset(direction).asLong();
                             if (group.getNodes().containsKey(offset)) {
                                 Connectivity.Cache<IElectricNode> nb = group.getNodes().get(offset);
                                 if (nb != null) {
                                     checkConsumer(producer, consumers, null, offset);
                                 }
                             } else {
-                                Grid<IElectricCable> grid = group.getGridAt(offset, dir);
+                                Grid<IElectricCable> grid = group.getGridAt(offset, direction);
                                 if (grid != null) {
                                     for (Path<IElectricCable> path : grid.getPaths(pos)) {
                                         if (!path.isEmpty()) {
@@ -69,19 +71,19 @@ public class ElectricController implements ITickingController {
                                     }
                                 }
                             }
+                            
                             if (!consumers.isEmpty()) {
-                                if (!data.containsKey(producer))
+                                if (!data.containsKey(producer)) {
                                     data.put(producer, consumers);
-                                else {
+                                } else {
                                     mergeConsumers(producer, consumers);
                                 }
                             }
                         }
                     }
                 }
-            });
-        }
-        else {
+            }
+        } else {
             // TODO: partial rebuild
         }
     }
@@ -90,7 +92,7 @@ public class ElectricController implements ITickingController {
         ObjectList<Consumer> existingConsumers = data.get(producer);
         for (Consumer c : consumers) {
             boolean found = false;
-            for (Consumer ec :existingConsumers){
+            for (Consumer ec : existingConsumers){
                 if (ec.consumer == c.consumer) {
                     found = true;
                     if (ec.loss > c.loss) {
@@ -99,17 +101,16 @@ public class ElectricController implements ITickingController {
                         ec.full = c.full;
                     }
                 }
-                if (!found)
-                    existingConsumers.add(c);
+                if (!found) existingConsumers.add(c);
             }
         }
     }
 
-    private void checkConsumer(IElectricNode producer, ObjectList<Consumer> consumers, Path<IElectricCable> path, long target) {
-        IElectricNode c = group.getNodes().get(target).value();
+    private void checkConsumer(IElectricNode producer, ObjectList<Consumer> consumers, Path<IElectricCable> path, long pos) {
+        IElectricNode c = group.getNodes().get(pos).value();
         if (c.canInput()) {
             if (producer.getOutputVoltage() > c.getInputVoltage()) {
-                event.onOverVoltage(target);
+                event.onOverVoltage(pos);
             } else {
                 Consumer consumer = new Consumer(c, path);
                 long voltage = producer.getOutputVoltage() - consumer.getLoss();
@@ -246,8 +247,8 @@ public class ElectricController implements ITickingController {
          */
         Consumer(IElectricNode consumer, Path<IElectricCable> path) {
             this.consumer = consumer;
-            this.full = path == null ? null : path.getFull();
-            this.cross = path == null ? null : path.getCross();
+            this.full = (path == null) ? null : path.getFull();
+            this.cross = (path == null) ? null : path.getCross();
 
             // Gets the total loss and min voltage and amperage
             if (full != null) {
@@ -331,10 +332,7 @@ public class ElectricController implements ITickingController {
          */
         ConnectionType getConnectionType() {
             if (cross == null || cross.size() == 0) {
-                if (full == null)
-                    return ConnectionType.ADJACENT;
-                else
-                    return ConnectionType.SINGLE;
+                return (full == null) ? ConnectionType.ADJACENT : ConnectionType.SINGLE;
             }
             return ConnectionType.VARIATE;
         }
@@ -385,8 +383,8 @@ public class ElectricController implements ITickingController {
              * Because we already modified amperage of the consumers before.
              */
             for (ObjectList<Consumer> consumers : data.values()) {
-                for (Consumer consumer : consumers) {
-                    consumer.resetAmperage();
+                for (Consumer c : consumers) {
+                    c.resetAmperage();
                 }
             }
         }

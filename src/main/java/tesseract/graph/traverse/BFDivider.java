@@ -15,8 +15,8 @@ import java.util.function.Consumer;
 public class BFDivider {
 
 	private BFSearcher searcher;
-	private LongLinkedOpenHashSet lookup;
-	private Long2IntOpenHashMap roots;
+	private Long2IntOpenHashMap roots = new Long2IntOpenHashMap();
+	private LongLinkedOpenHashSet lookup = new LongLinkedOpenHashSet();
 
 	/**
 	 * Creates a reusable BFDivider instance that will devides the provided container.
@@ -25,8 +25,6 @@ public class BFDivider {
 	 */
 	public BFDivider(INode container) {
 		searcher = new BFSearcher(container);
-		lookup = new LongLinkedOpenHashSet();
-		roots = new Long2IntOpenHashMap();
 		roots.defaultReturnValue(Integer.MAX_VALUE);
 	}
 

@@ -21,9 +21,9 @@ import java.util.function.LongConsumer;
  */
 public class BFSearcher {
 
-    private LongOpenHashSet closed;
-    private ArrayDeque<Long> open;
     private INode container;
+    private ArrayDeque<Long> open = new ArrayDeque<>();
+    private LongOpenHashSet closed = new LongOpenHashSet();
 
     /**
      * Creates a reusable BFSearcher instance that will search the provided container.
@@ -31,8 +31,6 @@ public class BFSearcher {
      * @param container The container to use for search operations.
      */
     public BFSearcher(INode container) {
-        closed = new LongOpenHashSet();
-        open = new ArrayDeque<>();
         this.container = container;
     }
 

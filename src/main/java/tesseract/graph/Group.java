@@ -3,7 +3,6 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
-import org.antlr.v4.runtime.misc.FlexibleHashMap;
 import tesseract.api.IConnectable;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Dir;
@@ -16,21 +15,19 @@ import java.util.function.Consumer;
 
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
- * @apiNote default parameters are nonnull, methods return nonnull.
  */
 public class Group<C extends IConnectable, N extends IConnectable> implements INode {
 
     private Long2ObjectMap<Connectivity.Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
     private Int2ObjectMap<Grid<C>> grids = new Int2ObjectLinkedOpenHashMap<>();
     private Long2IntMap connectors = new Long2IntLinkedOpenHashMap(); // connectors pairing
-    public ITickingController controller = null;
-    public ITickHost currentTickHost = null;
-    private BFDivider divider;
+    private BFDivider divider = new BFDivider(this);
+    private ITickingController controller = null;
+    private ITickHost currentTickHost = null;
 
     // Prevent the creation of empty groups externally, a caller needs to use singleNode/singleConnector.
     private Group() {
         connectors.defaultReturnValue(Utils.INVALID);
-        divider = new BFDivider(this);
     }
 
     /**
@@ -72,6 +69,11 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         return contains(pos);
     }
 
+    /**
+     * Resets the current controller host.
+     *
+     * @param node The given node.
+     */
     private void resetControllerHost(Connectivity.Cache<N> node) {
         if (currentTickHost != null && node.value() instanceof ITickHost && node.value() == currentTickHost) {
             currentTickHost.reset(controller, null);
@@ -79,24 +81,37 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
     }
 
-    private void findNextValidHost(Connectivity.Cache<N> node) {
-        if (controller == null)
-            return;
+    /**
+     * Finds the next available host in the group.
+     *
+     * @param node The given node.
+     */
+    private void findNextValidHost(@Nullable Connectivity.Cache<N> node) {
+        if (controller == null) return;
         currentTickHost = null;
         for (Long2ObjectMap.Entry<Connectivity.Cache<N>> n : nodes.long2ObjectEntrySet()) {
-            if (n.getValue() == node || !(n.getValue() instanceof ITickHost))
+            if (n.getValue() == node || !(n.getValue() instanceof ITickHost)) {
                 continue;
+            }
+
             currentTickHost = (ITickHost) n.getValue();
             break;
         }
-        if (currentTickHost != null)
+
+        if (currentTickHost != null) {
             currentTickHost.reset(null, controller);
+        }
     }
 
-    void releaseController(){
-        if (controller != null && currentTickHost != null)
+    /**
+     * Resets the current tick host.
+     */
+    private void releaseController() {
+        if (controller != null && currentTickHost != null) {
             currentTickHost.reset(controller, null);
+        }
     }
+
     /**
      * @return Gets the number of blocks.
      */
@@ -129,13 +144,45 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
+     * @return Returns group controller.
+     */
+    @Nullable
+    public ITickingController getController() {
+        return controller;
+    }
+
+    /**
+     * Sets the group controller.
+     * @param controller The controller object, can be null.
+     */
+    public void setController(@Nullable ITickingController controller) {
+        this.controller = controller;
+    }
+
+    /**
+     * @return Returns group ticking host.
+     */
+    @Nullable
+    public ITickHost getCurrentTickHost() {
+        return currentTickHost;
+    }
+
+    /**
+     * Sets the group ticking host.
+     * @param currentTickHost The host object, can be null.
+     */
+    public void setCurrentTickHost(@Nullable ITickHost currentTickHost) {
+        this.currentTickHost = currentTickHost;
+    }
+
+    /**
      * Adds a new node to the group.
      *
      * @param pos The given position.
      * @param node The given node.
      */
     public void addNode(long pos, Connectivity.Cache<N> node) {
-        nodes.put(pos, Objects.requireNonNull(node));
+        nodes.put(pos, node);
 
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
@@ -164,7 +211,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param connector The given connector.
      */
     public void addConnector(long pos, Connectivity.Cache<C> connector) {
-        Objects.requireNonNull(connector);
 
         Int2ObjectMap<Grid<C>> linked = new Int2ObjectLinkedOpenHashMap<>();
         Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
@@ -277,7 +323,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @return True on success, false otherwise.
      */
     public boolean removeAt(long pos, Consumer<Group<C, N>> split) {
-        Objects.requireNonNull(split);
 
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.
@@ -288,11 +333,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         // If removing the entry would not cause a group split, then it is safe to remove the entry directly.
         if (isExternal(pos)) {
             Connectivity.Cache<N> node = nodes.remove(pos);
-            resetControllerHost(node);
-
             if (node != null) {
-                // Clear removing node from nearest grid
-                removeNode(pos);
+                removeNode(node, pos);
                 return true;
             }
 
@@ -362,9 +404,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             splitGrids.add(centerGrid);
 
         } else {
-            // Clear removing node from nearest grid
-            removeNode(pos);
-            nodes.remove(pos);
+            Connectivity.Cache<N> node = nodes.remove(pos);
+            if (node != null) {
+                removeNode(node, pos);
+            }
         }
 
         for (int i = 0; i < colored.size(); i++) {
@@ -430,8 +473,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     newGroup.controller = controller.clone(newGroup);
                     newGroup.findNextValidHost(null);
                 }
-            }
-            else {
+            } else {
                 releaseController();
                 findNextValidHost(null);
             }
@@ -442,9 +484,12 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
     /**
      * Removes the nodes from nearest grids and pairs.
+     * @param node The given node.
      * @param pos The position of the node.
      */
-    private void removeNode(long pos) {
+    private void removeNode(Connectivity.Cache<N> node, long pos) {
+        resetControllerHost(node);
+
         // Clear removing node from nearest grid
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
@@ -464,7 +509,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param grid The grid object.
      */
     private void addGrid(int id, Grid<C> grid) {
-        grids.put(id, Objects.requireNonNull(grid));
+        grids.put(id, grid);
 
         for (long moved : grid.getConnectors().keySet()) {
             connectors.put(moved, id);
@@ -481,11 +526,14 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     @Nullable
     public Grid<C> getGridAt(long pos, Dir direction) {
         int id = connectors.get(pos);
+
         if (id != Utils.INVALID) {
-            Grid<C> g = grids.get(id);
-            if (g.connects(pos, direction.invert()))
-                return g;
+            Grid<C> grid = grids.get(id);
+            if (grid.connects(pos, direction.invert())) {
+                return grid;
+            }
         }
+
         return null;
     }
 
@@ -566,88 +614,5 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         grids.putAll(other.grids);
-    }
-
-    /**
-     * @apiNote Wrapper for a primitive map with multiple keys.
-     */
-    private static class Long2IntMultiMap extends Long2ObjectLinkedOpenHashMap<IntList> {
-
-        Long2IntMultiMap() {
-            super();
-        }
-
-        /**
-         * Associates the specified value with the specified key in this map.
-         *
-         * @param key The key value.
-         * @param value The provided value.
-         */
-        void add(long key, int value) {
-            IntList list = get(key);
-            if (list == null) {
-                list = new IntArrayList(6);
-                put(key, list);
-            }
-            list.add(value);
-        }
-
-        /**
-         * Returns a view collection of the values associated with key in this multimap, if any.
-         *
-         * @param key The key value.
-         * @return Gets the values that were found (possibly empty). The returned collection may be modifiable, but updating it will have no effect on the multimap.
-         */
-        IntList getAll(long key) {
-            IntList list = get(key);
-            return list != null ? list : new IntArrayList(0);
-        }
-
-        /**
-         * Removes all values associated with the key.
-         *
-         * @param key The key value.
-         * @return Gets the values that were removed (possibly empty). The returned collection may be modifiable, but updating it will have no effect on the multimap.
-         */
-        IntList removeAll(long key) {
-            IntList list = remove(key);
-            return list != null ? list : new IntArrayList(0);
-        }
-
-        /**
-         * Removes all entries associated with the value.
-         *
-         * @param value The provided value.
-         */
-        void remove(int value) {
-            ObjectIterator<IntList> iterator = values().iterator();
-            while (iterator.hasNext()) {
-
-                IntList list = iterator.next();
-
-                IntIterator each = list.iterator();
-                while (each.hasNext()) {
-                    if (each.nextInt() == value) {
-                        each.remove();
-                    }
-                }
-
-                if (list.isEmpty()) {
-                    iterator.remove();
-                }
-            }
-        }
-
-        /**
-         * Returns true if this multimap contains at least one key-value pair with the key and the value.
-         *
-         * @param key The key value.
-         * @param value The provided value.
-         * @return True or false.
-         */
-        boolean containsEntry(long key, int value) {
-            IntList list = get(key);
-            return list != null && list.contains(value);
-        }
     }
 }

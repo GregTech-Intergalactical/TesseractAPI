@@ -16,8 +16,8 @@ public class Path<C extends IConnectable> {
 
     private Pos origin;
     private Pos target;
-    private Long2ObjectMap<C> full;
-    private Long2ObjectMap<C> cross;
+    private Long2ObjectMap<C> full = new Long2ObjectLinkedOpenHashMap<>();
+    private Long2ObjectMap<C> cross = new Long2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates a path instance.
@@ -28,9 +28,6 @@ public class Path<C extends IConnectable> {
     protected Path(Long2ObjectMap<Connectivity.Cache<C>> connectors, ArrayDeque<Node> path) {
         origin = path.pollLast();
         target = path.pollFirst();
-
-        full = new Long2ObjectLinkedOpenHashMap<>();
-        cross = new Long2ObjectLinkedOpenHashMap<>();
 
         Iterator<Node> iterator = path.descendingIterator();
         while (iterator.hasNext()) {

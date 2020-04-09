@@ -13,10 +13,10 @@ import java.util.ConcurrentModificationException;
  */
 public class ASFinder {
 
-    private ArrayDeque<Node> open;
-    private ArrayDeque<Node> path;
-    private ObjectOpenHashSet<Node> closed;
     private INode container;
+    private ArrayDeque<Node> path;
+    private ArrayDeque<Node> open = new ArrayDeque<>();
+    private ObjectOpenHashSet<Node> closed = new ObjectOpenHashSet<>();
 
     /**
      * Creates a reusable AStarPathfinder instance that will search the provided container.
@@ -24,8 +24,6 @@ public class ASFinder {
      * @param container The container to use for find operations.
      */
     public ASFinder(INode container) {
-        open = new ArrayDeque<>();
-        closed = new ObjectOpenHashSet<>();
         this.container = container;
     }
 
