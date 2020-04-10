@@ -101,7 +101,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         if (currentTickHost != null) {
             currentTickHost.reset(null, controller);
-            controller.change();
+            updateController();
         }
     }
 
@@ -205,7 +205,12 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 }
             }
         }
-        controller.change();
+        updateController();
+    }
+
+    public void updateController() {
+        if (controller != null)
+            controller.change();
     }
 
     /**
