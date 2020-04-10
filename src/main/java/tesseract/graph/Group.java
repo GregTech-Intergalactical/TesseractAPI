@@ -9,6 +9,7 @@ import tesseract.util.Dir;
 import tesseract.util.Pos;
 import tesseract.util.Utils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -124,6 +125,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * @return Returns blocks set.
      */
+    @Nonnull
     public LongList getBlocks() { // LongSet before, to check
         LongList merge = new LongArrayList();
         merge.addAll(nodes.keySet());
@@ -134,6 +136,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * @return Returns nodes map.
      */
+    @Nonnull
     public Long2ObjectMap<Connectivity.Cache<N>> getNodes() {
         return nodes;
     }
@@ -141,6 +144,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * @return Returns grids set.
      */
+    @Nonnull
     public Int2ObjectMap<Grid<C>> getGrids() {
         return grids;
     }
