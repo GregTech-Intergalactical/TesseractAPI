@@ -13,9 +13,8 @@ public interface ITickingController {
 
     /**
      * Notify the controller about group structure change.
-     * @param pos Where change has happened.
      */
-    void change(long pos);
+    void change();
 
     /**
      * Create new controller for split group.
