@@ -8,6 +8,8 @@ import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
+import java.util.Map;
+
 /**
  *
  */
@@ -39,52 +41,47 @@ public class ElectricController implements ITickingController {
      * consumers with unique information about paths, loss, ect. Therefore production object will be act as double iterated map.
      * </p>
      * @see tesseract.graph.Grid (Cache)
-     * @param pos Where change has happened
      */
     @Override
-    public void change(long pos) {
-        if (pos < 0) { // recalculate whole group
-            data.clear();
-            for (Long2ObjectMap.Entry<Connectivity.Cache<IElectricNode>> entry : group.getNodes().long2ObjectEntrySet()) {
-                IElectricNode producer = entry.getValue().value();
-                pos = entry.getLongKey();
+    public void change() {
+        data.clear();
+        for (Long2ObjectMap.Entry<Connectivity.Cache<IElectricNode>> entry : group.getNodes().long2ObjectEntrySet()) {
+            IElectricNode producer = entry.getValue().value();
+            long pos = entry.getLongKey();
 
-                if (producer.canOutput() && producer.getOutputAmperage() > 0) {
-                    Pos position = new Pos(pos);
-                    for (Dir direction : Dir.VALUES) {
-                        if (producer.canOutput(direction)) {
-                            ObjectList<Consumer> consumers = new ObjectArrayList<>();
-                            long offset = position.offset(direction).asLong();
-                            if (group.getNodes().containsKey(offset)) {
-                                Connectivity.Cache<IElectricNode> nb = group.getNodes().get(offset);
-                                if (nb != null) {
-                                    checkConsumer(producer, consumers, null, offset);
-                                }
-                            } else {
-                                Grid<IElectricCable> grid = group.getGridAt(offset, direction);
-                                if (grid != null) {
-                                    for (Path<IElectricCable> path : grid.getPaths(pos)) {
-                                        if (!path.isEmpty()) {
-                                            long target = path.target().asLong();
-                                            checkConsumer(producer, consumers, path, target);
-                                        }
+            if (producer.canOutput() && producer.getOutputAmperage() > 0) {
+                Pos position = new Pos(pos);
+                for (Dir direction : Dir.VALUES) {
+                    if (producer.canOutput(direction)) {
+                        ObjectList<Consumer> consumers = new ObjectArrayList<>();
+                        long offset = position.offset(direction).asLong();
+                        if (group.getNodes().containsKey(offset)) {
+                            Connectivity.Cache<IElectricNode> nb = group.getNodes().get(offset);
+                            if (nb != null) {
+                                checkConsumer(producer, consumers, null, offset);
+                            }
+                        } else {
+                            Grid<IElectricCable> grid = group.getGridAt(offset, direction);
+                            if (grid != null) {
+                                for (Path<IElectricCable> path : grid.getPaths(pos)) {
+                                    if (!path.isEmpty()) {
+                                        long target = path.target().asLong();
+                                        checkConsumer(producer, consumers, path, target);
                                     }
                                 }
                             }
-                            
-                            if (!consumers.isEmpty()) {
-                                if (!data.containsKey(producer)) {
-                                    data.put(producer, consumers);
-                                } else {
-                                    mergeConsumers(producer, consumers);
-                                }
+                        }
+
+                        if (!consumers.isEmpty()) {
+                            if (!data.containsKey(producer)) {
+                                data.put(producer, consumers);
+                            } else {
+                                mergeConsumers(producer, consumers);
                             }
                         }
                     }
                 }
             }
-        } else {
-            // TODO: partial rebuild
         }
     }
 
@@ -113,11 +110,8 @@ public class ElectricController implements ITickingController {
                 event.onOverVoltage(pos);
             } else {
                 Consumer consumer = new Consumer(c, path);
-                long voltage = producer.getOutputVoltage() - consumer.getLoss();
-                if (voltage > 0) {
-                    consumer.setVoltage(voltage);
+                if (producer.getOutputVoltage() > consumer.getLoss())
                     consumers.add(consumer);
-                }
             }
         }
     }
@@ -142,23 +136,34 @@ public class ElectricController implements ITickingController {
      */
     @Override
     public void tick() {
-        try {
-            Producer producer = new Producer(data);
-            Consumer consumer;
-            while ((consumer = producer.getConsumer()) != null) {
+        // TODO: maybe preallocate the map in change()
+        Object2LongMap<IElectricNode> amperesConsumed = new Object2LongOpenHashMap<>(group.getNodes().size());
+        amperesConsumed.defaultReturnValue(0);
+        amps.clear();
+        for(Map.Entry<IElectricNode, ObjectList<Consumer>> e : data.entrySet()) {
+            IElectricNode producer = e.getKey();
+            long outputVoltage = producer.getOutputVoltage();
+            long outputAmperage = producer.getOutputAmperage();
+            if (outputAmperage <= 0)
+                continue;
+            for (Consumer consumer: e.getValue()) {
+                long amperage = consumer.getRequiredAmperage(outputVoltage);
+                // look up how much it already got
+                amperage -= amperesConsumed.getLong(consumer.consumer);
+                if (amperage <= 0)  // if this consumer received all the energy from the other producers
+                    continue;
+                amperage = Math.min(outputAmperage, amperage);
+                // remember amperes stored in this consumer
+                amperesConsumed.put(consumer.consumer, amperesConsumed.getLong(consumer.consumer) + amperage);
 
-                long amperage = producer.getAmperage(consumer.getRequiredAmperage());
-
-                consumer.setAmperage(consumer.getAmperage() - amperage);
-
-                consumer.insert(consumer.getVoltage() * amperage);
-                producer.extract(producer.getVoltage() * amperage);
+                consumer.insert(outputVoltage * amperage);
+                producer.extract(outputVoltage * amperage, false);
 
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
-                if (!consumer.canReceive(producer.getVoltage(), amperage) && consumer.getConnectionType() != ConnectionType.ADJACENT) { // Fast check by the lowest cost cable
+                if (!consumer.canReceive(outputVoltage, amperage) && consumer.getConnectionType() != ConnectionType.ADJACENT) { // Fast check by the lowest cost cable
                     // Find corrupt cable and return
                     for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(false).long2ObjectEntrySet()) {
-                        if (!entry.getValue().canHandle(producer.getVoltage(), amperage)) {
+                        if (!entry.getValue().canHandle(outputVoltage, amperage)) {
                             event.onOverAmperage(entry.getLongKey());
                         }
                     }
@@ -176,6 +181,9 @@ public class ElectricController implements ITickingController {
                         }
                     }
                 }
+                outputAmperage -= amperage;
+                if (outputAmperage <= 0)
+                    break;
             }
 
             for (Long2ObjectMap.Entry<Holder> entry : amps.long2ObjectEntrySet()) {
@@ -183,9 +191,6 @@ public class ElectricController implements ITickingController {
                     event.onOverAmperage(entry.getLongKey());
                 }
             }
-
-        } finally {
-            amps.clear();
         }
     }
 
@@ -230,9 +235,8 @@ public class ElectricController implements ITickingController {
     private static class Consumer {
 
         private long loss = 0;
-        private long voltage;
-        private long amperage;
-        private IElectricNode consumer;
+        final private long amperage;
+        final private IElectricNode consumer;
         private Long2ObjectMap<IElectricCable> full;
         private Long2ObjectMap<IElectricCable> cross;
 
@@ -258,6 +262,7 @@ public class ElectricController implements ITickingController {
                     min_amperage = Math.min(min_amperage, cable.getAmps());
                 }
             }
+            amperage = consumer.getInputAmperage();
         }
 
         /**
@@ -284,46 +289,9 @@ public class ElectricController implements ITickingController {
         }
 
         /**
-         * Sets the voltage.
-         * @param voltage The voltage value with loss.
-         */
-        void setVoltage(long voltage) {
-            this.voltage = voltage;
-        }
-
-        /**
-         * @return Gets the voltage.
-         */
-        long getVoltage() {
-            return voltage;
-        }
-
-        /**
-         * Sets the amperage.
-         * @param amperage The amperage value.
-         */
-        void setAmperage(long amperage) {
-            this.amperage = amperage;
-        }
-
-        /**
-         * @return Gets the voltage.
-         */
-        long getAmperage() {
-            return amperage;
-        }
-
-        /**
-         * Resets the amperage.
-         */
-        void resetAmperage() {
-            amperage = consumer.getInputAmperage();
-        }
-
-        /**
          * @return Gets the amperage required for the consumer.
          */
-        long getRequiredAmperage() {
+        long getRequiredAmperage(long voltage) {
             return Math.min(((consumer.getCapacity() - consumer.getPower()) + voltage - 1) / voltage, amperage);
         }
 
@@ -344,131 +312,6 @@ public class ElectricController implements ITickingController {
          */
         boolean canReceive(long voltage, long amperage) {
             return this.min_voltage >= voltage && this.min_amperage >= amperage;
-        }
-
-        /**
-         * @return Checks that the consumer is need energy and can receive it.
-         */
-        boolean isValid() {
-            return consumer.getPower() < consumer.getCapacity() && loss < consumer.getInputVoltage() && amperage > 0;
-        }
-    }
-
-    /**
-     * A class that acts as a container for a producer.
-     */
-    private static class Producer {
-
-        private int id; // Consumers global iterator between data dims
-        private long voltage;
-        private long amperage;
-
-        private Consumer consumer;
-        private IElectricNode producer;
-        private ObjectList<Consumer> consumers;
-        private ObjectIterator<IElectricNode> producers;
-        private Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data;
-
-        /**
-         * Creates instance of the producer.
-         *
-         * @param data The map with a data.
-         */
-        Producer(Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data) {
-            this.data = data;
-            this.producers = data.keySet().iterator();
-
-            /*
-             * Resets the amperage on the new iteration for all consumers
-             * Because we already modified amperage of the consumers before.
-             */
-            for (ObjectList<Consumer> consumers : data.values()) {
-                for (Consumer c : consumers) {
-                    c.resetAmperage();
-                }
-            }
-        }
-
-        /**
-         * Moves to the next available producer.
-         * @return Gets the next needed consumer.
-         */
-        Consumer getConsumer() {
-
-            /*
-             * When we shift to an another producer dim, update amps for the same consumer index.
-             * This can happen when consumer receive parts of requirement amps from different producers.
-             */
-            long prev = (consumer != null) ? consumer.getAmperage() : -1;
-
-            // Lookup for the available producer
-            while (!isValid()) {
-                if (!producers.hasNext()) return null;
-                producer = producers.next();
-                voltage = producer.getOutputVoltage();
-                amperage = getAvailableAmperage();
-
-                consumers = data.get(producer);
-                consumer = null;
-            }
-
-            // Lookup for the available consumer
-            boolean none = (consumer == null);
-            while (consumer == null || !consumer.isValid()) {
-                if (consumers.size() == id) return null;
-                consumer = consumers.get(id);
-                if (none && prev > 0) { //  means that we moved previous consumer to next producer
-                    consumer.setAmperage(prev); none = false;
-                }
-                id++;
-            }
-
-            return consumer;
-        }
-
-        /**
-         * @param amperage The amperage of the consumer.
-         * @return Gets the amperage required for the producer.
-         */
-        long getAmperage(long amperage) {
-            long temp = this.amperage - amperage;
-            if (temp < 0) {
-                amperage = this.amperage;
-                this.amperage = 0;
-                id--; // Moved back to ask next producer again to supply to the same consumer
-            } else {
-                this.amperage = temp;
-            }
-            return amperage;
-        }
-
-        /**
-         * @return Gets the producer voltage.
-         */
-        long getVoltage() {
-            return voltage;
-        }
-
-        /**
-         * @return Gets the available amperage of the producer.
-         */
-        long getAvailableAmperage() {
-            return Math.min(producer.getPower() / voltage, producer.getOutputAmperage());
-        }
-
-        /**
-         * Removes energy from the node. Returns quantity of energy that was removed.
-         * @param energy Amount of energy to be extracted.
-         */
-        void extract(long energy) {
-            producer.extract(energy, false);
-        }
-
-        /**
-         * @return Checks that the provider can supply energy.
-         */
-        boolean isValid() {
-            return producer != null && producer.getPower() > 0 && amperage > 0;
         }
     }
 }

@@ -2,12 +2,12 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
-import jdk.internal.jline.internal.Nullable;
 import tesseract.api.IConnectable;
 import tesseract.util.*;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
 
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Objects;

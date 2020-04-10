@@ -87,7 +87,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param node The given node.
      */
     private void findNextValidHost(@Nullable Connectivity.Cache<N> node) {
-        if (controller == null) return;
+        if (controller == null)
+            return;
         currentTickHost = null;
         for (Long2ObjectMap.Entry<Connectivity.Cache<N>> n : nodes.long2ObjectEntrySet()) {
             if (n.getValue() == node || !(n.getValue() instanceof ITickHost)) {
@@ -100,6 +101,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         if (currentTickHost != null) {
             currentTickHost.reset(null, controller);
+            controller.change();
         }
     }
 
@@ -203,6 +205,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 }
             }
         }
+        controller.change();
     }
 
     /**
