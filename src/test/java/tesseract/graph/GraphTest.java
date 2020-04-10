@@ -8,6 +8,8 @@ import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -151,7 +153,7 @@ public class GraphTest {
         }
 
         @Override
-        public boolean connects(Dir direction) {
+        public boolean connects(@Nonnull Dir direction) {
             return true;
         }
 
@@ -179,7 +181,7 @@ public class GraphTest {
         }
 
         @Override
-        public boolean connects(Dir direction) {
+        public boolean connects(@Nonnull Dir direction) {
             return true;
         }
 
@@ -228,15 +230,8 @@ public class GraphTest {
             return false;
         }
 
-        /**
-         * Used to determine which sides can output energy (if any).
-         * Output cannot be used as input.
-         *
-         * @param direction Direction to test
-         * @return Returns true if the given direction is output side
-         */
         @Override
-        public boolean canOutput(Dir direction) {
+        public boolean canOutput(@Nonnull Dir direction) {
             return false;
         }
 
@@ -246,8 +241,7 @@ public class GraphTest {
         }
 
         @Override
-        public void reset(ITickingController oldController, ITickingController newController) {
-
+        public void reset(@Nullable ITickingController oldController, @Nullable ITickingController newController) {
         }
     }
 }

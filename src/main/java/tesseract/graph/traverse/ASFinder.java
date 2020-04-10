@@ -5,6 +5,7 @@ import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayDeque;
 import java.util.ConcurrentModificationException;
 
@@ -23,7 +24,7 @@ public class ASFinder {
      *
      * @param container The container to use for find operations.
      */
-    public ASFinder(INode container) {
+    public ASFinder(@Nonnull INode container) {
         this.container = container;
     }
 
@@ -34,6 +35,7 @@ public class ASFinder {
      * @param target The end position of the traverse operation.
      * @return An set of the points calculated by the A Star algorithm.
      */
+    @Nonnull
     public ArrayDeque<Node> traverse(long origin, long target) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same ASFinder instance");
@@ -99,7 +101,7 @@ public class ASFinder {
      *
      * @param current The current node.
      */
-    public void retracePath(Node current) {
+    public void retracePath(@Nonnull Node current) {
         Node temp = current;
         temp.setCrossroad(true); // Consider tail as a part of the crossroad
         path.add(temp);
@@ -117,7 +119,7 @@ public class ASFinder {
      * @param current The current node.
      * @return True or false.
      */
-    public boolean retraceNode(Node current) {
+    public boolean retraceNode(@Nonnull Node current) {
         byte connections = 0;
 
         for (Dir direction : Dir.VALUES) {
@@ -136,6 +138,7 @@ public class ASFinder {
      *
      * @return The found node.
      */
+    @Nonnull
     private Node getLowestF() {
         Node lowest = open.peek();
         for (Node n : open) {
@@ -152,7 +155,8 @@ public class ASFinder {
      * @param current The given node.
      * @return The set of nodes.
      */
-    public ObjectList<Node> getNeighboringNodes(Node current) {
+    @Nonnull
+    public ObjectList<Node> getNeighboringNodes(@Nonnull Node current) {
         ObjectList<Node> neighbors = new ObjectArrayList<>(6);
 
         for (Dir direction : Dir.VALUES) {

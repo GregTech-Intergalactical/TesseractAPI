@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
  * Interface abstracting ticking behaviour for the groups in the graph.
  */
 public interface ITickingController {
+
     /**
      * Server tick handler.
      */
@@ -22,5 +23,5 @@ public interface ITickingController {
      * @return New controller for the group.
      */
     @Nonnull
-    ITickingController clone(INode group);
+    ITickingController clone(@Nonnull INode group);
 }

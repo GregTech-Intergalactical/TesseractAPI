@@ -36,7 +36,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param node The given node.
      * @return Create a instance of a class for a given position and node.
      */
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, Connectivity.Cache<N> node) {
+    @Nonnull
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, @Nonnull Connectivity.Cache<N> node) {
         Group<C, N> group = new Group<>();
         group.addNode(pos, node);
         return group;
@@ -47,7 +48,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param connector The given connector.
      * @return Create a instance of a class for a given position and connector.
      */
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, Connectivity.Cache<C> connector) {
+    @Nonnull
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, @Nonnull Connectivity.Cache<C> connector) {
         Group<C, N> group = new Group<>();
         int id = Utils.getNewId();
         group.connectors.put(pos, id);
@@ -61,12 +63,12 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     @Override
-    public boolean linked(long from, Dir towards, long to) {
+    public boolean linked(long from, @Nullable Dir towards, long to) {
         return contains(from) && contains(to);
     }
 
     @Override
-    public boolean connects(long pos, Dir towards) {
+    public boolean connects(long pos, @Nullable Dir towards) {
         return contains(pos);
     }
 
@@ -75,7 +77,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      *
      * @param node The given node.
      */
-    private void resetControllerHost(Connectivity.Cache<N> node) {
+    private void resetControllerHost(@Nonnull Connectivity.Cache<N> node) {
         if (currentTickHost != null && node.value() instanceof ITickHost && node.value() == currentTickHost) {
             currentTickHost.reset(controller, null);
             findNextValidHost(node);
@@ -88,8 +90,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param node The given node.
      */
     private void findNextValidHost(@Nullable Connectivity.Cache<N> node) {
-        if (controller == null)
-            return;
+        if (controller == null) return;
         currentTickHost = null;
         for (Long2ObjectMap.Entry<Connectivity.Cache<N>> n : nodes.long2ObjectEntrySet()) {
             if (n.getValue() == node || !(n.getValue() instanceof ITickHost)) {
@@ -187,7 +188,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param pos The given position.
      * @param node The given node.
      */
-    public void addNode(long pos, Connectivity.Cache<N> node) {
+    public void addNode(long pos, @Nonnull Connectivity.Cache<N> node) {
         nodes.put(pos, node);
 
         Pos position = new Pos(pos);
@@ -209,12 +210,17 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 }
             }
         }
+
         updateController();
     }
 
+    /**
+     *
+     */
     public void updateController() {
-        if (controller != null)
+        if (controller != null) {
             controller.change();
+        }
     }
 
     /**
@@ -222,7 +228,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param pos The given position.
      * @param connector The given connector.
      */
-    public void addConnector(long pos, Connectivity.Cache<C> connector) {
+    public void addConnector(long pos, @Nonnull Connectivity.Cache<C> connector) {
 
         Int2ObjectMap<Grid<C>> linked = new Int2ObjectLinkedOpenHashMap<>();
         Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
@@ -283,9 +289,9 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         // Add neighbours nodes to the grid
-        for (Long2ObjectMap.Entry<Dir> entry : joined.long2ObjectEntrySet()) {
-            long move = entry.getLongKey();
-            Dir direction = entry.getValue();
+        for (Long2ObjectMap.Entry<Dir> e : joined.long2ObjectEntrySet()) {
+            long move = e.getLongKey();
+            Dir direction = e.getValue();
 
             Connectivity.Cache<N> node = nodes.get(move);
 
@@ -308,9 +314,9 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             return;
         }
 
-        for (Int2ObjectMap.Entry<Grid<C>> entry : linked.int2ObjectEntrySet()) {
-            int id = entry.getIntKey();
-            Grid<C> grid = entry.getValue();
+        for (Int2ObjectMap.Entry<Grid<C>> e : linked.int2ObjectEntrySet()) {
+            int id = e.getIntKey();
+            Grid<C> grid = e.getValue();
 
             if (id == bestId) {
                 continue;
@@ -332,9 +338,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      *
      * @param pos The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
-     * @return True on success, false otherwise.
      */
-    public boolean removeAt(long pos, Consumer<Group<C, N>> split) {
+    public void removeAt(long pos, @Nonnull Consumer<Group<C, N>> split) {
 
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.
@@ -347,7 +352,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             Connectivity.Cache<N> node = nodes.remove(pos);
             if (node != null) {
                 removeNode(node, pos);
-                return true;
+                return;
             }
 
             int pairing = connectors.remove(pos);
@@ -355,7 +360,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
             // No check is needed here, because the caller already asserts that the Group contains the specified position.
             // Thus, if this is not a node, then it is guaranteed to be a connector.
-            boolean removed = grid.removeAt(
+            grid.removeAt(
                 pos,
                 newGrid -> {
                     int newId = Utils.getNewId();
@@ -372,7 +377,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 grids.remove(pairing);
             }
 
-            return removed;
+            return;
         }
 
         // If none of the fast routes work, we need to due a full group-traversal to figure out how the graph will be split.
@@ -490,8 +495,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 findNextValidHost(null);
             }
         }
-
-        return true;
     }
 
     /**
@@ -499,7 +502,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param node The given node.
      * @param pos The position of the node.
      */
-    private void removeNode(Connectivity.Cache<N> node, long pos) {
+    private void removeNode(@Nonnull Connectivity.Cache<N> node, long pos) {
         resetControllerHost(node);
 
         // Clear removing node from nearest grid
@@ -520,7 +523,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param id The group id.
      * @param grid The grid object.
      */
-    private void addGrid(int id, Grid<C> grid) {
+    private void addGrid(int id, @Nonnull Grid<C> grid) {
         grids.put(id, grid);
 
         for (long moved : grid.getConnectors().keySet()) {
@@ -536,7 +539,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @return The grid map, guaranteed to not be null.
      */
     @Nullable
-    public Grid<C> getGridAt(long pos, Dir direction) {
+    public Grid<C> getGridAt(long pos, @Nonnull Dir direction) {
         int id = connectors.get(pos);
 
         if (id != Utils.INVALID) {
@@ -579,9 +582,9 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param other The another group.
      * @param pos The given position.
      */
-    public void mergeWith(Group<C, N> other, long pos) {
+    public void mergeWith(@Nonnull Group<C, N> other, long pos) {
+        other.releaseController(); //TODO: Check?
         nodes.putAll(other.nodes);
-        other.releaseController();
         connectors.putAll(other.connectors);
 
         for (int id : other.grids.keySet()) {
@@ -626,5 +629,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         grids.putAll(other.grids);
+
     }
 }

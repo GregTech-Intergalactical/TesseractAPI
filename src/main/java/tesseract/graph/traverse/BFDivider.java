@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import tesseract.graph.INode;
 
+import javax.annotation.Nonnull;
 import java.util.ConcurrentModificationException;
 import java.util.function.Consumer;
 
@@ -23,7 +24,7 @@ public class BFDivider {
 	 *
 	 * @param container The container to use for devides operations.
 	 */
-	public BFDivider(INode container) {
+	public BFDivider(@Nonnull INode container) {
 		searcher = new BFSearcher(container);
 		roots.defaultReturnValue(Integer.MAX_VALUE);
 	}
@@ -42,7 +43,7 @@ public class BFDivider {
 	 * @return The index in the sequence of split position sets corresponding to the largest set of positions, ie. a
 	 *         return value of 0 indicates that the first returned set was the largest.
 	 */
-	public int divide(Consumer<LongOpenHashSet> removed, Consumer<LongLinkedOpenHashSet> rootProvider, Consumer<LongLinkedOpenHashSet> split) {
+	public int divide(@Nonnull Consumer<LongOpenHashSet> removed, @Nonnull Consumer<LongLinkedOpenHashSet> rootProvider, @Nonnull Consumer<LongLinkedOpenHashSet> split) {
 		if (!lookup.isEmpty() || !roots.isEmpty()) {
 			throw new ConcurrentModificationException("Attempted to run concurrent divide operations on the same BFDivider instance");
 		}

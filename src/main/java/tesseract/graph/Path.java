@@ -6,6 +6,8 @@ import tesseract.api.IConnectable;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 
@@ -25,7 +27,7 @@ public class Path<C extends IConnectable> {
      * @param connectors The connectors array.
      * @param path The path queue.
      */
-    protected Path(Long2ObjectMap<Connectivity.Cache<C>> connectors, ArrayDeque<Node> path) {
+    protected Path(@Nonnull Long2ObjectMap<Connectivity.Cache<C>> connectors, @Nonnull ArrayDeque<Node> path) {
         origin = path.pollLast();
         target = path.pollFirst();
 
@@ -46,6 +48,7 @@ public class Path<C extends IConnectable> {
     /**
      * @return Gets the origin position.
      */
+    @Nullable
     public Pos origin() {
         return origin;
     }
@@ -53,6 +56,7 @@ public class Path<C extends IConnectable> {
     /**
      * @return Gets the target position.
      */
+    @Nullable
     public Pos target() {
         return target;
     }
@@ -60,6 +64,7 @@ public class Path<C extends IConnectable> {
     /**
      * @return Gets the full connectors path.
      */
+    @Nonnull
     public Long2ObjectMap<C> getFull() {
         return full;
     }
@@ -67,6 +72,7 @@ public class Path<C extends IConnectable> {
     /**
      * @return Gets the crossroad connectors path.
      */
+    @Nonnull
     public Long2ObjectMap<C> getCross() {
         return cross;
     }

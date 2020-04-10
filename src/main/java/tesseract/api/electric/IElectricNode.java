@@ -5,6 +5,8 @@ import tesseract.api.IConnectable;
 import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
 
+import javax.annotation.Nonnull;
+
 /**
  * An electric node is the unit of interaction with electric inventories.
  * <p>
@@ -79,5 +81,5 @@ public interface IElectricNode extends IConnectable, ITickHost {
 	 * @param direction Direction to test.
 	 * @return Returns true if the given direction is output side.
 	 */
-	boolean canOutput(Dir direction);
+	boolean canOutput(@Nonnull Dir direction);
 }

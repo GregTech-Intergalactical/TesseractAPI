@@ -9,6 +9,8 @@ import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -125,7 +127,7 @@ class TestBench {
         }
 
         @Override
-        public boolean connects(Dir direction) {
+        public boolean connects(@Nonnull Dir direction) {
             return true;
         }
 
@@ -153,7 +155,7 @@ class TestBench {
         }
 
         @Override
-        public boolean connects(Dir direction) {
+        public boolean connects(@Nonnull Dir direction) {
             return true;
         }
 
@@ -203,7 +205,7 @@ class TestBench {
         }
 
         @Override
-        public boolean canOutput(Dir direction) {
+        public boolean canOutput(@Nonnull Dir direction) {
             return false;
         }
 
@@ -213,6 +215,6 @@ class TestBench {
         }
 
         @Override
-        public void reset(ITickingController oldController, ITickingController newController) { }
+        public void reset(@Nullable ITickingController oldController, @Nullable ITickingController newController) { }
     }
 }

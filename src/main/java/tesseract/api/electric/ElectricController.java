@@ -8,12 +8,15 @@ import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
  *
  */
 public class ElectricController implements ITickingController {
+
     private IElectricEvent event;
     private Long2ObjectMap<Holder> amps;
     private Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data;
@@ -85,6 +88,11 @@ public class ElectricController implements ITickingController {
         }
     }
 
+    /**
+     *
+     * @param producer
+     * @param consumers
+     */
     private void mergeConsumers(IElectricNode producer, ObjectList<Consumer> consumers) {
         ObjectList<Consumer> existingConsumers = data.get(producer);
         for (Consumer c : consumers) {
@@ -103,6 +111,13 @@ public class ElectricController implements ITickingController {
         }
     }
 
+    /**
+     *
+     * @param producer
+     * @param consumers
+     * @param path
+     * @param pos
+     */
     private void checkConsumer(IElectricNode producer, ObjectList<Consumer> consumers, Path<IElectricCable> path, long pos) {
         IElectricNode c = group.getNodes().get(pos).value();
         if (c.canInput()) {
@@ -110,14 +125,20 @@ public class ElectricController implements ITickingController {
                 event.onOverVoltage(pos);
             } else {
                 Consumer consumer = new Consumer(c, path);
-                if (producer.getOutputVoltage() > consumer.getLoss())
+                if (producer.getOutputVoltage() > consumer.loss)
                     consumers.add(consumer);
             }
         }
     }
 
+    /**
+     *
+     * @param group New group.
+     * @return
+     */
+    @Nonnull
     @Override
-    public ITickingController clone(INode group) {
+    public ITickingController clone(@Nonnull INode group) {
         assert (group instanceof Group<?, ?>);
         return new ElectricController((Group<IElectricCable, IElectricNode>) group, event);
     }
@@ -137,32 +158,37 @@ public class ElectricController implements ITickingController {
     @Override
     public void tick() {
         // TODO: maybe preallocate the map in change()
-        Object2LongMap<IElectricNode> amperesConsumed = new Object2LongOpenHashMap<>(group.getNodes().size());
-        amperesConsumed.defaultReturnValue(0);
+        Object2LongMap<IElectricNode> amperesConsumed = new Object2LongLinkedOpenHashMap<>(group.getNodes().size());
+        //amperesConsumed.defaultReturnValue(0L);
         amps.clear();
-        for(Map.Entry<IElectricNode, ObjectList<Consumer>> e : data.entrySet()) {
+        for(Object2ObjectMap.Entry<IElectricNode, ObjectList<Consumer>> e : data.object2ObjectEntrySet()) {
             IElectricNode producer = e.getKey();
             long outputVoltage = producer.getOutputVoltage();
             long outputAmperage = producer.getOutputAmperage();
-            if (outputAmperage <= 0)
+            if (outputAmperage <= 0) {
                 continue;
+            }
+
             for (Consumer consumer: e.getValue()) {
                 long amperage = consumer.getRequiredAmperage(outputVoltage);
+
                 // look up how much it already got
                 amperage -= amperesConsumed.getLong(consumer.consumer);
-                if (amperage <= 0)  // if this consumer received all the energy from the other producers
+                if (amperage <= 0) { // if this consumer received all the energy from the other producers
                     continue;
-                amperage = Math.min(outputAmperage, amperage);
+                }
+
                 // remember amperes stored in this consumer
+                amperage = Math.min(outputAmperage, amperage);
                 amperesConsumed.put(consumer.consumer, amperesConsumed.getLong(consumer.consumer) + amperage);
 
-                consumer.insert(outputVoltage * amperage);
+                consumer.insert(outputVoltage * amperage, false);
                 producer.extract(outputVoltage * amperage, false);
 
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
-                if (!consumer.canReceive(outputVoltage, amperage) && consumer.getConnectionType() != ConnectionType.ADJACENT) { // Fast check by the lowest cost cable
+                if (!consumer.canReceive(outputVoltage, amperage) && consumer.connection != ConnectionType.ADJACENT) { // Fast check by the lowest cost cable
                     // Find corrupt cable and return
-                    for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(false).long2ObjectEntrySet()) {
+                    for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.full.long2ObjectEntrySet()) {
                         if (!entry.getValue().canHandle(outputVoltage, amperage)) {
                             event.onOverAmperage(entry.getLongKey());
                         }
@@ -171,8 +197,8 @@ public class ElectricController implements ITickingController {
                 }
 
                 // Stores the amp into holder for path only for variate connection
-                if (consumer.getConnectionType() == ConnectionType.VARIATE) {
-                    for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.getCables(true).long2ObjectEntrySet()) {
+                if (consumer.connection == ConnectionType.VARIATE) {
+                    for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.cross.long2ObjectEntrySet()) {
                         Holder holder = amps.get(entry.getLongKey());
                         if (holder == null) {
                             amps.put(entry.getLongKey(), new Holder(entry.getValue().getAmps(), amperage));
@@ -181,6 +207,7 @@ public class ElectricController implements ITickingController {
                         }
                     }
                 }
+
                 outputAmperage -= amperage;
                 if (outputAmperage <= 0)
                     break;
@@ -215,6 +242,7 @@ public class ElectricController implements ITickingController {
 
         /**
          * Adds a new value to the amperage.
+         *
          * @param amperage The added value.
          */
         void add(long amperage) {
@@ -234,9 +262,10 @@ public class ElectricController implements ITickingController {
      */
     private static class Consumer {
 
-        private long loss = 0;
-        final private long amperage;
-        final private IElectricNode consumer;
+        private long loss;
+        private final long amperage;
+        private final IElectricNode consumer;
+        private final ConnectionType connection;
         private Long2ObjectMap<IElectricCable> full;
         private Long2ObjectMap<IElectricCable> cross;
 
@@ -249,10 +278,12 @@ public class ElectricController implements ITickingController {
          * @param consumer The consumer node.
          * @param path The path information.
          */
-        Consumer(IElectricNode consumer, Path<IElectricCable> path) {
+        Consumer(@Nonnull IElectricNode consumer, @Nullable Path<IElectricCable> path) {
             this.consumer = consumer;
-            this.full = (path == null) ? null : path.getFull();
-            this.cross = (path == null) ? null : path.getCross();
+            if (path != null) {
+                full = path.getFull();
+                cross = path.getCross();
+            }
 
             // Gets the total loss and min voltage and amperage
             if (full != null) {
@@ -262,30 +293,24 @@ public class ElectricController implements ITickingController {
                     min_amperage = Math.min(min_amperage, cable.getAmps());
                 }
             }
+
+            if (cross == null || cross.size() == 0) {
+                connection = (full == null) ? ConnectionType.ADJACENT : ConnectionType.SINGLE;
+            } else {
+                connection = ConnectionType.VARIATE;
+            }
+
             amperage = consumer.getInputAmperage();
         }
 
         /**
          * Adds energy to the node. Returns quantity of energy that was accepted.
+         *
          * @param energy Amount of energy to be inserted.
+         * @param simulate If true, the insertion will only be simulated.
          */
-        void insert(long energy) {
-            consumer.insert(energy, false);
-        }
-
-        /**
-         * @param crossroad If true will return crossroad cables, false to get full amount.
-         * @return Gets the cables list.
-         */
-        Long2ObjectMap<IElectricCable> getCables(boolean crossroad) {
-            return crossroad ? cross : full;
-        }
-
-        /**
-         * @return Gets the cables loss.
-         */
-        long getLoss() {
-            return loss;
+        void insert(long energy, boolean simulate) {
+            consumer.insert(energy, simulate);
         }
 
         /**
@@ -296,22 +321,12 @@ public class ElectricController implements ITickingController {
         }
 
         /**
-         * @return Gets the consumer connection type.
-         */
-        ConnectionType getConnectionType() {
-            if (cross == null || cross.size() == 0) {
-                return (full == null) ? ConnectionType.ADJACENT : ConnectionType.SINGLE;
-            }
-            return ConnectionType.VARIATE;
-        }
-
-        /**
          * @param voltage The current voltage.
          * @param amperage The current amperage.
          * @return Checks that the consumer is able to receive energy.
          */
         boolean canReceive(long voltage, long amperage) {
-            return this.min_voltage >= voltage && this.min_amperage >= amperage;
+            return min_voltage >= voltage && min_amperage >= amperage;
         }
     }
 }
