@@ -86,7 +86,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
 			if (group != null) {
 				group.addConnector(pos, connector);
-				group.getController().change();
+				group.updateController();
 			}
 			return true;
 		}
