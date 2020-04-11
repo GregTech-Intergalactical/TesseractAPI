@@ -215,6 +215,8 @@ class TestBench {
         }
 
         @Override
-        public void reset(@Nullable ITickingController oldController, @Nullable ITickingController newController) { }
+        public void reset(@Nullable ITickingController oldController, @Nullable ITickingController newController) {
+            System.out.println("oldController: " + oldController + "| newController: " + newController);
+        }
     }
 }

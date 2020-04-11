@@ -25,7 +25,9 @@ public class Grid<C extends IConnectable> implements INode {
     private ASFinder finder = new ASFinder(this);
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
-    private Grid() {}
+    private Grid() {
+        nodes.defaultReturnValue(Byte.MAX_VALUE);
+    }
 
     /**
      * @param pos The position of the connector.
@@ -305,7 +307,7 @@ public class Grid<C extends IConnectable> implements INode {
             long side = position.offset(direction).asLong();
 
             if (!nodes.containsKey(side) && linked(pos, direction, side)) {
-                neighbors += 1;
+                neighbors++;
             }
         }
 

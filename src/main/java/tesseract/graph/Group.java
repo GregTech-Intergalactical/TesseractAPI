@@ -85,6 +85,16 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
+     * Resets the current tick host.
+     */
+    private void releaseControllerHost() {
+        if (currentTickHost != null && controller != null) {
+            currentTickHost.reset(controller, null);
+            findNextValidHost(null);
+        }
+    }
+
+    /**
      * Finds the next available host in the group.
      *
      * @param node The given node.
@@ -103,16 +113,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         if (currentTickHost != null) {
             currentTickHost.reset(null, controller);
-            updateController();
-        }
-    }
-
-    /**
-     * Resets the current tick host.
-     */
-    private void releaseController() {
-        if (controller != null && currentTickHost != null) {
-            currentTickHost.reset(controller, null);
+            controller.change();
         }
     }
 
@@ -211,16 +212,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             }
         }
 
-        updateController();
-    }
-
-    /**
-     *
-     */
-    public void updateController() {
-        if (controller != null) {
-            controller.change();
-        }
+        findNextValidHost(null);
     }
 
     /**
@@ -249,13 +241,13 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             if (id == Utils.INVALID) {
                 // Collect joining nodes
                 if (nodes.containsKey(side)) {
-                    neighbors += 1;
+                    neighbors++;
                     joined.put(side, direction);
                 }
                 continue;
             }
 
-            neighbors += 1;
+            neighbors++;
 
             Grid<C> grid = grids.get(id);
 
@@ -309,26 +301,26 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         connectors.put(pos, bestId);
         bestGrid.addConnector(pos, connector);
 
-        if (linked.size() == 1) {
-            // No other grids to merge with
-            return;
+        if (linked.size() > 1) {
+            // Other grids to merge with
+            for (Int2ObjectMap.Entry<Grid<C>> e : linked.int2ObjectEntrySet()) {
+                int id = e.getIntKey();
+                Grid<C> grid = e.getValue();
+
+                if (id == bestId) {
+                    continue;
+                }
+
+                bestGrid.mergeWith(grid);
+                for (long item : grid.getConnectors().keySet()) {
+                    connectors.put(item, bestId);
+                }
+
+                grids.remove(id);
+            }
         }
 
-        for (Int2ObjectMap.Entry<Grid<C>> e : linked.int2ObjectEntrySet()) {
-            int id = e.getIntKey();
-            Grid<C> grid = e.getValue();
-
-            if (id == bestId) {
-                continue;
-            }
-
-            bestGrid.mergeWith(grid);
-            for (long item : grid.getConnectors().keySet()) {
-                connectors.put(item, bestId);
-            }
-
-            grids.remove(id);
-        }
+        findNextValidHost(null);
     }
 
     /**
@@ -485,14 +477,13 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             }
 
             if (i != bestColor) {
-                split.accept(newGroup);
                 if (controller != null) {
                     newGroup.controller = controller.clone(newGroup);
                     newGroup.findNextValidHost(null);
                 }
+                split.accept(newGroup);
             } else {
-                releaseController();
-                findNextValidHost(null);
+                releaseControllerHost();
             }
         }
     }
@@ -570,7 +561,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             long side = position.offset(direction).asLong();
 
             if (contains(side)) {
-                neighbors += 1;
+                neighbors++;
             }
         }
 
@@ -583,7 +574,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param pos The given position.
      */
     public void mergeWith(@Nonnull Group<C, N> other, long pos) {
-        other.releaseController(); //TODO: Check?
         nodes.putAll(other.nodes);
         connectors.putAll(other.connectors);
 
@@ -629,6 +619,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         grids.putAll(other.grids);
-
+        other.releaseControllerHost();
     }
 }
