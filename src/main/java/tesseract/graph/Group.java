@@ -90,7 +90,15 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     private void releaseControllerHost() {
         if (currentTickHost != null && controller != null) {
             currentTickHost.reset(controller, null);
-            findNextValidHost(null);
+        }
+    }
+
+    /**
+     *
+     */
+    public void updateController() {
+        if (controller != null) {
+            controller.change();
         }
     }
 
@@ -102,12 +110,13 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     private void findNextValidHost(@Nullable Connectivity.Cache<N> node) {
         if (controller == null) return;
         currentTickHost = null;
-        for (Long2ObjectMap.Entry<Connectivity.Cache<N>> n : nodes.long2ObjectEntrySet()) {
-            if (n.getValue() == node || !(n.getValue() instanceof ITickHost)) {
+
+        for (Connectivity.Cache<N> n : nodes.values()) {
+            if (n == node || !(n.value() instanceof ITickHost)) {
                 continue;
             }
 
-            currentTickHost = (ITickHost) n.getValue();
+            currentTickHost = (ITickHost) n.value();
             break;
         }
 
@@ -212,7 +221,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             }
         }
 
-        findNextValidHost(null);
+        updateController();
     }
 
     /**
@@ -320,7 +329,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             }
         }
 
-        findNextValidHost(null);
+        updateController();
     }
 
     /**
@@ -484,6 +493,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 split.accept(newGroup);
             } else {
                 releaseControllerHost();
+                findNextValidHost(null);
             }
         }
     }
@@ -574,6 +584,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param pos The given position.
      */
     public void mergeWith(@Nonnull Group<C, N> other, long pos) {
+        other.releaseControllerHost();
         nodes.putAll(other.nodes);
         connectors.putAll(other.connectors);
 
@@ -619,6 +630,5 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         grids.putAll(other.grids);
-        other.releaseControllerHost();
     }
 }

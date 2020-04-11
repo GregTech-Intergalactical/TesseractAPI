@@ -30,7 +30,9 @@ public interface IElectricCable extends IConnectable {
 	 * @param amperage The current amperage.
 	 * @return Checks that the cable is able to handle single packet.
 	 */
-	default boolean canHandle(long voltage, long amperage) {
-		return getVoltage() >= voltage && getAmps() >= amperage;
+	default ElectricStatus getStatus(long voltage, long amperage) {
+		if (getVoltage() < voltage) return ElectricStatus.FAIL_VOLTAGE;
+		else if (getAmps() < amperage) return ElectricStatus.FAIL_AMPERAGE;
+		return ElectricStatus.SUCCESS;
 	}
 }

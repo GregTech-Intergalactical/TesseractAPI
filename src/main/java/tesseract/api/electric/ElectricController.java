@@ -10,14 +10,15 @@ import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Objects;
+
+import static tesseract.TesseractAPI.GLOBAL_ELECTRIC_EVENT;
 
 /**
  *
  */
 public class ElectricController implements ITickingController {
 
-    private IElectricEvent event;
+    private int dim;
     private Group<IElectricCable, IElectricNode> group;
     private Long2ObjectMap<Holder> absorbs = new Long2ObjectLinkedOpenHashMap<>();
     private Object2LongMap<IElectricNode> obtains = new Object2LongLinkedOpenHashMap<>();
@@ -26,12 +27,16 @@ public class ElectricController implements ITickingController {
     /**
      * Creates instance of the controller.
      *
+     * @param dim The dimension id.
      * @param group The group this controller handles.
-     * @param event The event listener.
      */
-    public ElectricController(Group<IElectricCable, IElectricNode> group, IElectricEvent event) {
-        this.event = event;
+    public ElectricController(int dim, Group<IElectricCable, IElectricNode> group) {
+        this.dim = dim;
         this.group = group;
+
+        if (GLOBAL_ELECTRIC_EVENT == null) {
+            throw new NullPointerException("GLOBAL_ELECTRIC_EVENT wasn't initialize");
+        }
     }
 
     /**
@@ -120,7 +125,7 @@ public class ElectricController implements ITickingController {
         IElectricNode c = group.getNodes().get(pos).value();
         if (c.canInput()) {
             if (producer.getOutputVoltage() > c.getInputVoltage()) {
-                event.onOverVoltage(pos);
+                GLOBAL_ELECTRIC_EVENT.onNodeOverVoltage(dim, pos);
             } else {
                 Consumer consumer = new Consumer(c, path);
                 if (producer.getOutputVoltage() > consumer.loss) {
@@ -141,7 +146,7 @@ public class ElectricController implements ITickingController {
     @SuppressWarnings("unchecked")
     public ITickingController clone(@Nonnull INode group) {
         assert (group instanceof Group<?, ?>);
-        return new ElectricController((Group<IElectricCable, IElectricNode>) group, event);
+        return new ElectricController(dim, (Group<IElectricCable, IElectricNode>) group);
     }
 
     /**
@@ -189,8 +194,13 @@ public class ElectricController implements ITickingController {
                 if (!consumer.canReceive(outputVoltage, amperage) && consumer.connection != ConnectionType.ADJACENT) { // Fast check by the lowest cost cable
                     // Find corrupt cable and return
                     for (Long2ObjectMap.Entry<IElectricCable> entry : consumer.full.long2ObjectEntrySet()) {
-                        if (!entry.getValue().canHandle(outputVoltage, amperage)) {
-                            event.onOverAmperage(entry.getLongKey());
+                        switch (entry.getValue().getStatus(outputVoltage, amperage)) {
+                            case FAIL_VOLTAGE:
+                                GLOBAL_ELECTRIC_EVENT.onCableOverVoltage(dim, entry.getLongKey());
+                                break;
+                            case FAIL_AMPERAGE:
+                                GLOBAL_ELECTRIC_EVENT.onCableOverAmperage(dim, entry.getLongKey());
+                                break;
                         }
                     }
                     return;
@@ -216,7 +226,7 @@ public class ElectricController implements ITickingController {
 
         for (Long2ObjectMap.Entry<Holder> entry : absorbs.long2ObjectEntrySet()) {
             if (!entry.getValue().canHandle()) {
-                event.onOverAmperage(entry.getLongKey());
+                GLOBAL_ELECTRIC_EVENT.onCableOverAmperage(dim, entry.getLongKey());
             }
         }
     }
