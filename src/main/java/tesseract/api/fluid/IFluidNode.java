@@ -19,61 +19,69 @@ public interface IFluidNode extends IConnectable, ITickHost {
 
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.
-     * @param maxReceive Maximum amount of fluid to be inserted.
-     * @param simulate If true, the insertion will only be simulated.
+     * @param stack FluidStack attempting to fill the tank.
+     * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    int insert(long maxReceive, boolean simulate);
+    int insert(@Nonnull Object stack, boolean simulate);
 
     /**
      * Removes fluid from the node. Returns amount of fluid that was drained.
-     * @param maxExtract Maximum amount of fluid to be removed from the container.
-     * @param simulate If true, the extraction will only be simulated.
-     * @return Amount of fluid that was removed (or would be, if simulated) from the tank.
+     * @param maxDrain Maximum amount of fluid to be removed from the container.
+     * @param simulate If true, the drain will only be simulated.
+     * @return FluidStack representing fluid that was removed (or would be, if simulated) from the tank.
      */
-    long extract(long maxExtract, boolean simulate);
+    @Nonnull
+    Object extract(int maxDrain, boolean simulate);
 
     /**
-     * @return Id representing the fluid in the tank, -1 if the tank is empty.
+     * @return Compound representing the fluid in the tank, null if the tank is empty.
      */
-    int getFluidId();
+    @Nonnull
+    Object getFluidStack();
+
+    /**
+     * @param stack FluidStack holding the Fluid to be queried.
+     * @return If the tank can hold the fluid (EVER, not at the time of query).
+     */
+    boolean isValid(@Nonnull Object stack);
 
     /**
      * @return Current amount of fluid in the tank.
      */
-    long getFluidAmount();
+    int getAmount();
 
     /**
-     * @return Capacity of this fluid tank.
+     * @return Volume of this fluid tank.
      */
-    long getCapacity();
+    int getVolume();
 
     /**
      * @return Gets the initial amount of pressure that can be output.
      */
-    long getOutputPressure();
+    int getOutputPressure();
 
     /**
      * @return Gets the maximum amount of pressure that can be input.
      */
-    long getInputPressure();
+    int getInputPressure();
 
     /**
-     * Gets if this storage can have energy extracted.
+     * Gets if this storage can have fluid extracted.
      * @return If this is false, then any calls to extractEnergy will return 0.
      */
     boolean canOutput();
 
     /**
-     * Used to determine if this storage can receive energy.
+     * Used to determine if this storage can receive fluid.
      * @return If this is false, then any calls to receiveEnergy will return 0.
      */
     boolean canInput();
 
     /**
-     * Used to determine which sides can output energy (if any).
+     * Used to determine which sides can output fluid (if any).
      * Output cannot be used as input.
-     * @param direction Direction to test.
+     * @param direction Direction to the out.
      * @return Returns true if the given direction is output side.
      */
     boolean canOutput(@Nonnull Dir direction);

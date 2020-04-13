@@ -23,16 +23,17 @@ public interface IElectricCable extends IConnectable {
 	 * Returns the maximum energy that this electrical component will permit to pass through or be received in a single packet.
 	 * @return A positive integer representing the maximum accepted energy, zero or negative indicates that this component accepts no energy.
 	 */
-	long getVoltage();
+	int getVoltage();
 
 	/**
 	 * @param voltage The current voltage.
 	 * @param amperage The current amperage.
 	 * @return Checks that the cable is able to handle single packet.
 	 */
-	default ElectricStatus getStatus(long voltage, long amperage) {
+	default ElectricStatus handleStatus(int voltage, int amperage) {
 		if (getVoltage() < voltage) return ElectricStatus.FAIL_VOLTAGE;
 		else if (getAmps() < amperage) return ElectricStatus.FAIL_AMPERAGE;
 		return ElectricStatus.SUCCESS;
 	}
 }
+

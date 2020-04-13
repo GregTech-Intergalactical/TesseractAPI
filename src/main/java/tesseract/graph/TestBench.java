@@ -142,8 +142,8 @@ class TestBench {
         }
 
         @Override
-        public long getVoltage() {
-            return 0L;
+        public int getVoltage() {
+            return 0;
         }
     }
 
@@ -161,12 +161,12 @@ class TestBench {
 
         @Override
         public long insert(long maxReceive, boolean simulate) {
-            return 0L;
+            return 0;
         }
 
         @Override
         public long extract(long maxExtract, boolean simulate) {
-            return 0L;
+            return 0;
         }
 
         @Override
@@ -180,23 +180,23 @@ class TestBench {
         }
 
         @Override
-        public long getOutputAmperage() {
-            return 0L;
+        public int getOutputAmperage() {
+            return 0;
         }
 
         @Override
-        public long getOutputVoltage() {
-            return 0L;
+        public int getOutputVoltage() {
+            return 0;
         }
 
         @Override
-        public long getInputAmperage() {
-            return 0L;
+        public int getInputAmperage() {
+            return 0;
         }
 
         @Override
-        public long getInputVoltage() {
-            return 0L;
+        public int getInputVoltage() {
+            return 0;
         }
 
         @Override

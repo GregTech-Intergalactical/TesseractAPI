@@ -81,6 +81,6 @@ public class Path<C extends IConnectable> {
      * @return Checks that the path is empty.
      */
     public boolean isEmpty() {
-        return origin == null || target == null;
+        return (origin == null || target == null);
     }
 }

@@ -46,22 +46,22 @@ public interface IElectricNode extends IConnectable, ITickHost {
 	/**
 	 * @return Gets the maximum amount of amperage that can be output.
 	 */
-	long getOutputAmperage();
+	int getOutputAmperage();
 
 	/**
 	 * @return Gets the maximum amount of voltage that can be output.
 	 */
-	long getOutputVoltage();
+	int getOutputVoltage();
 
 	/**
 	 * @return Gets the maximum amount of amperage that can be input.
 	 */
-	long getInputAmperage();
+	int getInputAmperage();
 
 	/**
 	 * @return Gets the maximum amount of voltage that can be input.
 	 */
-	long getInputVoltage();
+	int getInputVoltage();
 
 	/**
 	 * Gets if this storage can have energy extracted.
@@ -78,7 +78,7 @@ public interface IElectricNode extends IConnectable, ITickHost {
 	/**
 	 * Used to determine which sides can output energy (if any).
 	 * Output cannot be used as input.
-	 * @param direction Direction to test.
+	 * @param direction Direction to the out.
 	 * @return Returns true if the given direction is output side.
 	 */
 	boolean canOutput(@Nonnull Dir direction);

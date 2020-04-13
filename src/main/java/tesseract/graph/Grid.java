@@ -280,11 +280,13 @@ public class Grid<C extends IConnectable> implements INode {
             }
         }
 
-        if (found != null) {
-            for (long reached : found) {
-                if (isExternal(reached)) {
-                    nodes.remove(reached);
-                }
+        if (found == null) {
+            return;
+        }
+
+        for (long reached : found) {
+            if (isExternal(reached)) {
+                nodes.remove(reached);
             }
         }
     }

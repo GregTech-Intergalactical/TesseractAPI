@@ -85,9 +85,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public boolean addConnector(long pos, @Nonnull Connectivity.Cache<C> connector) {
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
-			if (group != null) {
-				group.addConnector(pos, connector);
-			}
+			if (group != null) group.addConnector(pos, connector);
 			return true;
 		}
 

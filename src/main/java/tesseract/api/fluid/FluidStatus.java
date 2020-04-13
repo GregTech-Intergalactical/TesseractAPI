@@ -5,6 +5,7 @@ package tesseract.api.fluid;
  */
 public enum FluidStatus {
     SUCCESS,
+
     FAIL_TEMP,
     FAIL_LEAK,
     FAIL_PRESSURE,
