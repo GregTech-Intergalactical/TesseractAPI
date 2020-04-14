@@ -1,7 +1,6 @@
 package tesseract.graph;
 
 import org.junit.Test;
-import tesseract.api.IConnectable;
 import tesseract.api.electric.IElectricCable;
 import tesseract.api.electric.IElectricNode;
 import tesseract.util.Dir;

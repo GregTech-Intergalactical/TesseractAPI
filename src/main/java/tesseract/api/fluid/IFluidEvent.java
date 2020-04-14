@@ -34,7 +34,7 @@ public interface IFluidEvent {
     void onPipeOverCapacity(int dim, long pos);
 
     /**
-     * Executes when the pipe trying to transport gas than can.
+     * Executes when the pipe trying to transport gas when can't.
      * @param dim The dimension id.
      * @param pos The pipe position.
      */

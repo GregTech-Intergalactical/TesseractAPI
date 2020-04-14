@@ -1,7 +1,7 @@
 package tesseract.api;
 
 /**
- * A class that acts as holder of the amps that has passed.
+ * A class that acts as holder of the data that has passed thought connectors.
  */
 public class Absorber {
 

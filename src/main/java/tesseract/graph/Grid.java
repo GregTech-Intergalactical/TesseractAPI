@@ -2,7 +2,6 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
-import tesseract.api.IConnectable;
 import tesseract.util.*;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
@@ -10,7 +9,6 @@ import tesseract.graph.traverse.BFDivider;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 

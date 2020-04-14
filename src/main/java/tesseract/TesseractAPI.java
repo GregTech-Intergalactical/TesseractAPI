@@ -2,13 +2,18 @@ package tesseract;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import tesseract.api.electric.*;
+import tesseract.api.electric.ElectricController;
+import tesseract.api.electric.IElectricCable;
+import tesseract.api.electric.IElectricEvent;
+import tesseract.api.electric.IElectricNode;
+import tesseract.api.fluid.FluidController;
 import tesseract.api.fluid.IFluidEvent;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
 import tesseract.api.item.IItemEvent;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
+import tesseract.api.item.ItemController;
 import tesseract.graph.Connectivity;
 import tesseract.graph.Graph;
 import tesseract.graph.Group;
@@ -30,7 +35,7 @@ public class TesseractAPI {
      * @return The graph instance for the world.
      */
     public static Graph<IElectricCable, IElectricNode> getElectricGraph(int dim) {
-        return ELECTRIC_GRAPH.computeIfAbsent(dim, k -> new Graph<>());
+        return ELECTRIC_GRAPH.computeIfAbsent(dim, i -> new Graph<>());
     }
 
     /**
@@ -40,7 +45,7 @@ public class TesseractAPI {
      * @return The graph instance for the world.
      */
     public static Graph<IFluidPipe, IFluidNode> getFluidGraph(int dim) {
-        return FLUID_GRAPH.computeIfAbsent(dim, k -> new Graph<>());
+        return FLUID_GRAPH.computeIfAbsent(dim, i -> new Graph<>());
     }
 
     /**
@@ -50,7 +55,7 @@ public class TesseractAPI {
      * @return The graph instance for the world.
      */
     public static Graph<IItemPipe, IItemNode> getItemGraph(int dim) {
-        return ITEM_GRAPH.computeIfAbsent(dim, k -> new Graph<>());
+        return ITEM_GRAPH.computeIfAbsent(dim, i -> new Graph<>());
     }
 
     /**
@@ -90,7 +95,7 @@ public class TesseractAPI {
         assert group != null;
 
         if (group.getController() == null) {
-            //group.setController(new FluidController(dim, group));
+            group.setController(new FluidController(dim, group));
         }
 
         if (group.getCurrentTickHost() == null) {
@@ -113,7 +118,7 @@ public class TesseractAPI {
         assert group != null;
 
         if (group.getController() == null) {
-            //group.setController(new ItemController(dim, group));
+            group.setController(new ItemController(dim, group));
         }
 
         if (group.getCurrentTickHost() == null) {

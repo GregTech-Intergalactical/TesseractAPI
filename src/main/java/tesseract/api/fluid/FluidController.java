@@ -35,7 +35,7 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
     }
 
     /**
-     * Create new controller for split group.
+     * Creates new controller for split group.
      *
      * @param group The new group.
      * @return New controller for the group.

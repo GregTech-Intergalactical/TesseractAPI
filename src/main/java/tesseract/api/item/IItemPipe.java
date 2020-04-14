@@ -1,6 +1,6 @@
 package tesseract.api.item;
 
-import tesseract.api.IConnectable;
+import tesseract.graph.IConnectable;
 
 /**
  * A item pipe is the unit of interaction with item inventories.
@@ -17,7 +17,7 @@ public interface IItemPipe extends IConnectable {
      * @param capacity The current capacity.
      * @return Checks that the pipe is able to handle single packet.
      */
-    default ItemStatus handleStatus(int capacity) {
+    default ItemStatus getHandler(int capacity) {
         return (getCapacity() < capacity) ? ItemStatus.FAIL : ItemStatus.SUCCESS;
     }
 }

@@ -1,6 +1,7 @@
 package tesseract.api;
 
 import tesseract.graph.Group;
+import tesseract.graph.IConnectable;
 import tesseract.graph.ITickingController;
 
 /**
@@ -17,7 +18,7 @@ abstract public class Controller<C extends IConnectable, N extends IConnectable>
      * @param dim The dimension id.
      * @param group The group this controller handles.
      */
-    public Controller(int dim, Group<C, N> group) {
+    protected Controller(int dim, Group<C, N> group) {
         this.dim = dim;
         this.group = group;
     }

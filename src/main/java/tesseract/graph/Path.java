@@ -2,7 +2,6 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import tesseract.api.IConnectable;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 

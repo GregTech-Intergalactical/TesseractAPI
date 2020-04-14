@@ -33,7 +33,7 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
     }
 
     /**
-     * Create new controller for split group.
+     * Creates new controller for split group.
      *
      * @param group The new group.
      * @return New controller for the group.

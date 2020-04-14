@@ -47,6 +47,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
     @Override
     public void change() {
         data.clear();
+
         for (Long2ObjectMap.Entry<Connectivity.Cache<IElectricNode>> entry : group.getNodes().long2ObjectEntrySet()) {
             IElectricNode producer = entry.getValue().value();
             long pos = entry.getLongKey();
@@ -109,7 +110,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
     }
 
     /**
-     *
+     * Adds available consumers to the list.
      *
      * @param producer The producer node.
      * @param consumers The consumer nodes.
@@ -131,7 +132,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
     }
 
     /**
-     * Create new controller for split group.
+     * Creates new controller for split group.
      *
      * @param group The new group.
      * @return New controller for the group.
@@ -189,7 +190,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
                 if (!consumer.canReceive(outputVoltage, amperage) && consumer.connection != ConnectionType.ADJACENT) { // Fast check by the lowest cost cable
                     // Find corrupt cable and return
                     for (Long2ObjectMap.Entry<IElectricCable> cable : consumer.full.long2ObjectEntrySet()) {
-                        switch (cable.getValue().handleStatus(outputVoltage, amperage)) {
+                        switch (cable.getValue().getHandler(outputVoltage, amperage)) {
                             case FAIL_VOLTAGE:
                                 GLOBAL_ELECTRIC_EVENT.onCableOverVoltage(dim, cable.getLongKey());
                                 break;

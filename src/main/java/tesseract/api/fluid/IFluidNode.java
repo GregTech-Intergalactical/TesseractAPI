@@ -1,6 +1,6 @@
 package tesseract.api.fluid;
 
-import tesseract.api.IConnectable;
+import tesseract.graph.IConnectable;
 import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
 

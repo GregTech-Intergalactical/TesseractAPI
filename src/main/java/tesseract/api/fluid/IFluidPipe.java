@@ -1,6 +1,6 @@
 package tesseract.api.fluid;
 
-import tesseract.api.IConnectable;
+import tesseract.graph.IConnectable;
 
 /**
  * A fluid pipe is the unit of interaction with fluid inventories.
@@ -42,7 +42,7 @@ public interface IFluidPipe extends IConnectable {
      * @param proof True if current liquid is in a gas state.
      * @return Checks that the pipe is able to handle single packet.
      */
-    default FluidStatus handleStatus(int temp, int pressure, boolean proof) {
+    default FluidStatus getHandler(int temp, int pressure, boolean proof) {
         if (getTemp() < temp) return FluidStatus.FAIL_TEMP;
         else if (getPressure() < pressure) return FluidStatus.FAIL_PRESSURE;
         else if (isGasProof() != proof) return FluidStatus.FAIL_LEAK;

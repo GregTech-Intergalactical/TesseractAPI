@@ -18,7 +18,7 @@ public interface ITickingController {
     void change();
 
     /**
-     * Create new controller for split group.
+     * Creates new controller for split group.
      * @param group New group.
      * @return New controller for the group.
      */

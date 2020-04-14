@@ -1,4 +1,4 @@
-package tesseract.api;
+package tesseract.graph;
 
 import tesseract.util.Dir;
 
