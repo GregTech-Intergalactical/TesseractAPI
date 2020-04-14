@@ -42,6 +42,11 @@ public interface IFluidNode extends IConnectable, ITickHost {
     boolean isValidFluid(@Nonnull Object stack);
 
     /**
+     * @return Gets the maximum amount of fluid that can be stored.
+     */
+    int getCapacity();
+
+    /**
      * @return Gets the initial amount of pressure that can be output.
      */
     int getOutputPressure();
