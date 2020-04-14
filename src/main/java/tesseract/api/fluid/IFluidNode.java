@@ -5,6 +5,7 @@ import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * An fluid node is the unit of interaction with fluid inventories.
@@ -31,30 +32,14 @@ public interface IFluidNode extends IConnectable, ITickHost {
      * @param simulate If true, the drain will only be simulated.
      * @return FluidStack representing fluid that was removed (or would be, if simulated) from the tank.
      */
-    @Nonnull
+    @Nullable
     Object extract(int maxDrain, boolean simulate);
-
-    /**
-     * @return Compound representing the fluid in the tank, null if the tank is empty.
-     */
-    @Nonnull
-    Object getFluidStack();
 
     /**
      * @param stack FluidStack holding the Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    boolean isValid(@Nonnull Object stack);
-
-    /**
-     * @return Current amount of fluid in the tank.
-     */
-    int getAmount();
-
-    /**
-     * @return Volume of this fluid tank.
-     */
-    int getVolume();
+    boolean isValidFluid(@Nonnull Object stack);
 
     /**
      * @return Gets the initial amount of pressure that can be output.

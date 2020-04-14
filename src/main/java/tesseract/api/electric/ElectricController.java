@@ -3,7 +3,9 @@ package tesseract.api.electric;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
+import tesseract.api.Absorber;
 import tesseract.api.ConnectionType;
+import tesseract.api.Controller;
 import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
@@ -16,10 +18,8 @@ import static tesseract.TesseractAPI.GLOBAL_ELECTRIC_EVENT;
 /**
  * Class acts as a controller in the group of an electrical components.
  */
-public class ElectricController implements ITickingController {
+public class ElectricController extends Controller<IElectricCable, IElectricNode> {
 
-    private int dim;
-    private Group<IElectricCable, IElectricNode> group;
     private Long2ObjectMap<Absorber> absorbs = new Long2ObjectLinkedOpenHashMap<>();
     private Object2IntMap<IElectricNode> obtains = new Object2IntLinkedOpenHashMap<>();
     private Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data = new Object2ObjectLinkedOpenHashMap<>();
@@ -31,20 +31,15 @@ public class ElectricController implements ITickingController {
      * @param group The group this controller handles.
      */
     public ElectricController(int dim, Group<IElectricCable, IElectricNode> group) {
-        this.dim = dim;
-        this.group = group;
-
-        if (GLOBAL_ELECTRIC_EVENT == null) {
-            throw new IllegalStateException("ElectricController: Global eclectic event handler wasn't initialize before!");
-        }
+        super(dim, group);
     }
 
     /**
      * Executes when the group structure has changed.
      * <p>
      * First, it clears previous controller map, after it lookup for the position of node and looks for the around grids.
-     * Second, it collects all producers and collectors for the grid and stores it into controller map.
-     * Finally, it will prebuild consumer objects which are available for the producers. So each producer has a list of possible
+     * Second, it collects all producers and collectors for the grid and stores it into data map.
+     * Finally, it will pre-build consumer objects which are available for the producers. So each producer has a list of possible
      * consumers with unique information about paths, loss, ect. Therefore production object will be act as double iterated map.
      * </p>
      * @see tesseract.graph.Grid (Cache)
@@ -136,10 +131,10 @@ public class ElectricController implements ITickingController {
     }
 
     /**
-     * Apply duplication on the given class instance.
+     * Create new controller for split group.
      *
      * @param group The new group.
-     * @return The copy of the object.
+     * @return New controller for the group.
      */
     @Nonnull
     @Override
@@ -179,7 +174,6 @@ public class ElectricController implements ITickingController {
 
                 // look up how much it already got
                 amperage -= obtains.getInt(consumer.consumer);
-
                 if (amperage <= 0) { // if this consumer received all the energy from the other producers
                     continue;
                 }
@@ -233,53 +227,18 @@ public class ElectricController implements ITickingController {
     }
 
     /**
-     * A class that acts as holder of the amps that has passed.
-     */
-    private static class Absorber {
-
-        private int max;
-        private int amperage;
-
-        /**
-         * Creates instance of the holder.
-         *
-         * @param max The cable amperage limit.
-         * @param amperage The current amps amount.
-         */
-        Absorber(int max, int amperage) {
-            this.max = max;
-            this.amperage = amperage;
-        }
-
-        /**
-         * Adds a new value to the amperage.
-         *
-         * @param amperage The added value.
-         */
-        void add(int amperage) {
-            this.amperage += amperage;
-        }
-
-        /**
-         * @return Checks that the cable is able to transfer energy.
-         */
-        boolean canHandle() {
-            return max >= amperage;
-        }
-    }
-
-    /**
      * A class that acts as a container for a consumer.
      */
     private static class Consumer {
 
-        private int loss;
         private final int amperage;
         private final IElectricNode consumer;
         private final ConnectionType connection;
+
         private Long2ObjectMap<IElectricCable> full;
         private Long2ObjectMap<IElectricCable> cross;
 
+        private int loss;
         private int minVoltage = Integer.MAX_VALUE;
         private int minAmperage = Integer.MAX_VALUE;
 
