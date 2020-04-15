@@ -37,7 +37,7 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
 
     @Override
     public void change() {
-
+        //TODO: Finish change method
     }
 
     /**
@@ -205,7 +205,6 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
      */
     private static class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
 
-        int loss;
         int isProof = 1;
         int minCapacity = Integer.MAX_VALUE;
         int minPressure = Integer.MAX_VALUE;
@@ -252,7 +251,6 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
 
         @Override
         protected void onConnectorCatch(@Nonnull IFluidPipe pipe) {
-            loss += pipe.getLoss();
             isProof = Math.min(isProof, pipe.isGasProof() ? 1 : 0);
             minTemperature = Math.min(minTemperature, pipe.getTemperature());
             minCapacity = Math.min(minCapacity, pipe.getCapacity());

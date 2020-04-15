@@ -8,12 +8,6 @@ import tesseract.graph.IConnectable;
 public interface IFluidPipe extends IConnectable {
 
     /**
-     * Returns the pressure that this fluid component will permit to lost through or be received in a single tick.
-     * @return A positive integer representing the loss pressure per block, zero or negative indicates that this component doesn't have a loss.
-     */
-    int getLoss();
-
-    /**
      * Returns the maximum amount of packets that this fluid component will permit to pass through or be received in a single tick.
      * @return A positive integer representing the maximum packets, zero or negative indicates that this component accepts no fluid.
      */

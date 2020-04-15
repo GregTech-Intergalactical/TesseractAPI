@@ -24,12 +24,12 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
 
     @Override
     public void tick() {
-
+        //TODO: Finish tick method
     }
 
     @Override
     public void change() {
-
+        //TODO: Finish change method
     }
 
     /**

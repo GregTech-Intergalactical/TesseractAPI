@@ -22,7 +22,7 @@ class TestBench {
 
     public static void main(String[] args) throws Exception {
 
-        Graph<ExampleCable, ExampleNode> graph = new Graph<>();
+        Graph<ExampleConnector, ExampleNode> graph = new Graph<>();
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
@@ -41,7 +41,7 @@ class TestBench {
                 long position = pos.asLong();
 
                 if (points.length == 5 && points[4].startsWith("c")) {
-                    if (!graph.addConnector(position, Connectivity.Cache.of(new ExampleCable()))) {
+                    if (!graph.addConnector(position, Connectivity.Cache.of(new ExampleConnector()))) {
                         System.out.println("Error: connector at" + pos + " already exists in the graph");
                         continue;
                     }
@@ -76,8 +76,8 @@ class TestBench {
                 long origin = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
                 long target = packAll(Integer.parseInt(points[4]), Integer.parseInt(points[5]), Integer.parseInt(points[6]));
 
-                for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
-                    for (Grid<ExampleCable> grid : group.getValue().getGrids().values()) {
+                for (Int2ObjectMap.Entry<Group<ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
+                    for (Grid<ExampleConnector> grid : group.getValue().getGrids().values()) {
                         for (Node node : grid.getPath(origin, target)) {
                             System.out.println(node);
                         }
@@ -90,17 +90,17 @@ class TestBench {
 
             System.out.println("Graph contains " + graph.countGroups() + " groups:");
 
-            for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
+            for (Int2ObjectMap.Entry<Group<ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                 System.out.println("  Group " + group.getIntKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
 
                 for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
                     System.out.println("    Node at " +  new Pos(node.getLongKey()) + ": " + node.getValue().value());
                 }
 
-                for (Grid<ExampleCable> grid : group.getValue().getGrids().values()) {
+                for (Grid<ExampleConnector> grid : group.getValue().getGrids().values()) {
                     System.out.println("    Grid contains " + grid.countConnectors() + " connectors:");
 
-                    for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleCable>> connector : grid.getConnectors().long2ObjectEntrySet()) {
+                    for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleConnector>> connector : grid.getConnectors().long2ObjectEntrySet()) {
                         System.out.println("      Connector at " + new Pos(connector.getLongKey()) + ": " + connector.getValue().value());
                     }
 
@@ -118,7 +118,7 @@ class TestBench {
         }
     }
 
-    private static class ExampleCable implements IElectricCable, IConnectable {
+    private static class ExampleConnector implements IElectricCable, IConnectable {
 
         @Override
         public String toString() {
