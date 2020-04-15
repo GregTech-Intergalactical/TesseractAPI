@@ -10,16 +10,12 @@ public class Utils {
     /**
      * Used to create an unique id by incrementation.
      */
-    private static final AtomicInteger ATOMIC_ID = new AtomicInteger(DEFAULT);
+    private static final AtomicInteger ATOMIC = new AtomicInteger(DEFAULT);
 
     /**
      * @return Increments id and return.
      */
     public static int getNewId() {
-        int id = ATOMIC_ID.incrementAndGet();
-        if (id == INVALID) {
-            id = DEFAULT;
-        }
-        return id;
+        return ATOMIC.getAndIncrement();
     }
 }

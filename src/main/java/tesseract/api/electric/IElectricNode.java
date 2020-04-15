@@ -1,7 +1,11 @@
 package tesseract.api.electric;
 
 import net.minecraftforge.energy.EnergyStorage;
-import tesseract.api.IConnectable;
+import tesseract.graph.IConnectable;
+import tesseract.graph.ITickHost;
+import tesseract.util.Dir;
+
+import javax.annotation.Nonnull;
 
 /**
  * An electric node is the unit of interaction with electric inventories.
@@ -11,7 +15,7 @@ import tesseract.api.IConnectable;
  * Derived from the Redstone Flux power system designed by King Lemming and originally utilized in Thermal Expansion and related mods.
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
  */
-public interface IElectricNode extends IConnectable {
+public interface IElectricNode extends IConnectable, ITickHost {
 
 	/**
 	 * Adds energy to the node. Returns quantity of energy that was accepted.
@@ -42,32 +46,40 @@ public interface IElectricNode extends IConnectable {
 	/**
 	 * @return Gets the maximum amount of amperage that can be output.
 	 */
-	long getOutputAmperage();
+	int getOutputAmperage();
 
 	/**
 	 * @return Gets the maximum amount of voltage that can be output.
 	 */
-	long getOutputVoltage();
+	int getOutputVoltage();
 
 	/**
 	 * @return Gets the maximum amount of amperage that can be input.
 	 */
-	long getInputAmperage();
+	int getInputAmperage();
 
 	/**
 	 * @return Gets the maximum amount of voltage that can be input.
 	 */
-	long getInputVoltage();
+	int getInputVoltage();
 
 	/**
 	 * Gets if this storage can have energy extracted.
 	 * @return If this is false, then any calls to extractEnergy will return 0.
 	 */
-	boolean canInput();
+	boolean canOutput();
 
 	/**
 	 * Used to determine if this storage can receive energy.
 	 * @return If this is false, then any calls to receiveEnergy will return 0.
 	 */
-	boolean canOutput();
+	boolean canInput();
+
+	/**
+	 * Used to determine which sides can output energy (if any).
+	 * Output cannot be used as input.
+	 * @param direction Direction to the out.
+	 * @return Returns true if the given direction is output side.
+	 */
+	boolean canOutput(@Nonnull Dir direction);
 }

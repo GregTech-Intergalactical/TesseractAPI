@@ -5,6 +5,7 @@ import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayDeque;
 import java.util.ConcurrentModificationException;
 
@@ -13,36 +14,35 @@ import java.util.ConcurrentModificationException;
  */
 public class ASFinder {
 
-    private ArrayDeque<Node> open;
-    private ArrayDeque<Node> path;
-    private ObjectOpenHashSet<Node> closed;
     private INode container;
+    private ArrayDeque<Node> path;
+    private ArrayDeque<Node> open = new ArrayDeque<>();
+    private ObjectOpenHashSet<Node> closed = new ObjectOpenHashSet<>();
 
     /**
      * Creates a reusable AStarPathfinder instance that will search the provided container.
      *
-     * @param container The container to use for find operations
+     * @param container The container to use for find operations.
      */
-    public ASFinder(INode container) {
-        open = new ArrayDeque<>();
-        closed = new ObjectOpenHashSet<>();
+    public ASFinder(@Nonnull INode container) {
         this.container = container;
     }
 
     /**
-     * Begins a find operation from the specified start position to the end position.
+     * Begins a traverse operation from the specified start position to the end position.
      *
-     * @param origin The start position of the finds operation.
-     * @param target The end position of the finds operation.
+     * @param origin The start position of the traverse operation.
+     * @param target The end position of the traverse operation.
      * @return An set of the points calculated by the A Star algorithm.
      */
-    public ArrayDeque<Node> find(long origin, long target) {
+    @Nonnull
+    public ArrayDeque<Node> traverse(long origin, long target) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same ASFinder instance");
         }
 
         if (origin == target) {
-            throw new IllegalStateException("ASFinder::find: Attempted to run find operation with invalid positions");
+            throw new IllegalStateException("ASFinder::traverse: Attempted to run traverse operation with invalid positions");
         }
 
         path = new ArrayDeque<>();
@@ -64,7 +64,7 @@ public class ASFinder {
                 open.remove(current);
                 closed.add(current);
 
-                for (Node n : getNeighborsNodes(current)) {
+                for (Node n : getNeighboringNodes(current)) {
 
                     if (closed.contains(n)) {
                         continue;
@@ -99,9 +99,9 @@ public class ASFinder {
     /**
      * Adds all nodes to the path set.
      *
-     * @param current The current node
+     * @param current The current node.
      */
-    public void retracePath(Node current) {
+    public void retracePath(@Nonnull Node current) {
         Node temp = current;
         temp.setCrossroad(true); // Consider tail as a part of the crossroad
         path.add(temp);
@@ -116,14 +116,14 @@ public class ASFinder {
     /**
      * Validates the crossroads state of the node.
      *
-     * @param current The current node
+     * @param current The current node.
      * @return True or false.
      */
-    public boolean retraceNode(Node current) {
+    public boolean retraceNode(@Nonnull Node current) {
         byte connections = 0;
 
         for (Dir direction : Dir.VALUES) {
-            long pos = current.offset(direction).get();
+            long pos = current.offset(direction).asLong();
 
             if (container.connects(pos, direction)) {
                 connections++;
@@ -138,6 +138,7 @@ public class ASFinder {
      *
      * @return The found node.
      */
+    @Nonnull
     private Node getLowestF() {
         Node lowest = open.peek();
         for (Node n : open) {
@@ -154,11 +155,12 @@ public class ASFinder {
      * @param current The given node.
      * @return The set of nodes.
      */
-    public ObjectList<Node> getNeighborsNodes(Node current) {
+    @Nonnull
+    public ObjectList<Node> getNeighboringNodes(@Nonnull Node current) {
         ObjectList<Node> neighbors = new ObjectArrayList<>(6);
 
         for (Dir direction : Dir.VALUES) {
-            long pos = current.offset(direction).get();
+            long pos = current.offset(direction).asLong();
 
             if (container.contains(pos)) {
                 neighbors.add(new Node(pos));

@@ -1,13 +1,14 @@
 package tesseract.graph;
 
 import org.junit.Test;
-import tesseract.api.IConnectable;
 import tesseract.api.electric.IElectricCable;
 import tesseract.api.electric.IElectricNode;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -19,32 +20,32 @@ import static org.junit.Assert.*;
 public class GraphTest {
     @Test
     public void system() {
-        Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
-        graph.addConnector(packAll(1, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(packAll(0, 1, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(packAll(0, 2, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(packAll(0, 3, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(packAll(0, 4, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(packAll(0, 5, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(packAll(0, 6, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(packAll(0, 0, 1), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(packAll(0, 0, -1), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(packAll(0, -1, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(packAll(-1, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
+        Graph<TestConnector, GraphTest.TestNode> graph = new Graph<>();
+        graph.addConnector(packAll(1, 0, 0), Connectivity.Cache.of(new TestConnector()));
+        graph.addConnector(packAll(0, 1, 0), Connectivity.Cache.of(new TestConnector()));
+        graph.addConnector(packAll(0, 2, 0), Connectivity.Cache.of(new TestConnector()));
+        graph.addConnector(packAll(0, 3, 0), Connectivity.Cache.of(new TestConnector()));
+        graph.addConnector(packAll(0, 4, 0), Connectivity.Cache.of(new TestConnector()));
+        graph.addConnector(packAll(0, 5, 0), Connectivity.Cache.of(new TestConnector()));
+        graph.addConnector(packAll(0, 6, 0), Connectivity.Cache.of(new TestConnector()));
+        graph.addConnector(packAll(0, 0, 1), Connectivity.Cache.of(new TestConnector()));
+        graph.addConnector(packAll(0, 0, -1), Connectivity.Cache.of(new TestConnector()));
+        graph.addConnector(packAll(0, -1, 0), Connectivity.Cache.of(new TestConnector()));
+        graph.addConnector(packAll(-1, 0, 0), Connectivity.Cache.of(new TestConnector()));
         assertEquals(6, graph.countGroups());
-        graph.addConnector(packAll(0, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 0, 0), Connectivity.Cache.of(new TestConnector()));
         assertEquals(1, graph.countGroups());
         graph.removeAt(packAll(0, 0, 0));
         assertEquals(6, graph.countGroups());
         graph.removeAt(packAll(0, 4, 0));
         assertEquals(7, graph.countGroups());
-        graph.addConnector(packAll(0, 0, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
-        graph.addConnector(packAll(0, 4, 0), Connectivity.Cache.of(new GraphTest.TestCable()));
+        graph.addConnector(packAll(0, 0, 0), Connectivity.Cache.of(new TestConnector()));
+        graph.addConnector(packAll(0, 4, 0), Connectivity.Cache.of(new TestConnector()));
         assertEquals(1, graph.countGroups());
         ArrayDeque<Node> set1 = new ArrayDeque<>();
-        for (Group<TestCable, TestNode> group : graph.getGroups().values()) {
-            for (Grid<GraphTest.TestCable> grid : group.getGrids().values()) {
-                set1 = grid.findPath(packAll(0, -1, 0), packAll(0, 6, 0));
+        for (Group<TestConnector, TestNode> group : graph.getGroups().values()) {
+            for (Grid<TestConnector> grid : group.getGrids().values()) {
+                set1 = grid.getPath(packAll(0, -1, 0), packAll(0, 6, 0));
             }
         }
         List<Pos> set2 = new ArrayList<>();
@@ -64,7 +65,7 @@ public class GraphTest {
 
     @Test
     public void contains() {
-        Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
+        Graph<TestConnector, GraphTest.TestNode> graph = new Graph<>();
         long pos = packAll(1, 1, 1);
         assertFalse(graph.contains(pos));
         graph.addNode(pos, Connectivity.Cache.of(new GraphTest.TestNode()));
@@ -73,7 +74,7 @@ public class GraphTest {
 
     @Test
     public void linked() {
-        Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
+        Graph<TestConnector, GraphTest.TestNode> graph = new Graph<>();
         long pos1 = packAll(0, 0, 0);
         long pos2 = packAll(0, 1, 0);
         graph.addNode(pos1, Connectivity.Cache.of(new GraphTest.TestNode()));
@@ -83,7 +84,7 @@ public class GraphTest {
 
     @Test
     public void connects() {
-        Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
+        Graph<TestConnector, GraphTest.TestNode> graph = new Graph<>();
         long pos = packAll(0, 0, 0);
         graph.addNode(pos, Connectivity.Cache.of(new GraphTest.TestNode()));
         assertTrue(graph.connects(pos, null));
@@ -91,16 +92,16 @@ public class GraphTest {
 
     @Test
     public void visit() {
-        Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
+        Graph<TestConnector, GraphTest.TestNode> graph = new Graph<>();
         graph.addNode(packAll(5, 5, 5), Connectivity.Cache.of(new GraphTest.TestNode()));
-        for (Group<TestCable, TestNode> group : graph.getGroups().values()) {
+        for (Group<TestConnector, TestNode> group : graph.getGroups().values()) {
             assertEquals(1, group.countBlocks());
         }
     }
 
     @Test
     public void countGroups() {
-        Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
+        Graph<TestConnector, GraphTest.TestNode> graph = new Graph<>();
         graph.addNode(packAll(0, 0, 0), Connectivity.Cache.of(new GraphTest.TestNode()));
         graph.addNode(packAll(1, 1, 1), Connectivity.Cache.of(new GraphTest.TestNode()));
         graph.addNode(packAll(2, 2, 2), Connectivity.Cache.of(new GraphTest.TestNode()));
@@ -109,10 +110,10 @@ public class GraphTest {
 
     @Test
     public void addNode() {
-        Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
+        Graph<TestConnector, GraphTest.TestNode> graph = new Graph<>();
         long pos = packAll(5, 5, 5);
         graph.addNode(pos, Connectivity.Cache.of(new GraphTest.TestNode()));
-        for (Group<TestCable, TestNode> group : graph.getGroups().values()) {
+        for (Group<TestConnector, TestNode> group : graph.getGroups().values()) {
             for (long position : group.getNodes().keySet()) {
                 assertEquals(position, pos);
             }
@@ -121,11 +122,11 @@ public class GraphTest {
 
     @Test
     public void addConnector() {
-        Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
+        Graph<TestConnector, GraphTest.TestNode> graph = new Graph<>();
         long pos = packAll(2, 2, 2);
-        graph.addConnector(pos, Connectivity.Cache.of(new GraphTest.TestCable()));
-        for (Group<TestCable, TestNode> group : graph.getGroups().values()) {
-            for (Grid<GraphTest.TestCable> grid : group.getGrids().values()) {
+        graph.addConnector(pos, Connectivity.Cache.of(new TestConnector()));
+        for (Group<TestConnector, TestNode> group : graph.getGroups().values()) {
+            for (Grid<TestConnector> grid : group.getGrids().values()) {
                 for (long position : grid.getConnectors().keySet()) {
                     assertEquals(position, pos);
                 }
@@ -135,7 +136,7 @@ public class GraphTest {
 
     @Test
     public void remove() {
-        Graph<GraphTest.TestCable, GraphTest.TestNode> graph = new Graph<>();
+        Graph<TestConnector, GraphTest.TestNode> graph = new Graph<>();
         long pos = packAll(0, 0, 0);
         graph.addNode(pos, Connectivity.Cache.of(new GraphTest.TestNode()));
         assertEquals(1, graph.countGroups());
@@ -143,7 +144,7 @@ public class GraphTest {
         assertEquals(0, graph.countGroups());
     }
 
-    public static class TestCable implements IElectricCable, IConnectable {
+    public static class TestConnector implements IElectricCable, IConnectable {
 
         @Override
         public String toString() {
@@ -151,7 +152,7 @@ public class GraphTest {
         }
 
         @Override
-        public boolean connects(Dir direction) {
+        public boolean connects(@Nonnull Dir direction) {
             return true;
         }
 
@@ -166,8 +167,8 @@ public class GraphTest {
         }
 
         @Override
-        public long getVoltage() {
-            return 0L;
+        public int getVoltage() {
+            return 0;
         }
     }
 
@@ -179,18 +180,18 @@ public class GraphTest {
         }
 
         @Override
-        public boolean connects(Dir direction) {
+        public boolean connects(@Nonnull Dir direction) {
             return true;
         }
 
         @Override
         public long insert(long maxReceive, boolean simulate) {
-            return 0L;
+            return 0;
         }
 
         @Override
         public long extract(long maxExtract, boolean simulate) {
-            return 0L;
+            return 0;
         }
 
         @Override
@@ -204,23 +205,23 @@ public class GraphTest {
         }
 
         @Override
-        public long getOutputAmperage() {
-            return 0L;
+        public int getOutputAmperage() {
+            return 0;
         }
 
         @Override
-        public long getOutputVoltage() {
-            return 0L;
+        public int getOutputVoltage() {
+            return 0;
         }
 
         @Override
-        public long getInputAmperage() {
-            return 0L;
+        public int getInputAmperage() {
+            return 0;
         }
 
         @Override
-        public long getInputVoltage() {
-            return 0L;
+        public int getInputVoltage() {
+            return 0;
         }
 
         @Override
@@ -229,8 +230,17 @@ public class GraphTest {
         }
 
         @Override
+        public boolean canOutput(@Nonnull Dir direction) {
+            return false;
+        }
+
+        @Override
         public boolean canOutput() {
             return false;
+        }
+
+        @Override
+        public void reset(@Nullable ITickingController oldController, @Nullable ITickingController newController) {
         }
     }
 }

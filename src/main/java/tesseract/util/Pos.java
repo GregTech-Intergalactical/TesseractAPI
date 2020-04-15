@@ -69,12 +69,7 @@ public class Pos {
     /**
      * Creates position instance.
      */
-    public Pos() {
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
-        this.value = 0;
-    }
+    public Pos() { }
 
     /**
      * Creates position instance.
@@ -210,7 +205,7 @@ public class Pos {
     /**
      * @return Gets the compressed coordinate.
      */
-    public long get() {
+    public long asLong() {
         return value;
     }
 
@@ -282,10 +277,10 @@ public class Pos {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof Pos) {
-            Pos o = (Pos) obj;
-            return (value == o.value);
+    public boolean equals(Object o) {
+        if (o instanceof Pos) {
+            Pos obj = (Pos) o;
+            return (value == obj.value);
         }
         return false;
     }

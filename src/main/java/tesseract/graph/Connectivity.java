@@ -1,7 +1,8 @@
 package tesseract.graph;
 
-import tesseract.api.IConnectable;
 import tesseract.util.Dir;
+
+import javax.annotation.Nonnull;
 
 
 /**
@@ -13,7 +14,7 @@ public class Connectivity {
      * @param connectable The given instance.
      * @return Gets the connectivity for instance.
      */
-    public static byte of(IConnectable connectable) {
+    public static byte of(@Nonnull IConnectable connectable) {
         byte connectivity = 0;
 
         for (Dir direction : Dir.VALUES) {
@@ -30,16 +31,16 @@ public class Connectivity {
      * @param side The direction index.
      * @return Connectivity state for a connection.
      */
-    public static byte with(byte connectivity, Dir side) {
+    public static byte with(byte connectivity, @Nonnull Dir side) {
         return (byte) (connectivity | (1 << side.ordinal()));
     }
 
     /**
      * @param connectivity The provided state.
      * @param side The direction index.
-     * @return True if a  connection is exist, false otherwise.
+     * @return True if a connection is exist, false otherwise.
      */
-    public static boolean has(byte connectivity, Dir side) {
+    public static boolean has(byte connectivity, @Nonnull Dir side) {
         return (connectivity & (1 << side.ordinal())) > 0;
     }
 
@@ -50,29 +51,17 @@ public class Connectivity {
 
         private byte connectivity;
         private C value;
-        private IGridListener listener;
 
         private Cache() { }
 
         /**
-         * Creates a cache with a listener.
-         */
-        public static <C extends IConnectable> Cache<C> of(C value, IGridListener listener) {
-            Cache<C> cache = new Cache<>();
-            cache.value = value;
-            cache.connectivity = Connectivity.of(value);
-            cache.listener = listener;
-            return cache;
-        }
-
-        /**
          * Creates a cache instance.
          */
-        public static <C extends IConnectable> Cache<C> of(C value) {
+        @Nonnull
+        public static <C extends IConnectable> Cache<C> of(@Nonnull C value) {
             Cache<C> cache = new Cache<>();
             cache.value = value;
             cache.connectivity = Connectivity.of(value);
-            cache.listener = () -> { };
             return cache;
         }
 
@@ -80,7 +69,7 @@ public class Connectivity {
          * @param direction The direction index.
          * @return True when connect, false otherwise.
          */
-        public boolean connects(Dir direction) {
+        public boolean connects(@Nonnull Dir direction) {
             return Connectivity.has(connectivity, direction);
         }
 
@@ -94,15 +83,9 @@ public class Connectivity {
         /**
          * @return Gets the cache object.
          */
+        @Nonnull
         public C value() {
             return value;
-        }
-
-        /**
-         * @return Gets the cache listener.
-         */
-        public IGridListener listener() {
-            return listener;
         }
     }
 }

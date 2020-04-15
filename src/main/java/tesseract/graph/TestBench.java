@@ -2,13 +2,14 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import tesseract.api.IConnectable;
 import tesseract.api.electric.IElectricCable;
 import tesseract.api.electric.IElectricNode;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -21,7 +22,7 @@ class TestBench {
 
     public static void main(String[] args) throws Exception {
 
-        Graph<ExampleCable, ExampleNode> graph = new Graph<>();
+        Graph<ExampleConnector, ExampleNode> graph = new Graph<>();
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
@@ -37,15 +38,15 @@ class TestBench {
                 }
 
                 Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
-                long position = pos.get();
+                long position = pos.asLong();
 
                 if (points.length == 5 && points[4].startsWith("c")) {
-                    if (!graph.addConnector(position, Connectivity.Cache.of(new ExampleCable()))) {
+                    if (!graph.addConnector(position, Connectivity.Cache.of(new ExampleConnector()))) {
                         System.out.println("Error: connector at" + pos + " already exists in the graph");
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, Connectivity.Cache.of(new ExampleNode(), () -> { System.out.println(" -> updated"); }))) {
+                    if (!graph.addNode(position, Connectivity.Cache.of(new ExampleNode()))) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }
@@ -61,10 +62,9 @@ class TestBench {
 
                 Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
 
-                graph.removeAt(pos.get()).apply(
-                    connector -> System.out.println("Removed connector " + pos + " from the graph: " + connector),
-                    node -> System.out.println("Removed node " + pos + " from the graph: " + node)
-                );
+                graph.removeAt(pos.asLong());
+
+                System.out.println("Removed " + pos + " from the graph");
 
             } else if (line.startsWith("a*")) {
                 String[] points = line.split(" ");
@@ -73,53 +73,34 @@ class TestBench {
                     continue;
                 }
 
-                long start = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
-                long end = packAll(Integer.parseInt(points[4]), Integer.parseInt(points[5]), Integer.parseInt(points[6]));
+                long origin = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
+                long target = packAll(Integer.parseInt(points[4]), Integer.parseInt(points[5]), Integer.parseInt(points[6]));
 
-                System.out.println("findPath ->");
-                for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
-                    for (Grid<ExampleCable> grid : group.getValue().getGrids().values()) {
-                        for (Node node : grid.findPath(start, end)) {
+                for (Int2ObjectMap.Entry<Group<ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
+                    for (Grid<ExampleConnector> grid : group.getValue().getGrids().values()) {
+                        for (Node node : grid.getPath(origin, target)) {
                             System.out.println(node);
                         }
                     }
                 }
                 continue;
-            }/*else if (line.startsWith("path")) {
-                String[] points = line.split(" ");
-                if (points.length < 3) {
-                    System.out.println("Usage: cross <x1> <y1> <z1>");
-                    continue;
-                }
-
-                long pos = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
-                graph.findGroup(pos).ifPresent(group -> {
-                    for (Grid<ExampleCable> grid : group.findGrids(pos)) {
-                        for (Grid.Path<ExampleCable> path : grid.getPaths(pos)) {
-                            for (ExampleCable cable : path.getFull()) {
-                                System.out.println(cable);
-                            }
-                            System.out.println("(-)");
-                        }
-                    }
-                });
-            }*/ else if (line.startsWith("exit")) {
+            } else if (line.startsWith("exit")) {
                 return;
             }
 
             System.out.println("Graph contains " + graph.countGroups() + " groups:");
 
-            for (Int2ObjectMap.Entry<Group<ExampleCable, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
+            for (Int2ObjectMap.Entry<Group<ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                 System.out.println("  Group " + group.getIntKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
 
                 for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
                     System.out.println("    Node at " +  new Pos(node.getLongKey()) + ": " + node.getValue().value());
                 }
 
-                for (Grid<ExampleCable> grid : group.getValue().getGrids().values()) {
+                for (Grid<ExampleConnector> grid : group.getValue().getGrids().values()) {
                     System.out.println("    Grid contains " + grid.countConnectors() + " connectors:");
 
-                    for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleCable>> connector : grid.getConnectors().long2ObjectEntrySet()) {
+                    for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleConnector>> connector : grid.getConnectors().long2ObjectEntrySet()) {
                         System.out.println("      Connector at " + new Pos(connector.getLongKey()) + ": " + connector.getValue().value());
                     }
 
@@ -137,7 +118,7 @@ class TestBench {
         }
     }
 
-    private static class ExampleCable implements IElectricCable, IConnectable {
+    private static class ExampleConnector implements IElectricCable, IConnectable {
 
         @Override
         public String toString() {
@@ -145,7 +126,7 @@ class TestBench {
         }
 
         @Override
-        public boolean connects(Dir direction) {
+        public boolean connects(@Nonnull Dir direction) {
             return true;
         }
 
@@ -160,8 +141,8 @@ class TestBench {
         }
 
         @Override
-        public long getVoltage() {
-            return 0L;
+        public int getVoltage() {
+            return 0;
         }
     }
 
@@ -173,18 +154,18 @@ class TestBench {
         }
 
         @Override
-        public boolean connects(Dir direction) {
+        public boolean connects(@Nonnull Dir direction) {
             return true;
         }
 
         @Override
         public long insert(long maxReceive, boolean simulate) {
-            return 0L;
+            return 0;
         }
 
         @Override
         public long extract(long maxExtract, boolean simulate) {
-            return 0L;
+            return 0;
         }
 
         @Override
@@ -198,23 +179,23 @@ class TestBench {
         }
 
         @Override
-        public long getOutputAmperage() {
-            return 0L;
+        public int getOutputAmperage() {
+            return 0;
         }
 
         @Override
-        public long getOutputVoltage() {
-            return 0L;
+        public int getOutputVoltage() {
+            return 0;
         }
 
         @Override
-        public long getInputAmperage() {
-            return 0L;
+        public int getInputAmperage() {
+            return 0;
         }
 
         @Override
-        public long getInputVoltage() {
-            return 0L;
+        public int getInputVoltage() {
+            return 0;
         }
 
         @Override
@@ -223,8 +204,18 @@ class TestBench {
         }
 
         @Override
+        public boolean canOutput(@Nonnull Dir direction) {
+            return false;
+        }
+
+        @Override
         public boolean canOutput() {
             return false;
+        }
+
+        @Override
+        public void reset(@Nullable ITickingController oldController, @Nullable ITickingController newController) {
+            System.out.println("oldController: " + oldController + "| newController: " + newController);
         }
     }
 }

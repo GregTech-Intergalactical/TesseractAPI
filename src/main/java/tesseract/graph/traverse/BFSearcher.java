@@ -5,6 +5,8 @@ import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ConcurrentModificationException;
 import java.util.function.Consumer;
@@ -21,18 +23,16 @@ import java.util.function.LongConsumer;
  */
 public class BFSearcher {
 
-    private LongOpenHashSet closed;
-    private ArrayDeque<Long> open;
     private INode container;
+    private ArrayDeque<Long> open = new ArrayDeque<>();
+    private LongOpenHashSet closed = new LongOpenHashSet();
 
     /**
      * Creates a reusable BFSearcher instance that will search the provided container.
      *
      * @param container The container to use for search operations.
      */
-    public BFSearcher(INode container) {
-        closed = new LongOpenHashSet();
-        open = new ArrayDeque<>();
+    public BFSearcher(@Nonnull INode container) {
         this.container = container;
     }
 
@@ -46,7 +46,7 @@ public class BFSearcher {
      * @param excluder A function that can add values to the closed set prior to the search operation.
      *                 They will not be reported or traversed; null is interpreted to mean no exclusions.
      */
-    public void search(long from, LongConsumer reached, Consumer<LongOpenHashSet> excluder) {
+    public void search(long from, @Nonnull LongConsumer reached, @Nullable Consumer<LongOpenHashSet> excluder) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same BFSearcher instance");
         }
@@ -80,7 +80,7 @@ public class BFSearcher {
                 Pos position = new Pos(current);
                 // Discover new nodes
                 for (Dir direction : Dir.VALUES) {
-                    long pos = position.offset(direction).get();
+                    long pos = position.offset(direction).asLong();
 
                     if (closed.contains(pos)) {
                         // Already seen, prevent infinite loops.

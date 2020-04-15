@@ -1,6 +1,6 @@
 package tesseract.api.electric;
 
-import tesseract.api.IConnectable;
+import tesseract.graph.IConnectable;
 
 /**
  * An electric cable is the unit of interaction with electric inventories.
@@ -23,12 +23,17 @@ public interface IElectricCable extends IConnectable {
 	 * Returns the maximum energy that this electrical component will permit to pass through or be received in a single packet.
 	 * @return A positive integer representing the maximum accepted energy, zero or negative indicates that this component accepts no energy.
 	 */
-	long getVoltage();
+	int getVoltage();
 
 	/**
-	 * @return Checks that cable is able to handle single packet.
+	 * @param voltage The current voltage.
+	 * @param amperage The current amperage.
+	 * @return Checks that the cable is able to handle single packet.
 	 */
-	default boolean canHandle(ElectricPacket packet) {
-		return getAmps() >= packet.getAmps() &&  getVoltage() * getAmps() >= packet.getSend();
+	default ElectricStatus getHandler(int voltage, int amperage) {
+		if (getVoltage() < voltage) return ElectricStatus.FAIL_VOLTAGE;
+		else if (getAmps() < amperage) return ElectricStatus.FAIL_AMPERAGE;
+		return ElectricStatus.SUCCESS;
 	}
 }
+

@@ -2,33 +2,29 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
-import tesseract.api.IConnectable;
 import tesseract.util.*;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
  * Grid provides the functionality of a set of linked nodes.
- * @apiNote default parameters are nonnull, methods return nonnull.
  */
 public class Grid<C extends IConnectable> implements INode {
 
-    private Long2ObjectMap<Connectivity.Cache<C>> connectors;
-    private BFDivider divider;
-    private ASFinder finder;
-    private Listener nodes;
+    private Long2ObjectMap<Connectivity.Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
+    private Long2ByteLinkedOpenHashMap nodes = new Long2ByteLinkedOpenHashMap();
+    private BFDivider divider = new BFDivider(this);
+    private ASFinder finder = new ASFinder(this);
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
-        connectors = new Long2ObjectLinkedOpenHashMap<>();
-
-        divider = new BFDivider(this);
-        finder = new ASFinder(this);
-        nodes = new Listener();
+        nodes.defaultReturnValue(Byte.MAX_VALUE);
     }
 
     /**
@@ -36,9 +32,10 @@ public class Grid<C extends IConnectable> implements INode {
      * @param connector The given connector.
      * @return Create a instance of a class for a given position and connector.
      */
-    protected static <C extends IConnectable> Grid<C> singleConnector(long pos, Connectivity.Cache<C> connector) {
+    @Nonnull
+    protected static <C extends IConnectable> Grid<C> singleConnector(long pos, @Nonnull Connectivity.Cache<C> connector) {
         Grid<C> grid = new Grid<>();
-        grid.connectors.put(pos, Objects.requireNonNull(connector));
+        grid.connectors.put(pos, connector);
         return grid;
     }
 
@@ -48,7 +45,7 @@ public class Grid<C extends IConnectable> implements INode {
     }
 
     @Override
-    public boolean linked(long from, Dir towards, long to) {
+    public boolean linked(long from, @Nullable Dir towards, long to) {
         Connectivity.Cache<C> cacheFrom = connectors.get(from);
         Connectivity.Cache<C> cacheTo = connectors.get(to);
 
@@ -71,13 +68,13 @@ public class Grid<C extends IConnectable> implements INode {
             return false;
         }
 
-        return validLink && Connectivity.has(connectivityFrom, towards) && Connectivity.has(connectivityTo, towards.invert());
+        return validLink && Connectivity.has(connectivityFrom, Objects.requireNonNull(towards)) && Connectivity.has(connectivityTo, towards.invert());
     }
 
     @Override
-    public boolean connects(long position, Dir towards) {
-        Connectivity.Cache<C> cache = connectors.get(position);
-        byte connectivity = nodes.get(position);
+    public boolean connects(long pos, @Nullable Dir towards) {
+        Connectivity.Cache<C> cache = connectors.get(pos);
+        byte connectivity = nodes.get(pos);
 
         if (cache != null) {
             connectivity = cache.connectivity();
@@ -87,7 +84,7 @@ public class Grid<C extends IConnectable> implements INode {
             return false;
         }
 
-        return Connectivity.has(connectivity, towards);
+        return Connectivity.has(connectivity, Objects.requireNonNull(towards));
     }
 
     /**
@@ -107,6 +104,7 @@ public class Grid<C extends IConnectable> implements INode {
     /**
      * @return Returns connectors map.
      */
+    @Nonnull
     public Long2ObjectMap<Connectivity.Cache<C>> getConnectors() {
         return connectors;
     }
@@ -114,22 +112,24 @@ public class Grid<C extends IConnectable> implements INode {
     /**
      * @return Returns nodes map.
      */
+    @Nonnull
     public Long2ByteMap getNodes() {
-        return nodes.getMap();
+        return nodes;
     }
 
     /**
      * Gets paths from the position to another linked nodes.
      *
-     * @param pos The position of the linked node.
-     * @return Returns full paths for the linked node.
+     * @param from The position of the linked node.
+     * @return Returns paths from the linked node.
      */
-    public ObjectList<Path<C>> getPaths(long pos) {
+    @Nonnull
+    public ObjectList<Path<C>> getPaths(long from) {
         ObjectList<Path<C>> data = new ObjectArrayList<>();
 
-        for (long target : nodes.keySet()) {
-            if (pos != target) {
-                data.add(new Path<>(connectors, finder.find(pos, target)));
+        for (long to : nodes.keySet()) {
+            if (from != to) {
+                data.add(new Path<>(connectors, finder.traverse(from, to)));
             }
         }
 
@@ -139,25 +139,23 @@ public class Grid<C extends IConnectable> implements INode {
     /**
      * Begins a find operation from the specified start position to the end position.
      *
-     * @param start The start position of the finds operation.
-     * @param end The end position of the finds operation.
+     * @param origin The start position of the traverse operation.
+     * @param target The end position of the traverse operation.
      * @return An set of path points.
      */
-    public ArrayDeque<Node> findPath(long start, long end) {
-        return finder.find(start, end);
+    @Nonnull
+    public ArrayDeque<Node> getPath(long origin, long target) {
+        return finder.traverse(origin, target);
     }
 
     /**
      * Merges all of the elements from the other provided grid into this grid.
      *
-     * @param at unknown.
      * @param other The other grid to merge elements from.
      */
-    public void mergeWith(long at, Grid<C> other) {
-        // TODO: Validate that the other grid touches the specified position.
+    public void mergeWith(@Nonnull Grid<C> other) {
         connectors.putAll(other.connectors);
         nodes.putAll(other.nodes);
-        nodes.update();
     }
 
     /**
@@ -176,10 +174,8 @@ public class Grid<C extends IConnectable> implements INode {
      * @param pos The given position.
      * @param connector The given connector.
      */
-    public void addConnector(long pos, Connectivity.Cache<C> connector) {
-        // TODO: Validate that the other grid touches the specified position.
-        connectors.put(pos, Objects.requireNonNull(connector));
-        nodes.update();
+    public void addConnector(long pos, @Nonnull Connectivity.Cache<C> connector) {
+        connectors.put(pos, connector);
     }
 
     /**
@@ -188,9 +184,8 @@ public class Grid<C extends IConnectable> implements INode {
      * @param pos The given position.
      * @param node The given node.
      */
-    public void addNode(long pos, Connectivity.Cache<?> node) {
-        nodes.put(pos, node.connectivity(), node.listener());
-        nodes.update();
+    public void addNode(long pos, @Nonnull Connectivity.Cache<?> node) {
+        nodes.put(pos, node.connectivity());
     }
 
     /**
@@ -200,7 +195,6 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public void removeNode(long pos) {
         nodes.remove(pos);
-        nodes.update();
     }
 
     /**
@@ -210,17 +204,16 @@ public class Grid<C extends IConnectable> implements INode {
      *
      * @param pos The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
-     * @return The removed entry, guaranteed to not be null.
      */
-    public C removeAt(long pos, Consumer<Grid<C>> split) {
-        Objects.requireNonNull(split);
+    public void removeAt(long pos, @Nonnull Consumer<Grid<C>> split) {
 
         if (!contains(pos)) {
             throw new IllegalArgumentException("Grid::remove: Tried to call with a position that does not exist within the grid.");
         }
 
         if (isExternal(pos)) {
-            return removeFinal(pos, null);
+            removeFinal(pos, null);
+            return;
         }
 
         ObjectList<LongLinkedOpenHashSet> colored = new ObjectArrayList<>();
@@ -230,10 +223,10 @@ public class Grid<C extends IConnectable> implements INode {
             roots -> {
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
-                    long face = position.offset(direction).get();
+                    long side = position.offset(direction).asLong();
 
-                    if (linked(pos, direction, face)) {
-                        roots.add(face);
+                    if (linked(pos, direction, side)) {
+                        roots.add(side);
                     }
                 }
             },
@@ -256,16 +249,15 @@ public class Grid<C extends IConnectable> implements INode {
 
                 if (connectivity != Byte.MAX_VALUE) {
                     check.add(reached);
-                    newGrid.nodes.put(reached, connectivity, nodes.getListeners().get(reached));
+                    newGrid.nodes.put(reached, connectivity);
                 } else {
                     newGrid.connectors.put(reached, connectors.remove(reached));
                 }
             }
-
             split.accept(newGrid);
         }
 
-        return removeFinal(pos, check);
+        removeFinal(pos, check);
     }
 
     /**
@@ -273,30 +265,28 @@ public class Grid<C extends IConnectable> implements INode {
      *
      * @param pos The given position.
      * @param found The set with nodes to check.
-     * @return The removed connector.
      */
-    private C removeFinal(long pos, LongSet found) {
-        C connector = connectors.remove(pos).value();
+    private void removeFinal(long pos, @Nullable LongSet found) {
+        connectors.remove(pos).value();
 
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
-            long face = position.offset(direction).get();
+            long side = position.offset(direction).asLong();
 
-            if (nodes.containsKey(face) && isExternal(face)) {
-                nodes.remove(face);
+            if (nodes.containsKey(side) && isExternal(side)) {
+                nodes.remove(side);
             }
         }
 
-        if (found != null) {
-            for (long reached : found) {
-                if (isExternal(reached)) {
-                    nodes.remove(reached);
-                }
-            }
+        if (found == null) {
+            return;
         }
 
-        nodes.update();
-        return connector;
+        for (long reached : found) {
+            if (isExternal(reached)) {
+                nodes.remove(reached);
+            }
+        }
     }
 
     /**
@@ -307,125 +297,20 @@ public class Grid<C extends IConnectable> implements INode {
      */
     private boolean isExternal(long pos) {
         // If the grid contains less than 2 blocks, neighbors cannot exist.
-        if (connectors.size() <= 1) {
+        if (countConnectors() <= 1) {
             return true;
         }
 
         byte neighbors = 0;
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
-            long face = position.offset(direction).get();
+            long side = position.offset(direction).asLong();
 
-            if (!nodes.containsKey(face) && linked(pos, direction, face)) {
-                neighbors += 1;
+            if (!nodes.containsKey(side) && linked(pos, direction, side)) {
+                neighbors++;
             }
         }
 
         return neighbors <= 1;
-    }
-
-    /**
-     * @apiNote Wrapper for a Long2ByteMap class and listener for updates.
-     */
-    private static class Listener {
-
-        Long2ByteMap map;
-        Long2ObjectMap<IGridListener> listeners;
-
-        /**
-         * Constructs a new Long2ByteMap with the same mappings as the specified Map.
-         */
-        Listener() {
-            map = new Long2ByteLinkedOpenHashMap();
-            map.defaultReturnValue(Byte.MAX_VALUE);
-            listeners = new Long2ObjectLinkedOpenHashMap<>();
-        }
-
-        /**
-         * Returns true if this map contains a mapping for the specified key.
-         *
-         * @param key The key value.
-         * @return True or false.
-         */
-        boolean containsKey(long key) {
-            return map.containsKey(key);
-        }
-
-        /**
-         * @return Gets the value to which the specified key is mapped, or null if this map contains no mapping for the key.
-         */
-        byte get(long key) {
-            return map.get(key);
-        }
-
-        /**
-         * Associates the specified value with the specified key in this map.
-         *
-         * @param key The key value.
-         * @param value The provided value.
-         * @param listener The listener function.
-         */
-        byte put(long key, byte value, IGridListener listener) {
-            map.put(key, value);
-            listeners.put(key, listener);
-            return value;
-        }
-
-        /**
-         * Copies all of the mappings from the specified map to this map.
-         *
-         * @param wrapper The other object.
-         */
-        void putAll(Listener wrapper) {
-            map.putAll(wrapper.map);
-            listeners.putAll(wrapper.listeners);
-        }
-
-        /**
-         * @param key The key value.
-         * @return Gets the mapping for the specified key from this map if present.
-         */
-        byte remove(long key) {
-            byte value = map.remove(key);
-            listeners.remove(key);
-            return value;
-        }
-
-        /**
-         * @return Gets map size.
-         */
-        int size() {
-            return map.size();
-        }
-
-        /**
-         * @return Gets keys set.
-         */
-        LongSet keySet() {
-            return map.keySet();
-        }
-
-        /**
-         * @return Gets original map.
-         */
-        Long2ByteMap getMap() {
-            return map;
-        }
-
-        /**
-         * @return Gets listeners map.
-         */
-        Long2ObjectMap<IGridListener> getListeners() {
-            return listeners;
-        }
-
-        /**
-         * Call attached listeners.
-         */
-        void update() {
-            for (IGridListener listener : listeners.values()) {
-                listener.onGridUpdate();
-            }
-        }
     }
 }
