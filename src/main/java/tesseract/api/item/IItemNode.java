@@ -5,6 +5,7 @@ import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * An item node is the unit of interaction with item inventories.
@@ -22,16 +23,13 @@ public interface IItemNode extends IConnectable, ITickHost {
      * Inserts an ItemStack into the given slot and return the remainder.
      * The ItemStack <em>should not</em> be modified in this function!
      * </p>
-     * Note: This behaviour is subtly different from {@link IFluidHandler#fill(FluidStack, boolean)}
-     *
      * @param stack ItemStack to insert. This must not be modified by the item handler.
      * @param simulate If true, the insertion is only simulated
      * @return The remaining ItemStack that was not inserted (if the entire stack is accepted, then return an empty ItemStack).
      *         May be the same as the input ItemStack if unchanged, otherwise a new ItemStack.
      *         The returned ItemStack can be safely modified after.
      **/
-    @Nonnull
-    Object insert(@Nonnull Object stack, boolean simulate);
+    int insert(@Nonnull Object stack, boolean simulate);
 
     /**
      * Extracts an ItemStack from the given slot.
@@ -40,13 +38,13 @@ public interface IItemNode extends IConnectable, ITickHost {
      * otherwise its stack size must be less than or equal to {@code amount} and {@link ItemStack#getMaxStackSize()}.
      * </p>
      *
-     * @param amount Amount to extract (may be greater than the current stack's max limit)
+     * @param maxExtract Amount to extract (may be greater than the current stack's max limit)
      * @param simulate If true, the extraction is only simulated
      * @return ItemStack extracted from the slot, must be empty if nothing can be extracted.
      *         The returned ItemStack can be safely modified after, so item handlers should return a new or copied stack.
      **/
-    @Nonnull
-    Object extract(int amount, boolean simulate);
+    @Nullable
+    Object extract(int maxExtract, boolean simulate);
 
     /**
      * Returns the number of slots available.
@@ -81,7 +79,7 @@ public interface IItemNode extends IConnectable, ITickHost {
      * @return ItemStack in given slot. Empty Itemstack if the slot is empty.
      **/
     @Nonnull
-    Object getItemStack();
+    Object getItem();
 
     /**
      * <p>
@@ -101,7 +99,7 @@ public interface IItemNode extends IConnectable, ITickHost {
      * @return true if the slot can insert the ItemStack, not considering the current state of the inventory.
      *         false if the slot can never insert the ItemStack in any situation.
      */
-    boolean isValid(@Nonnull Object stack);
+    boolean canAccept(@Nonnull Object stack);
 
 
     /**

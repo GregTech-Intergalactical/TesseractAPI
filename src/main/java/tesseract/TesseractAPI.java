@@ -64,7 +64,7 @@ public class TesseractAPI {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public static void addElectricNode(int dim, long pos, IElectricNode node) {
+    public static void registerElectricNode(int dim, long pos, IElectricNode node) {
         Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dim);
         graph.addNode(pos, Connectivity.Cache.of(node));
         Group<IElectricCable, IElectricNode> group = graph.getGroupAt(pos);
@@ -87,7 +87,7 @@ public class TesseractAPI {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public static void addFluidNode(int dim, long pos, IFluidNode node) {
+    public static void registerFluidNode(int dim, long pos, IFluidNode node) {
         Graph<IFluidPipe, IFluidNode> graph = getFluidGraph(dim);
         graph.addNode(pos, Connectivity.Cache.of(node));
         Group<IFluidPipe, IFluidNode> group = graph.getGroupAt(pos);
@@ -110,7 +110,7 @@ public class TesseractAPI {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public static void addItemNode(int dim, long pos, IItemNode node) {
+    public static void registerItemNode(int dim, long pos, IItemNode node) {
         Graph<IItemPipe, IItemNode> graph = getItemGraph(dim);
         graph.addNode(pos, Connectivity.Cache.of(node));
         Group<IItemPipe, IItemNode> group = graph.getGroupAt(pos);
@@ -133,7 +133,7 @@ public class TesseractAPI {
      * @param pos The position at which the cable will be added.
      * @param cable The cable object.
      */
-    public static void addElectricCable(int dim, long pos, IElectricCable cable) {
+    public static void registerElectricCable(int dim, long pos, IElectricCable cable) {
         getElectricGraph(dim).addConnector(pos, Connectivity.Cache.of(cable));
     }
 
@@ -143,7 +143,7 @@ public class TesseractAPI {
      * @param pos The position at which the pipe will be added.
      * @param pipe The pipe object.
      */
-    public static void addFluidPipe(int dim, long pos, IFluidPipe pipe) {
+    public static void registerFluidPipe(int dim, long pos, IFluidPipe pipe) {
         getFluidGraph(dim).addConnector(pos, Connectivity.Cache.of(pipe));
     }
 
@@ -153,7 +153,7 @@ public class TesseractAPI {
      * @param pos The position at which the pipe will be added.
      * @param pipe The pipe object.
      */
-    public static void addItemPipe(int dim, long pos, IItemPipe pipe) {
+    public static void registerItemPipe(int dim, long pos, IItemPipe pipe) {
         getItemGraph(dim).addConnector(pos, Connectivity.Cache.of(pipe));
     }
 

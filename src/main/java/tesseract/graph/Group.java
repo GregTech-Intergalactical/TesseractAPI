@@ -405,7 +405,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         );
 
         ObjectList<Grid<C>> splitGrids = null;
-        LongSet excluded = new LongLinkedOpenHashSet();
+        LongSet excluded = new LongOpenHashSet();
 
         int centerGridId = connectors.get(pos);
         if (centerGridId != Utils.INVALID) {

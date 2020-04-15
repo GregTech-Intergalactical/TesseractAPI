@@ -39,7 +39,32 @@ public interface IFluidNode extends IConnectable, ITickHost {
      * @param stack FluidStack holding the Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    boolean isValidFluid(@Nonnull Object stack);
+    boolean canHold(@Nonnull Object stack);
+
+    /**
+     * @param stack FluidStack holding the Fluid to be queried.
+     * @return The fluid inside a FluidStack.
+     */
+    @Nonnull
+    Object getFluid(@Nonnull Object stack);
+
+    /**
+     * @param stack FluidStack holding the Fluid to be queried.
+     * @return The fluid amount inside a FluidStack.
+     */
+    int getAmount(@Nonnull Object stack);
+
+    /**
+     * @param fluid The fluid inside a FluidStack.
+     * @return The temperature.
+     */
+    int getTemperature(@Nonnull Object fluid);
+
+    /**
+     * @param fluid The fluid inside a FluidStack.
+     * @return Checks the gas state.
+     */
+    boolean isGaseous(@Nonnull Object fluid);
 
     /**
      * @return Gets the maximum amount of fluid that can be stored.

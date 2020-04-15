@@ -29,7 +29,7 @@ public interface IFluidPipe extends IConnectable {
      * Returns the maximum temperature that this fluid component will permit to pass through or be received in a single packet.
      * @return A positive integer representing the maximum accepted temp, zero or negative indicates that this component accepts no fluid.
      */
-    int getTemp();
+    int getTemperature();
 
     /**
      * @return Checks that the pipe can handle gases.
@@ -37,13 +37,13 @@ public interface IFluidPipe extends IConnectable {
     boolean isGasProof();
 
     /**
-     * @param temp The current temperature.
+     * @param temperature The current temperature.
      * @param pressure The current pressure.
      * @param proof True if current liquid is in a gas state.
      * @return Checks that the pipe is able to handle single packet.
      */
-    default FluidStatus getHandler(int temp, int pressure, boolean proof) {
-        if (getTemp() < temp) return FluidStatus.FAIL_TEMP;
+    default FluidStatus getHandler(int temperature, int pressure, boolean proof) {
+        if (getTemperature() < temperature) return FluidStatus.FAIL_TEMP;
         else if (getPressure() < pressure) return FluidStatus.FAIL_PRESSURE;
         else if (isGasProof() != proof) return FluidStatus.FAIL_LEAK;
         return FluidStatus.SUCCESS;

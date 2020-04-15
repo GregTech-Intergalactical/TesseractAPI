@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.api.Absorber;
 import tesseract.api.ConnectionType;
+import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.graph.*;
 import tesseract.util.Dir;
@@ -22,7 +23,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
 
     private Long2ObjectMap<Absorber> absorbs = new Long2ObjectLinkedOpenHashMap<>();
     private Object2IntMap<IElectricNode> obtains = new Object2IntLinkedOpenHashMap<>();
-    private Object2ObjectMap<IElectricNode, ObjectList<Consumer>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private Object2ObjectMap<IElectricNode, ObjectList<ElectricConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
@@ -56,7 +57,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
                     if (producer.canOutput(direction)) {
-                        ObjectList<Consumer> consumers = new ObjectArrayList<>();
+                        ObjectList<ElectricConsumer> consumers = new ObjectArrayList<>();
                         long offset = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(offset)) {
@@ -91,17 +92,15 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
      * @param producer The producer node.
      * @param consumers The consumer nodes.
      */
-    private void mergeConsumers(IElectricNode producer, ObjectList<Consumer> consumers) {
-        ObjectList<Consumer> existingConsumers = data.get(producer);
-        for (Consumer c : consumers) {
+    private void mergeConsumers(IElectricNode producer, ObjectList<ElectricConsumer> consumers) {
+        ObjectList<ElectricConsumer> existingConsumers = data.get(producer);
+        for (ElectricConsumer c : consumers) {
             boolean found = false;
-            for (Consumer ec : existingConsumers) {
-                if (ec.consumer == c.consumer) {
+            for (ElectricConsumer ec : existingConsumers) {
+                if (ec.getConsumer() == c.getConsumer()) {
                     found = true;
                     if (ec.loss > c.loss) {
-                        ec.loss = c.loss;
-                        ec.full = c.full;
-                        ec.cross = c.cross;
+                        ec.copy(c);
                     }
                 }
                 if (!found) existingConsumers.add(c);
@@ -117,13 +116,14 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
      * @param path The paths to consumers.
      * @param pos The position of the producer.
      */
-    private void checkConsumer(IElectricNode producer, ObjectList<Consumer> consumers, Path<IElectricCable> path, long pos) {
+    private void checkConsumer(IElectricNode producer, ObjectList<ElectricConsumer> consumers, Path<IElectricCable> path, long pos) {
         IElectricNode c = group.getNodes().get(pos).value();
         if (c.canInput()) {
-            if (producer.getOutputVoltage() > c.getInputVoltage()) {
-                GLOBAL_ELECTRIC_EVENT.onNodeOverVoltage(dim, pos);
+            int voltage = producer.getOutputVoltage();
+            if (voltage > c.getInputVoltage()) {
+                GLOBAL_ELECTRIC_EVENT.onNodeOverVoltage(dim, pos, voltage);
             } else {
-                Consumer consumer = new Consumer(c, path);
+                ElectricConsumer consumer = new ElectricConsumer(c, path);
                 if (producer.getOutputVoltage() > consumer.loss) {
                     consumers.add(consumer);
                 }
@@ -162,7 +162,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
         obtains.clear();
         absorbs.clear();
 
-        for(Object2ObjectMap.Entry<IElectricNode, ObjectList<Consumer>> e : data.object2ObjectEntrySet()) {
+        for (Object2ObjectMap.Entry<IElectricNode, ObjectList<ElectricConsumer>> e : data.object2ObjectEntrySet()) {
             IElectricNode producer = e.getKey();
             int outputVoltage = producer.getOutputVoltage();
             int outputAmperage = producer.getOutputAmperage();
@@ -170,32 +170,35 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
                 continue;
             }
 
-            for (Consumer consumer: e.getValue()) {
+            for (ElectricConsumer consumer : e.getValue()) {
                 int amperage = consumer.getRequiredAmperage(outputVoltage);
 
                 // look up how much it already got
-                amperage -= obtains.getInt(consumer.consumer);
+                amperage -= obtains.getInt(consumer.getConsumer());
                 if (amperage <= 0) { // if this consumer received all the energy from the other producers
                     continue;
                 }
 
                 // remember amperes stored in this consumer
                 amperage = Math.min(outputAmperage, amperage);
-                obtains.put(consumer.consumer, obtains.getInt(consumer.consumer) + amperage);
+                obtains.put(consumer.getConsumer(), obtains.getInt(consumer.getConsumer()) + amperage);
 
                 consumer.insert((outputVoltage - consumer.loss) * (long) amperage, false);
                 producer.extract(outputVoltage * (long) amperage, false);
 
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
-                if (!consumer.canReceive(outputVoltage, amperage) && consumer.connection != ConnectionType.ADJACENT) { // Fast check by the lowest cost cable
-                    // Find corrupt cable and return
-                    for (Long2ObjectMap.Entry<IElectricCable> cable : consumer.full.long2ObjectEntrySet()) {
-                        switch (cable.getValue().getHandler(outputVoltage, amperage)) {
+                if (!consumer.canHandle(outputVoltage, amperage) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest cost cable
+                    // Find corrupt cables and return
+                    for (Long2ObjectMap.Entry<IElectricCable> c : consumer.getFull()) {
+                        IElectricCable cable = c.getValue();
+                        long pos = c.getLongKey();;
+
+                        switch (cable.getHandler(outputVoltage, amperage)) {
                             case FAIL_VOLTAGE:
-                                GLOBAL_ELECTRIC_EVENT.onCableOverVoltage(dim, cable.getLongKey());
+                                GLOBAL_ELECTRIC_EVENT.onCableOverVoltage(dim, pos, outputVoltage);
                                 break;
                             case FAIL_AMPERAGE:
-                                GLOBAL_ELECTRIC_EVENT.onCableOverAmperage(dim, cable.getLongKey());
+                                GLOBAL_ELECTRIC_EVENT.onCableOverAmperage(dim, pos, amperage);
                                 break;
                         }
                     }
@@ -203,11 +206,14 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
                 }
 
                 // Stores the amp into holder for path only for variate connection
-                if (consumer.connection == ConnectionType.VARIATE) {
-                    for (Long2ObjectMap.Entry<IElectricCable> cable : consumer.cross.long2ObjectEntrySet()) {
-                        Absorber a = absorbs.get(cable.getLongKey());
+                if (consumer.getConnection() == ConnectionType.VARIATE) {
+                    for (Long2ObjectMap.Entry<IElectricCable> c : consumer.getCross()) {
+                        IElectricCable cable = c.getValue();
+                        long pos = c.getLongKey();
+
+                        Absorber a = absorbs.get(pos);
                         if (a == null) {
-                            absorbs.put(cable.getLongKey(), new Absorber(cable.getValue().getAmps(), amperage));
+                            absorbs.put(pos, new Absorber(cable.getAmps(), amperage));
                         } else {
                             a.add(amperage);
                         }
@@ -220,28 +226,24 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
             }
         }
 
-        for (Long2ObjectMap.Entry<Absorber> entry : absorbs.long2ObjectEntrySet()) {
-            if (!entry.getValue().canHandle()) {
-                GLOBAL_ELECTRIC_EVENT.onCableOverAmperage(dim, entry.getLongKey());
+        for (Long2ObjectMap.Entry<Absorber> e : absorbs.long2ObjectEntrySet()) {
+            Absorber absorber = e.getValue();
+            long pos = e.getLongKey();
+
+            if (absorber.isOver()) {
+                GLOBAL_ELECTRIC_EVENT.onCableOverAmperage(dim, pos, absorber.get());
             }
         }
     }
 
     /**
-     * A class that acts as a container for a consumer.
+     * A class that acts as a container for an electrical consumer.
      */
-    private static class Consumer {
+    private static class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
 
-        private final int amperage;
-        private final IElectricNode consumer;
-        private final ConnectionType connection;
-
-        private Long2ObjectMap<IElectricCable> full;
-        private Long2ObjectMap<IElectricCable> cross;
-
-        private int loss;
-        private int minVoltage = Integer.MAX_VALUE;
-        private int minAmperage = Integer.MAX_VALUE;
+        int loss;
+        int minVoltage = Integer.MAX_VALUE;
+        int minAmperage = Integer.MAX_VALUE;
 
         /**
          * Creates instance of the consumer.
@@ -249,30 +251,8 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
          * @param consumer The consumer node.
          * @param path The path information.
          */
-        Consumer(@Nonnull IElectricNode consumer, @Nullable Path<IElectricCable> path) {
-            this.consumer = consumer;
-
-            if (path != null) {
-                full = path.getFull();
-                cross = path.getCross();
-            }
-
-            // Gets the total loss and min voltage and amperage
-            if (full != null) {
-                for (IElectricCable cable : full.values()) {
-                    loss += cable.getLoss();
-                    minVoltage = Math.min(minVoltage, cable.getVoltage());
-                    minAmperage = Math.min(minAmperage, cable.getAmps());
-                }
-            }
-
-            if (cross == null || cross.size() == 0) {
-                connection = (full == null) ? ConnectionType.ADJACENT : ConnectionType.SINGLE;
-            } else {
-                connection = ConnectionType.VARIATE;
-            }
-
-            amperage = consumer.getInputAmperage();
+        ElectricConsumer(@Nonnull IElectricNode consumer, @Nullable Path<IElectricCable> path) {
+            super(consumer, path);
         }
 
         /**
@@ -289,7 +269,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
          * @return Gets the amperage required for the consumer.
          */
         int getRequiredAmperage(int voltage) {
-            return (int) Math.min(((consumer.getCapacity() - consumer.getPower()) + voltage - 1) / voltage, amperage);
+            return (int) Math.min(((consumer.getCapacity() - consumer.getPower()) + voltage - 1) / voltage, consumer.getInputAmperage());
         }
 
         /**
@@ -297,8 +277,26 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
          * @param amperage The current amperage.
          * @return Checks that the consumer is able to receive energy.
          */
-        boolean canReceive(int voltage, int amperage) {
+        boolean canHandle(int voltage, int amperage) {
             return minVoltage >= voltage && minAmperage >= amperage;
+        }
+
+        /**
+         * Copy the data from another consumer instance.
+         *
+         * @param consumer Another consumer.
+         */
+        void copy(@Nonnull ElectricConsumer consumer) {
+            loss = consumer.loss;
+            full = consumer.full;
+            cross = consumer.cross;
+        }
+
+        @Override
+        protected void onConnectorCatch(@Nonnull IElectricCable cable) {
+            loss += cable.getLoss();
+            minVoltage = Math.min(minVoltage, cable.getVoltage());
+            minAmperage = Math.min(minAmperage, cable.getAmps());
         }
     }
 }
