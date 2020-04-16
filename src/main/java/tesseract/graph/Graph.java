@@ -1,9 +1,6 @@
 package tesseract.graph;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -18,10 +15,10 @@ import javax.annotation.Nullable;
 /**
  * Class provides the functionality of any set of nodes.
  */
-public class Graph<C extends IConnectable, N extends IConnectable> implements INode  {
+public final class Graph<C extends IConnectable, N extends IConnectable> implements INode  {
 
-	private Int2ObjectMap<Group<C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
-	private Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
+	private final Int2ObjectMap<Group<C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
+	private final Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
 
 	public Graph() {
 		positions.defaultReturnValue(Utils.INVALID);
@@ -54,7 +51,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 */
 	@Nonnull
 	public Int2ObjectMap<Group<C, N>> getGroups() {
-		return groups;
+		return Int2ObjectMaps.unmodifiable(groups);
 	}
 
 	/**
@@ -243,11 +240,11 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	/**
 	 * @apiNote Wrapper for merged groups.
 	 */
-	private static class Merged<C extends IConnectable, N extends IConnectable> {
+	private final static class Merged<C extends IConnectable, N extends IConnectable> {
 
-		int bestId;
-		Group<C, N> best;
-		ObjectList<Group<C, N>> merged;
+		final int bestId;
+		final Group<C, N> best;
+		final ObjectList<Group<C, N>> merged;
 
 		/**
 		 * Constructs a new Merged of the groups.

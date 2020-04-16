@@ -2,7 +2,7 @@ package tesseract.util;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Utils {
+public final class Utils {
 
     public static final int INVALID = Integer.MAX_VALUE;
     public static final int DEFAULT = Integer.MIN_VALUE;

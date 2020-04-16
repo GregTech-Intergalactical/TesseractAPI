@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
 /**
  * A class that acts as a controller for a connectivity of the connectables.
  */
-public class Connectivity {
+public final class Connectivity {
 
     /**
      * @param connectable The given instance.
@@ -47,12 +47,13 @@ public class Connectivity {
     /**
      * The Cache is a class that should work with connections.
      */
-    public static class Cache<C> {
+    public final static class Cache<C extends IConnectable> {
 
         private byte connectivity;
         private C value;
 
-        private Cache() { }
+        private Cache() {
+        }
 
         /**
          * Creates a cache instance.

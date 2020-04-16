@@ -13,12 +13,12 @@ import java.util.Iterator;
 /**
  * The Path is a class that should work with paths for grids.
  */
-public class Path<C extends IConnectable> {
+public final class Path<C extends IConnectable> {
 
-    private Pos origin;
-    private Pos target;
-    private Long2ObjectMap<C> full = new Long2ObjectLinkedOpenHashMap<>();
-    private Long2ObjectMap<C> cross = new Long2ObjectLinkedOpenHashMap<>();
+    private final Pos origin;
+    private final Pos target;
+    private final Long2ObjectMap<C> full = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<C> cross = new Long2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates a path instance.

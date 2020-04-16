@@ -16,12 +16,12 @@ import java.util.function.Consumer;
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
  */
-public class Group<C extends IConnectable, N extends IConnectable> implements INode {
+public final class Group<C extends IConnectable, N extends IConnectable> implements INode {
 
-    private Long2ObjectMap<Connectivity.Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
-    private Int2ObjectMap<Grid<C>> grids = new Int2ObjectLinkedOpenHashMap<>();
-    private Long2IntMap connectors = new Long2IntLinkedOpenHashMap(); // connectors pairing
-    private BFDivider divider = new BFDivider(this);
+    private final Long2ObjectMap<Connectivity.Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
+    private final Int2ObjectMap<Grid<C>> grids = new Int2ObjectLinkedOpenHashMap<>();
+    private final Long2IntMap connectors = new Long2IntLinkedOpenHashMap(); // connectors pairing
+    private final BFDivider divider = new BFDivider(this);
     private ITickingController controller = null;
     private ITickHost currentTickHost = null;
 
@@ -148,7 +148,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      */
     @Nonnull
     public Long2ObjectMap<Connectivity.Cache<N>> getNodes() {
-        return nodes;
+        return Long2ObjectMaps.unmodifiable(nodes);
     }
 
     /**
@@ -156,7 +156,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      */
     @Nonnull
     public Int2ObjectMap<Grid<C>> getGrids() {
-        return grids;
+        return Int2ObjectMaps.unmodifiable(grids);
     }
 
     /**
@@ -339,7 +339,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param pos The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
-    public void removeAt(long pos, @Nonnull Consumer<Group<C, N>> split) {
+    public void removeAt(final long pos, @Nonnull Consumer<Group<C, N>> split) {
 
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.

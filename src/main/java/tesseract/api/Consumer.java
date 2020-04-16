@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 /**
  * A class that acts as a container for a consumer component.
  */
-public class Consumer<C extends IConnectable, N extends IConnectable> {
+abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
 
     protected final N consumer;
     protected final ConnectionType connection;
@@ -83,5 +83,5 @@ public class Consumer<C extends IConnectable, N extends IConnectable> {
      *
      * @param connector The connector object.
      */
-    protected void onConnectorCatch(@Nonnull C connector) { }
+    protected abstract void onConnectorCatch(@Nonnull C connector);
 }

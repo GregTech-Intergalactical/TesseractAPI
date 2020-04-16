@@ -15,12 +15,12 @@ import java.util.function.Consumer;
 /**
  * Grid provides the functionality of a set of linked nodes.
  */
-public class Grid<C extends IConnectable> implements INode {
+public final class Grid<C extends IConnectable> implements INode {
 
-    private Long2ObjectMap<Connectivity.Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
-    private Long2ByteLinkedOpenHashMap nodes = new Long2ByteLinkedOpenHashMap();
-    private BFDivider divider = new BFDivider(this);
-    private ASFinder finder = new ASFinder(this);
+    private final Long2ObjectMap<Connectivity.Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ByteLinkedOpenHashMap nodes = new Long2ByteLinkedOpenHashMap();
+    private final BFDivider divider = new BFDivider(this);
+    private final ASFinder finder = new ASFinder(this);
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
@@ -106,7 +106,7 @@ public class Grid<C extends IConnectable> implements INode {
      */
     @Nonnull
     public Long2ObjectMap<Connectivity.Cache<C>> getConnectors() {
-        return connectors;
+        return Long2ObjectMaps.unmodifiable(connectors);
     }
 
     /**
@@ -114,7 +114,7 @@ public class Grid<C extends IConnectable> implements INode {
      */
     @Nonnull
     public Long2ByteMap getNodes() {
-        return nodes;
+        return Long2ByteMaps.unmodifiable(nodes);
     }
 
     /**
@@ -205,7 +205,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param pos The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
-    public void removeAt(long pos, @Nonnull Consumer<Grid<C>> split) {
+    public void removeAt(final long pos, @Nonnull Consumer<Grid<C>> split) {
 
         if (!contains(pos)) {
             throw new IllegalArgumentException("Grid::remove: Tried to call with a position that does not exist within the grid.");
@@ -267,7 +267,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param found The set with nodes to check.
      */
     private void removeFinal(long pos, @Nullable LongSet found) {
-        connectors.remove(pos).value();
+        connectors.remove(pos);
 
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
