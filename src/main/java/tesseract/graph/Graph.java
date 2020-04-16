@@ -53,7 +53,7 @@ public final class Graph<C extends IConnectable, N extends IConnectable> impleme
 	 * @return Gets the groups map.
 	 */
 	@Nonnull
-	public Int2ObjectMap<Group<C, N>> getGroups() {
+	public final Int2ObjectMap<Group<C, N>> getGroups() {
 		return groups;
 	}
 
@@ -169,7 +169,7 @@ public final class Graph<C extends IConnectable, N extends IConnectable> impleme
 	 * @return The group, guaranteed to not be null.
 	 */
 	@Nullable
-	public Group<C, N> getGroupAt(long pos) {
+	public final Group<C, N> getGroupAt(long pos) {
 		int id = positions.get(pos);
 		return (id == Utils.INVALID) ? null : groups.get(id);
 	}
@@ -243,11 +243,11 @@ public final class Graph<C extends IConnectable, N extends IConnectable> impleme
 	/**
 	 * @apiNote Wrapper for merged groups.
 	 */
-	private static class Merged<C extends IConnectable, N extends IConnectable> {
+	private final static class Merged<C extends IConnectable, N extends IConnectable> {
 
-		int bestId;
-		Group<C, N> best;
-		ObjectList<Group<C, N>> merged;
+		final int bestId;
+		final Group<C, N> best;
+		final ObjectList<Group<C, N>> merged;
 
 		/**
 		 * Constructs a new Merged of the groups.

@@ -105,7 +105,7 @@ public final class Grid<C extends IConnectable> implements INode {
      * @return Returns connectors map.
      */
     @Nonnull
-    public Long2ObjectMap<Connectivity.Cache<C>> getConnectors() {
+    public final Long2ObjectMap<Connectivity.Cache<C>> getConnectors() {
         return connectors;
     }
 
@@ -113,7 +113,7 @@ public final class Grid<C extends IConnectable> implements INode {
      * @return Returns nodes map.
      */
     @Nonnull
-    public Long2ByteMap getNodes() {
+    public final Long2ByteMap getNodes() {
         return nodes;
     }
 
@@ -267,7 +267,7 @@ public final class Grid<C extends IConnectable> implements INode {
      * @param found The set with nodes to check.
      */
     private void removeFinal(long pos, @Nullable LongSet found) {
-        connectors.remove(pos).value();
+        connectors.remove(pos);
 
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {

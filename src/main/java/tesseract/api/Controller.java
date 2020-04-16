@@ -48,9 +48,9 @@ abstract public class Controller<W extends Consumer<C, N>, C extends IConnectabl
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<Connectivity.Cache<N>> entry : group.getNodes().long2ObjectEntrySet()) {
-            N producer = entry.getValue().value();
-            long pos = entry.getLongKey();
+        for (Long2ObjectMap.Entry<Connectivity.Cache<N>> e : group.getNodes().long2ObjectEntrySet()) {
+            N producer = e.getValue().value();
+            long pos = e.getLongKey();
 
             if (isValid(producer, null)) {
                 Pos position = new Pos(pos);

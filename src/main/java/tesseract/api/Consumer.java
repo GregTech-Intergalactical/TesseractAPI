@@ -50,7 +50,7 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      * @return Gets the consumer ref.
      */
     @Nonnull
-    public N getConsumer() {
+    public final N getConsumer() {
         return consumer;
     }
 
@@ -58,7 +58,7 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      * @return Gets the connection type.
      */
     @Nonnull
-    public ConnectionType getConnection() {
+    public final ConnectionType getConnection() {
         return connection;
     }
 
@@ -66,7 +66,7 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      * @return Gets the cross path of connectors.
      */
     @Nonnull
-    public ObjectSet<Long2ObjectMap.Entry<C>> getCross() {
+    public final ObjectSet<Long2ObjectMap.Entry<C>> getCross() {
         return cross.long2ObjectEntrySet();
     }
 
@@ -74,7 +74,7 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      * @return Gets the full path of connectors.
      */
     @Nonnull
-    public ObjectSet<Long2ObjectMap.Entry<C>> getFull() {
+    public final ObjectSet<Long2ObjectMap.Entry<C>> getFull() {
         return full.long2ObjectEntrySet();
     }
 

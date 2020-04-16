@@ -147,7 +147,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @return Returns nodes map.
      */
     @Nonnull
-    public Long2ObjectMap<Connectivity.Cache<N>> getNodes() {
+    public final Long2ObjectMap<Connectivity.Cache<N>> getNodes() {
         return nodes;
     }
 
@@ -155,7 +155,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @return Returns grids set.
      */
     @Nonnull
-    public Int2ObjectMap<Grid<C>> getGrids() {
+    public final Int2ObjectMap<Grid<C>> getGrids() {
         return grids;
     }
 
