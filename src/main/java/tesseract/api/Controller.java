@@ -16,7 +16,7 @@ import javax.annotation.Nullable;
 /**
  * Class acts as a controller in the group of components.
  */
-abstract public class Controller<W extends Consumer<C, N>, C extends IConnectable, N extends IConnectable> implements ITickingController {
+public abstract class Controller<W extends Consumer<C, N>, C extends IConnectable, N extends IConnectable> implements ITickingController {
 
     protected final int dim;
     protected final Group<C, N> group;
