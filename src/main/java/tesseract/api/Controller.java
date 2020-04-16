@@ -40,7 +40,7 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
      * First, it clears previous controller map, after it lookup for the position of node and looks for the around grids.
      * Second, it collects all producers and collectors for the grid and stores it into data map.
      * Finally, it will pre-build consumer objects which are available for the producers. So each producer has a list of possible
-     * consumers with unique information about paths, loss, ect. Therefore production object will be act as double iterated map.
+     * consumers with unique information about paths, loss, ect.
      * </p>
      * @see tesseract.graph.Grid (Cache)
      */
