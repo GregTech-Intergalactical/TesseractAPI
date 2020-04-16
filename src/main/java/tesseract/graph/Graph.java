@@ -1,9 +1,6 @@
 package tesseract.graph;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -53,8 +50,8 @@ public final class Graph<C extends IConnectable, N extends IConnectable> impleme
 	 * @return Gets the groups map.
 	 */
 	@Nonnull
-	public final Int2ObjectMap<Group<C, N>> getGroups() {
-		return groups;
+	public Int2ObjectMap<Group<C, N>> getGroups() {
+		return Int2ObjectMaps.unmodifiable(groups);
 	}
 
 	/**
@@ -169,7 +166,7 @@ public final class Graph<C extends IConnectable, N extends IConnectable> impleme
 	 * @return The group, guaranteed to not be null.
 	 */
 	@Nullable
-	public final Group<C, N> getGroupAt(long pos) {
+	public Group<C, N> getGroupAt(long pos) {
 		int id = positions.get(pos);
 		return (id == Utils.INVALID) ? null : groups.get(id);
 	}

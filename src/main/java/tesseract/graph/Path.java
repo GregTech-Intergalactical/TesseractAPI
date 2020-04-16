@@ -48,7 +48,7 @@ public final class Path<C extends IConnectable> {
      * @return Gets the origin position.
      */
     @Nullable
-    public final Pos origin() {
+    public Pos origin() {
         return origin;
     }
 
@@ -56,7 +56,7 @@ public final class Path<C extends IConnectable> {
      * @return Gets the target position.
      */
     @Nullable
-    public final Pos target() {
+    public Pos target() {
         return target;
     }
 
@@ -64,7 +64,7 @@ public final class Path<C extends IConnectable> {
      * @return Gets the full connectors path.
      */
     @Nonnull
-    public final Long2ObjectMap<C> getFull() {
+    public Long2ObjectMap<C> getFull() {
         return full;
     }
 
@@ -72,7 +72,7 @@ public final class Path<C extends IConnectable> {
      * @return Gets the crossroad connectors path.
      */
     @Nonnull
-    public final Long2ObjectMap<C> getCross() {
+    public Long2ObjectMap<C> getCross() {
         return cross;
     }
 
