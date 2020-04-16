@@ -5,8 +5,8 @@ package tesseract.api;
  */
 public class Absorber {
 
-    private int max;
-    private int value;
+    protected int max;
+    protected int value;
 
     /**
      * Creates instance of the absorber.

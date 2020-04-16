@@ -9,5 +9,6 @@ public class Tesseract {
 	public static final String API_ID = "tesseract";
 	public static final String API_NAME = "Tesseract API";
 
-	public Tesseract() { }
+	public Tesseract() {
+	}
 }

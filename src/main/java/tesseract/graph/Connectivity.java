@@ -47,12 +47,13 @@ public class Connectivity {
     /**
      * The Cache is a class that should work with connections.
      */
-    public static class Cache<C> {
+    public static class Cache<C extends IConnectable> {
 
         private byte connectivity;
         private C value;
 
-        private Cache() { }
+        private Cache() {
+        }
 
         /**
          * Creates a cache instance.

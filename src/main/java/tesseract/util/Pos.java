@@ -69,7 +69,8 @@ public class Pos {
     /**
      * Creates position instance.
      */
-    public Pos() { }
+    public Pos() {
+    }
 
     /**
      * Creates position instance.
