@@ -205,7 +205,7 @@ public final class Grid<C extends IConnectable> implements INode {
      * @param pos The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
-    public void removeAt(long pos, @Nonnull Consumer<Grid<C>> split) {
+    public void removeAt(final long pos, @Nonnull Consumer<Grid<C>> split) {
 
         if (!contains(pos)) {
             throw new IllegalArgumentException("Grid::remove: Tried to call with a position that does not exist within the grid.");

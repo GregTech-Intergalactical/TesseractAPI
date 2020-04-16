@@ -339,7 +339,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @param pos The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
-    public void removeAt(long pos, @Nonnull Consumer<Group<C, N>> split) {
+    public void removeAt(final long pos, @Nonnull Consumer<Group<C, N>> split) {
 
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.
