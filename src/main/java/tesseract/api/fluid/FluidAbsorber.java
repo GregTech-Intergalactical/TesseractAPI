@@ -70,17 +70,18 @@ public final class FluidAbsorber extends Absorber {
     @Override
     @Deprecated
     public int get() {
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     @Deprecated
     public void add(int value) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     @Deprecated
     public boolean isOver() {
-        return false;
+        throw new UnsupportedOperationException();
     }
 }
