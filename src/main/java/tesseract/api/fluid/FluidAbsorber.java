@@ -9,10 +9,10 @@ import javax.annotation.Nonnull;
 /**
  * A class that acts as absorber of the fluid that has passed thought pipes.
  */
-public class FluidAbsorber extends Absorber {
+public final class FluidAbsorber extends Absorber {
 
-    private int capacity;
-    private ObjectSet<Object> fluids = new ObjectOpenHashSet<>();
+    private final int capacity;
+    private final ObjectSet<Object> fluids = new ObjectOpenHashSet<>();
 
     /**
      * Creates instance of the absorber.

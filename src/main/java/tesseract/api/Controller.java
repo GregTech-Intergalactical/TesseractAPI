@@ -18,10 +18,10 @@ import javax.annotation.Nullable;
  */
 abstract public class Controller<W extends Consumer<C, N>, C extends IConnectable, N extends IConnectable> implements ITickingController {
 
-    protected int dim;
-    protected Group<C, N> group;
-    protected Long2ObjectMap<Absorber> absorbs = new Long2ObjectLinkedOpenHashMap<>();
-    protected Object2ObjectMap<N, ObjectList<W>> data = new Object2ObjectLinkedOpenHashMap<>();
+    protected final int dim;
+    protected final Group<C, N> group;
+    protected final Long2ObjectMap<Absorber> absorbs = new Long2ObjectLinkedOpenHashMap<>();
+    protected final Object2ObjectMap<N, ObjectList<W>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.

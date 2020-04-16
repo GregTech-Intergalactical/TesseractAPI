@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 /**
  * A class that acts as a container for a item consumer.
  */
-public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
+public final class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
 
     /**
      * Creates instance of the consumer.

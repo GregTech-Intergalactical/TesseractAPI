@@ -21,11 +21,11 @@ import java.util.function.LongConsumer;
  * Due to the above behavior, it is not safe to use BFSearcher from multiple threads. If two search operations happen
  * concurrently from different threads, then they will conflict, mixing results between each operation.
  */
-public class BFSearcher {
+public final class BFSearcher {
 
-    private INode container;
-    private ArrayDeque<Long> open = new ArrayDeque<>();
-    private LongOpenHashSet closed = new LongOpenHashSet();
+    private final INode container;
+    private final ArrayDeque<Long> open = new ArrayDeque<>();
+    private final LongOpenHashSet closed = new LongOpenHashSet();
 
     /**
      * Creates a reusable BFSearcher instance that will search the provided container.

@@ -15,12 +15,12 @@ import java.util.function.Consumer;
 /**
  * Grid provides the functionality of a set of linked nodes.
  */
-public class Grid<C extends IConnectable> implements INode {
+public final class Grid<C extends IConnectable> implements INode {
 
-    private Long2ObjectMap<Connectivity.Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
-    private Long2ByteLinkedOpenHashMap nodes = new Long2ByteLinkedOpenHashMap();
-    private BFDivider divider = new BFDivider(this);
-    private ASFinder finder = new ASFinder(this);
+    private final Long2ObjectMap<Connectivity.Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ByteLinkedOpenHashMap nodes = new Long2ByteLinkedOpenHashMap();
+    private final BFDivider divider = new BFDivider(this);
+    private final ASFinder finder = new ASFinder(this);
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {

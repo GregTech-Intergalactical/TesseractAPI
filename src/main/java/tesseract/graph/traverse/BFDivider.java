@@ -13,11 +13,11 @@ import java.util.function.Consumer;
  * Extension of BFSearcher that helps with dividing up node containers. The BFDivider class executes enough breadth first
  * search operations in order to split up a previously connected set of nodes into divided groups of connected nodes.
  */
-public class BFDivider {
+public final class BFDivider {
 
-	private BFSearcher searcher;
-	private Long2IntOpenHashMap roots = new Long2IntOpenHashMap();
-	private LongLinkedOpenHashSet lookup = new LongLinkedOpenHashSet();
+	private final BFSearcher searcher;
+	private final Long2IntOpenHashMap roots = new Long2IntOpenHashMap();
+	private final LongLinkedOpenHashSet lookup = new LongLinkedOpenHashSet();
 
 	/**
 	 * Creates a reusable BFDivider instance that will devides the provided container.

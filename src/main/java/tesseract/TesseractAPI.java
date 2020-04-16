@@ -18,7 +18,7 @@ import tesseract.graph.Connectivity;
 import tesseract.graph.Graph;
 import tesseract.graph.Group;
 
-public class TesseractAPI {
+public final class TesseractAPI {
 
     private static final Int2ObjectMap<Graph<IElectricCable, IElectricNode>> ELECTRIC_GRAPH = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<Graph<IFluidPipe, IFluidNode>> FLUID_GRAPH = new Int2ObjectOpenHashMap<>();

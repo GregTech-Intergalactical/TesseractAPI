@@ -16,12 +16,12 @@ import java.util.function.Consumer;
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
  */
-public class Group<C extends IConnectable, N extends IConnectable> implements INode {
+public final class Group<C extends IConnectable, N extends IConnectable> implements INode {
 
-    private Long2ObjectMap<Connectivity.Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
-    private Int2ObjectMap<Grid<C>> grids = new Int2ObjectLinkedOpenHashMap<>();
-    private Long2IntMap connectors = new Long2IntLinkedOpenHashMap(); // connectors pairing
-    private BFDivider divider = new BFDivider(this);
+    private final Long2ObjectMap<Connectivity.Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
+    private final Int2ObjectMap<Grid<C>> grids = new Int2ObjectLinkedOpenHashMap<>();
+    private final Long2IntMap connectors = new Long2IntLinkedOpenHashMap(); // connectors pairing
+    private final BFDivider divider = new BFDivider(this);
     private ITickingController controller = null;
     private ITickHost currentTickHost = null;
 

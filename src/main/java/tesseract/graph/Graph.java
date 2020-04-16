@@ -18,10 +18,10 @@ import javax.annotation.Nullable;
 /**
  * Class provides the functionality of any set of nodes.
  */
-public class Graph<C extends IConnectable, N extends IConnectable> implements INode  {
+public final class Graph<C extends IConnectable, N extends IConnectable> implements INode  {
 
-	private Int2ObjectMap<Group<C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
-	private Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
+	private final Int2ObjectMap<Group<C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
+	private final Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
 
 	public Graph() {
 		positions.defaultReturnValue(Utils.INVALID);

@@ -15,7 +15,7 @@ import static tesseract.TesseractAPI.GLOBAL_FLUID_EVENT;
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFluidNode> {
+public final class FluidController extends Controller<FluidConsumer, IFluidPipe, IFluidNode> {
 
     /**
      * Creates instance of the controller.

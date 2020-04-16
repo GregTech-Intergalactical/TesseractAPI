@@ -16,9 +16,9 @@ import static tesseract.TesseractAPI.GLOBAL_ELECTRIC_EVENT;
 /**
  * Class acts as a controller in the group of an electrical components.
  */
-public class ElectricController extends Controller<ElectricConsumer, IElectricCable, IElectricNode> {
+public final class ElectricController extends Controller<ElectricConsumer, IElectricCable, IElectricNode> {
 
-    private Object2IntMap<IElectricNode> obtains = new Object2IntLinkedOpenHashMap<>();
+    private final Object2IntMap<IElectricNode> obtains = new Object2IntLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.

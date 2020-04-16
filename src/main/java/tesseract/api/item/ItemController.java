@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 /**
  * Class acts as a controller in the group of an item components.
  */
-public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNode> {
+public final class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNode> {
 
     /**
      * Creates instance of the controller.
