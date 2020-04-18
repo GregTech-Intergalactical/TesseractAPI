@@ -10,7 +10,6 @@ import tesseract.api.fluid.FluidController;
 import tesseract.api.fluid.IFluidEvent;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
-import tesseract.api.item.IItemEvent;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
 import tesseract.api.item.ItemController;
