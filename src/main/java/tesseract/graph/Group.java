@@ -16,9 +16,9 @@ import java.util.function.Consumer;
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
  */
-public final class Group<C extends IConnectable, N extends IConnectable> implements INode {
+public class Group<C extends IConnectable, N extends IConnectable> implements INode {
 
-    private final Long2ObjectMap<Connectivity.Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
     private final Int2ObjectMap<Grid<C>> grids = new Int2ObjectLinkedOpenHashMap<>();
     private final Long2IntMap connectors = new Long2IntLinkedOpenHashMap(); // connectors pairing
     private final BFDivider divider = new BFDivider(this);
@@ -36,7 +36,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @return Create a instance of a class for a given position and node.
      */
     @Nonnull
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, @Nonnull Connectivity.Cache<N> node) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, @Nonnull Cache<N> node) {
         Group<C, N> group = new Group<>();
         group.addNode(pos, node);
         return group;
@@ -48,7 +48,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @return Create a instance of a class for a given position and connector.
      */
     @Nonnull
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, @Nonnull Connectivity.Cache<C> connector) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, @Nonnull Cache<C> connector) {
         Group<C, N> group = new Group<>();
         int id = Utils.getNewId();
         group.connectors.put(pos, id);
@@ -76,7 +76,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      *
      * @param node The given node.
      */
-    private void resetControllerHost(@Nonnull Connectivity.Cache<N> node) {
+    private void resetControllerHost(@Nonnull Cache<N> node) {
         if (currentTickHost != null && node.value() instanceof ITickHost && node.value() == currentTickHost) {
             currentTickHost.reset(controller, null);
             findNextValidHost(node);
@@ -106,11 +106,11 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      *
      * @param node The given node.
      */
-    private void findNextValidHost(@Nullable Connectivity.Cache<N> node) {
+    private void findNextValidHost(@Nullable Cache<N> node) {
         if (controller == null) return;
         currentTickHost = null;
 
-        for (Connectivity.Cache<N> n : nodes.values()) {
+        for (Cache<N> n : nodes.values()) {
             if (n == node || !(n.value() instanceof ITickHost)) {
                 continue;
             }
@@ -147,7 +147,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @return Returns nodes map.
      */
     @Nonnull
-    public Long2ObjectMap<Connectivity.Cache<N>> getNodes() {
+    public Long2ObjectMap<Cache<N>> getNodes() {
         return Long2ObjectMaps.unmodifiable(nodes);
     }
 
@@ -197,7 +197,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @param pos The given position.
      * @param node The given node.
      */
-    public void addNode(long pos, @Nonnull Connectivity.Cache<N> node) {
+    public void addNode(long pos, @Nonnull Cache<N> node) {
         nodes.put(pos, node);
 
         Pos position = new Pos(pos);
@@ -228,7 +228,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @param pos The given position.
      * @param connector The given connector.
      */
-    public void addConnector(long pos, @Nonnull Connectivity.Cache<C> connector) {
+    public void addConnector(long pos, @Nonnull Cache<C> connector) {
 
         Int2ObjectMap<Grid<C>> linked = new Int2ObjectLinkedOpenHashMap<>();
         Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
@@ -293,7 +293,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
             long move = e.getLongKey();
             Dir direction = e.getValue();
 
-            Connectivity.Cache<N> node = nodes.get(move);
+            Cache<N> node = nodes.get(move);
 
             if (node.connects(direction.invert())) {
                 bestGrid.addNode(move, node);
@@ -349,7 +349,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
 
         // If removing the entry would not cause a group split, then it is safe to remove the entry directly.
         if (isExternal(pos)) {
-            Connectivity.Cache<N> node = nodes.remove(pos);
+            Cache<N> node = nodes.remove(pos);
             if (node != null) {
                 removeNode(node, pos);
                 return;
@@ -421,7 +421,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
             splitGrids.add(centerGrid);
 
         } else {
-            Connectivity.Cache<N> node = nodes.remove(pos);
+            Cache<N> node = nodes.remove(pos);
             if (node != null) {
                 removeNode(node, pos);
             }
@@ -502,7 +502,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @param node The given node.
      * @param pos The position of the node.
      */
-    private void removeNode(@Nonnull Connectivity.Cache<N> node, long pos) {
+    private void removeNode(@Nonnull Cache<N> node, long pos) {
         resetControllerHost(node);
 
         // Clear removing node from nearest grid

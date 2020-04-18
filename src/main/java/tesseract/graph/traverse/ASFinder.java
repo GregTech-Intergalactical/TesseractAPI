@@ -12,7 +12,7 @@ import java.util.ConcurrentModificationException;
 /**
  * A Star Algorithm implementation for converting a graph – consisting of the grid – into a route through the grid.
  */
-public final class ASFinder {
+public class ASFinder {
 
     private ArrayDeque<Node> path;
     private final INode container;

@@ -20,7 +20,6 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
 
     protected final int dim;
     protected final Group<C, N> group;
-    protected final Long2ObjectMap<Absorber> absorbs = new Long2ObjectLinkedOpenHashMap<>();
     protected final Object2ObjectMap<N, ObjectList<W>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -48,7 +47,7 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<Connectivity.Cache<N>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<Cache<N>> e : group.getNodes().long2ObjectEntrySet()) {
             N producer = e.getValue().value();
             long pos = e.getLongKey();
 

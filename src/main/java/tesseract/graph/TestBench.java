@@ -41,12 +41,12 @@ class TestBench {
                 long position = pos.asLong();
 
                 if (points.length == 5 && points[4].startsWith("c")) {
-                    if (!graph.addConnector(position, Connectivity.Cache.of(new ExampleConnector()))) {
+                    if (!graph.addConnector(position, new Cache<>(new ExampleConnector()))) {
                         System.out.println("Error: connector at" + pos + " already exists in the graph");
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, Connectivity.Cache.of(new ExampleNode()))) {
+                    if (!graph.addNode(position, new Cache<>(new ExampleNode()))) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }
@@ -93,14 +93,14 @@ class TestBench {
             for (Int2ObjectMap.Entry<Group<ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                 System.out.println("  Group " + group.getIntKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
 
-                for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
+                for (Long2ObjectMap.Entry<Cache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
                     System.out.println("    Node at " +  new Pos(node.getLongKey()) + ": " + node.getValue().value());
                 }
 
                 for (Grid<ExampleConnector> grid : group.getValue().getGrids().values()) {
                     System.out.println("    Grid contains " + grid.countConnectors() + " connectors:");
 
-                    for (Long2ObjectMap.Entry<Connectivity.Cache<ExampleConnector>> connector : grid.getConnectors().long2ObjectEntrySet()) {
+                    for (Long2ObjectMap.Entry<Cache<ExampleConnector>> connector : grid.getConnectors().long2ObjectEntrySet()) {
                         System.out.println("      Connector at " + new Pos(connector.getLongKey()) + ": " + connector.getValue().value());
                     }
 

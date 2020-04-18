@@ -1,8 +1,8 @@
 package tesseract.api.electric;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
-import tesseract.api.Absorber;
 import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
 import tesseract.graph.*;
@@ -16,8 +16,9 @@ import static tesseract.TesseractAPI.GLOBAL_ELECTRIC_EVENT;
 /**
  * Class acts as a controller in the group of an electrical components.
  */
-public final class ElectricController extends Controller<ElectricConsumer, IElectricCable, IElectricNode> {
+public class ElectricController extends Controller<ElectricConsumer, IElectricCable, IElectricNode> {
 
+    private final Long2ObjectMap<ElectricHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
     private final Object2IntMap<IElectricNode> obtains = new Object2IntLinkedOpenHashMap<>();
 
     /**
@@ -45,7 +46,7 @@ public final class ElectricController extends Controller<ElectricConsumer, IElec
     @Override
     public void tick() {
         obtains.clear();
-        absorbs.clear();
+        holders.clear();
 
         for (Object2ObjectMap.Entry<IElectricNode, ObjectList<ElectricConsumer>> e : data.object2ObjectEntrySet()) {
             IElectricNode producer = e.getKey();
@@ -93,14 +94,14 @@ public final class ElectricController extends Controller<ElectricConsumer, IElec
                 // Stores the amp into holder for path only for variate connection
                 if (consumer.getConnection() == ConnectionType.VARIATE) {
                     for (Long2ObjectMap.Entry<IElectricCable> c : consumer.getCross()) {
-                        IElectricCable cable = c.getValue();
                         long pos = c.getLongKey();
 
-                        Absorber a = absorbs.get(pos);
-                        if (a == null) {
-                            absorbs.put(pos, new Absorber(cable.getAmps(), amperage));
+                        ElectricHolder h = holders.get(pos);
+                        if (h == null) {
+                            IElectricCable cable = c.getValue();
+                            holders.put(pos, new ElectricHolder(cable.getAmps(), amperage));
                         } else {
-                            a.add(amperage);
+                            h.add(amperage);
                         }
                     }
                 }
@@ -111,12 +112,12 @@ public final class ElectricController extends Controller<ElectricConsumer, IElec
             }
         }
 
-        for (Long2ObjectMap.Entry<Absorber> e : absorbs.long2ObjectEntrySet()) {
-            Absorber absorber = e.getValue();
+        for (Long2ObjectMap.Entry<ElectricHolder> e : holders.long2ObjectEntrySet()) {
+            ElectricHolder holder = e.getValue();
             long pos = e.getLongKey();
 
-            if (absorber.isOver()) {
-                GLOBAL_ELECTRIC_EVENT.onCableOverAmperage(dim, pos, absorber.get());
+            if (holder.isOverAmperage()) {
+                GLOBAL_ELECTRIC_EVENT.onCableOverAmperage(dim, pos, holder.getAmperage());
             }
         }
     }

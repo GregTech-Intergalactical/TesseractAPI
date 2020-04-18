@@ -15,9 +15,9 @@ import java.util.function.Consumer;
 /**
  * Grid provides the functionality of a set of linked nodes.
  */
-public final class Grid<C extends IConnectable> implements INode {
+public class Grid<C extends IConnectable> implements INode {
 
-    private final Long2ObjectMap<Connectivity.Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
     private final Long2ByteLinkedOpenHashMap nodes = new Long2ByteLinkedOpenHashMap();
     private final BFDivider divider = new BFDivider(this);
     private final ASFinder finder = new ASFinder(this);
@@ -33,7 +33,7 @@ public final class Grid<C extends IConnectable> implements INode {
      * @return Create a instance of a class for a given position and connector.
      */
     @Nonnull
-    protected static <C extends IConnectable> Grid<C> singleConnector(long pos, @Nonnull Connectivity.Cache<C> connector) {
+    protected static <C extends IConnectable> Grid<C> singleConnector(long pos, @Nonnull Cache<C> connector) {
         Grid<C> grid = new Grid<>();
         grid.connectors.put(pos, connector);
         return grid;
@@ -46,8 +46,8 @@ public final class Grid<C extends IConnectable> implements INode {
 
     @Override
     public boolean linked(long from, @Nullable Dir towards, long to) {
-        Connectivity.Cache<C> cacheFrom = connectors.get(from);
-        Connectivity.Cache<C> cacheTo = connectors.get(to);
+        Cache<C> cacheFrom = connectors.get(from);
+        Cache<C> cacheTo = connectors.get(to);
 
         byte connectivityFrom = nodes.get(from);
         byte connectivityTo = nodes.get(to);
@@ -73,7 +73,7 @@ public final class Grid<C extends IConnectable> implements INode {
 
     @Override
     public boolean connects(long pos, @Nullable Dir towards) {
-        Connectivity.Cache<C> cache = connectors.get(pos);
+        Cache<C> cache = connectors.get(pos);
         byte connectivity = nodes.get(pos);
 
         if (cache != null) {
@@ -105,7 +105,7 @@ public final class Grid<C extends IConnectable> implements INode {
      * @return Returns connectors map.
      */
     @Nonnull
-    public Long2ObjectMap<Connectivity.Cache<C>> getConnectors() {
+    public Long2ObjectMap<Cache<C>> getConnectors() {
         return Long2ObjectMaps.unmodifiable(connectors);
     }
 
@@ -174,7 +174,7 @@ public final class Grid<C extends IConnectable> implements INode {
      * @param pos The given position.
      * @param connector The given connector.
      */
-    public void addConnector(long pos, @Nonnull Connectivity.Cache<C> connector) {
+    public void addConnector(long pos, @Nonnull Cache<C> connector) {
         connectors.put(pos, connector);
     }
 
@@ -184,7 +184,7 @@ public final class Grid<C extends IConnectable> implements INode {
      * @param pos The given position.
      * @param node The given node.
      */
-    public void addNode(long pos, @Nonnull Connectivity.Cache<?> node) {
+    public void addNode(long pos, @Nonnull Cache<?> node) {
         nodes.put(pos, node.connectivity());
     }
 

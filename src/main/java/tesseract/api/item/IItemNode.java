@@ -33,14 +33,21 @@ public interface IItemNode extends IConnectable, ITickHost {
 
     /**
      * Extracts an ItemStack from an available slot.
-     *
-     * @param maxExtract Amount to extract (may be greater than the current stack's max limit)
+     * @param slot Slot to extract from.
+     * @param amount Amount to extract (may be greater than the current stack's max limit)
      * @param simulate If true, the extraction is only simulated
      * @return ItemStack extracted from the slot, must be empty if nothing can be extracted.
      *         The returned ItemStack can be safely modified after, so item handlers should return a new or copied stack.
      **/
-    @Nullable
-    Object extract(int maxExtract, boolean simulate);
+    @Nonnull
+    ItemData extract(int slot, int amount, boolean simulate);
+
+    /**
+     * Finds the next available slot.
+     * @param slot The current slot.
+     * @return The a next available slot.
+     */
+    int nextSlot(int slot);
 
     /**
      * @param stack ItemStack holding the Item to be queried.
@@ -49,10 +56,9 @@ public interface IItemNode extends IConnectable, ITickHost {
     boolean canAccept(@Nonnull Object stack);
 
     /**
-     * @param stack ItemStack holding the Item to be queried.
-     * @return The item count inside a ItemStack.
+     * @return Gets the initial amount of items that can be output.
      */
-    int getCount(@Nonnull Object stack);
+    int getOutputAmount();
 
     /**
      * Gets if this storage can have item extracted.

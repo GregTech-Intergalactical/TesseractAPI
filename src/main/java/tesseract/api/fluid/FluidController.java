@@ -1,5 +1,6 @@
 package tesseract.api.fluid;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.api.ConnectionType;
@@ -15,7 +16,9 @@ import static tesseract.TesseractAPI.GLOBAL_FLUID_EVENT;
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-public final class FluidController extends Controller<FluidConsumer, IFluidPipe, IFluidNode> {
+public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFluidNode> {
+
+    private final Long2ObjectMap<FluidHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
@@ -32,7 +35,7 @@ public final class FluidController extends Controller<FluidConsumer, IFluidPipe,
      */
     @Override
     public void tick() {
-        absorbs.clear();
+        holders.clear();
 
         for (Object2ObjectMap.Entry<IFluidNode, ObjectList<FluidConsumer>> e : data.object2ObjectEntrySet()) {
             IFluidNode producer = e.getKey();
@@ -40,15 +43,20 @@ public final class FluidController extends Controller<FluidConsumer, IFluidPipe,
 
             for (FluidConsumer consumer : e.getValue()) {
 
-                Object stack = producer.extract(outputAmount, true);
-                if (stack == null || !consumer.canHold(stack)) {
+                FluidData data = producer.extract(outputAmount, true);
+                if (data == null) {
                     continue;
                 }
 
-                outputAmount = producer.getAmount(stack);
-                Object fluid = producer.getFluid(stack);
-                int temperature = producer.getTemperature(fluid);
-                boolean isGaseous = producer.isGaseous(fluid);
+                Object stack = data.getStack();
+                if (!consumer.canHold(stack)) {
+                    continue;
+                }
+
+                outputAmount = data.getAmount();
+                Object fluid = data.getFluid();
+                int temperature = data.getTemperature();
+                boolean isGaseous = data.isGaseous();
 
                 int amount = consumer.insert(stack, true);
                 if (amount <= 0) {
@@ -59,7 +67,7 @@ public final class FluidController extends Controller<FluidConsumer, IFluidPipe,
                 assert drained != null;
 
                 // If we are here, then path had some invalid pipes which not suits the limits of temp/pressure/gas
-                if (!consumer.canHandle(temperature, amount, isGaseous) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest pipe cable
+                if (!consumer.canHandle(temperature, amount, isGaseous) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest cost pipe
                     // Find corrupt pipe and return
                     for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull()) {
                         IFluidPipe pipe = p.getValue();
@@ -82,14 +90,14 @@ public final class FluidController extends Controller<FluidConsumer, IFluidPipe,
                 // Stores the pressure into holder for path only for variate connection
                 if (consumer.getConnection() == ConnectionType.VARIATE) {
                     for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getCross()) {
-                        IFluidPipe pipe = p.getValue();
                         long pos = p.getLongKey();
 
-                        FluidAbsorber a = (FluidAbsorber) absorbs.get(pos);
-                        if (a == null) {
-                            absorbs.put(pos, new FluidAbsorber(pipe.getCapacity(), pipe.getPressure(), amount, fluid));
+                        FluidHolder h = holders.get(pos);
+                        if (h == null) {
+                            IFluidPipe pipe = p.getValue();
+                            holders.put(pos, new FluidHolder(pipe.getCapacity(), pipe.getPressure(), amount, fluid));
                         } else {
-                            a.add(amount, fluid);
+                            h.add(amount, fluid);
                         }
                     }
                 }
@@ -102,8 +110,8 @@ public final class FluidController extends Controller<FluidConsumer, IFluidPipe,
             }
         }
 
-        for (Long2ObjectMap.Entry<?> e : absorbs.long2ObjectEntrySet()) {
-            FluidAbsorber absorber = (FluidAbsorber) e.getValue();
+        for (Long2ObjectMap.Entry<FluidHolder> e : holders.long2ObjectEntrySet()) {
+            FluidHolder absorber = e.getValue();
             long pos = e.getLongKey();
 
             if (absorber.isOverPressure()) {

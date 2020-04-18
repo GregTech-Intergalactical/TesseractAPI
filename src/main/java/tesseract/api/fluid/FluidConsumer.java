@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 /**
  * A class that acts as a container for a fluid consumer.
  */
-public final class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
+public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
 
     private int isProof = 1;
     private int minCapacity = Integer.MAX_VALUE;

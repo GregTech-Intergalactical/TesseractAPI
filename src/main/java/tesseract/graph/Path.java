@@ -13,7 +13,7 @@ import java.util.Iterator;
 /**
  * The Path is a class that should work with paths for grids.
  */
-public final class Path<C extends IConnectable> {
+public class Path<C extends IConnectable> {
 
     private final Pos origin;
     private final Pos target;
@@ -26,7 +26,7 @@ public final class Path<C extends IConnectable> {
      * @param connectors The connectors array.
      * @param path The path queue.
      */
-    protected Path(@Nonnull Long2ObjectMap<Connectivity.Cache<C>> connectors, @Nonnull ArrayDeque<Node> path) {
+    protected Path(@Nonnull Long2ObjectMap<Cache<C>> connectors, @Nonnull ArrayDeque<Node> path) {
         origin = path.pollLast();
         target = path.pollFirst();
 

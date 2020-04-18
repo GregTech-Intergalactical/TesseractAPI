@@ -3,7 +3,7 @@ package tesseract.util;
 /**
  * The Node is a pretty straightforward class resembling regular nodes.
  */
-public final class Node extends Pos {
+public class Node extends Pos {
 
     private Node parent;
     private int cost, heuristic, function;
