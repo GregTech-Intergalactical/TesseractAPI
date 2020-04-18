@@ -25,7 +25,6 @@ public final class TesseractAPI {
 
     public static IElectricEvent GLOBAL_ELECTRIC_EVENT;
     public static IFluidEvent GLOBAL_FLUID_EVENT;
-    public static IItemEvent GLOBAL_ITEM_EVENT;
 
     /**
      * Gets the graph for the dimension, if it not exist it will create it.
