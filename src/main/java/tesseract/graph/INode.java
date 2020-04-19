@@ -2,7 +2,6 @@ package tesseract.graph;
 
 import tesseract.util.Dir;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
