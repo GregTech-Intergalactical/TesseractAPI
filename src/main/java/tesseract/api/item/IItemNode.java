@@ -19,10 +19,7 @@ import javax.annotation.Nullable;
 public interface IItemNode extends IConnectable, ITickHost {
 
     /**
-     * <p>
      * Inserts an ItemStack into an available slot and return the remainder.
-     * The ItemStack <em>should not</em> be modified in this function!
-     * </p>
      * @param stack ItemStack to insert. This must not be modified by the item handler.
      * @param simulate If true, the insertion is only simulated
      * @return The remaining ItemStack that was not inserted (if the entire stack is accepted, then return an empty ItemStack).
@@ -33,21 +30,20 @@ public interface IItemNode extends IConnectable, ITickHost {
 
     /**
      * Extracts an ItemStack from an available slot.
-     * @param slot Slot to extract from.
+     * @param slot The slot to extract from.
      * @param amount Amount to extract (may be greater than the current stack's max limit)
      * @param simulate If true, the extraction is only simulated
-     * @return ItemStack extracted from the slot, must be empty if nothing can be extracted.
+     * @return ItemStack extracted from the slot, must be null if nothing can be extracted.
      *         The returned ItemStack can be safely modified after, so item handlers should return a new or copied stack.
      **/
-    @Nonnull
+    @Nullable
     ItemData extract(int slot, int amount, boolean simulate);
 
     /**
-     * Finds the next available slot.
-     * @param slot The current slot.
-     * @return The a next available slot.
-     */
-    int nextSlot(int slot);
+     * @return Gets all available slots.
+     **/
+    @Nonnull
+    int[] getAvailableSlots();
 
     /**
      * @param stack ItemStack holding the Item to be queried.

@@ -7,21 +7,18 @@ import javax.annotation.Nonnull;
  */
 public class ItemData {
 
-    public final int slot;
-    public final int count;
-    public final Object stack;
+    private final int slot;
+    private final Object stack;
 
     /**
      * Creates instance of the data.
      *
      * @param slot The slot index.
      * @param stack The ItemStack object.
-     * @param count The Item count inside the ItemStack.
      */
-    public ItemData(int slot, @Nonnull Object stack, int count) {
+    public ItemData(int slot, @Nonnull Object stack) {
         this.slot = slot;
         this.stack = stack;
-        this.count = count;
     }
 
     /**
@@ -37,12 +34,5 @@ public class ItemData {
     @Nonnull
     public Object getStack() {
         return stack;
-    }
-
-    /**
-     * @return Gets the item count.
-     */
-    public int getCount() {
-        return count;
     }
 }

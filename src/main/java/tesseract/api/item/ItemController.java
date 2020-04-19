@@ -32,76 +32,73 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
     public void tick() {
         holders.clear();
 
-        // TODO: Rework that, probably not works like suppose
         for (Object2ObjectMap.Entry<IItemNode, ObjectList<ItemConsumer>> e : data.object2ObjectEntrySet()) {
             IItemNode producer = e.getKey();
             int outputAmount = producer.getOutputAmount();
-            int prevSlot = 0;
+            int[] slots = producer.getAvailableSlots();
 
-            for (ItemConsumer consumer : e.getValue()) {
+            X:for (ItemConsumer consumer : e.getValue()) {
+                for (int slot : slots) {
+                    ItemData item = producer.extract(slot, outputAmount, true);
+                    if (item == null) {
+                        continue;
+                    }
 
-                int slot = producer.nextSlot(prevSlot);
-                if (slot == -1) {
-                    break;
-                }
+                    Object stack = item.getStack();
+                    if (!consumer.canAccept(stack)) {
+                        continue;
+                    }
 
-                prevSlot = slot;
-                ItemData data = producer.extract(slot, outputAmount, true);
-                Object stack = data.getStack();
-                if (!consumer.canAccept(stack)) {
-                    continue;
-                }
+                    int amount = consumer.insert(stack, true);
+                    if (amount <= 0) {
+                        continue;
+                    }
 
-                outputAmount = data.getCount();
+                    // Stores the pressure into holder for path only for variate connection
+                    int limit;
+                    switch (consumer.getConnection()) {
+                        case SINGLE:
+                            limit = consumer.getMinCapacity(); // Fast check by the lowest cost pipe
+                            if (limit < amount) {
+                                amount = limit;
+                            }
+                            break;
 
-                int amount = consumer.insert(stack, true);
-                if (amount <= 0) {
-                    continue;
-                }
+                        case VARIATE:
+                            limit = -1; // For init
+                            for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross()) {
+                                long pos = p.getLongKey();
 
-                // Stores the pressure into holder for path only for variate connection
-                int limit;
-                switch (consumer.getConnection()) {
-                    case SINGLE:
-                        limit = consumer.getMinCapacity(); // Fast check by the lowest cost pipe
-                        if (limit < amount) {
+                                ItemHolder h = holders.get(pos);
+                                if (h == null) {
+                                    IItemPipe pipe = p.getValue();
+                                    h = new ItemHolder(pipe.getCapacity());
+                                    holders.put(pos, h);
+                                }
+
+                                limit = Math.min(limit != -1 ? limit : amount, h.getCapacity());
+                            }
+
+                            for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross()) {
+                                long pos = p.getLongKey();
+
+                                ItemHolder h = holders.get(pos);
+                                if (h != null) {
+                                    h.reduce(limit);
+                                }
+                            }
+
                             amount = limit;
-                        }
-                        break;
+                            break;
+                    }
 
-                    case VARIATE:
-                        limit = -1; // For init
-                        for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross()) {
-                            long pos = p.getLongKey();
+                    // Not null 100%
+                    consumer.insert(producer.extract(slot, amount, false), false);
 
-                            ItemHolder h = holders.get(pos);
-                            if (h == null) {
-                                IItemPipe pipe = p.getValue();
-                                h = new ItemHolder(pipe.getCapacity());
-                                holders.put(pos, h);
-                            }
-
-                            limit = Math.min(limit != -1 ? limit : amount, h.getCapacity());
-                        }
-
-                        for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross()) {
-                            long pos = p.getLongKey();
-
-                            ItemHolder h = holders.get(pos);
-                            if (h != null) {
-                                h.reduce(limit);
-                            }
-                        }
-
-                        amount = limit;
-                        break;
+                    outputAmount -= amount;
+                    if (outputAmount <= 0)
+                        break X;
                 }
-
-                consumer.insert(producer.extract(slot, amount, false), false);
-
-                outputAmount -= amount;
-                if (outputAmount <= 0)
-                    prevSlot++;
             }
         }
     }

@@ -24,10 +24,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
     }
 
     /**
-     * <p>
      * Inserts an ItemStack into an available slot and return the remainder.
-     * The ItemStack <em>should not</em> be modified in this function!
-     * </p>
      * @param stack ItemStack to insert. This must not be modified by the item handler.
      * @param simulate If true, the insertion is only simulated
      * @return The remaining ItemStack that was not inserted (if the entire stack is accepted, then return an empty ItemStack).

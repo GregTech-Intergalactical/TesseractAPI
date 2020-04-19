@@ -30,7 +30,7 @@ public interface IFluidNode extends IConnectable, ITickHost {
      * Removes fluid from the node. Returns amount of fluid that was drained.
      * @param maxDrain Maximum amount of fluid to be removed from the container.
      * @param simulate If true, the drain will only be simulated.
-     * @return FluidStack representing fluid that was removed (or would be, if simulated) from the tank.
+     * @return FluidData representing fluid that was removed (or would be, if simulated) from the tank.
      */
     @Nullable
     FluidData extract(int maxDrain, boolean simulate);
