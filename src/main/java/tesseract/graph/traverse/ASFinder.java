@@ -120,7 +120,7 @@ public class ASFinder {
      * @return True or false.
      */
     public boolean retraceNode(@Nonnull Node current) {
-        byte connections = 0;
+        int connections = 0;
 
         for (Dir direction : Dir.VALUES) {
             long pos = current.offset(direction).asLong();

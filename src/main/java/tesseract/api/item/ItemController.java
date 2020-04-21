@@ -18,6 +18,7 @@ import javax.annotation.Nullable;
  */
 public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNode> {
 
+    private int tick;
     private final Long2ObjectMap<ItemHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -32,6 +33,7 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
 
     @Override
     public void tick() {
+        tick++; if (tick % 20 != 0) return; // Limitation of the tick rate
         holders.clear();
 
         for (Object2ObjectMap.Entry<IItemNode, ObjectList<ItemConsumer>> e : data.object2ObjectEntrySet()) {
@@ -40,10 +42,10 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
             IntList slots = producer.getAvailableSlots();
 
             // Using Random Permute to teleport items to random consumers in the list (similar round-robin with pseudo-random choice)
-            ObjectList<ItemConsumer> c = e.getValue();
-            RandomPermuteIterator it = new RandomPermuteIterator(c.size());
+            ObjectList<ItemConsumer> list = e.getValue();
+            RandomPermuteIterator it = new RandomPermuteIterator(list.size());
             X: while (it.hasNext()) {
-                ItemConsumer consumer = c.get(it.next());
+                ItemConsumer consumer = list.get(it.next());
                 
                 for (int slot : slots) {
                     ItemData item = producer.extract(slot, outputAmount, true);

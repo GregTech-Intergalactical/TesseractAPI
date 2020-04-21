@@ -12,6 +12,7 @@ import tesseract.util.CID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -94,7 +95,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
-     *
+     * Calls the changing method for the controller.
      */
     public void updateController() {
         if (controller != null) {
@@ -137,7 +138,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @return Returns blocks set.
      */
     @Nonnull
-    public SetUtils.SetView<Long> getBlocks() {
+    public Set<Long> getBlocks() {
         return SetUtils.union(nodes.keySet(), connectors.keySet());
     }
 
@@ -234,7 +235,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         int bestCount = 0;
         int bestId = CID.INVALID;
 
-        byte neighbors = 0;
+        int neighbors = 0;
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
             if (!connector.connects(direction)) {
@@ -562,7 +563,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             return true;
         }
 
-        byte neighbors = 0;
+        int neighbors = 0;
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
             long side = position.offset(direction).asLong();

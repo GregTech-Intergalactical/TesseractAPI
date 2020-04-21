@@ -7,6 +7,7 @@ import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
 import tesseract.graph.*;
 import tesseract.util.Dir;
+import tesseract.util.RandomPermuteIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,7 +42,11 @@ public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFlui
             IFluidNode producer = e.getKey();
             int outputAmount = Math.min(producer.getOutputPressure(), producer.getCapacity());
 
-            for (FluidConsumer consumer : e.getValue()) {
+            // Using Random Permute to teleport fluids to random consumers in the list (similar round-robin with pseudo-random choice)
+            ObjectList<FluidConsumer> list = e.getValue();
+            RandomPermuteIterator it = new RandomPermuteIterator(list.size());
+            while (it.hasNext()) {
+                FluidConsumer consumer = list.get(it.next());
 
                 FluidData data = producer.extract(outputAmount, true);
                 if (data == null || !consumer.canHold(data)) {

@@ -301,7 +301,7 @@ public class Grid<C extends IConnectable> implements INode {
             return true;
         }
 
-        byte neighbors = 0;
+        int neighbors = 0;
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
             long side = position.offset(direction).asLong();

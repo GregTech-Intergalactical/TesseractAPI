@@ -7,6 +7,7 @@ import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
 import tesseract.graph.*;
 import tesseract.util.Dir;
+import tesseract.util.RandomPermuteIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -56,7 +57,12 @@ public class ElectricController extends Controller<ElectricConsumer, IElectricCa
                 continue;
             }
 
-            for (ElectricConsumer consumer : e.getValue()) {
+            // Using Random Permute to teleport electricity to random consumers in the list (similar round-robin with pseudo-random choice)
+            ObjectList<ElectricConsumer> list = e.getValue();
+            RandomPermuteIterator it = new RandomPermuteIterator(list.size());
+            while (it.hasNext()) {
+                ElectricConsumer consumer = list.get(it.next());
+
                 int amperage = consumer.getRequiredAmperage(outputVoltage);
 
                 // look up how much it already got
