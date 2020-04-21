@@ -164,8 +164,8 @@ public class Grid<C extends IConnectable> implements INode {
      * @return A random position from the grid.
      */
     public long sampleConnector() {
-        LongIterator iterator = connectors.keySet().iterator();
-        return iterator.hasNext() ? iterator.nextLong() : Long.MAX_VALUE;
+        LongIterator it = connectors.keySet().iterator();
+        return it.hasNext() ? it.nextLong() : Long.MAX_VALUE;
     }
 
     /**

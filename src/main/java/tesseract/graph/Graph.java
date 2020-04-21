@@ -7,7 +7,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
-import tesseract.util.Utils;
+import tesseract.util.CID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,7 +21,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	private final Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
 
 	public Graph() {
-		positions.defaultReturnValue(Utils.INVALID);
+		positions.defaultReturnValue(CID.INVALID);
 	}
 
 	@Override
@@ -101,7 +101,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 		IntSet mergers = getNeighboringGroups(pos);
 		switch (mergers.size()) {
 			case 0:
-				id = Utils.getNewId();
+				id = CID.nextId();
 				positions.put(pos, id);
 				groups.put(id, single);
 				return null;
@@ -131,14 +131,14 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	public void removeAt(long pos) {
 		int id = positions.remove(pos);
 
-		if (id == Utils.INVALID) {
+		if (id == CID.INVALID) {
 			return;
 		}
 
 		Group<C, N> group = groups.get(id);
 
 		group.removeAt(pos, newGroup -> {
-			int newId = Utils.getNewId();
+			int newId = CID.nextId();
 			groups.put(newId, newGroup);
 
 			// Mark the nodes as pointing at the new group
@@ -168,7 +168,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	@Nullable
 	public Group<C, N> getGroupAt(long pos) {
 		int id = positions.get(pos);
-		return (id == Utils.INVALID) ? null : groups.get(id);
+		return (id == CID.INVALID) ? null : groups.get(id);
 	}
 
 	/**
@@ -229,7 +229,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			long side = position.offset(direction).asLong();
 			int id = positions.get(side);
 
-			if (id != Utils.INVALID) {
+			if (id != CID.INVALID) {
 				neighbors.add(id);
 			}
 		}

@@ -30,9 +30,9 @@ public class Path<C extends IConnectable> {
         origin = path.pollLast();
         target = path.pollFirst();
 
-        Iterator<Node> iterator = path.descendingIterator();
-        while (iterator.hasNext()) {
-            Node node = iterator.next();
+        Iterator<Node> it = path.descendingIterator();
+        while (it.hasNext()) {
+            Node node = it.next();
             long pos = node.asLong();
 
             C cable = connectors.get(pos).value();

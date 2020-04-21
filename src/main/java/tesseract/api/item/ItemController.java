@@ -7,9 +7,11 @@ import it.unimi.dsi.fastutil.objects.ObjectList;
 import tesseract.api.Controller;
 import tesseract.graph.*;
 import tesseract.util.Dir;
+import tesseract.util.RandomPermuteIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Random;
 
 /**
  * Class acts as a controller in the group of an item components.
@@ -37,7 +39,11 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
             int outputAmount = producer.getOutputAmount();
             int[] slots = producer.getAvailableSlots();
 
-            X:for (ItemConsumer consumer : e.getValue()) {
+            ObjectList<ItemConsumer> c = e.getValue();
+            RandomPermuteIterator it = new RandomPermuteIterator(c.size());
+            X:while (it.hasNext()) {
+                ItemConsumer consumer = c.get(it.next());
+                
                 for (int slot : slots) {
                     ItemData item = producer.extract(slot, outputAmount, true);
                     if (item == null) {

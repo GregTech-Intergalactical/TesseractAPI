@@ -34,7 +34,7 @@ public class ElectricController extends Controller<ElectricConsumer, IElectricCa
     /**
      * Call on the updates to send energy.
      * <p>
-     * Most of the magic going in producer class which acts as wrapper double iterator around controller map.
+     * Most of the magic going in producer class which acts as wrapper double it around controller map.
      * Firstly, method will look for the available producer and consumer.
      * Secondly, some amperage calculation is going using the consumer and producer data.
      * Thirdly, it will check the voltage and amperage for the single impulse by the lowest cost cable.

@@ -57,9 +57,9 @@ public class GraphTest {
         set2.add(new Pos(0, 4, 0));
         set2.add(new Pos(0, 5, 0));
         set2.add(new Pos(0, 6, 0));
-        Iterator<Node> iterator = set1.descendingIterator();
+        Iterator<Node> it = set1.descendingIterator();
         for (Pos pos : set2) {
-            assertEquals(pos, iterator.next());
+            assertEquals(pos, it.next());
         }
     }
 
