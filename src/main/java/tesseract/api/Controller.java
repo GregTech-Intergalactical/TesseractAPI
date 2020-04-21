@@ -5,9 +5,11 @@ import it.unimi.dsi.fastutil.objects.*;
 import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
+import tesseract.util.RandomPermuteIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Iterator;
 
 /**
  * Class acts as a controller in the group of components.
@@ -78,6 +80,50 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
                 }
             }
         }
+    }
+
+    /**
+     * Class acts as a wrapper of a random permute iterator over a consumer list.
+     */
+    private class RandomIterator implements Iterator<W> {
+
+        final ObjectList<W> list;
+        final RandomPermuteIterator iterator;
+
+        /**
+         * Creates a permute iterator wrapper over a consumer list.
+         *
+         * @param consumers The provided consumers list.
+         */
+        public RandomIterator(@Nonnull ObjectList<W> consumers) {
+            list = consumers;
+            iterator = new RandomPermuteIterator(consumers.size());
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public W next() {
+            return list.get(iterator.nextInt());
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("RandomIterator::remove is not exist!");
+        }
+    }
+
+    /**
+     * Creates a special iterator for multiple entry list or just a default iterator.
+     *
+     * @param consumers The provided consumers list.
+     * @return The iterator instance.
+     */
+    public Iterator<W> toIterator(@Nonnull ObjectList<W> consumers) {
+        return consumers.size() > 1 ? new RandomIterator(consumers) : consumers.iterator();
     }
 
     /**

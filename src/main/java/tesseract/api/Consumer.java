@@ -1,12 +1,16 @@
 package tesseract.api;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.objects.ObjectList;
+import it.unimi.dsi.fastutil.objects.ObjectListIterator;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.graph.IConnectable;
 import tesseract.graph.Path;
+import tesseract.util.RandomPermuteIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Iterator;
 
 /**
  * A class that acts as a container for a consumer component.
@@ -23,7 +27,7 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      * Creates instance of the consumer.
      *
      * @param consumer The consumer node.
-     * @param path The path information.
+     * @param path     The path information.
      */
     protected Consumer(@Nonnull N consumer, @Nullable Path<C> path) {
         this.consumer = consumer;

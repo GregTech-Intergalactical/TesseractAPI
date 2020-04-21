@@ -8,10 +8,10 @@ import it.unimi.dsi.fastutil.objects.ObjectList;
 import tesseract.api.Controller;
 import tesseract.graph.*;
 import tesseract.util.Dir;
-import tesseract.util.RandomPermuteIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Iterator;
 
 /**
  * Class acts as a controller in the group of an item components.
@@ -42,10 +42,9 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
             IntList slots = producer.getAvailableSlots();
 
             // Using Random Permute to teleport items to random consumers in the list (similar round-robin with pseudo-random choice)
-            ObjectList<ItemConsumer> list = e.getValue();
-            RandomPermuteIterator it = new RandomPermuteIterator(list.size());
+            Iterator<ItemConsumer> it = toIterator(e.getValue());
             X: while (it.hasNext()) {
-                ItemConsumer consumer = list.get(it.next());
+                ItemConsumer consumer = it.next();
                 
                 for (int slot : slots) {
                     ItemData item = producer.extract(slot, outputAmount, true);
