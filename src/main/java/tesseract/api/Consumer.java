@@ -27,7 +27,7 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      * Creates instance of the consumer.
      *
      * @param consumer The consumer node.
-     * @param path     The path information.
+     * @param path The path information.
      */
     protected Consumer(@Nonnull N consumer, @Nullable Path<C> path) {
         this.consumer = consumer;

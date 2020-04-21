@@ -11,8 +11,6 @@ import tesseract.util.Dir;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import java.util.Iterator;
-
 import static tesseract.TesseractAPI.GLOBAL_ELECTRIC_EVENT;
 
 /**

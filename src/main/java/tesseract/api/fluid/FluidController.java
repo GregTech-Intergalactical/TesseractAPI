@@ -7,7 +7,6 @@ import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
 import tesseract.graph.*;
 import tesseract.util.Dir;
-import tesseract.util.RandomPermuteIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

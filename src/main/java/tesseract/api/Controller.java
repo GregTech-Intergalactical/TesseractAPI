@@ -83,6 +83,16 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
     }
 
     /**
+     * Creates a special iterator or just a default iterator for the consumers list.
+     *
+     * @param consumers The provided consumers list.
+     * @return The iterator instance.
+     */
+    public Iterator<W> toIterator(@Nonnull ObjectList<W> consumers) {
+        return consumers.size() > 1 ? new RandomIterator(consumers) : consumers.iterator();
+    }
+
+    /**
      * Class acts as a wrapper of a random permute iterator over a consumer list.
      */
     private class RandomIterator implements Iterator<W> {
@@ -114,16 +124,6 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
         public void remove() {
             throw new UnsupportedOperationException("RandomIterator::remove is not make sense!");
         }
-    }
-
-    /**
-     * Creates a special iterator for multiple entry list or just a default iterator.
-     *
-     * @param consumers The provided consumers list.
-     * @return The iterator instance.
-     */
-    public Iterator<W> toIterator(@Nonnull ObjectList<W> consumers) {
-        return consumers.size() > 1 ? new RandomIterator(consumers) : consumers.iterator();
     }
 
     /**
