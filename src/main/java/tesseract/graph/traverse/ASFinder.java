@@ -48,7 +48,7 @@ public class ASFinder {
         path = new ArrayDeque<>();
 
         try {
-            Node start = new Node(origin).setValid(true);
+            Node start = new Node(origin, true);
             Node end = new Node(target);
 
             open.add(start);

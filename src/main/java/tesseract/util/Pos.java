@@ -67,13 +67,13 @@ public class Pos {
     private static final int X_FIELD = NUM_Y_BITS + NUM_Z_BITS;
 
     /**
-     * Creates position instance.
+     * Creates a position instance.
      */
     public Pos() {
     }
 
     /**
-     * Creates position instance.
+     * Creates a position instance.
      *
      * @param value The compressed position.
      */
@@ -85,7 +85,7 @@ public class Pos {
     }
 
     /**
-     * Creates position instance.
+     * Creates a position instance.
      *
      * @param x coordinate.
      * @param y coordinate.
@@ -99,7 +99,7 @@ public class Pos {
     }
 
     /**
-     * Creates pos instance.
+     * Creates a position instance.
      *
      * @param pos The position to duplicate.
      */
