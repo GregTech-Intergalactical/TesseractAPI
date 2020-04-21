@@ -20,11 +20,11 @@ public interface IFluidNode extends IConnectable, ITickHost {
 
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.
-     * @param stack FluidStack attempting to fill the tank.
+     * @param fluid FluidData attempting to fill the tank.
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    int insert(@Nonnull Object stack, boolean simulate);
+    int insert(@Nonnull FluidData fluid, boolean simulate);
 
     /**
      * Removes fluid from the node. Returns amount of fluid that was drained.
@@ -36,10 +36,10 @@ public interface IFluidNode extends IConnectable, ITickHost {
     FluidData extract(int maxDrain, boolean simulate);
 
     /**
-     * @param stack FluidStack holding the Fluid to be queried.
+     * @param fluid FluidData holding the Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    boolean canHold(@Nonnull Object stack);
+    boolean canHold(@Nonnull FluidData fluid);
 
     /**
      * @return Gets the maximum amount of fluid that can be stored.

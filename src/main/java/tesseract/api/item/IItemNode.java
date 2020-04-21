@@ -1,5 +1,6 @@
 package tesseract.api.item;
 
+import it.unimi.dsi.fastutil.ints.IntList;
 import tesseract.graph.IConnectable;
 import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
@@ -12,29 +13,29 @@ import javax.annotation.Nullable;
  * <p>
  * A reference implementation can be found at {@link net.minecraftforge.items.IItemHandler}.
  *
- * This interface represents a Item Storage. IT IS NOT REQUIRED but is provided for convenience.
+ * This interface represents an Item Storage. IT IS NOT REQUIRED but is provided for convenience.
  * You are free to handle Items in any way that you wish - this is simply an easy default way.
  * DO NOT ASSUME that these objects are used internally in all cases.
  */
 public interface IItemNode extends IConnectable, ITickHost {
 
     /**
-     * Inserts an ItemStack into an available slot and return the remainder.
-     * @param stack ItemStack to insert. This must not be modified by the item handler.
+     * Inserts an item into an available slot and return the remainder.
+     * @param item ItemData to insert. This must not be modified by the item handler.
      * @param simulate If true, the insertion is only simulated
-     * @return The remaining ItemStack that was not inserted (if the entire stack is accepted, then return an empty ItemStack).
-     *         May be the same as the input ItemStack if unchanged, otherwise a new ItemStack.
-     *         The returned ItemStack can be safely modified after.
+     * @return The remaining ItemData that was not inserted (if the entire stack is accepted, then return an empty ItemData).
+     *         May be the same as the input ItemData if unchanged, otherwise a new ItemData.
+     *         The returned ItemData can be safely modified after.
      **/
-    int insert(@Nonnull Object stack, boolean simulate);
+    int insert(@Nonnull ItemData item, boolean simulate);
 
     /**
-     * Extracts an ItemStack from an available slot.
+     * Extracts an item from an available slot.
      * @param slot The slot to extract from.
      * @param amount Amount to extract (may be greater than the current stack's max limit)
      * @param simulate If true, the extraction is only simulated
-     * @return ItemStack extracted from the slot, must be null if nothing can be extracted.
-     *         The returned ItemStack can be safely modified after, so item handlers should return a new or copied stack.
+     * @return ItemData extracted from the slot, must be null if nothing can be extracted.
+     *         The returned ItemData can be safely modified after, so item handlers should return a new or copied stack.
      **/
     @Nullable
     ItemData extract(int slot, int amount, boolean simulate);
@@ -43,13 +44,13 @@ public interface IItemNode extends IConnectable, ITickHost {
      * @return Gets all available slots.
      **/
     @Nonnull
-    int[] getAvailableSlots();
+    IntList getAvailableSlots();
 
     /**
-     * @param stack ItemStack holding the Item to be queried.
+     * @param item ItemData holding the Item to be queried.
      * @return If the storage can hold the item (EVER, not at the time of query).
      */
-    boolean canAccept(@Nonnull Object stack);
+    boolean canAccept(@Nonnull ItemData item);
 
     /**
      * @return Gets the initial amount of items that can be output.

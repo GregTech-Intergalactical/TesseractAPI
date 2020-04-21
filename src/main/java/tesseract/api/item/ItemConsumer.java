@@ -24,23 +24,23 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
     }
 
     /**
-     * Inserts an ItemStack into an available slot and return the remainder.
-     * @param stack ItemStack to insert. This must not be modified by the item handler.
+     * Inserts an item into an available slot and return the remainder.
+     * @param item ItemData to insert. This must not be modified by the item handler.
      * @param simulate If true, the insertion is only simulated
      * @return The remaining ItemStack that was not inserted (if the entire stack is accepted, then return an empty ItemStack).
      *         May be the same as the input ItemStack if unchanged, otherwise a new ItemStack.
      *         The returned ItemStack can be safely modified after.
      **/
-    public int insert(@Nonnull Object stack, boolean simulate) {
-        return consumer.insert(stack, simulate);
+    public int insert(@Nonnull ItemData item, boolean simulate) {
+        return consumer.insert(item, simulate);
     }
 
     /**
-     * @param stack ItemStack holding the Item to be queried.
+     * @param item ItemData holding the Item to be queried.
      * @return If the storage can hold the item (EVER, not at the time of query).
      */
-    public boolean canAccept(@Nonnull Object stack) {
-        return consumer.canAccept(stack);
+    public boolean canAccept(@Nonnull ItemData item) {
+        return consumer.canAccept(item);
     }
 
     /**

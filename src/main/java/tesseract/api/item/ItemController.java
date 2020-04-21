@@ -1,5 +1,6 @@
 package tesseract.api.item;
 
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
@@ -11,7 +12,6 @@ import tesseract.util.RandomPermuteIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Random;
 
 /**
  * Class acts as a controller in the group of an item components.
@@ -37,41 +37,36 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
         for (Object2ObjectMap.Entry<IItemNode, ObjectList<ItemConsumer>> e : data.object2ObjectEntrySet()) {
             IItemNode producer = e.getKey();
             int outputAmount = producer.getOutputAmount();
-            int[] slots = producer.getAvailableSlots();
+            IntList slots = producer.getAvailableSlots();
 
+            // Using Random Permute to teleport items to random consumers in the list (similar round-robin with pseudo-random choice)
             ObjectList<ItemConsumer> c = e.getValue();
             RandomPermuteIterator it = new RandomPermuteIterator(c.size());
-            X:while (it.hasNext()) {
+            X: while (it.hasNext()) {
                 ItemConsumer consumer = c.get(it.next());
                 
                 for (int slot : slots) {
                     ItemData item = producer.extract(slot, outputAmount, true);
-                    if (item == null) {
+                    if (item == null || !consumer.canAccept(item)) {
                         continue;
                     }
 
-                    Object stack = item.getStack();
-                    if (!consumer.canAccept(stack)) {
-                        continue;
-                    }
-
-                    int amount = consumer.insert(stack, true);
+                    int amount = consumer.insert(item, true);
                     if (amount <= 0) {
                         continue;
                     }
 
                     // Stores the pressure into holder for path only for variate connection
-                    int limit;
                     switch (consumer.getConnection()) {
                         case SINGLE:
-                            limit = consumer.getMinCapacity(); // Fast check by the lowest cost pipe
-                            if (limit < amount) {
-                                amount = limit;
+                            int min = consumer.getMinCapacity(); // Fast check by the lowest cost pipe
+                            if (min < amount) {
+                                amount = min;
                             }
                             break;
 
                         case VARIATE:
-                            limit = -1; // For init
+                            int limit = amount;
                             for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross()) {
                                 long pos = p.getLongKey();
 
@@ -82,7 +77,7 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
                                     holders.put(pos, h);
                                 }
 
-                                limit = Math.min(limit != -1 ? limit : amount, h.getCapacity());
+                                limit = Math.min(limit, h.getCapacity());
                             }
 
                             for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross()) {
@@ -98,8 +93,11 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
                             break;
                     }
 
-                    // Not null 100%
-                    consumer.insert(producer.extract(slot, amount, false), false);
+                    ItemData extracted = producer.extract(slot, amount, false);
+
+                    assert extracted != null;
+
+                    consumer.insert(extracted, false);
 
                     outputAmount -= amount;
                     if (outputAmount <= 0)
@@ -131,7 +129,6 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
     @Override
     @SuppressWarnings("unchecked")
     public ITickingController clone(@Nonnull INode group) {
-        assert (group instanceof Group<?, ?>);
         return new ItemController(dim, (Group<IItemPipe, IItemNode>) group);
     }
 

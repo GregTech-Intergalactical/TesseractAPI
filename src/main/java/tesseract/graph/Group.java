@@ -137,7 +137,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      */
     @Nonnull
     public LongList getBlocks() { // LongSet before, to check
-        LongList merge = new LongArrayList();
+        LongList merge = new LongArrayList(countBlocks());
         merge.addAll(nodes.keySet());
         merge.addAll(connectors.keySet());
         return merge;

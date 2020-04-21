@@ -159,7 +159,6 @@ public class ElectricController extends Controller<ElectricConsumer, IElectricCa
     @Override
     @SuppressWarnings("unchecked")
     public ITickingController clone(@Nonnull INode group) {
-        assert (group instanceof Group<?, ?>);
         return new ElectricController(dim, (Group<IElectricCable, IElectricNode>) group);
     }
 

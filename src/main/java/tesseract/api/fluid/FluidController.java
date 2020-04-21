@@ -44,12 +44,12 @@ public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFlui
             for (FluidConsumer consumer : e.getValue()) {
 
                 FluidData data = producer.extract(outputAmount, true);
-                if (data == null) {
+                if (data == null || !consumer.canHold(data)) {
                     continue;
                 }
 
-                Object stack = data.getStack();
-                if (!consumer.canHold(stack)) {
+                int amount = consumer.insert(data, true);
+                if (amount <= 0) {
                     continue;
                 }
 
@@ -58,13 +58,7 @@ public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFlui
                 int temperature = data.getTemperature();
                 boolean isGaseous = data.isGaseous();
 
-                int amount = consumer.insert(stack, true);
-                if (amount <= 0) {
-                    continue;
-                }
-
-                Object drained = producer.extract(amount, false);
-                assert drained != null;
+                FluidData drained = producer.extract(amount, false);
 
                 // If we are here, then path had some invalid pipes which not suits the limits of temp/pressure/gas
                 if (!consumer.canHandle(temperature, amount, isGaseous) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest cost pipe
@@ -152,7 +146,6 @@ public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFlui
     @Override
     @SuppressWarnings("unchecked")
     public ITickingController clone(@Nonnull INode group) {
-        assert (group instanceof Group<?, ?>);
         return new FluidController(dim, (Group<IFluidPipe, IFluidNode>) group);
     }
 
