@@ -112,7 +112,7 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
 
         @Override
         public void remove() {
-            throw new UnsupportedOperationException("RandomIterator::remove is not exist!");
+            throw new UnsupportedOperationException("RandomIterator::remove is not make sense!");
         }
     }
 
