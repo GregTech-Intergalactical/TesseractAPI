@@ -3,6 +3,7 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
+import org.apache.commons.collections4.SetUtils;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
@@ -136,11 +137,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @return Returns blocks set.
      */
     @Nonnull
-    public LongList getBlocks() { // LongSet before, to check
-        LongList merge = new LongArrayList(countBlocks());
-        merge.addAll(nodes.keySet());
-        merge.addAll(connectors.keySet());
-        return merge;
+    public SetUtils.SetView<Long> getBlocks() {
+        return SetUtils.union(nodes.keySet(), connectors.keySet());
     }
 
     /**
