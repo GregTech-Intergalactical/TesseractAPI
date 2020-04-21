@@ -8,6 +8,7 @@ import java.util.Random;
  * @link https://en.wikipedia.org/wiki/Linear_congruential_generator
  */
 public class RandomPermuteIterator {
+
     private final static int c = 1013904223, a = 1664525;
     private int seed, N, m, next;
     private boolean hasNext = true;

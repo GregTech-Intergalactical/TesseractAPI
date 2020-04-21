@@ -4,6 +4,7 @@ package tesseract.util;
  * @see net.minecraft.util.Direction
  */
 public enum Dir {
+
     DOWN(0, 1, new Pos(0, -1, 0)),
     UP(1, 0, new Pos(0, 1, 0)),
     NORTH(2, 3, new Pos(0, 0, -1)),
