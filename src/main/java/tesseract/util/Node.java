@@ -132,11 +132,11 @@ public class Node extends Pos {
      * @return The distance value.
      */
     public int distanceTo(Node dest) {
-        return Math.abs(getX() - dest.getX()) + Math.abs(getY() - dest.getY()) + Math.abs(getZ() - dest.getZ());
+        return Math.abs(x - dest.x) + Math.abs(y - dest.y) + Math.abs(z - dest.z);
     }
 
     @Override
     public String toString() {
-        return "(" + getX() + ", " + getY() + ", " + getZ() + ")" + " [Cost: " + getCost() + " | Heuristic: " + getHeuristic() + " | Function: " + getFunction() + "]";
+        return super.toString() + " [Cost: " + cost + " | Heuristic: " + heuristic + " | Function: " + function + "]";
     }
 }

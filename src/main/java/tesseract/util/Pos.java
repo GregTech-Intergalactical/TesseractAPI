@@ -5,8 +5,8 @@ package tesseract.util;
  */
 public class Pos {
 
-    private long value;
-    private int x, y, z;
+    protected long value;
+    protected int x, y, z;
 
     /**
      * Though it looks like an array, this is really more like a mapping. Key (index of this array) is the upper 5 bits
