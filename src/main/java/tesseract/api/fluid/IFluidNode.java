@@ -20,51 +20,26 @@ public interface IFluidNode extends IConnectable, ITickHost {
 
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.
-     * @param stack FluidStack attempting to fill the tank.
+     * @param fluid FluidData attempting to fill the tank.
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    int insert(@Nonnull Object stack, boolean simulate);
+    int insert(@Nonnull FluidData fluid, boolean simulate);
 
     /**
      * Removes fluid from the node. Returns amount of fluid that was drained.
      * @param maxDrain Maximum amount of fluid to be removed from the container.
      * @param simulate If true, the drain will only be simulated.
-     * @return FluidStack representing fluid that was removed (or would be, if simulated) from the tank.
+     * @return FluidData representing fluid that was removed (or would be, if simulated) from the tank.
      */
     @Nullable
-    Object extract(int maxDrain, boolean simulate);
+    FluidData extract(int maxDrain, boolean simulate);
 
     /**
-     * @param stack FluidStack holding the Fluid to be queried.
+     * @param fluid FluidData holding the Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    boolean canHold(@Nonnull Object stack);
-
-    /**
-     * @param stack FluidStack holding the Fluid to be queried.
-     * @return The fluid inside a FluidStack.
-     */
-    @Nonnull
-    Object getFluid(@Nonnull Object stack);
-
-    /**
-     * @param stack FluidStack holding the Fluid to be queried.
-     * @return The fluid amount inside a FluidStack.
-     */
-    int getAmount(@Nonnull Object stack);
-
-    /**
-     * @param fluid The fluid inside a FluidStack.
-     * @return The temperature.
-     */
-    int getTemperature(@Nonnull Object fluid);
-
-    /**
-     * @param fluid The fluid inside a FluidStack.
-     * @return Checks the gas state.
-     */
-    boolean isGaseous(@Nonnull Object fluid);
+    boolean canHold(@Nonnull FluidData fluid);
 
     /**
      * @return Gets the maximum amount of fluid that can be stored.

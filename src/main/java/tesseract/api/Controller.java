@@ -1,17 +1,15 @@
 package tesseract.api;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectList;
+import it.unimi.dsi.fastutil.objects.*;
 import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
+import tesseract.util.RandomPermuteIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Iterator;
 
 /**
  * Class acts as a controller in the group of components.
@@ -20,7 +18,6 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
 
     protected final int dim;
     protected final Group<C, N> group;
-    protected final Long2ObjectMap<Absorber> absorbs = new Long2ObjectLinkedOpenHashMap<>();
     protected final Object2ObjectMap<N, ObjectList<W>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -48,7 +45,7 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<Connectivity.Cache<N>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<Cache<N>> e : group.getNodes().long2ObjectEntrySet()) {
             N producer = e.getValue().value();
             long pos = e.getLongKey();
 
@@ -82,6 +79,51 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Creates a special iterator or just a default iterator for the consumers list.
+     *
+     * @param consumers The provided consumers list.
+     * @return The iterator instance.
+     */
+    @Nonnull
+    public Iterator<W> toIterator(@Nonnull ObjectList<W> consumers) {
+        return consumers.size() > 1 ? new RandomIterator(consumers) : consumers.iterator();
+    }
+
+    /**
+     * Class acts as a wrapper of a random permute iterator over a consumer list.
+     */
+    private class RandomIterator implements Iterator<W> {
+
+        final ObjectList<W> list;
+        final RandomPermuteIterator iterator;
+
+        /**
+         * Creates a permute iterator wrapper over a consumer list.
+         *
+         * @param consumers The provided consumers list.
+         */
+        public RandomIterator(@Nonnull ObjectList<W> consumers) {
+            list = consumers;
+            iterator = new RandomPermuteIterator(consumers.size());
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public W next() {
+            return list.get(iterator.nextInt());
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("RandomIterator::remove is not make sense!");
         }
     }
 

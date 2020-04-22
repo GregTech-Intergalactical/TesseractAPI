@@ -1,6 +1,5 @@
 package tesseract.api.electric;
 
-import net.minecraftforge.energy.EnergyStorage;
 import tesseract.graph.IConnectable;
 import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
@@ -10,7 +9,7 @@ import javax.annotation.Nonnull;
 /**
  * An electric node is the unit of interaction with electric inventories.
  * <p>
- * A reference implementation can be found at {@link EnergyStorage}.
+ * A reference implementation can be found at {@link net.minecraftforge.energy.EnergyStorage}.
  *
  * Derived from the Redstone Flux power system designed by King Lemming and originally utilized in Thermal Expansion and related mods.
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.

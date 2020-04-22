@@ -3,15 +3,31 @@ package tesseract.util;
 /**
  * The Node is a pretty straightforward class resembling regular nodes.
  */
-public final class Node extends Pos {
+public class Node extends Pos {
 
     private Node parent;
     private int cost, heuristic, function;
     private boolean valid;
     private boolean crossroad;
 
+    /**
+     * Creates a node instance.
+     *
+     * @param value The compressed position.
+     */
     public Node(long value) {
         super(value);
+    }
+
+    /**
+     * Creates a node instance.
+     *
+     * @param value The compressed position.
+     * @param valid The validity state.
+     */
+    public Node(long value, boolean valid) {
+        super(value);
+        setValid(valid);
     }
 
     /**
@@ -24,11 +40,9 @@ public final class Node extends Pos {
     /**
      * Sets the cost.
      * @param cost The cost value.
-     * @return self
      */
-    public Node setCost(int cost) {
+    public void setCost(int cost) {
         this.cost = cost;
-        return this;
     }
 
     /**
@@ -41,11 +55,9 @@ public final class Node extends Pos {
     /**
      * Sets the heuristic.
      * @param heuristic The heuristic value.
-     * @return self
      */
-    public Node setHeuristic(int heuristic) {
+    public void setHeuristic(int heuristic) {
         this.heuristic = heuristic;
-        return this;
     }
 
     /**
@@ -58,11 +70,9 @@ public final class Node extends Pos {
     /**
      * Sets the function.
      * @param function The function value.
-     * @return self
      */
-    public Node setFunction(int function) {
+    public void setFunction(int function) {
         this.function = function;
-        return this;
     }
 
     /**
@@ -75,11 +85,9 @@ public final class Node extends Pos {
     /**
      * Sets the parent node.
      * @param parent The parent node.
-     * @return self
      */
-    public Node setParent(Node parent) {
+    public void setParent(Node parent) {
         this.parent = parent;
-        return this;
     }
 
     /**
@@ -92,11 +100,9 @@ public final class Node extends Pos {
     /**
      * Sets the valid state.
      * @param valid True or false.
-     * @return self
      */
-    public Node setValid(boolean valid) {
+    public void setValid(boolean valid) {
         this.valid = valid;
-        return this;
     }
 
     /**
@@ -109,11 +115,9 @@ public final class Node extends Pos {
     /**
      * Sets the cross state.
      * @param crossroad True or false.
-     * @return self
      */
-    public Node setCrossroad(boolean crossroad) {
+    public void setCrossroad(boolean crossroad) {
         this.crossroad = crossroad;
-        return this;
     }
 
     /**
@@ -128,11 +132,11 @@ public final class Node extends Pos {
      * @return The distance value.
      */
     public int distanceTo(Node dest) {
-        return Math.abs(getX() - dest.getX()) + Math.abs(getY() - dest.getY()) + Math.abs(getZ() - dest.getZ());
+        return Math.abs(x - dest.x) + Math.abs(y - dest.y) + Math.abs(z - dest.z);
     }
 
     @Override
     public String toString() {
-        return "(" + getX() + ", " + getY() + ", " + getZ() + ")" + " [Cost: " + getCost() + " | Heuristic: " + getHeuristic() + " | Function: " + getFunction() + "]";
+        return super.toString() + " [Cost: " + cost + " | Heuristic: " + heuristic + " | Function: " + function + "]";
     }
 }

@@ -12,7 +12,7 @@ import java.util.ConcurrentModificationException;
 /**
  * A Star Algorithm implementation for converting a graph – consisting of the grid – into a route through the grid.
  */
-public final class ASFinder {
+public class ASFinder {
 
     private ArrayDeque<Node> path;
     private final INode container;
@@ -48,7 +48,7 @@ public final class ASFinder {
         path = new ArrayDeque<>();
 
         try {
-            Node start = new Node(origin).setValid(true);
+            Node start = new Node(origin, true);
             Node end = new Node(target);
 
             open.add(start);
@@ -120,7 +120,7 @@ public final class ASFinder {
      * @return True or false.
      */
     public boolean retraceNode(@Nonnull Node current) {
-        byte connections = 0;
+        int connections = 0;
 
         for (Dir direction : Dir.VALUES) {
             long pos = current.offset(direction).asLong();

@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 /**
  * A class that acts as a container for a fluid consumer.
  */
-public final class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
+public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
 
     private int isProof = 1;
     private int minCapacity = Integer.MAX_VALUE;
@@ -29,20 +29,20 @@ public final class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.
      *
-     * @param stack FluidStack attempting to fill the tank.
+     * @param fluid FluidData attempting to fill the tank.
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    public int insert(@Nonnull Object stack, boolean simulate) {
-        return consumer.insert(stack, simulate);
+    public int insert(@Nonnull FluidData fluid, boolean simulate) {
+        return consumer.insert(fluid, simulate);
     }
 
     /**
-     * @param stack FluidStack holding the Fluid to be queried.
+     * @param fluid FluidData holding the Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    public boolean canHold(@Nonnull Object stack) {
-        return consumer.canHold(stack);
+    public boolean canHold(@Nonnull FluidData fluid) {
+        return consumer.canHold(fluid);
     }
 
     /**

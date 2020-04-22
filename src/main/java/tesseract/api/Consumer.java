@@ -1,12 +1,16 @@
 package tesseract.api;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.objects.ObjectList;
+import it.unimi.dsi.fastutil.objects.ObjectListIterator;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.graph.IConnectable;
 import tesseract.graph.Path;
+import tesseract.util.RandomPermuteIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Iterator;
 
 /**
  * A class that acts as a container for a consumer component.

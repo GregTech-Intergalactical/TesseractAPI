@@ -10,15 +10,14 @@ import tesseract.api.fluid.FluidController;
 import tesseract.api.fluid.IFluidEvent;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
-import tesseract.api.item.IItemEvent;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
 import tesseract.api.item.ItemController;
-import tesseract.graph.Connectivity;
 import tesseract.graph.Graph;
 import tesseract.graph.Group;
+import tesseract.graph.Cache;
 
-public final class TesseractAPI {
+public class TesseractAPI {
 
     private static final Int2ObjectMap<Graph<IElectricCable, IElectricNode>> ELECTRIC_GRAPH = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<Graph<IFluidPipe, IFluidNode>> FLUID_GRAPH = new Int2ObjectOpenHashMap<>();
@@ -26,7 +25,6 @@ public final class TesseractAPI {
 
     public static IElectricEvent GLOBAL_ELECTRIC_EVENT;
     public static IFluidEvent GLOBAL_FLUID_EVENT;
-    public static IItemEvent GLOBAL_ITEM_EVENT;
 
     /**
      * Gets the graph for the dimension, if it not exist it will create it.
@@ -66,7 +64,7 @@ public final class TesseractAPI {
      */
     public static void registerElectricNode(int dim, long pos, IElectricNode node) {
         Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dim);
-        graph.addNode(pos, Connectivity.Cache.of(node));
+        graph.addNode(pos, new Cache<>(node));
         Group<IElectricCable, IElectricNode> group = graph.getGroupAt(pos);
 
         assert group != null;
@@ -89,7 +87,7 @@ public final class TesseractAPI {
      */
     public static void registerFluidNode(int dim, long pos, IFluidNode node) {
         Graph<IFluidPipe, IFluidNode> graph = getFluidGraph(dim);
-        graph.addNode(pos, Connectivity.Cache.of(node));
+        graph.addNode(pos, new Cache<>(node));
         Group<IFluidPipe, IFluidNode> group = graph.getGroupAt(pos);
 
         assert group != null;
@@ -112,7 +110,7 @@ public final class TesseractAPI {
      */
     public static void registerItemNode(int dim, long pos, IItemNode node) {
         Graph<IItemPipe, IItemNode> graph = getItemGraph(dim);
-        graph.addNode(pos, Connectivity.Cache.of(node));
+        graph.addNode(pos, new Cache<>(node));
         Group<IItemPipe, IItemNode> group = graph.getGroupAt(pos);
 
         assert group != null;
@@ -134,7 +132,7 @@ public final class TesseractAPI {
      * @param cable The cable object.
      */
     public static void registerElectricCable(int dim, long pos, IElectricCable cable) {
-        getElectricGraph(dim).addConnector(pos, Connectivity.Cache.of(cable));
+        getElectricGraph(dim).addConnector(pos, new Cache<>(cable));
     }
 
     /**
@@ -144,7 +142,7 @@ public final class TesseractAPI {
      * @param pipe The pipe object.
      */
     public static void registerFluidPipe(int dim, long pos, IFluidPipe pipe) {
-        getFluidGraph(dim).addConnector(pos, Connectivity.Cache.of(pipe));
+        getFluidGraph(dim).addConnector(pos, new Cache<>(pipe));
     }
 
     /**
@@ -154,7 +152,7 @@ public final class TesseractAPI {
      * @param pipe The pipe object.
      */
     public static void registerItemPipe(int dim, long pos, IItemPipe pipe) {
-        getItemGraph(dim).addConnector(pos, Connectivity.Cache.of(pipe));
+        getItemGraph(dim).addConnector(pos, new Cache<>(pipe));
     }
 
     /**

@@ -7,7 +7,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
-import tesseract.util.Utils;
+import tesseract.util.CID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -15,13 +15,13 @@ import javax.annotation.Nullable;
 /**
  * Class provides the functionality of any set of nodes.
  */
-public final class Graph<C extends IConnectable, N extends IConnectable> implements INode  {
+public class Graph<C extends IConnectable, N extends IConnectable> implements INode  {
 
 	private final Int2ObjectMap<Group<C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
 	private final Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
 
 	public Graph() {
-		positions.defaultReturnValue(Utils.INVALID);
+		positions.defaultReturnValue(CID.INVALID);
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public final class Graph<C extends IConnectable, N extends IConnectable> impleme
 	 * @param node The node to add.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addNode(long pos, @Nonnull Connectivity.Cache<N> node) {
+	public boolean addNode(long pos, @Nonnull Cache<N> node) {
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleNode(pos, node));
 			if (group != null) group.addNode(pos, node);
@@ -78,7 +78,7 @@ public final class Graph<C extends IConnectable, N extends IConnectable> impleme
 	 * @param connector The connector to add.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addConnector(long pos, @Nonnull Connectivity.Cache<C> connector) {
+	public boolean addConnector(long pos, @Nonnull Cache<C> connector) {
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
 			if (group != null) group.addConnector(pos, connector);
@@ -101,7 +101,7 @@ public final class Graph<C extends IConnectable, N extends IConnectable> impleme
 		IntSet mergers = getNeighboringGroups(pos);
 		switch (mergers.size()) {
 			case 0:
-				id = Utils.getNewId();
+				id = CID.nextId();
 				positions.put(pos, id);
 				groups.put(id, single);
 				return null;
@@ -131,14 +131,14 @@ public final class Graph<C extends IConnectable, N extends IConnectable> impleme
 	public void removeAt(long pos) {
 		int id = positions.remove(pos);
 
-		if (id == Utils.INVALID) {
+		if (id == CID.INVALID) {
 			return;
 		}
 
 		Group<C, N> group = groups.get(id);
 
 		group.removeAt(pos, newGroup -> {
-			int newId = Utils.getNewId();
+			int newId = CID.nextId();
 			groups.put(newId, newGroup);
 
 			// Mark the nodes as pointing at the new group
@@ -168,7 +168,7 @@ public final class Graph<C extends IConnectable, N extends IConnectable> impleme
 	@Nullable
 	public Group<C, N> getGroupAt(long pos) {
 		int id = positions.get(pos);
-		return (id == Utils.INVALID) ? null : groups.get(id);
+		return (id == CID.INVALID) ? null : groups.get(id);
 	}
 
 	/**
@@ -229,7 +229,7 @@ public final class Graph<C extends IConnectable, N extends IConnectable> impleme
 			long side = position.offset(direction).asLong();
 			int id = positions.get(side);
 
-			if (id != Utils.INVALID) {
+			if (id != CID.INVALID) {
 				neighbors.add(id);
 			}
 		}
@@ -240,7 +240,7 @@ public final class Graph<C extends IConnectable, N extends IConnectable> impleme
 	/**
 	 * @apiNote Wrapper for merged groups.
 	 */
-	private final static class Merged<C extends IConnectable, N extends IConnectable> {
+	private static class Merged<C extends IConnectable, N extends IConnectable> {
 
 		final int bestId;
 		final Group<C, N> best;

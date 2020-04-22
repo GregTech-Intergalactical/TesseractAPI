@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 /**
  * A class that acts as a container for an electrical consumer.
  */
-public final class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
+public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
 
     private int loss;
     private int minVoltage = Integer.MAX_VALUE;
@@ -61,7 +61,7 @@ public final class ElectricConsumer extends Consumer<IElectricCable, IElectricNo
     /**
      * Copy the data from another consumer instance.
      *
-     * @param consumer Another consumer.
+     * @param consumer An another consumer.
      */
     public void copy(@Nonnull ElectricConsumer consumer) {
         loss = consumer.loss;

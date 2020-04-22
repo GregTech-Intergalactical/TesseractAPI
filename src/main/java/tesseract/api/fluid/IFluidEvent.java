@@ -43,7 +43,7 @@ public interface IFluidEvent {
      * Executes when the pipe trying to transport gas than can.
      * @param dim The dimension id.
      * @param pos The pipe position.
-     * @param stack FluidStack holding the Fluid to be queried.
+     * @param fluid FluidData holding the Fluid to be queried.
      */
-    void onPipeGasLeak(int dim, long pos, @Nonnull Object stack);
+    void onPipeGasLeak(int dim, long pos, @Nonnull FluidData fluid);
 }

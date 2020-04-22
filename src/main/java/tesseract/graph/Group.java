@@ -3,22 +3,24 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
+import org.apache.commons.collections4.SetUtils;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
-import tesseract.util.Utils;
+import tesseract.util.CID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
  */
-public final class Group<C extends IConnectable, N extends IConnectable> implements INode {
+public class Group<C extends IConnectable, N extends IConnectable> implements INode {
 
-    private final Long2ObjectMap<Connectivity.Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
     private final Int2ObjectMap<Grid<C>> grids = new Int2ObjectLinkedOpenHashMap<>();
     private final Long2IntMap connectors = new Long2IntLinkedOpenHashMap(); // connectors pairing
     private final BFDivider divider = new BFDivider(this);
@@ -27,7 +29,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
 
     // Prevent the creation of empty groups externally, a caller needs to use singleNode/singleConnector.
     private Group() {
-        connectors.defaultReturnValue(Utils.INVALID);
+        connectors.defaultReturnValue(CID.INVALID);
     }
 
     /**
@@ -36,7 +38,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @return Create a instance of a class for a given position and node.
      */
     @Nonnull
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, @Nonnull Connectivity.Cache<N> node) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, @Nonnull Cache<N> node) {
         Group<C, N> group = new Group<>();
         group.addNode(pos, node);
         return group;
@@ -48,9 +50,9 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @return Create a instance of a class for a given position and connector.
      */
     @Nonnull
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, @Nonnull Connectivity.Cache<C> connector) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, @Nonnull Cache<C> connector) {
         Group<C, N> group = new Group<>();
-        int id = Utils.getNewId();
+        int id = CID.nextId();
         group.connectors.put(pos, id);
         group.grids.put(id, Grid.singleConnector(pos, connector));
         return group;
@@ -76,7 +78,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      *
      * @param node The given node.
      */
-    private void resetControllerHost(@Nonnull Connectivity.Cache<N> node) {
+    private void resetControllerHost(@Nonnull Cache<N> node) {
         if (currentTickHost != null && node.value() instanceof ITickHost && node.value() == currentTickHost) {
             currentTickHost.reset(controller, null);
             findNextValidHost(node);
@@ -93,7 +95,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
     }
 
     /**
-     *
+     * Calls the changing method for the controller.
      */
     public void updateController() {
         if (controller != null) {
@@ -106,11 +108,11 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      *
      * @param node The given node.
      */
-    private void findNextValidHost(@Nullable Connectivity.Cache<N> node) {
+    private void findNextValidHost(@Nullable Cache<N> node) {
         if (controller == null) return;
         currentTickHost = null;
 
-        for (Connectivity.Cache<N> n : nodes.values()) {
+        for (Cache<N> n : nodes.values()) {
             if (n == node || !(n.value() instanceof ITickHost)) {
                 continue;
             }
@@ -136,18 +138,15 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @return Returns blocks set.
      */
     @Nonnull
-    public LongList getBlocks() { // LongSet before, to check
-        LongList merge = new LongArrayList();
-        merge.addAll(nodes.keySet());
-        merge.addAll(connectors.keySet());
-        return merge;
+    public Set<Long> getBlocks() {
+        return SetUtils.union(nodes.keySet(), connectors.keySet());
     }
 
     /**
      * @return Returns nodes map.
      */
     @Nonnull
-    public Long2ObjectMap<Connectivity.Cache<N>> getNodes() {
+    public Long2ObjectMap<Cache<N>> getNodes() {
         return Long2ObjectMaps.unmodifiable(nodes);
     }
 
@@ -197,7 +196,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @param pos The given position.
      * @param node The given node.
      */
-    public void addNode(long pos, @Nonnull Connectivity.Cache<N> node) {
+    public void addNode(long pos, @Nonnull Cache<N> node) {
         nodes.put(pos, node);
 
         Pos position = new Pos(pos);
@@ -210,7 +209,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
             int id = connectors.get(side);
 
             // Add a node to the neighboring grid ?
-            if (id != Utils.INVALID) {
+            if (id != CID.INVALID) {
                 Grid<C> grid = grids.get(id);
                 side = position.offset(direction).asLong();
 
@@ -228,15 +227,15 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @param pos The given position.
      * @param connector The given connector.
      */
-    public void addConnector(long pos, @Nonnull Connectivity.Cache<C> connector) {
+    public void addConnector(long pos, @Nonnull Cache<C> connector) {
 
         Int2ObjectMap<Grid<C>> linked = new Int2ObjectLinkedOpenHashMap<>();
         Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
         Grid<C> bestGrid = null;
         int bestCount = 0;
-        int bestId = Utils.INVALID;
+        int bestId = CID.INVALID;
 
-        byte neighbors = 0;
+        int neighbors = 0;
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
             if (!connector.connects(direction)) {
@@ -246,7 +245,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
             long side = position.offset(direction).asLong();
             int id = connectors.get(side);
 
-            if (id == Utils.INVALID) {
+            if (id == CID.INVALID) {
                 // Collect joining nodes
                 if (nodes.containsKey(side)) {
                     neighbors++;
@@ -276,7 +275,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
 
         if (linked.isEmpty()) {
             // Single connector grid
-            bestId = Utils.getNewId();
+            bestId = CID.nextId();
             bestGrid = Grid.singleConnector(pos, connector);
 
             connectors.put(pos, bestId);
@@ -293,7 +292,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
             long move = e.getLongKey();
             Dir direction = e.getValue();
 
-            Connectivity.Cache<N> node = nodes.get(move);
+            Cache<N> node = nodes.get(move);
 
             if (node.connects(direction.invert())) {
                 bestGrid.addNode(move, node);
@@ -349,7 +348,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
 
         // If removing the entry would not cause a group split, then it is safe to remove the entry directly.
         if (isExternal(pos)) {
-            Connectivity.Cache<N> node = nodes.remove(pos);
+            Cache<N> node = nodes.remove(pos);
             if (node != null) {
                 removeNode(node, pos);
                 return;
@@ -363,7 +362,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
             grid.removeAt(
                 pos,
                 newGrid -> {
-                    int newId = Utils.getNewId();
+                    int newId = CID.nextId();
                     grids.put(newId, newGrid);
 
                     for (long move : newGrid.getConnectors().keySet()) {
@@ -408,7 +407,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
         LongSet excluded = new LongOpenHashSet();
 
         int centerGridId = connectors.get(pos);
-        if (centerGridId != Utils.INVALID) {
+        if (centerGridId != CID.INVALID) {
             Grid<C> centerGrid = grids.remove(centerGridId);
             splitGrids = new ObjectArrayList<>();
 
@@ -421,7 +420,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
             splitGrids.add(centerGrid);
 
         } else {
-            Connectivity.Cache<N> node = nodes.remove(pos);
+            Cache<N> node = nodes.remove(pos);
             if (node != null) {
                 removeNode(node, pos);
             }
@@ -443,7 +442,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
 
                     // Just a node then, simply add it to the new group.
                     // The maps are mutated directly here in order to retain the cached connectivity.
-                    if (id == Utils.INVALID) {
+                    if (id == CID.INVALID) {
                         newGroup.nodes.put(reached, Objects.requireNonNull(nodes.remove(reached)));
                         continue;
                     }
@@ -469,17 +468,17 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
 
             // Add the fragments of the center grid, if present, to each group
             if (splitGrids != null) {
-                ObjectIterator<Grid<C>> iterator = splitGrids.iterator();
+                ObjectIterator<Grid<C>> it = splitGrids.iterator();
 
-                while (iterator.hasNext()) {
-                    Grid<C> grid = iterator.next();
+                while (it.hasNext()) {
+                    Grid<C> grid = it.next();
                     long sample = grid.sampleConnector();
 
                     if (found.contains(sample)) {
-                        int newId = Utils.getNewId();
+                        int newId = CID.nextId();
 
                         newGroup.addGrid(newId, grid);
-                        iterator.remove();
+                        it.remove();
                     }
                 }
             }
@@ -502,7 +501,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
      * @param node The given node.
      * @param pos The position of the node.
      */
-    private void removeNode(@Nonnull Connectivity.Cache<N> node, long pos) {
+    private void removeNode(@Nonnull Cache<N> node, long pos) {
         resetControllerHost(node);
 
         // Clear removing node from nearest grid
@@ -511,7 +510,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
             long side = position.offset(direction).asLong();
             int id = connectors.get(side);
 
-            if (id != Utils.INVALID) {
+            if (id != CID.INVALID) {
                 grids.get(id).removeNode(pos);
             }
         }
@@ -542,7 +541,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
     public Grid<C> getGridAt(long pos, @Nonnull Dir direction) {
         int id = connectors.get(pos);
 
-        if (id != Utils.INVALID) {
+        if (id != CID.INVALID) {
             Grid<C> grid = grids.get(id);
             if (grid.connects(pos, direction.invert())) {
                 return grid;
@@ -564,7 +563,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
             return true;
         }
 
-        byte neighbors = 0;
+        int neighbors = 0;
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
             long side = position.offset(direction).asLong();
@@ -595,7 +594,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
 
         int pairing = connectors.get(pos);
 
-        if (pairing != Utils.INVALID) {
+        if (pairing != CID.INVALID) {
             Grid<C> currentGrid = grids.get(pairing);
 
             Pos position = new Pos(pos);
@@ -608,7 +607,7 @@ public final class Group<C extends IConnectable, N extends IConnectable> impleme
 
                 int id = other.connectors.get(side);
 
-                if (id == Utils.INVALID) {
+                if (id == CID.INVALID) {
                     continue;
                 }
 
