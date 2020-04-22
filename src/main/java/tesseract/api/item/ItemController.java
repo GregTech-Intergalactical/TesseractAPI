@@ -48,17 +48,18 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
                 while (id.hasNext()) {
                     int slot = id.nextInt();
 
-                    ItemData item = producer.extract(slot, outputAmount, true);
-                    if (item == null) {
+                    ItemData data = producer.extract(slot, outputAmount, true);
+                    if (data == null) {
                         continue;
                     }
 
                     ItemConsumer consumer = it.next();
+                    Object item = data.getItem();
                     if (!consumer.canAccept(item)) {
                         continue;
                     }
 
-                    int amount = consumer.insert(item, true);
+                    int amount = consumer.insert(data, true);
                     if (amount <= 0) {
                         continue;
                     }

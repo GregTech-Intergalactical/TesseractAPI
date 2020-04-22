@@ -98,7 +98,7 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
      */
     private class RandomIterator implements Iterator<W> {
 
-        final ObjectList<W> list;
+        final ObjectList<W> delegate;
         final RandomPermuteIterator iterator;
 
         /**
@@ -107,7 +107,7 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
          * @param consumers The provided consumers list.
          */
         public RandomIterator(@Nonnull ObjectList<W> consumers) {
-            list = consumers;
+            delegate = consumers;
             iterator = new RandomPermuteIterator(consumers.size());
         }
 
@@ -118,7 +118,7 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
 
         @Override
         public W next() {
-            return list.get(iterator.nextInt());
+            return delegate.get(iterator.nextInt());
         }
 
         @Override

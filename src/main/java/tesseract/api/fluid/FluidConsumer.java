@@ -29,19 +29,19 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.
      *
-     * @param fluid FluidData attempting to fill the tank.
+     * @param data FluidData attempting to fill the tank.
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    public int insert(@Nonnull FluidData fluid, boolean simulate) {
-        return consumer.insert(fluid, simulate);
+    public int insert(@Nonnull FluidData data, boolean simulate) {
+        return consumer.insert(data, simulate);
     }
 
     /**
-     * @param fluid FluidData holding the Fluid to be queried.
+     * @param fluid The Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    public boolean canHold(@Nonnull FluidData fluid) {
+    public boolean canHold(@Nonnull Object fluid) {
         return consumer.canHold(fluid);
     }
 

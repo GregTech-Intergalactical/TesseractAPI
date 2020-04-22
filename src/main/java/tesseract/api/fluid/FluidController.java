@@ -53,7 +53,8 @@ public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFlui
                 }
 
                 FluidConsumer consumer = it.next();
-                if (!consumer.canHold(data)) {
+                Object fluid = data.getFluid();
+                if (!consumer.canHold(fluid)) {
                     continue;
                 }
 
@@ -63,7 +64,6 @@ public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFlui
                 }
 
                 outputAmount = data.getAmount();
-                Object fluid = data.getFluid();
                 int temperature = data.getTemperature();
                 boolean isGaseous = data.isGaseous();
 

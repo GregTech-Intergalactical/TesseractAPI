@@ -1,5 +1,6 @@
 package tesseract.api.fluid;
 
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.graph.IConnectable;
 import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
@@ -20,11 +21,11 @@ public interface IFluidNode extends IConnectable, ITickHost {
 
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.
-     * @param fluid FluidData attempting to fill the tank.
+     * @param data FluidData attempting to fill the tank.
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    int insert(@Nonnull FluidData fluid, boolean simulate);
+    int insert(@Nonnull FluidData data, boolean simulate);
 
     /**
      * Removes fluid from the node. Returns amount of fluid that was drained.
@@ -36,10 +37,10 @@ public interface IFluidNode extends IConnectable, ITickHost {
     FluidData extract(int maxDrain, boolean simulate);
 
     /**
-     * @param fluid FluidData holding the Fluid to be queried.
+     * @param fluid The Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    boolean canHold(@Nonnull FluidData fluid);
+    boolean canHold(@Nonnull Object fluid);
 
     /**
      * @return Gets the maximum amount of fluid that can be stored.
@@ -75,4 +76,20 @@ public interface IFluidNode extends IConnectable, ITickHost {
      * @return Returns true if the given direction is output side.
      */
     boolean canOutput(@Nonnull Dir direction);
+
+    /**
+     * Used to determine which fluids can be output (if any).
+     * @param direction Direction to the out.
+     * @return Gets the array of the filtered fluids.
+     */
+    @Nonnull
+    ObjectSet<?> getOutputFilter(@Nonnull Dir direction);
+
+    /**
+     * Used to determine which fluids can be input (if any).
+     * @param direction Direction to the out.
+     * @return Gets the array of the filtered fluids.
+     */
+    @Nonnull
+    ObjectSet<?> getInputFilter(@Nonnull Dir direction);
 }
