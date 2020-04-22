@@ -47,6 +47,12 @@ public interface IItemNode extends IConnectable, ITickHost {
     IntList getAvailableSlots();
 
     /**
+     * @param slot The slot index.
+     * @return It returns True if the slot has no items else it returns false.
+     */
+    boolean isEmpty(int slot);
+
+    /**
      * @param item ItemData holding the Item to be queried.
      * @return If the storage can hold the item (EVER, not at the time of query).
      */

@@ -1,5 +1,6 @@
 package tesseract.api.item;
 
+import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -39,16 +40,21 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
         for (Object2ObjectMap.Entry<IItemNode, ObjectList<ItemConsumer>> e : data.object2ObjectEntrySet()) {
             IItemNode producer = e.getKey();
             int outputAmount = producer.getOutputAmount();
-            IntList slots = producer.getAvailableSlots();
+            IntIterator id = producer.getAvailableSlots().iterator();
 
             // Using Random Permute to teleport items to random consumers in the list (similar round-robin with pseudo-random choice)
             Iterator<ItemConsumer> it = toIterator(e.getValue());
             X: while (it.hasNext()) {
-                ItemConsumer consumer = it.next();
-                
-                for (int slot : slots) {
+                while (id.hasNext()) {
+                    int slot = id.nextInt();
+
                     ItemData item = producer.extract(slot, outputAmount, true);
-                    if (item == null || !consumer.canAccept(item)) {
+                    if (item == null) {
+                        continue;
+                    }
+
+                    ItemConsumer consumer = it.next();
+                    if (!consumer.canAccept(item)) {
                         continue;
                     }
 
@@ -103,6 +109,10 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
                     outputAmount -= amount;
                     if (outputAmount <= 0)
                         break X;
+
+                    if (producer.isEmpty(slot)) {
+                        id.remove();
+                    }
                 }
             }
         }

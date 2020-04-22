@@ -88,6 +88,7 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
      * @param consumers The provided consumers list.
      * @return The iterator instance.
      */
+    @Nonnull
     public Iterator<W> toIterator(@Nonnull ObjectList<W> consumers) {
         return consumers.size() > 1 ? new RandomIterator(consumers) : consumers.iterator();
     }

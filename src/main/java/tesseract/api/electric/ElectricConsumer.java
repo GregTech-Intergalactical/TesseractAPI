@@ -61,7 +61,7 @@ public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
     /**
      * Copy the data from another consumer instance.
      *
-     * @param consumer Another consumer.
+     * @param consumer An another consumer.
      */
     public void copy(@Nonnull ElectricConsumer consumer) {
         loss = consumer.loss;

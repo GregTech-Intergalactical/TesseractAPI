@@ -46,10 +46,14 @@ public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFlui
             // Using Random Permute to teleport fluids to random consumers in the list (similar round-robin with pseudo-random choice)
             Iterator<FluidConsumer> it = toIterator(e.getValue());
             while (it.hasNext()) {
-                FluidConsumer consumer = it.next();
 
                 FluidData data = producer.extract(outputAmount, true);
-                if (data == null || !consumer.canHold(data)) {
+                if (data == null) {
+                    continue;
+                }
+
+                FluidConsumer consumer = it.next();
+                if (!consumer.canHold(data)) {
                     continue;
                 }
 
