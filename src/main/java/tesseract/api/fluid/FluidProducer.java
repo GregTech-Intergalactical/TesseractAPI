@@ -1,5 +1,6 @@
 package tesseract.api.fluid;
 
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.api.Producer;
 import tesseract.util.Dir;
 
@@ -11,6 +12,8 @@ import javax.annotation.Nullable;
  */
 public class FluidProducer extends Producer<IFluidNode> {
 
+    private final ObjectSet<?> filter;
+
     /**
      * Creates instance of the producer.
      *
@@ -18,6 +21,7 @@ public class FluidProducer extends Producer<IFluidNode> {
      */
     protected FluidProducer(@Nonnull IFluidNode producer) {
         super(producer);
+        filter = producer.getOutputFilter();
     }
 
     /**
