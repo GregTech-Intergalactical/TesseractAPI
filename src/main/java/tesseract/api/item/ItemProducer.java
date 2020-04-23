@@ -1,7 +1,10 @@
 package tesseract.api.item;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
+import org.apache.commons.collections4.SetUtils;
 import tesseract.api.Producer;
 import tesseract.util.Dir;
 
@@ -13,7 +16,7 @@ import javax.annotation.Nullable;
  */
 public class ItemProducer extends Producer<IItemNode> {
 
-    private final ObjectSet<?> filter;
+    //private Int2ObjectMap<ObjectSet<?>> filter = new Int2ObjectLinkedOpenHashMap<>(6);
 
     /**
      * Creates instance of the producer.
@@ -22,7 +25,9 @@ public class ItemProducer extends Producer<IItemNode> {
      */
     protected ItemProducer(@Nonnull IItemNode producer) {
         super(producer);
-        filter = producer.getOutputFilter();
+        /*for (Dir direction : Dir.VALUES) {
+            filter.put(direction.getIndex(), producer.getOutputFilter(direction));
+        }*/
     }
 
     /**

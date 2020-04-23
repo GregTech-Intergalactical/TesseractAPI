@@ -143,14 +143,14 @@ public class FluidController extends Controller<FluidProducer, FluidConsumer, IF
     }
 
     @Override
-    protected void onCheck(@Nonnull FluidProducer producer, @Nonnull ObjectList<FluidConsumer> consumers, @Nonnull Dir direction, @Nullable Path<IFluidPipe> path, long pos) {
+    protected void onCheck(@Nonnull FluidProducer producer, @Nonnull ObjectList<FluidConsumer> consumers, @Nullable Path<IFluidPipe> path, @Nonnull Dir dir, long pos) {
         IFluidNode c = group.getNodes().get(pos).value();
         if (c.canInput()) {
             int pressure = producer.getOutputPressure();
             if (pressure > c.getInputPressure()) {
                 GLOBAL_FLUID_EVENT.onNodeOverPressure(dim, pos, pressure);
             } else {
-                consumers.add(new FluidConsumer(c, path, direction));
+                consumers.add(new FluidConsumer(c, path, dir));
             }
         }
     }

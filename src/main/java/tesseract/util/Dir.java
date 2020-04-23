@@ -1,5 +1,7 @@
 package tesseract.util;
 
+import javax.annotation.Nonnull;
+
 /**
  * @see net.minecraft.util.Direction
  */
@@ -27,7 +29,7 @@ public enum Dir {
      * @param opposite The opposite index of the direction.
      * @param direction The direction vector.
      */
-    Dir(int index, int opposite, Pos direction) {
+    Dir(int index, int opposite, @Nonnull Pos direction) {
         this.index = index;
         this.opposite = opposite;
         this.direction = direction;
@@ -64,6 +66,7 @@ public enum Dir {
     /**
      * @return Return the inverted direction.
      */
+    @Nonnull
     public Dir invert() {
         return VALUES[opposite];
     }

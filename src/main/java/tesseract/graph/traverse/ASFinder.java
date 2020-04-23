@@ -49,7 +49,7 @@ public class ASFinder {
 
         try {
             Node start = new Node(origin, true);
-            Node end = new Node(target);
+            Node end = new Node(target,false);
 
             open.add(start);
 
@@ -163,7 +163,7 @@ public class ASFinder {
             long pos = current.offset(direction).asLong();
 
             if (container.contains(pos)) {
-                neighbors.add(new Node(pos));
+                neighbors.add(new Node(pos, direction.invert()));
             }
         }
 

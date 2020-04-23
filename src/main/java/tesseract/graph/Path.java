@@ -15,8 +15,8 @@ import java.util.Iterator;
  */
 public class Path<C extends IConnectable> {
 
-    private final Pos origin;
-    private final Pos target;
+    private final Node origin;
+    private final Node target;
     private final Long2ObjectMap<C> full = new Long2ObjectLinkedOpenHashMap<>();
     private final Long2ObjectMap<C> cross = new Long2ObjectLinkedOpenHashMap<>();
 
@@ -48,7 +48,7 @@ public class Path<C extends IConnectable> {
      * @return Gets the origin position.
      */
     @Nullable
-    public Pos origin() {
+    public Node origin() {
         return origin;
     }
 
@@ -56,7 +56,7 @@ public class Path<C extends IConnectable> {
      * @return Gets the target position.
      */
     @Nullable
-    public Pos target() {
+    public Node target() {
         return target;
     }
 

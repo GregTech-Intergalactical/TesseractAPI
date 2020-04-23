@@ -136,9 +136,9 @@ public class ItemController extends Controller<ItemProducer, ItemConsumer, IItem
     }
 
     @Override
-    protected void onCheck(@Nonnull ItemProducer producer, @Nonnull ObjectList<ItemConsumer> consumers, @Nonnull Dir direction, @Nullable Path<IItemPipe> path, long pos) {
+    protected void onCheck(@Nonnull ItemProducer producer, @Nonnull ObjectList<ItemConsumer> consumers, @Nullable Path<IItemPipe> path, @Nonnull Dir dir, long pos) {
         IItemNode c = group.getNodes().get(pos).value();
-        if (c.canInput()) consumers.add(new ItemConsumer(c, path, direction));
+        if (c.canInput()) consumers.add(new ItemConsumer(c, path, dir));
     }
 
     @Override

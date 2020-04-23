@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.graph.*;
 import tesseract.util.Dir;
+import tesseract.util.Node;
 import tesseract.util.Pos;
 import tesseract.util.RandomPermuteIterator;
 
@@ -57,13 +58,15 @@ public abstract class Controller<P extends Producer<N>, S extends Consumer<C, N>
                         long offset = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(offset)) {
-                            onCheck(producer, consumers, direction, null, offset);
+                            onCheck(producer, consumers, null, direction.invert(), offset);
                         } else {
                             Grid<C> grid = group.getGridAt(offset, direction);
                             if (grid != null) {
                                 for (Path<C> path : grid.getPaths(pos)) {
                                     if (!path.isEmpty()) {
-                                        onCheck(producer, consumers, direction, path, path.target().asLong());
+                                        Node target = path.target();
+                                        assert target != null;
+                                        onCheck(producer, consumers, path, target.getDirection(), target.asLong());
                                     }
                                 }
                             }
@@ -131,11 +134,11 @@ public abstract class Controller<P extends Producer<N>, S extends Consumer<C, N>
      * Adds available consumers to the list.
      * @param producer The producer node.
      * @param consumers The consumer nodes.
-     * @param direction The added direction.
      * @param path The paths to consumers.
+     * @param dir The added direction.
      * @param pos The position of the producer.
      */
-    protected abstract void onCheck(@Nonnull P producer, @Nonnull ObjectList<S> consumers, @Nonnull Dir direction, @Nullable Path<C> path, long pos);
+    protected abstract void onCheck(@Nonnull P producer, @Nonnull ObjectList<S> consumers, @Nullable Path<C> path, @Nonnull Dir dir, long pos);
 
     /**
      * Merge the existing consumers with new ones.

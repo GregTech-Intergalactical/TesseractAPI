@@ -140,7 +140,7 @@ public class ElectricController extends Controller<ElectricProducer, ElectricCon
     }
 
     @Override
-    protected void onCheck(@Nonnull ElectricProducer producer, @Nonnull ObjectList<ElectricConsumer> consumers, @Nonnull Dir direction, @Nullable Path<IElectricCable> path, long pos) {
+    protected void onCheck(@Nonnull ElectricProducer producer, @Nonnull ObjectList<ElectricConsumer> consumers, @Nullable Path<IElectricCable> path, @Nonnull Dir dir, long pos) {
         IElectricNode c = group.getNodes().get(pos).value();
         if (c.canInput()) {
             int voltage = producer.getOutputVoltage();
