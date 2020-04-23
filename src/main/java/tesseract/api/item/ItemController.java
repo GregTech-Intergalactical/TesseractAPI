@@ -59,7 +59,7 @@ public class ItemController extends Controller<ItemProducer, ItemConsumer, IItem
 
                     ItemConsumer consumer = it.next();
                     Object item = data.getItem();
-                    if (!consumer.canQueried(item)) {
+                    if (!consumer.canAccept(item)) {
                         continue;
                     }
 
@@ -151,10 +151,5 @@ public class ItemController extends Controller<ItemProducer, ItemConsumer, IItem
     @SuppressWarnings("unchecked")
     public ITickingController clone(@Nonnull INode group) {
         return new ItemController(dim, (Group<IItemPipe, IItemNode>) group);
-    }
-
-    @Override
-    protected boolean isValid(@Nonnull ItemProducer producer, @Nullable Dir direction) {
-        return direction != null ? producer.canOutput(direction) : producer.canOutput() && producer.getOutputAmount() > 0;
     }
 }

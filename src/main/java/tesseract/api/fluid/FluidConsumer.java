@@ -46,7 +46,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param fluid The Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    public boolean canQueried(@Nonnull Object fluid) {
+    public boolean canHold(@Nonnull Object fluid) {
         if (filter.isEmpty()) return consumer.canHold(fluid);
         return filter.contains(fluid) && consumer.canHold(fluid);
     }

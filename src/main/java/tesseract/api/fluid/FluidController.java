@@ -40,8 +40,8 @@ public class FluidController extends Controller<FluidProducer, FluidConsumer, IF
         holders.clear();
 
         for (Object2ObjectMap.Entry<FluidProducer, ObjectList<FluidConsumer>> e : data.object2ObjectEntrySet()) {
-            FluidProducer producer = e.getKey().getProducer();
-            int outputAmount = Math.min(producer.getOutputPressure(), producer.getCapacity());
+            FluidProducer producer = e.getKey();
+            int outputAmount = producer.getOutputAmount();
             Object tank = producer.getAvailableTank();
             if (tank == null) {
                 continue;
@@ -58,7 +58,7 @@ public class FluidController extends Controller<FluidProducer, FluidConsumer, IF
 
                 FluidConsumer consumer = it.next();
                 Object fluid = data.getFluid();
-                if (!consumer.canQueried(fluid)) {
+                if (!consumer.canHold(fluid)) {
                     continue;
                 }
 
@@ -165,10 +165,5 @@ public class FluidController extends Controller<FluidProducer, FluidConsumer, IF
     @SuppressWarnings("unchecked")
     public ITickingController clone(@Nonnull INode group) {
         return new FluidController(dim, (Group<IFluidPipe, IFluidNode>) group);
-    }
-
-    @Override
-    protected boolean isValid(@Nonnull FluidProducer producer, @Nullable Dir direction) {
-        return direction != null ? producer.canOutput(direction) : producer.canOutput() && producer.getOutputPressure() > 0;
     }
 }

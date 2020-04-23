@@ -49,10 +49,10 @@ public abstract class Controller<P extends Producer<N>, S extends Consumer<C, N>
             P producer = onChange(e.getValue().value());
             long pos = e.getLongKey();
 
-            if (isValid(producer, null)) {
+            if (producer.canOutput(null)) {
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
-                    if (isValid(producer, direction)) {
+                    if (producer.canOutput(direction)) {
                         ObjectList<S> consumers = new ObjectArrayList<>();
                         long offset = position.offset(direction).asLong();
 
@@ -143,14 +143,6 @@ public abstract class Controller<P extends Producer<N>, S extends Consumer<C, N>
      * @param consumers The consumer nodes.
      */
     protected abstract void onMerge(@Nonnull P producer, @Nonnull ObjectList<S> consumers);
-
-    /**
-     * Used to determine valid producers.
-     * @param producer The producer node.
-     * @param direction Direction to the out.
-     * @return Returns true if the given direction is output side.
-     */
-    protected abstract boolean isValid(@Nonnull P producer, @Nullable Dir direction);
 
     /**
      * Calls constructor of the producer component.

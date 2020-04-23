@@ -166,9 +166,4 @@ public class ElectricController extends Controller<ElectricProducer, ElectricCon
     public ITickingController clone(@Nonnull INode group) {
         return new ElectricController(dim, (Group<IElectricCable, IElectricNode>) group);
     }
-
-    @Override
-    protected boolean isValid(@Nonnull ElectricProducer producer, @Nullable Dir direction) {
-        return direction != null ? producer.canOutput(direction) : producer.canOutput() && producer.getOutputVoltage() > 0;
-    }
 }
