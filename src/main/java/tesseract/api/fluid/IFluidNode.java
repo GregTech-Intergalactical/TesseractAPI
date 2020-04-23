@@ -37,11 +37,11 @@ public interface IFluidNode extends IConnectable, ITickHost {
     FluidData extract(@Nonnull Object tank, int amount, boolean simulate);
 
     /**
-     * @param dir The direction index.
+     * @param direction Direction to the output.
      * @return Gets any available tank.
      **/
     @Nullable
-    Object getAvailableTank(int dir);
+    Object getAvailableTank(@Nonnull Dir direction);
 
     /**
      * @return Gets the maximum amount of fluid that can be stored.
@@ -49,10 +49,10 @@ public interface IFluidNode extends IConnectable, ITickHost {
     int getCapacity();
 
     /**
-     * @param dir The direction index.
+     * @param direction Direction to the output.
      * @return Gets the initial amount of pressure that can be output.
      */
-    int getOutputAmount(int dir);
+    int getOutputAmount(@Nonnull Dir direction);
 
     /**
      * Gets if this storage can have fluid extracted.

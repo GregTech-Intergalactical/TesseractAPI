@@ -15,7 +15,9 @@ import tesseract.util.RandomIterator;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import java.util.EnumMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import static tesseract.TesseractAPI.GLOBAL_FLUID_EVENT;
 
@@ -27,7 +29,7 @@ public class FluidController implements ITickingController {
     private final int dim;
     private final Group<IFluidPipe, IFluidNode> group;
     private final Long2ObjectMap<FluidHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
-    private final Object2ObjectMap<IFluidNode, Int2ObjectMap<ObjectList<FluidConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectMap<IFluidNode, Map<Dir, ObjectList<FluidConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
@@ -43,8 +45,8 @@ public class FluidController implements ITickingController {
     @Override
     public void change() {
         for (Long2ObjectMap.Entry<Cache<IFluidNode>> e : group.getNodes().long2ObjectEntrySet()) {
-            IFluidNode producer = e.getValue().value();
             long pos = e.getLongKey();
+            IFluidNode producer = e.getValue().value();
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
@@ -69,9 +71,7 @@ public class FluidController implements ITickingController {
                         }
 
                         if (!consumers.isEmpty()) {
-                            Int2ObjectMap<ObjectList<FluidConsumer>> map = data.containsKey(producer) ? data.get(producer) : new Int2ObjectLinkedOpenHashMap<>();
-                            map.put(direction.getIndex(), consumers);
-                            data.put(producer, map);
+                            data.computeIfAbsent(producer, map -> new EnumMap<>(Dir.class)).put(direction, consumers);
                         }
                     }
                 }
@@ -81,6 +81,7 @@ public class FluidController implements ITickingController {
 
     /**
      * Adds available consumers to the list.
+     *
      * @param consumers The consumer nodes.
      * @param path The paths to consumers.
      * @param dir The added direction.
@@ -98,19 +99,19 @@ public class FluidController implements ITickingController {
     public void tick() {
         holders.clear();
 
-        for (Object2ObjectMap.Entry<IFluidNode, Int2ObjectMap<ObjectList<FluidConsumer>>> e : data.object2ObjectEntrySet()) {
+        for (Object2ObjectMap.Entry<IFluidNode, Map<Dir, ObjectList<FluidConsumer>>> e : data.object2ObjectEntrySet()) {
             IFluidNode producer = e.getKey();
 
-            for (Int2ObjectMap.Entry<ObjectList<FluidConsumer>> c : e.getValue().int2ObjectEntrySet()) {
-                int dir = c.getIntKey();
+            for (Map.Entry<Dir, ObjectList<FluidConsumer>> c : e.getValue().entrySet()) {
+                Dir direction = c.getKey();
                 ObjectList<FluidConsumer> list = c.getValue();
 
-                Object tank = producer.getAvailableTank(dir);
+                Object tank = producer.getAvailableTank(direction);
                 if (tank == null) {
                     continue;
                 }
 
-                int outputAmount = producer.getOutputAmount(dir);
+                int outputAmount = producer.getOutputAmount(direction);
 
                 // Using Random Permute to teleport fluids to random consumers in the list (similar round-robin with pseudo-random choice)
                 Iterator<FluidConsumer> it = list.size() > 1 ? new RandomIterator<>(list) : list.iterator();
@@ -132,18 +133,19 @@ public class FluidController implements ITickingController {
                         continue;
                     }
 
-                    outputAmount = data.getAmount();
                     int temperature = data.getTemperature();
                     boolean isGaseous = data.isGaseous();
 
                     FluidData drained = producer.extract(tank, amount, false);
 
+                    assert drained != null;
+
                     // If we are here, then path had some invalid pipes which not suits the limits of temp/pressure/gas
                     if (!consumer.canHandle(temperature, amount, isGaseous) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest cost pipe
                         // Find corrupt pipe and return
-                        for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull()) {
-                            IFluidPipe pipe = p.getValue();
+                        for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull().long2ObjectEntrySet()) {
                             long pos = p.getLongKey();
+                            IFluidPipe pipe = p.getValue();
 
                             switch (pipe.getHandler(temperature, amount, isGaseous)) {
                                 case FAIL_TEMP:
@@ -161,31 +163,29 @@ public class FluidController implements ITickingController {
 
                     // Stores the pressure into holder for path only for variate connection
                     if (consumer.getConnection() == ConnectionType.VARIATE) {
-                        for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getCross()) {
+                        for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getCross().long2ObjectEntrySet()) {
                             long pos = p.getLongKey();
+                            IFluidPipe pipe = p.getValue();
 
-                            FluidHolder h = holders.get(pos);
-                            if (h == null) {
-                                IFluidPipe pipe = p.getValue();
-                                holders.put(pos, new FluidHolder(pipe.getCapacity(), pipe.getPressure(), amount, fluid));
-                            } else {
-                                h.add(amount, fluid);
-                            }
+                            holders.computeIfAbsent(pos, h -> new FluidHolder(pipe.getCapacity(), pipe.getPressure())).add(amount, fluid);
                         }
                     }
 
                     consumer.insert(drained, false);
 
                     outputAmount -= amount;
-                    if (outputAmount <= 0)
+                    if (outputAmount <= 0) {
                         break;
+                    }
                 }
             }
         }
 
         for (Long2ObjectMap.Entry<FluidHolder> e : holders.long2ObjectEntrySet()) {
-            FluidHolder absorber = e.getValue();
             long pos = e.getLongKey();
+            FluidHolder absorber = e.getValue();
+
+            // TODO: Find proper path to destroy
 
             if (absorber.isOverPressure()) {
                 GLOBAL_FLUID_EVENT.onPipeOverPressure(dim, pos, absorber.getPressure());

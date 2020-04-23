@@ -12,11 +12,9 @@ public class ElectricHolder {
      * Creates instance of the holder.
      *
      * @param max The maximum amperage.
-     * @param amperage The initial amperage.
      */
-    protected ElectricHolder(int max, int amperage) {
+    protected ElectricHolder(int max) {
         this.max = max;
-        this.amperage = amperage;
     }
 
     /**

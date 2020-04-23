@@ -30,6 +30,7 @@ public class RandomIterator<T> implements Iterator<T> {
         return iterator.hasNext();
     }
 
+    @Nonnull
     @Override
     public T next() {
         return delegate.get(iterator.nextInt());
@@ -47,18 +48,18 @@ public class RandomIterator<T> implements Iterator<T> {
      */
     private static class LCG implements IntIterator {
 
-        private final static int c = 1013904223, a = 1664525;
-        private final static double log2 = Math.log(2);
+        final static int c = 1013904223, a = 1664525;
+        final static double log2 = Math.log(2);
 
-        private int seed, N, m, next;
-        private boolean hasNext = true;
+        int seed, N, m, next;
+        boolean hasNext = true;
 
         /**
          * Creates a new instance of the custom iterator.
          *
          * @param size The max capacity of the iterated object.
          */
-        public LCG(int size) {
+        LCG(int size) {
             N = size;
             m = (int) Math.pow(2, Math.ceil(Math.log(N) / log2));
             next = seed = new Random().nextInt(Math.min(N, Integer.MAX_VALUE));

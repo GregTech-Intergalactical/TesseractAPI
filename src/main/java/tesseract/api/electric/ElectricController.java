@@ -51,8 +51,8 @@ public class ElectricController implements ITickingController {
         data.clear();
 
         for (Long2ObjectMap.Entry<Cache<IElectricNode>> e : group.getNodes().long2ObjectEntrySet()) {
-            IElectricNode producer = e.getValue().value();
             long pos = e.getLongKey();
+            IElectricNode producer = e.getValue().value();
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
@@ -62,7 +62,7 @@ public class ElectricController implements ITickingController {
                         long offset = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(offset)) {
-                            check(producer, consumers, null, offset);
+                            add(producer, consumers, null, offset);
                         } else {
                             Grid<IElectricCable> grid = group.getGridAt(offset, direction);
                             if (grid != null) {
@@ -70,7 +70,7 @@ public class ElectricController implements ITickingController {
                                     if (!path.isEmpty()) {
                                         Node target = path.target();
                                         assert target != null;
-                                        check(producer, consumers, path, target.asLong());
+                                        add(producer, consumers, path, target.asLong());
                                     }
                                 }
                             }
@@ -92,6 +92,7 @@ public class ElectricController implements ITickingController {
 
     /**
      * Merge the existing consumers with new ones.
+     *
      * @param producer The producer node.
      * @param consumers The consumer nodes.
      */
@@ -113,12 +114,13 @@ public class ElectricController implements ITickingController {
 
     /**
      * Adds available consumers to the list.
+     *
      * @param producer The producer node.
      * @param consumers The consumer nodes.
      * @param path The paths to consumers.
      * @param pos The position of the producer.
      */
-    private void check(@Nonnull IElectricNode producer, @Nonnull ObjectList<ElectricConsumer> consumers, @Nullable Path<IElectricCable> path, long pos) {
+    private void add(@Nonnull IElectricNode producer, @Nonnull ObjectList<ElectricConsumer> consumers, @Nullable Path<IElectricCable> path, long pos) {
         IElectricNode c = group.getNodes().get(pos).value();
         if (c.canInput()) {
             int voltage = producer.getOutputVoltage();
@@ -177,9 +179,9 @@ public class ElectricController implements ITickingController {
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
                 if (!consumer.canHandle(outputVoltage, amperage) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest cost cable
                     // Find corrupt cables and return
-                    for (Long2ObjectMap.Entry<IElectricCable> c : consumer.getFull()) {
-                        IElectricCable cable = c.getValue();
+                    for (Long2ObjectMap.Entry<IElectricCable> c : consumer.getFull().long2ObjectEntrySet()) {
                         long pos = c.getLongKey();
+                        IElectricCable cable = c.getValue();
 
                         switch (cable.getHandler(outputVoltage, amperage)) {
                             case FAIL_VOLTAGE:
@@ -195,28 +197,26 @@ public class ElectricController implements ITickingController {
 
                 // Stores the amp into holder for path only for variate connection
                 if (consumer.getConnection() == ConnectionType.VARIATE) {
-                    for (Long2ObjectMap.Entry<IElectricCable> c : consumer.getCross()) {
+                    for (Long2ObjectMap.Entry<IElectricCable> c : consumer.getCross().long2ObjectEntrySet()) {
                         long pos = c.getLongKey();
+                        IElectricCable cable = c.getValue();
 
-                        ElectricHolder h = holders.get(pos);
-                        if (h == null) {
-                            IElectricCable cable = c.getValue();
-                            holders.put(pos, new ElectricHolder(cable.getAmps(), amperage));
-                        } else {
-                            h.add(amperage);
-                        }
+                        holders.computeIfAbsent(pos, h -> new ElectricHolder(cable.getAmps())).add(amperage);
                     }
                 }
 
                 outputAmperage -= amperage;
-                if (outputAmperage <= 0)
+                if (outputAmperage <= 0) {
                     break;
+                }
             }
         }
 
         for (Long2ObjectMap.Entry<ElectricHolder> e : holders.long2ObjectEntrySet()) {
-            ElectricHolder holder = e.getValue();
             long pos = e.getLongKey();
+            ElectricHolder holder = e.getValue();
+
+            // TODO: Find proper path to destroy
 
             if (holder.isOverAmperage()) {
                 GLOBAL_ELECTRIC_EVENT.onCableOverAmperage(dim, pos, holder.getAmperage());

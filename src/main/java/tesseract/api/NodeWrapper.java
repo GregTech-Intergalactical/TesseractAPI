@@ -1,7 +1,6 @@
 package tesseract.api;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.graph.IConnectable;
 import tesseract.graph.Path;
 
@@ -66,16 +65,16 @@ abstract public class NodeWrapper<C extends IConnectable, N extends IConnectable
      * @return Gets the cross path of connectors.
      */
     @Nonnull
-    public ObjectSet<Long2ObjectMap.Entry<C>> getCross() {
-        return cross.long2ObjectEntrySet();
+    public Long2ObjectMap<C> getCross() {
+        return cross;
     }
 
     /**
      * @return Gets the full path of connectors.
      */
     @Nonnull
-    public ObjectSet<Long2ObjectMap.Entry<C>> getFull() {
-        return full.long2ObjectEntrySet();
+    public Long2ObjectMap<C> getFull() {
+        return full;
     }
 
     /**

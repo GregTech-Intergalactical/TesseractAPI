@@ -2,6 +2,7 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import tesseract.util.Node;
 
 import javax.annotation.Nonnull;
@@ -64,7 +65,7 @@ public class Path<C extends IConnectable> {
      */
     @Nonnull
     public Long2ObjectMap<C> getFull() {
-        return full;
+        return Long2ObjectMaps.unmodifiable(full);
     }
 
     /**
@@ -72,7 +73,7 @@ public class Path<C extends IConnectable> {
      */
     @Nonnull
     public Long2ObjectMap<C> getCross() {
-        return cross;
+        return Long2ObjectMaps.unmodifiable(cross);
     }
 
     /**

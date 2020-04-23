@@ -41,11 +41,11 @@ public interface IItemNode extends IConnectable, ITickHost {
     ItemData extract(int slot, int amount, boolean simulate);
 
     /**
-     * @param dir The direction index.
+     * @param direction The direction index.
      * @return Gets all available slots.
      **/
     @Nonnull
-    IntList getAvailableSlots(int dir);
+    IntList getAvailableSlots(@Nonnull Dir direction);
 
     /**
      * @param slot The slot index.
@@ -54,10 +54,10 @@ public interface IItemNode extends IConnectable, ITickHost {
     boolean isEmpty(int slot);
 
     /**
-     * @param dir The direction index.
+     * @param direction Direction to the output.
      * @return Gets the initial amount of items that can be output.
      */
-    int getOutputAmount(int dir);
+    int getOutputAmount(@Nonnull Dir direction);
 
     /**
      * Gets if this storage can have item extracted.

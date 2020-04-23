@@ -21,14 +21,10 @@ public class FluidHolder {
      *
      * @param capacity The maximum capacity.
      * @param max The maximum pressure.
-     * @param pressure The initial pressure.
-     * @param fluid The initial fluid.
      */
-    protected FluidHolder(int capacity, int max, int pressure, @Nonnull Object fluid) {
+    protected FluidHolder(int capacity, int max) {
         this.max = max;
-        this.pressure = pressure;
         this.capacity = capacity;
-        this.fluids.add(fluid);
     }
 
     /**

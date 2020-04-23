@@ -33,7 +33,7 @@ public class TesseractAPI {
      * @return The graph instance for the world.
      */
     public static Graph<IElectricCable, IElectricNode> getElectricGraph(int dim) {
-        return ELECTRIC_GRAPH.computeIfAbsent(dim, i -> new Graph<>());
+        return ELECTRIC_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
     }
 
     /**
@@ -43,7 +43,7 @@ public class TesseractAPI {
      * @return The graph instance for the world.
      */
     public static Graph<IFluidPipe, IFluidNode> getFluidGraph(int dim) {
-        return FLUID_GRAPH.computeIfAbsent(dim, i -> new Graph<>());
+        return FLUID_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
     }
 
     /**
@@ -53,7 +53,7 @@ public class TesseractAPI {
      * @return The graph instance for the world.
      */
     public static Graph<IItemPipe, IItemNode> getItemGraph(int dim) {
-        return ITEM_GRAPH.computeIfAbsent(dim, i -> new Graph<>());
+        return ITEM_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
     }
 
     /**
@@ -129,30 +129,30 @@ public class TesseractAPI {
      * Creates an instance of a class for a given cable connector.
      * @param dim The dimension id where the cable will be added.
      * @param pos The position at which the cable will be added.
-     * @param cable The cable object.
+     * @param connector The cable object.
      */
-    public static void registerElectricCable(int dim, long pos, IElectricCable cable) {
-        getElectricGraph(dim).addConnector(pos, new Cache<>(cable));
+    public static void registerElectricCable(int dim, long pos, IElectricCable connector) {
+        getElectricGraph(dim).addConnector(pos, new Cache<>(connector));
     }
 
     /**
      * Creates an instance of a class for a given pipe connector.
      * @param dim The dimension id where the pipe will be added.
      * @param pos The position at which the pipe will be added.
-     * @param pipe The pipe object.
+     * @param connector The pipe object.
      */
-    public static void registerFluidPipe(int dim, long pos, IFluidPipe pipe) {
-        getFluidGraph(dim).addConnector(pos, new Cache<>(pipe));
+    public static void registerFluidPipe(int dim, long pos, IFluidPipe connector) {
+        getFluidGraph(dim).addConnector(pos, new Cache<>(connector));
     }
 
     /**
      * Creates an instance of a class for a given pipe connector.
      * @param dim The dimension id where the pipe will be added.
      * @param pos The position at which the pipe will be added.
-     * @param pipe The pipe object.
+     * @param connector The pipe object.
      */
-    public static void registerItemPipe(int dim, long pos, IItemPipe pipe) {
-        getItemGraph(dim).addConnector(pos, new Cache<>(pipe));
+    public static void registerItemPipe(int dim, long pos, IItemPipe connector) {
+        getItemGraph(dim).addConnector(pos, new Cache<>(connector));
     }
 
     /**

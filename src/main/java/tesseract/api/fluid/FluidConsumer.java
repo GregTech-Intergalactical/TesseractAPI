@@ -23,7 +23,7 @@ public class FluidConsumer extends NodeWrapper<IFluidPipe, IFluidNode> {
      *
      * @param consumer The consumer node.
      * @param path The path information.
-     * @param dir @param dir The added direction.
+     * @param dir The added direction.
      */
     protected FluidConsumer(@Nonnull IFluidNode consumer, @Nullable Path<IFluidPipe> path, @Nonnull Dir dir) {
         super(consumer, path);
