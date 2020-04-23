@@ -17,7 +17,7 @@ import java.util.Iterator;
 /**
  * Class acts as a controller in the group of an item components.
  */
-public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNode> {
+public class ItemController extends Controller<ItemProducer, ItemConsumer, IItemPipe, IItemNode> {
 
     private int tick;
     private final Long2ObjectMap<ItemHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
@@ -37,10 +37,14 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
         tick++; if (tick % 20 != 0) return; // Limitation of the tick rate
         holders.clear();
 
-        for (Object2ObjectMap.Entry<IItemNode, ObjectList<ItemConsumer>> e : data.object2ObjectEntrySet()) {
-            IItemNode producer = e.getKey();
+        for (Object2ObjectMap.Entry<ItemProducer, ObjectList<ItemConsumer>> e : data.object2ObjectEntrySet()) {
+            ItemProducer producer = e.getKey();
             int outputAmount = producer.getOutputAmount();
-            IntIterator id = producer.getAvailableSlots().iterator();
+            IntList slots = producer.getAvailableSlots();
+            if (slots.isEmpty()) {
+                continue;
+            }
+            IntIterator id = slots.iterator();
 
             // Using Random Permute to teleport items to random consumers in the list (similar round-robin with pseudo-random choice)
             Iterator<ItemConsumer> it = toIterator(e.getValue());
@@ -55,7 +59,7 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
 
                     ItemConsumer consumer = it.next();
                     Object item = data.getItem();
-                    if (!consumer.canAccept(item)) {
+                    if (!consumer.canQueried(item)) {
                         continue;
                     }
 
@@ -120,7 +124,7 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
     }
 
     @Override
-    protected void onMerge(@Nonnull IItemNode producer, @Nonnull ObjectList<ItemConsumer> consumers) {
+    protected void onMerge(@Nonnull ItemProducer producer, @Nonnull ObjectList<ItemConsumer> consumers) {
         ObjectList<ItemConsumer> existingConsumers = data.get(producer);
         for (ItemConsumer c : consumers) {
             boolean found = false;
@@ -132,9 +136,14 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
     }
 
     @Override
-    protected void onCheck(@Nonnull IItemNode producer, @Nonnull ObjectList<ItemConsumer> consumers, @Nullable Path<IItemPipe> path, long pos) {
+    protected void onCheck(@Nonnull ItemProducer producer, @Nonnull ObjectList<ItemConsumer> consumers, @Nonnull Dir direction, @Nullable Path<IItemPipe> path, long pos) {
         IItemNode c = group.getNodes().get(pos).value();
-        if (c.canInput()) consumers.add(new ItemConsumer(c, path));
+        if (c.canInput()) consumers.add(new ItemConsumer(c, path, direction));
+    }
+
+    @Override
+    protected ItemProducer onChange(IItemNode node) {
+        return new ItemProducer(node);
     }
 
     @Nonnull
@@ -145,7 +154,7 @@ public class ItemController extends Controller<ItemConsumer, IItemPipe, IItemNod
     }
 
     @Override
-    protected boolean isValid(@Nonnull IItemNode producer, @Nullable Dir direction) {
+    protected boolean isValid(@Nonnull ItemProducer producer, @Nullable Dir direction) {
         return direction != null ? producer.canOutput(direction) : producer.canOutput() && producer.getOutputAmount() > 0;
     }
 }

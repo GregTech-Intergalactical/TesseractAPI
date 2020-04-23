@@ -1,7 +1,9 @@
 package tesseract.api.item;
 
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
+import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -12,15 +14,18 @@ import javax.annotation.Nullable;
 public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
 
     private int minCapacity = Integer.MAX_VALUE;
+    private final ObjectSet<?> filter;
 
     /**
      * Creates instance of the consumer.
      *
      * @param consumer The consumer node.
-     * @param path     The path information.
+     * @param path The path information.
+     * @param dir The added direction.
      */
-    protected ItemConsumer(@Nonnull IItemNode consumer, @Nullable Path<IItemPipe> path) {
+    protected ItemConsumer(@Nonnull IItemNode consumer, @Nullable Path<IItemPipe> path, @Nonnull Dir dir) {
         super(consumer, path);
+        filter = consumer.getInputFilter(dir);
     }
 
     /**
@@ -39,8 +44,9 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      * @param item The Item to be queried.
      * @return If the storage can hold the item (EVER, not at the time of query).
      */
-    public boolean canAccept(@Nonnull Object item) {
-        return consumer.canAccept(item);
+    public boolean canQueried(@Nonnull Object item) {
+        if (filter.isEmpty()) return consumer.canAccept(item);
+        return filter.contains(item) && consumer.canAccept(item);
     }
 
     /**

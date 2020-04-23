@@ -1,7 +1,9 @@
 package tesseract.api.fluid;
 
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
+import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -15,15 +17,18 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
     private int minCapacity = Integer.MAX_VALUE;
     private int minPressure = Integer.MAX_VALUE;
     private int minTemperature = Integer.MAX_VALUE;
+    private final ObjectSet<?> filter;
 
     /**
      * Creates instance of the consumer.
      *
      * @param consumer The consumer node.
      * @param path The path information.
+     * @param dir @param dir The added direction.
      */
-    protected FluidConsumer(@Nonnull IFluidNode consumer, @Nullable Path<IFluidPipe> path) {
+    protected FluidConsumer(@Nonnull IFluidNode consumer, @Nullable Path<IFluidPipe> path, Dir dir) {
         super(consumer, path);
+        filter = consumer.getInputFilter(dir);
     }
 
     /**
@@ -41,8 +46,9 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param fluid The Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    public boolean canHold(@Nonnull Object fluid) {
-        return consumer.canHold(fluid);
+    public boolean canQueried(@Nonnull Object fluid) {
+        if (filter.isEmpty()) return consumer.canHold(fluid);
+        return filter.contains(fluid) && consumer.canHold(fluid);
     }
 
     /**

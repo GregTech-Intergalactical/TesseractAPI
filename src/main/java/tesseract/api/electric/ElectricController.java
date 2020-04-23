@@ -16,7 +16,7 @@ import static tesseract.TesseractAPI.GLOBAL_ELECTRIC_EVENT;
 /**
  * Class acts as a controller in the group of an electrical components.
  */
-public class ElectricController extends Controller<ElectricConsumer, IElectricCable, IElectricNode> {
+public class ElectricController extends Controller<ElectricProducer, ElectricConsumer, IElectricCable, IElectricNode> {
 
     private final Long2ObjectMap<ElectricHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
     private final Object2IntMap<IElectricNode> obtains = new Object2IntLinkedOpenHashMap<>();
@@ -48,8 +48,8 @@ public class ElectricController extends Controller<ElectricConsumer, IElectricCa
         obtains.clear();
         holders.clear();
 
-        for (Object2ObjectMap.Entry<IElectricNode, ObjectList<ElectricConsumer>> e : data.object2ObjectEntrySet()) {
-            IElectricNode producer = e.getKey();
+        for (Object2ObjectMap.Entry<ElectricProducer, ObjectList<ElectricConsumer>> e : data.object2ObjectEntrySet()) {
+            ElectricProducer producer = e.getKey();
             int outputVoltage = producer.getOutputVoltage();
             int outputAmperage = producer.getOutputAmperage();
             if (outputAmperage <= 0) {
@@ -123,7 +123,7 @@ public class ElectricController extends Controller<ElectricConsumer, IElectricCa
     }
 
     @Override
-    protected void onMerge(@Nonnull IElectricNode producer, @Nonnull ObjectList<ElectricConsumer> consumers) {
+    protected void onMerge(@Nonnull ElectricProducer producer, @Nonnull ObjectList<ElectricConsumer> consumers) {
         ObjectList<ElectricConsumer> existingConsumers = data.get(producer);
         for (ElectricConsumer c : consumers) {
             boolean found = false;
@@ -140,7 +140,7 @@ public class ElectricController extends Controller<ElectricConsumer, IElectricCa
     }
 
     @Override
-    protected void onCheck(@Nonnull IElectricNode producer, @Nonnull ObjectList<ElectricConsumer> consumers, @Nullable Path<IElectricCable> path, long pos) {
+    protected void onCheck(@Nonnull ElectricProducer producer, @Nonnull ObjectList<ElectricConsumer> consumers, @Nonnull Dir direction, @Nullable Path<IElectricCable> path, long pos) {
         IElectricNode c = group.getNodes().get(pos).value();
         if (c.canInput()) {
             int voltage = producer.getOutputVoltage();
@@ -155,6 +155,11 @@ public class ElectricController extends Controller<ElectricConsumer, IElectricCa
         }
     }
 
+    @Override
+    protected ElectricProducer onChange(IElectricNode node) {
+        return new ElectricProducer(node);
+    }
+
     @Nonnull
     @Override
     @SuppressWarnings("unchecked")
@@ -163,7 +168,7 @@ public class ElectricController extends Controller<ElectricConsumer, IElectricCa
     }
 
     @Override
-    protected boolean isValid(@Nonnull IElectricNode producer, @Nullable Dir direction) {
+    protected boolean isValid(@Nonnull ElectricProducer producer, @Nullable Dir direction) {
         return direction != null ? producer.canOutput(direction) : producer.canOutput() && producer.getOutputVoltage() > 0;
     }
 }

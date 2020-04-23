@@ -18,7 +18,7 @@ import static tesseract.TesseractAPI.GLOBAL_FLUID_EVENT;
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFluidNode> {
+public class FluidController extends Controller<FluidProducer, FluidConsumer, IFluidPipe, IFluidNode> {
 
     private final Long2ObjectMap<FluidHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
 
@@ -39,22 +39,26 @@ public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFlui
     public void tick() {
         holders.clear();
 
-        for (Object2ObjectMap.Entry<IFluidNode, ObjectList<FluidConsumer>> e : data.object2ObjectEntrySet()) {
-            IFluidNode producer = e.getKey();
+        for (Object2ObjectMap.Entry<FluidProducer, ObjectList<FluidConsumer>> e : data.object2ObjectEntrySet()) {
+            FluidProducer producer = e.getKey().getProducer();
             int outputAmount = Math.min(producer.getOutputPressure(), producer.getCapacity());
+            Object tank = producer.getAvailableTank();
+            if (tank == null) {
+                continue;
+            }
 
             // Using Random Permute to teleport fluids to random consumers in the list (similar round-robin with pseudo-random choice)
             Iterator<FluidConsumer> it = toIterator(e.getValue());
             while (it.hasNext()) {
 
-                FluidData data = producer.extract(outputAmount, true);
+                FluidData data = producer.extract(tank, outputAmount, true);
                 if (data == null) {
                     continue;
                 }
 
                 FluidConsumer consumer = it.next();
                 Object fluid = data.getFluid();
-                if (!consumer.canHold(fluid)) {
+                if (!consumer.canQueried(fluid)) {
                     continue;
                 }
 
@@ -67,7 +71,7 @@ public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFlui
                 int temperature = data.getTemperature();
                 boolean isGaseous = data.isGaseous();
 
-                FluidData drained = producer.extract(amount, false);
+                FluidData drained = producer.extract(tank, amount, false);
 
                 // If we are here, then path had some invalid pipes which not suits the limits of temp/pressure/gas
                 if (!consumer.canHandle(temperature, amount, isGaseous) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest cost pipe
@@ -127,7 +131,7 @@ public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFlui
     }
 
     @Override
-    protected void onMerge(@Nonnull IFluidNode producer, @Nonnull ObjectList<FluidConsumer> consumers) {
+    protected void onMerge(@Nonnull FluidProducer producer, @Nonnull ObjectList<FluidConsumer> consumers) {
         ObjectList<FluidConsumer> existingConsumers = data.get(producer);
         for (FluidConsumer c : consumers) {
             boolean found = false;
@@ -139,16 +143,21 @@ public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFlui
     }
 
     @Override
-    protected void onCheck(@Nonnull IFluidNode producer, @Nonnull ObjectList<FluidConsumer> consumers, @Nullable Path<IFluidPipe> path, long pos) {
+    protected void onCheck(@Nonnull FluidProducer producer, @Nonnull ObjectList<FluidConsumer> consumers, @Nonnull Dir direction, @Nullable Path<IFluidPipe> path, long pos) {
         IFluidNode c = group.getNodes().get(pos).value();
         if (c.canInput()) {
             int pressure = producer.getOutputPressure();
             if (pressure > c.getInputPressure()) {
                 GLOBAL_FLUID_EVENT.onNodeOverPressure(dim, pos, pressure);
             } else {
-                consumers.add(new FluidConsumer(c, path));
+                consumers.add(new FluidConsumer(c, path, direction));
             }
         }
+    }
+
+    @Override
+    protected FluidProducer onChange(IFluidNode node) {
+        return new FluidProducer(node);
     }
 
     @Nonnull
@@ -159,7 +168,7 @@ public class FluidController extends Controller<FluidConsumer, IFluidPipe, IFlui
     }
 
     @Override
-    protected boolean isValid(@Nonnull IFluidNode producer, @Nullable Dir direction) {
+    protected boolean isValid(@Nonnull FluidProducer producer, @Nullable Dir direction) {
         return direction != null ? producer.canOutput(direction) : producer.canOutput() && producer.getOutputPressure() > 0;
     }
 }

@@ -14,11 +14,11 @@ import java.util.Iterator;
 /**
  * Class acts as a controller in the group of components.
  */
-public abstract class Controller<W extends Consumer<C, N>, C extends IConnectable, N extends IConnectable> implements ITickingController {
+public abstract class Controller<P extends Producer<N>, S extends Consumer<C, N>, C extends IConnectable, N extends IConnectable> implements ITickingController {
 
     protected final int dim;
     protected final Group<C, N> group;
-    protected final Object2ObjectMap<N, ObjectList<W>> data = new Object2ObjectLinkedOpenHashMap<>();
+    protected final Object2ObjectMap<P, ObjectList<S>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
@@ -46,24 +46,24 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
         data.clear();
 
         for (Long2ObjectMap.Entry<Cache<N>> e : group.getNodes().long2ObjectEntrySet()) {
-            N producer = e.getValue().value();
+            P producer = onChange(e.getValue().value());
             long pos = e.getLongKey();
 
             if (isValid(producer, null)) {
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
                     if (isValid(producer, direction)) {
-                        ObjectList<W> consumers = new ObjectArrayList<>();
+                        ObjectList<S> consumers = new ObjectArrayList<>();
                         long offset = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(offset)) {
-                            onCheck(producer, consumers, null, offset);
+                            onCheck(producer, consumers, direction, null, offset);
                         } else {
                             Grid<C> grid = group.getGridAt(offset, direction);
                             if (grid != null) {
                                 for (Path<C> path : grid.getPaths(pos)) {
                                     if (!path.isEmpty()) {
-                                        onCheck(producer, consumers, path, path.target().asLong());
+                                        onCheck(producer, consumers, direction, path, path.target().asLong());
                                     }
                                 }
                             }
@@ -89,16 +89,16 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
      * @return The iterator instance.
      */
     @Nonnull
-    public Iterator<W> toIterator(@Nonnull ObjectList<W> consumers) {
+    public Iterator<S> toIterator(@Nonnull ObjectList<S> consumers) {
         return consumers.size() > 1 ? new RandomIterator(consumers) : consumers.iterator();
     }
 
     /**
      * Class acts as a wrapper of a random permute iterator over a consumer list.
      */
-    private class RandomIterator implements Iterator<W> {
+    private class RandomIterator implements Iterator<S> {
 
-        final ObjectList<W> delegate;
+        final ObjectList<S> delegate;
         final RandomPermuteIterator iterator;
 
         /**
@@ -106,7 +106,7 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
          *
          * @param consumers The provided consumers list.
          */
-        public RandomIterator(@Nonnull ObjectList<W> consumers) {
+        public RandomIterator(@Nonnull ObjectList<S> consumers) {
             delegate = consumers;
             iterator = new RandomPermuteIterator(consumers.size());
         }
@@ -117,7 +117,7 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
         }
 
         @Override
-        public W next() {
+        public S next() {
             return delegate.get(iterator.nextInt());
         }
 
@@ -131,17 +131,18 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
      * Adds available consumers to the list.
      * @param producer The producer node.
      * @param consumers The consumer nodes.
+     * @param direction The added direction.
      * @param path The paths to consumers.
      * @param pos The position of the producer.
      */
-    protected abstract void onCheck(@Nonnull N producer, @Nonnull ObjectList<W> consumers, @Nullable Path<C> path, long pos);
+    protected abstract void onCheck(@Nonnull P producer, @Nonnull ObjectList<S> consumers, @Nonnull Dir direction, @Nullable Path<C> path, long pos);
 
     /**
      * Merge the existing consumers with new ones.
      * @param producer The producer node.
      * @param consumers The consumer nodes.
      */
-    protected abstract void onMerge(@Nonnull N producer, @Nonnull ObjectList<W> consumers);
+    protected abstract void onMerge(@Nonnull P producer, @Nonnull ObjectList<S> consumers);
 
     /**
      * Used to determine valid producers.
@@ -149,5 +150,12 @@ public abstract class Controller<W extends Consumer<C, N>, C extends IConnectabl
      * @param direction Direction to the out.
      * @return Returns true if the given direction is output side.
      */
-    protected abstract boolean isValid(@Nonnull N producer, @Nullable Dir direction);
+    protected abstract boolean isValid(@Nonnull P producer, @Nullable Dir direction);
+
+    /**
+     * Calls constructor of the producer component.
+     * @param node The provided node.
+     * @return The producer instance.
+     */
+    protected abstract P onChange(N node);
 }

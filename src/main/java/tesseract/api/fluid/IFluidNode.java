@@ -1,5 +1,6 @@
 package tesseract.api.fluid;
 
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.graph.IConnectable;
 import tesseract.graph.ITickHost;
@@ -29,12 +30,19 @@ public interface IFluidNode extends IConnectable, ITickHost {
 
     /**
      * Removes fluid from the node. Returns amount of fluid that was drained.
-     * @param maxDrain Maximum amount of fluid to be removed from the container.
+     * @param tank The tank to extract from.
+     * @param amount Maximum amount of fluid to be removed from the container.
      * @param simulate If true, the drain will only be simulated.
      * @return FluidData representing fluid that was removed (or would be, if simulated) from the tank.
      */
     @Nullable
-    FluidData extract(int maxDrain, boolean simulate);
+    FluidData extract(@Nonnull Object tank, int amount, boolean simulate);
+
+    /**
+     * @return Gets any available tank.
+     **/
+    @Nullable
+    Object getAvailableTank();
 
     /**
      * @param fluid The Fluid to be queried.
