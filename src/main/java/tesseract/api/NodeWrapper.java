@@ -1,36 +1,32 @@
 package tesseract.api;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.objects.ObjectList;
-import it.unimi.dsi.fastutil.objects.ObjectListIterator;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.graph.IConnectable;
 import tesseract.graph.Path;
-import tesseract.util.RandomPermuteIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Iterator;
 
 /**
- * A class that acts as a container for a consumer component.
+ * A class that acts as a wrapper for a node component.
  */
-abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
+abstract public class NodeWrapper<C extends IConnectable, N extends IConnectable> {
 
-    protected final N consumer;
+    protected final N node;
     protected final ConnectionType connection;
 
     protected Long2ObjectMap<C> full;
     protected Long2ObjectMap<C> cross;
 
     /**
-     * Creates instance of the consumer.
+     * Creates instance of the node.
      *
-     * @param consumer The consumer node.
+     * @param node The node instance.
      * @param path The path information.
      */
-    protected Consumer(@Nonnull N consumer, @Nullable Path<C> path) {
-        this.consumer = consumer;
+    protected NodeWrapper(@Nonnull N node, @Nullable Path<C> path) {
+        this.node = node;
 
         if (path != null) {
             full = path.getFull();
@@ -51,11 +47,11 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
     }
 
     /**
-     * @return Gets the consumer ref.
+     * @return Gets the node ref.
      */
     @Nonnull
-    public N getConsumer() {
-        return consumer;
+    public N getNode() {
+        return node;
     }
 
     /**

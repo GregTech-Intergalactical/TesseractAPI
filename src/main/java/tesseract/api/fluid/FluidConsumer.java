@@ -1,7 +1,6 @@
 package tesseract.api.fluid;
 
-import it.unimi.dsi.fastutil.objects.ObjectSet;
-import tesseract.api.Consumer;
+import tesseract.api.NodeWrapper;
 import tesseract.graph.Path;
 import tesseract.util.Dir;
 
@@ -11,13 +10,13 @@ import javax.annotation.Nullable;
 /**
  * A class that acts as a container for a fluid consumer.
  */
-public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
+public class FluidConsumer extends NodeWrapper<IFluidPipe, IFluidNode> {
 
     private int isProof = 1;
     private int minCapacity = Integer.MAX_VALUE;
     private int minPressure = Integer.MAX_VALUE;
     private int minTemperature = Integer.MAX_VALUE;
-    private final ObjectSet<?> filter;
+    private final Dir input;
 
     /**
      * Creates instance of the consumer.
@@ -26,9 +25,9 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param path The path information.
      * @param dir @param dir The added direction.
      */
-    protected FluidConsumer(@Nonnull IFluidNode consumer, @Nullable Path<IFluidPipe> path, Dir dir) {
+    protected FluidConsumer(@Nonnull IFluidNode consumer, @Nullable Path<IFluidPipe> path, @Nonnull Dir dir) {
         super(consumer, path);
-        filter = consumer.getInputFilter(dir);
+        this.input = dir;
     }
 
     /**
@@ -39,7 +38,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
     public int insert(@Nonnull FluidData data, boolean simulate) {
-        return consumer.insert(data, simulate);
+        return node.insert(data, simulate);
     }
 
     /**
@@ -47,8 +46,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
     public boolean canHold(@Nonnull Object fluid) {
-        if (filter.isEmpty()) return consumer.canHold(fluid);
-        return filter.contains(fluid) && consumer.canHold(fluid);
+        return node.canInput(fluid, input);
     }
 
     /**

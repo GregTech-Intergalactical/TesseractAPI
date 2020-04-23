@@ -1,7 +1,6 @@
 package tesseract.api.item;
 
-import it.unimi.dsi.fastutil.objects.ObjectSet;
-import tesseract.api.Consumer;
+import tesseract.api.NodeWrapper;
 import tesseract.graph.Path;
 import tesseract.util.Dir;
 
@@ -11,21 +10,21 @@ import javax.annotation.Nullable;
 /**
  * A class that acts as a container for a item consumer.
  */
-public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
+public class ItemConsumer extends NodeWrapper<IItemPipe, IItemNode> {
 
     private int minCapacity = Integer.MAX_VALUE;
-    private final ObjectSet<?> filter;
+    private final Dir input;
 
     /**
      * Creates instance of the consumer.
      *
      * @param consumer The consumer node.
      * @param path The path information.
-     * @param dir The added direction.
+     * @param dir The input direction.
      */
     protected ItemConsumer(@Nonnull IItemNode consumer, @Nullable Path<IItemPipe> path, @Nonnull Dir dir) {
         super(consumer, path);
-        filter = consumer.getInputFilter(dir);
+        input = dir;
     }
 
     /**
@@ -37,7 +36,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      *         The returned ItemStack can be safely modified after.
      **/
     public int insert(@Nonnull ItemData data, boolean simulate) {
-        return consumer.insert(data, simulate);
+        return node.insert(data, simulate);
     }
 
     /**
@@ -45,8 +44,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      * @return If the storage can hold the item (EVER, not at the time of query).
      */
     public boolean canAccept(@Nonnull Object item) {
-        if (filter.isEmpty()) return consumer.canAccept(item);
-        return filter.contains(item) && consumer.canAccept(item);
+        return node.canInput(item, input);
     }
 
     /**

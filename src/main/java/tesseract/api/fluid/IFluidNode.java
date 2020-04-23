@@ -1,7 +1,5 @@
 package tesseract.api.fluid;
 
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.graph.IConnectable;
 import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
@@ -39,16 +37,11 @@ public interface IFluidNode extends IConnectable, ITickHost {
     FluidData extract(@Nonnull Object tank, int amount, boolean simulate);
 
     /**
+     * @param dir The direction index.
      * @return Gets any available tank.
      **/
     @Nullable
-    Object getAvailableTank();
-
-    /**
-     * @param fluid The Fluid to be queried.
-     * @return If the tank can hold the fluid (EVER, not at the time of query).
-     */
-    boolean canHold(@Nonnull Object fluid);
+    Object getAvailableTank(int dir);
 
     /**
      * @return Gets the maximum amount of fluid that can be stored.
@@ -56,14 +49,10 @@ public interface IFluidNode extends IConnectable, ITickHost {
     int getCapacity();
 
     /**
+     * @param dir The direction index.
      * @return Gets the initial amount of pressure that can be output.
      */
-    int getOutputPressure();
-
-    /**
-     * @return Gets the maximum amount of pressure that can be input.
-     */
-    int getInputPressure();
+    int getOutputAmount(int dir);
 
     /**
      * Gets if this storage can have fluid extracted.
@@ -80,24 +69,15 @@ public interface IFluidNode extends IConnectable, ITickHost {
     /**
      * Used to determine which sides can output fluid (if any).
      * Output cannot be used as input.
-     * @param direction Direction to the out.
+     * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */
     boolean canOutput(@Nonnull Dir direction);
 
     /**
-     * Used to determine which fluids can be output (if any).
-     * @param direction Direction to the out.
-     * @return Gets the array of the filtered fluids.
+     * @param fluid The Fluid to be queried.
+     * @param direction Direction to the input.
+     * @return If the tank can input the fluid (EVER, not at the time of query).
      */
-    @Nonnull
-    ObjectSet<?> getOutputFilter(@Nonnull Dir direction);
-
-    /**
-     * Used to determine which fluids can be input (if any).
-     * @param direction Direction to the out.
-     * @return Gets the array of the filtered fluids.
-     */
-    @Nonnull
-    ObjectSet<?> getInputFilter(@Nonnull Dir direction);
+    boolean canInput(@Nonnull Object fluid, @Nonnull Dir direction);
 }

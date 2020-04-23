@@ -1,7 +1,6 @@
 package tesseract.api.item;
 
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
 import tesseract.graph.IConnectable;
 import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
@@ -42,10 +41,11 @@ public interface IItemNode extends IConnectable, ITickHost {
     ItemData extract(int slot, int amount, boolean simulate);
 
     /**
+     * @param dir The direction index.
      * @return Gets all available slots.
      **/
     @Nonnull
-    IntList getAvailableSlots();
+    IntList getAvailableSlots(int dir);
 
     /**
      * @param slot The slot index.
@@ -54,15 +54,10 @@ public interface IItemNode extends IConnectable, ITickHost {
     boolean isEmpty(int slot);
 
     /**
-     * @param item The Item to be queried.
-     * @return If the storage can hold the item (EVER, not at the time of query).
-     */
-    boolean canAccept(@Nonnull Object item);
-
-    /**
+     * @param dir The direction index.
      * @return Gets the initial amount of items that can be output.
      */
-    int getOutputAmount();
+    int getOutputAmount(int dir);
 
     /**
      * Gets if this storage can have item extracted.
@@ -79,24 +74,15 @@ public interface IItemNode extends IConnectable, ITickHost {
     /**
      * Used to determine which sides can output item (if any).
      * Output cannot be used as input.
-     * @param direction Direction to the out.
+     * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */
     boolean canOutput(@Nonnull Dir direction);
 
     /**
-     * Used to determine which items can be output (if any).
-     * @param direction Direction to the out.
-     * @return Gets the array of the filtered items.
+     * @param item The Item to be queried.
+     * @param direction Direction to the input.
+     * @return If the storage can input the item (EVER, not at the time of query).
      */
-    @Nonnull
-    ObjectSet<?> getOutputFilter(@Nonnull Dir direction);
-
-    /**
-     * Used to determine which items can be input (if any).
-     * @param direction Direction to the out.
-     * @return Gets the array of the filtered items.
-     */
-    @Nonnull
-    ObjectSet<?> getInputFilter(@Nonnull Dir direction);
+    boolean canInput(@Nonnull Object item, @Nonnull Dir direction);
 }

@@ -8,14 +8,6 @@ import javax.annotation.Nonnull;
 public interface IFluidEvent {
 
     /**
-     * Executes when the node trying to receive higher amount of pressure than can.
-     * @param dim The dimension id.
-     * @param pos The node position.
-     * @param pressure The current pressure.
-     */
-    void onNodeOverPressure(int dim, long pos, int pressure);
-
-    /**
      * Executes when the cable trying to transport higher amount of pressure than can.
      * @param dim The dimension id.
      * @param pos The pipe position.

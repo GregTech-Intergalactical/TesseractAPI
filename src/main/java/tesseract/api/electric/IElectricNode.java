@@ -77,7 +77,7 @@ public interface IElectricNode extends IConnectable, ITickHost {
 	/**
 	 * Used to determine which sides can output energy (if any).
 	 * Output cannot be used as input.
-	 * @param direction Direction to the out.
+	 * @param direction Direction to the output.
 	 * @return Returns true if the given direction is output side.
 	 */
 	boolean canOutput(@Nonnull Dir direction);

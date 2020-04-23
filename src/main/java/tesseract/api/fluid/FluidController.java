@@ -1,12 +1,16 @@
 package tesseract.api.fluid;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.api.ConnectionType;
-import tesseract.api.Controller;
 import tesseract.graph.*;
 import tesseract.util.Dir;
+import tesseract.util.Node;
+import tesseract.util.Pos;
+import tesseract.util.RandomIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,9 +22,12 @@ import static tesseract.TesseractAPI.GLOBAL_FLUID_EVENT;
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-public class FluidController extends Controller<FluidProducer, FluidConsumer, IFluidPipe, IFluidNode> {
+public class FluidController implements ITickingController {
 
+    private final int dim;
+    private final Group<IFluidPipe, IFluidNode> group;
     private final Long2ObjectMap<FluidHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectMap<IFluidNode, Int2ObjectMap<ObjectList<FluidConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
@@ -29,7 +36,59 @@ public class FluidController extends Controller<FluidProducer, FluidConsumer, IF
      * @param group The group this controller handles.
      */
     public FluidController(int dim, @Nonnull Group<IFluidPipe, IFluidNode> group) {
-        super(dim, group);
+        this.dim = dim;
+        this.group = group;
+    }
+
+    @Override
+    public void change() {
+        for (Long2ObjectMap.Entry<Cache<IFluidNode>> e : group.getNodes().long2ObjectEntrySet()) {
+            IFluidNode producer = e.getValue().value();
+            long pos = e.getLongKey();
+
+            if (producer.canOutput()) {
+                Pos position = new Pos(pos);
+                for (Dir direction : Dir.VALUES) {
+                    if (producer.canOutput(direction)) {
+                        ObjectList<FluidConsumer> consumers = new ObjectArrayList<>();
+                        long offset = position.offset(direction).asLong();
+
+                        if (group.getNodes().containsKey(offset)) {
+                            add(consumers, null, direction.invert(), offset);
+                        } else {
+                            Grid<IFluidPipe> grid = group.getGridAt(offset, direction);
+                            if (grid != null) {
+                                for (Path<IFluidPipe> path : grid.getPaths(pos)) {
+                                    if (!path.isEmpty()) {
+                                        Node target = path.target();
+                                        assert target != null;
+                                        add(consumers, path, target.getDirection(), target.asLong());
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!consumers.isEmpty()) {
+                            Int2ObjectMap<ObjectList<FluidConsumer>> map = data.containsKey(producer) ? data.get(producer) : new Int2ObjectLinkedOpenHashMap<>();
+                            map.put(direction.getIndex(), consumers);
+                            data.put(producer, map);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Adds available consumers to the list.
+     * @param consumers The consumer nodes.
+     * @param path The paths to consumers.
+     * @param dir The added direction.
+     * @param pos The position of the producer.
+     */
+    private void add(@Nonnull ObjectList<FluidConsumer> consumers, @Nullable Path<IFluidPipe> path, @Nonnull Dir dir, long pos) {
+        IFluidNode consumer = group.getNodes().get(pos).value();
+        if (consumer.canInput()) consumers.add(new FluidConsumer(consumer, path, dir));
     }
 
     /**
@@ -39,81 +98,88 @@ public class FluidController extends Controller<FluidProducer, FluidConsumer, IF
     public void tick() {
         holders.clear();
 
-        for (Object2ObjectMap.Entry<FluidProducer, ObjectList<FluidConsumer>> e : data.object2ObjectEntrySet()) {
-            FluidProducer producer = e.getKey();
-            int outputAmount = producer.getOutputAmount();
-            Object tank = producer.getAvailableTank();
-            if (tank == null) {
-                continue;
-            }
+        for (Object2ObjectMap.Entry<IFluidNode, Int2ObjectMap<ObjectList<FluidConsumer>>> e : data.object2ObjectEntrySet()) {
+            IFluidNode producer = e.getKey();
 
-            // Using Random Permute to teleport fluids to random consumers in the list (similar round-robin with pseudo-random choice)
-            Iterator<FluidConsumer> it = toIterator(e.getValue());
-            while (it.hasNext()) {
+            for (Int2ObjectMap.Entry<ObjectList<FluidConsumer>> c : e.getValue().int2ObjectEntrySet()) {
+                int dir = c.getIntKey();
+                ObjectList<FluidConsumer> list = c.getValue();
 
-                FluidData data = producer.extract(tank, outputAmount, true);
-                if (data == null) {
+                Object tank = producer.getAvailableTank(dir);
+                if (tank == null) {
                     continue;
                 }
 
-                FluidConsumer consumer = it.next();
-                Object fluid = data.getFluid();
-                if (!consumer.canHold(fluid)) {
-                    continue;
-                }
+                int outputAmount = producer.getOutputAmount(dir);
 
-                int amount = consumer.insert(data, true);
-                if (amount <= 0) {
-                    continue;
-                }
+                // Using Random Permute to teleport fluids to random consumers in the list (similar round-robin with pseudo-random choice)
+                Iterator<FluidConsumer> it = list.size() > 1 ? new RandomIterator<>(list) : list.iterator();
+                while (it.hasNext()) {
 
-                outputAmount = data.getAmount();
-                int temperature = data.getTemperature();
-                boolean isGaseous = data.isGaseous();
-
-                FluidData drained = producer.extract(tank, amount, false);
-
-                // If we are here, then path had some invalid pipes which not suits the limits of temp/pressure/gas
-                if (!consumer.canHandle(temperature, amount, isGaseous) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest cost pipe
-                    // Find corrupt pipe and return
-                    for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull()) {
-                        IFluidPipe pipe = p.getValue();
-                        long pos = p.getLongKey();
-
-                        switch (pipe.getHandler(temperature, amount, isGaseous)) {
-                            case FAIL_TEMP:
-                                GLOBAL_FLUID_EVENT.onPipeOverTemp(dim, pos, temperature);
-                                return;
-                            case FAIL_PRESSURE:
-                                GLOBAL_FLUID_EVENT.onPipeOverPressure(dim, pos, amount);
-                                return;
-                            case FAIL_LEAK:
-                                GLOBAL_FLUID_EVENT.onPipeGasLeak(dim, pos, drained);
-                                break;
-                        }
+                    FluidData data = producer.extract(tank, outputAmount, true);
+                    if (data == null) {
+                        continue;
                     }
-                }
 
-                // Stores the pressure into holder for path only for variate connection
-                if (consumer.getConnection() == ConnectionType.VARIATE) {
-                    for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getCross()) {
-                        long pos = p.getLongKey();
+                    FluidConsumer consumer = it.next();
+                    Object fluid = data.getFluid();
+                    if (!consumer.canHold(fluid)) {
+                        continue;
+                    }
 
-                        FluidHolder h = holders.get(pos);
-                        if (h == null) {
+                    int amount = consumer.insert(data, true);
+                    if (amount <= 0) {
+                        continue;
+                    }
+
+                    outputAmount = data.getAmount();
+                    int temperature = data.getTemperature();
+                    boolean isGaseous = data.isGaseous();
+
+                    FluidData drained = producer.extract(tank, amount, false);
+
+                    // If we are here, then path had some invalid pipes which not suits the limits of temp/pressure/gas
+                    if (!consumer.canHandle(temperature, amount, isGaseous) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest cost pipe
+                        // Find corrupt pipe and return
+                        for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull()) {
                             IFluidPipe pipe = p.getValue();
-                            holders.put(pos, new FluidHolder(pipe.getCapacity(), pipe.getPressure(), amount, fluid));
-                        } else {
-                            h.add(amount, fluid);
+                            long pos = p.getLongKey();
+
+                            switch (pipe.getHandler(temperature, amount, isGaseous)) {
+                                case FAIL_TEMP:
+                                    GLOBAL_FLUID_EVENT.onPipeOverTemp(dim, pos, temperature);
+                                    return;
+                                case FAIL_PRESSURE:
+                                    GLOBAL_FLUID_EVENT.onPipeOverPressure(dim, pos, amount);
+                                    return;
+                                case FAIL_LEAK:
+                                    GLOBAL_FLUID_EVENT.onPipeGasLeak(dim, pos, drained);
+                                    break;
+                            }
                         }
                     }
+
+                    // Stores the pressure into holder for path only for variate connection
+                    if (consumer.getConnection() == ConnectionType.VARIATE) {
+                        for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getCross()) {
+                            long pos = p.getLongKey();
+
+                            FluidHolder h = holders.get(pos);
+                            if (h == null) {
+                                IFluidPipe pipe = p.getValue();
+                                holders.put(pos, new FluidHolder(pipe.getCapacity(), pipe.getPressure(), amount, fluid));
+                            } else {
+                                h.add(amount, fluid);
+                            }
+                        }
+                    }
+
+                    consumer.insert(drained, false);
+
+                    outputAmount -= amount;
+                    if (outputAmount <= 0)
+                        break;
                 }
-
-                consumer.insert(drained, false);
-
-                outputAmount -= amount;
-                if (outputAmount <= 0)
-                    break;
             }
         }
 
@@ -128,36 +194,6 @@ public class FluidController extends Controller<FluidProducer, FluidConsumer, IF
                 GLOBAL_FLUID_EVENT.onPipeOverCapacity(dim, pos, absorber.getCapacity());
             }
         }
-    }
-
-    @Override
-    protected void onMerge(@Nonnull FluidProducer producer, @Nonnull ObjectList<FluidConsumer> consumers) {
-        ObjectList<FluidConsumer> existingConsumers = data.get(producer);
-        for (FluidConsumer c : consumers) {
-            boolean found = false;
-            for (FluidConsumer ec : existingConsumers) {
-                if (ec.getConsumer() == c.getConsumer()) found = true;
-                if (!found) existingConsumers.add(c);
-            }
-        }
-    }
-
-    @Override
-    protected void onCheck(@Nonnull FluidProducer producer, @Nonnull ObjectList<FluidConsumer> consumers, @Nullable Path<IFluidPipe> path, @Nonnull Dir dir, long pos) {
-        IFluidNode c = group.getNodes().get(pos).value();
-        if (c.canInput()) {
-            int pressure = producer.getOutputPressure();
-            if (pressure > c.getInputPressure()) {
-                GLOBAL_FLUID_EVENT.onNodeOverPressure(dim, pos, pressure);
-            } else {
-                consumers.add(new FluidConsumer(c, path, dir));
-            }
-        }
-    }
-
-    @Override
-    protected FluidProducer onChange(IFluidNode node) {
-        return new FluidProducer(node);
     }
 
     @Nonnull
