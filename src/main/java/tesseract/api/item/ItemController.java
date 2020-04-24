@@ -16,9 +16,7 @@ import tesseract.util.RandomIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.EnumMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Class acts as a controller in the group of an item components.
@@ -79,6 +77,12 @@ public class ItemController implements ITickingController {
                 }
             }
         }
+
+        for (Map<Dir, ObjectList<ItemConsumer>> map : data.values()) {
+            for (ObjectList<ItemConsumer> consumers : map.values()) {
+                consumers.sort(Comparator.comparingInt(ItemConsumer::getPriority));
+            }
+        }
     }
 
     /**
@@ -104,28 +108,24 @@ public class ItemController implements ITickingController {
 
             for (Map.Entry<Dir, ObjectList<ItemConsumer>> c : e.getValue().entrySet()) {
                 Dir direction = c.getKey();
-                ObjectList<ItemConsumer> list = c.getValue();
 
                 IntList slots = producer.getAvailableSlots(direction);
                 if (slots.isEmpty()) {
                     continue;
                 }
 
-                IntIterator id = slots.iterator();
+                IntIterator it = slots.iterator();
                 int outputAmount = producer.getOutputAmount(direction);
 
-                // Using Random Permute to teleport items to random consumers in the list (similar round-robin with pseudo-random choice)
-                Iterator<ItemConsumer> it = list.size() > 1 ? new RandomIterator<>(list) : list.iterator();
-                I:while (it.hasNext()) {
-                    while (id.hasNext()) {
-                        int slot = id.nextInt();
+                I:for (ItemConsumer consumer : c.getValue()) {
+                    while (it.hasNext()) {
+                        int slot = it.nextInt();
 
                         ItemData data = producer.extract(slot, outputAmount, true);
                         if (data == null) {
                             continue;
                         }
 
-                        ItemConsumer consumer = it.next();
                         Object item = data.getItem();
                         if (!consumer.canAccept(item)) {
                             continue;
@@ -179,7 +179,7 @@ public class ItemController implements ITickingController {
                         }
 
                         if (producer.isEmpty(slot)) {
-                            id.remove();
+                            it.remove();
                         }
                     }
                 }

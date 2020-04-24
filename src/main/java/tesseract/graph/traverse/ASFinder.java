@@ -153,7 +153,7 @@ public class ASFinder {
      * Lookups for a set of neighbors of a given node.
      *
      * @param current The given node.
-     * @return The set of nodes.
+     * @return The list of nodes.
      */
     @Nonnull
     public ObjectList<Node> getNeighboringNodes(@Nonnull Node current) {

@@ -48,6 +48,13 @@ public class ItemConsumer extends NodeWrapper<IItemPipe, IItemNode> {
     }
 
     /**
+     * @return Returns the priority of this node as a number.
+     */
+    public int getPriority() {
+        return node.getPriority(input);
+    }
+
+    /**
      * @return Checks that the min capacity on the path.
      */
     public int getMinCapacity() {

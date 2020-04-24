@@ -15,6 +15,7 @@ import tesseract.util.RandomIterator;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -77,6 +78,12 @@ public class FluidController implements ITickingController {
                 }
             }
         }
+
+        for (Map<Dir, ObjectList<FluidConsumer>> map : data.values()) {
+            for (ObjectList<FluidConsumer> consumers : map.values()) {
+                consumers.sort(Comparator.comparingInt(FluidConsumer::getPriority));
+            }
+        }
     }
 
     /**
@@ -104,7 +111,6 @@ public class FluidController implements ITickingController {
 
             for (Map.Entry<Dir, ObjectList<FluidConsumer>> c : e.getValue().entrySet()) {
                 Dir direction = c.getKey();
-                ObjectList<FluidConsumer> list = c.getValue();
 
                 Object tank = producer.getAvailableTank(direction);
                 if (tank == null) {
@@ -113,16 +119,13 @@ public class FluidController implements ITickingController {
 
                 int outputAmount = producer.getOutputAmount(direction);
 
-                // Using Random Permute to teleport fluids to random consumers in the list (similar round-robin with pseudo-random choice)
-                Iterator<FluidConsumer> it = list.size() > 1 ? new RandomIterator<>(list) : list.iterator();
-                while (it.hasNext()) {
+                for (FluidConsumer consumer : c.getValue()) {
 
                     FluidData data = producer.extract(tank, outputAmount, true);
                     if (data == null) {
                         continue;
                     }
 
-                    FluidConsumer consumer = it.next();
                     Object fluid = data.getFluid();
                     if (!consumer.canHold(fluid)) {
                         continue;

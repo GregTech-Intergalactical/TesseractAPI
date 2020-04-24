@@ -50,6 +50,13 @@ public class FluidConsumer extends NodeWrapper<IFluidPipe, IFluidNode> {
     }
 
     /**
+     * @return Returns the priority of this node as a number.
+     */
+    public int getPriority() {
+        return node.getPriority(input);
+    }
+
+    /**
      * @param temperature The current temperature.
      * @param pressure The current pressure.
      * @param proof True if current liquid is in a gas state.

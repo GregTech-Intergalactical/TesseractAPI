@@ -12,6 +12,8 @@ import tesseract.util.Pos;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import java.util.Comparator;
+
 import static tesseract.TesseractAPI.GLOBAL_ELECTRIC_EVENT;
 
 /**
@@ -86,6 +88,10 @@ public class ElectricController implements ITickingController {
                     }
                 }
             }
+        }
+
+        for (ObjectList<ElectricConsumer> consumers : data.values()) {
+            consumers.sort(Comparator.comparingInt(ElectricConsumer::getLoss).reversed());
         }
     }
 

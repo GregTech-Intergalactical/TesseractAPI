@@ -60,6 +60,12 @@ public interface IItemNode extends IConnectable, ITickHost {
     int getOutputAmount(@Nonnull Dir direction);
 
     /**
+     * @param direction Direction to the proceed.
+     * @return Returns the priority of this node as a number.
+     */
+    int getPriority(@Nonnull Dir direction);
+
+    /**
      * Gets if this storage can have item extracted.
      * @return If this is false, then any calls to extractEnergy will return 0.
      */
