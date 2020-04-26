@@ -118,7 +118,7 @@ class TestBench {
         }
     }
 
-    private static class ExampleConnector implements IElectricCable, IConnectable {
+    private static class ExampleConnector implements IConnectable {
 
         @Override
         public String toString() {
@@ -129,24 +129,9 @@ class TestBench {
         public boolean connects(@Nonnull Dir direction) {
             return true;
         }
-
-        @Override
-        public int getLoss() {
-            return 0;
-        }
-
-        @Override
-        public int getAmps() {
-            return 0;
-        }
-
-        @Override
-        public int getVoltage() {
-            return 0;
-        }
     }
 
-    private static class ExampleNode implements IElectricNode, IConnectable {
+    private static class ExampleNode implements IConnectable, ITickHost {
 
         @Override
         public String toString() {
@@ -156,61 +141,6 @@ class TestBench {
         @Override
         public boolean connects(@Nonnull Dir direction) {
             return true;
-        }
-
-        @Override
-        public long insert(long maxReceive, boolean simulate) {
-            return 0;
-        }
-
-        @Override
-        public long extract(long maxExtract, boolean simulate) {
-            return 0;
-        }
-
-        @Override
-        public long getEnergy() {
-            return 0L;
-        }
-
-        @Override
-        public long getCapacity() {
-            return 0L;
-        }
-
-        @Override
-        public int getOutputAmperage() {
-            return 0;
-        }
-
-        @Override
-        public int getOutputVoltage() {
-            return 0;
-        }
-
-        @Override
-        public int getInputAmperage() {
-            return 0;
-        }
-
-        @Override
-        public int getInputVoltage() {
-            return 0;
-        }
-
-        @Override
-        public boolean canInput() {
-            return false;
-        }
-
-        @Override
-        public boolean canOutput(@Nonnull Dir direction) {
-            return false;
-        }
-
-        @Override
-        public boolean canOutput() {
-            return false;
         }
 
         @Override
