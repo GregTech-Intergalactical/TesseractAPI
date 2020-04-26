@@ -2,8 +2,6 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import tesseract.api.electric.IElectricCable;
-import tesseract.api.electric.IElectricNode;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;

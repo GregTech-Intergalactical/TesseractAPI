@@ -2,7 +2,6 @@ package tesseract.api.fluid;
 
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
 
 import javax.annotation.Nonnull;
 import java.util.Set;

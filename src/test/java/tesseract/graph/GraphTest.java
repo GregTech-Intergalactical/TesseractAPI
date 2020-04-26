@@ -1,14 +1,11 @@
 package tesseract.graph;
 
 import org.junit.Test;
-import tesseract.api.electric.IElectricCable;
-import tesseract.api.electric.IElectricNode;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
