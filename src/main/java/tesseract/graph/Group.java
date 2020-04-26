@@ -11,6 +11,8 @@ import tesseract.util.CID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -386,7 +388,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         // For optimization purposes, the largest colored fragment remains resident within its original group.
         // Note: we don't remove the node yet, but instead just tell the Searcher to exclude it.
         // This is so that we can handle the grid splits ourselves at the end.
-        ObjectList<LongLinkedOpenHashSet> colored = new ObjectArrayList<>();
+        List<LongLinkedOpenHashSet> colored = new ObjectArrayList<>();
 
         int bestColor = divider.divide(
             removed -> removed.add(pos),
@@ -403,7 +405,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             colored::add
         );
 
-        ObjectList<Grid<C>> splitGrids = null;
+        List<Grid<C>> splitGrids = null;
         LongSet excluded = new LongOpenHashSet();
 
         int centerGridId = connectors.get(pos);
@@ -468,7 +470,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
             // Add the fragments of the center grid, if present, to each group
             if (splitGrids != null) {
-                ObjectIterator<Grid<C>> it = splitGrids.iterator();
+               Iterator<Grid<C>> it = splitGrids.iterator();
 
                 while (it.hasNext()) {
                     Grid<C> grid = it.next();

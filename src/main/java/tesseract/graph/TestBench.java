@@ -169,7 +169,7 @@ class TestBench {
         }
 
         @Override
-        public long getPower() {
+        public long getEnergy() {
             return 0L;
         }
 

@@ -1,6 +1,6 @@
 package tesseract.api.item;
 
-import tesseract.api.NodeWrapper;
+import tesseract.api.Consumer;
 import tesseract.graph.Path;
 import tesseract.util.Dir;
 
@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 /**
  * A class that acts as a container for a item consumer.
  */
-public class ItemConsumer extends NodeWrapper<IItemPipe, IItemNode> {
+public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
 
     private int minCapacity = Integer.MAX_VALUE;
     private final Dir input;

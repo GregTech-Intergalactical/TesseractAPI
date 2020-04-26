@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
 import javax.annotation.Nonnull;
+import java.util.Set;
 
 /**
  * A class that acts as holder of the fluid that has passed thought pipes.
@@ -12,19 +13,17 @@ import javax.annotation.Nonnull;
 public class FluidHolder {
 
     private int pressure;
-    private final int max;
-    private final int capacity;
-    private final ObjectSet<Object> fluids = new ObjectOpenHashSet<>();
+    private final int maxPressure, maxCapacity;
+    private final Set<Object> fluids = new ObjectOpenHashSet<>();
 
     /**
      * Creates instance of the holder.
      *
-     * @param capacity The maximum capacity.
-     * @param max The maximum pressure.
+     * @param pipe The pipe connector.
      */
-    protected FluidHolder(int capacity, int max) {
-        this.max = max;
-        this.capacity = capacity;
+    protected FluidHolder(@Nonnull IFluidPipe pipe) {
+        this.maxCapacity = pipe.getCapacity();
+        this.maxPressure = pipe.getPressure();
     }
 
     /**
@@ -56,13 +55,13 @@ public class FluidHolder {
      * @return Checks that the holder is not able to handle pressure.
      */
     public boolean isOverPressure() {
-        return max < pressure;
+        return maxPressure < pressure;
     }
 
     /**
      * @return Checks that the holder is not able to handle pressure.
      */
     public boolean isOverCapacity() {
-        return capacity < fluids.size();
+        return maxCapacity < fluids.size();
     }
 }

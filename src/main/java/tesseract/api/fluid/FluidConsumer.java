@@ -1,6 +1,6 @@
 package tesseract.api.fluid;
 
-import tesseract.api.NodeWrapper;
+import tesseract.api.Consumer;
 import tesseract.graph.Path;
 import tesseract.util.Dir;
 
@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 /**
  * A class that acts as a container for a fluid consumer.
  */
-public class FluidConsumer extends NodeWrapper<IFluidPipe, IFluidNode> {
+public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
 
     private int isProof = 1;
     private int minCapacity = Integer.MAX_VALUE;

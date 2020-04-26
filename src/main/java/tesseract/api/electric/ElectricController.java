@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.api.ConnectionType;
+import tesseract.api.Controller;
 import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Node;
@@ -13,19 +14,19 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java.util.Comparator;
+import java.util.List;
 
 import static tesseract.TesseractAPI.GLOBAL_ELECTRIC_EVENT;
 
 /**
  * Class acts as a controller in the group of an electrical components.
  */
-public class ElectricController implements ITickingController {
+public class ElectricController extends Controller<IElectricCable, IElectricNode> {
 
-    private final int dim;
-    private final Group<IElectricCable, IElectricNode> group;
+    private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
     private final Object2IntMap<IElectricNode> obtains = new Object2IntLinkedOpenHashMap<>();
     private final Long2ObjectMap<ElectricHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
-    private final Object2ObjectMap<IElectricNode, ObjectList<ElectricConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectMap<IElectricNode, List<ElectricConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
@@ -34,8 +35,7 @@ public class ElectricController implements ITickingController {
      * @param group The group this controller handles.
      */
     public ElectricController(int dim, @Nonnull Group<IElectricCable, IElectricNode> group) {
-        this.dim = dim;
-        this.group = group;
+        super(dim ,group);
     }
 
     /**
@@ -60,11 +60,11 @@ public class ElectricController implements ITickingController {
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
                     if (producer.canOutput(direction)) {
-                        ObjectList<ElectricConsumer> consumers = new ObjectArrayList<>();
+                        List<ElectricConsumer> consumers = new ObjectArrayList<>();
                         long offset = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(offset)) {
-                            add(producer, consumers, null, offset);
+                            onCheck(producer, consumers, null, offset);
                         } else {
                             Grid<IElectricCable> grid = group.getGridAt(offset, direction);
                             if (grid != null) {
@@ -72,7 +72,7 @@ public class ElectricController implements ITickingController {
                                     if (!path.isEmpty()) {
                                         Node target = path.target();
                                         assert target != null;
-                                        add(producer, consumers, path, target.asLong());
+                                        onCheck(producer, consumers, path, target.asLong());
                                     }
                                 }
                             }
@@ -80,7 +80,7 @@ public class ElectricController implements ITickingController {
 
                         if (!consumers.isEmpty()) {
                             if (data.containsKey(producer)) {
-                                merge(producer, consumers);
+                                onMerge(producer, consumers);
                             } else {
                                 data.put(producer, consumers);
                             }
@@ -90,7 +90,7 @@ public class ElectricController implements ITickingController {
             }
         }
 
-        for (ObjectList<ElectricConsumer> consumers : data.values()) {
+        for (List<ElectricConsumer> consumers : data.values()) {
             consumers.sort(Comparator.comparingInt(ElectricConsumer::getLoss).reversed());
         }
     }
@@ -102,8 +102,8 @@ public class ElectricController implements ITickingController {
      * @param producer The producer node.
      * @param consumers The consumer nodes.
      */
-    private void merge(@Nonnull IElectricNode producer, @Nonnull ObjectList<ElectricConsumer> consumers) {
-        ObjectList<ElectricConsumer> existingConsumers = data.get(producer);
+    private void onMerge(@Nonnull IElectricNode producer, @Nonnull List<ElectricConsumer> consumers) {
+        List<ElectricConsumer> existingConsumers = data.get(producer);
         for (ElectricConsumer c : consumers) {
             boolean found = false;
             for (ElectricConsumer ec : existingConsumers) {
@@ -126,7 +126,7 @@ public class ElectricController implements ITickingController {
      * @param path The paths to consumers.
      * @param pos The position of the producer.
      */
-    private void add(@Nonnull IElectricNode producer, @Nonnull ObjectList<ElectricConsumer> consumers, @Nullable Path<IElectricCable> path, long pos) {
+    private void onCheck(@Nonnull IElectricNode producer, @Nonnull List<ElectricConsumer> consumers, @Nullable Path<IElectricCable> path, long pos) {
         IElectricNode c = group.getNodes().get(pos).value();
         if (c.canInput()) {
             int voltage = producer.getOutputVoltage();
@@ -155,10 +155,11 @@ public class ElectricController implements ITickingController {
      */
     @Override
     public void tick() {
+        super.tick();
         obtains.clear();
         holders.clear();
 
-        for (Object2ObjectMap.Entry<IElectricNode, ObjectList<ElectricConsumer>> e : data.object2ObjectEntrySet()) {
+        for (Object2ObjectMap.Entry<IElectricNode, List<ElectricConsumer>> e : data.object2ObjectEntrySet()) {
             IElectricNode producer = e.getKey();
             int outputVoltage = producer.getOutputVoltage();
             int outputAmperage = producer.getOutputAmperage();
@@ -178,9 +179,6 @@ public class ElectricController implements ITickingController {
                 // remember amperes stored in this consumer
                 amperage = Math.min(outputAmperage, amperage);
                 obtains.put(consumer.getNode(), obtains.getInt(consumer.getNode()) + amperage);
-
-                consumer.insert((outputVoltage - consumer.getLoss()) * (long) amperage, false);
-                producer.extract(outputVoltage * (long) amperage, false);
 
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
                 if (!consumer.canHandle(outputVoltage, amperage) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest cost cable
@@ -207,9 +205,19 @@ public class ElectricController implements ITickingController {
                         long pos = c.getLongKey();
                         IElectricCable cable = c.getValue();
 
-                        holders.computeIfAbsent(pos, h -> new ElectricHolder(cable.getAmps())).add(amperage);
+                        holders.computeIfAbsent(pos, h -> new ElectricHolder(cable)).add(amperage);
                     }
                 }
+
+                long ampL = amperage; // cast here
+                long inserted = (outputVoltage - consumer.getLoss()) * ampL;
+                long extracted = outputVoltage * ampL;
+
+                totalVoltage += extracted;
+                totalAmperage += ampL;
+
+                consumer.insert(inserted, false);
+                producer.extract(extracted, false);
 
                 outputAmperage -= amperage;
                 if (outputAmperage <= 0) {
@@ -228,6 +236,22 @@ public class ElectricController implements ITickingController {
                 GLOBAL_ELECTRIC_EVENT.onCableOverAmperage(dim, pos, holder.getAmperage());
             }
         }
+    }
+
+    @Override
+    protected void onFrame() {
+        lastVoltage = totalVoltage;
+        lastAmperage = totalAmperage;
+        totalAmperage = totalVoltage = 0L;
+    }
+
+    @Nonnull
+    @Override
+    public String[] getInfo() {
+        return new String[]{
+            "Total Voltage: ".concat(Long.toString(lastVoltage)),
+            "Total Amperage: ".concat(Long.toString(lastAmperage)),
+        };
     }
 
     @Nonnull

@@ -48,13 +48,7 @@ public interface IItemNode extends IConnectable, ITickHost {
     IntList getAvailableSlots(@Nonnull Dir direction);
 
     /**
-     * @param slot The slot index.
-     * @return It returns True if the slot has no items else it returns false.
-     */
-    boolean isEmpty(int slot);
-
-    /**
-     * @param direction Direction to the output.
+     * @param direction Direction to the proceed.
      * @return Gets the initial amount of items that can be output.
      */
     int getOutputAmount(@Nonnull Dir direction);
@@ -64,6 +58,12 @@ public interface IItemNode extends IConnectable, ITickHost {
      * @return Returns the priority of this node as a number.
      */
     int getPriority(@Nonnull Dir direction);
+
+    /**
+     * @param slot The slot index.
+     * @return It returns True if the slot has no items else it returns false.
+     */
+    boolean isEmpty(int slot);
 
     /**
      * Gets if this storage can have item extracted.

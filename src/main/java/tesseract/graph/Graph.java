@@ -4,13 +4,13 @@ import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectList;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 import tesseract.util.CID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Class provides the functionality of any set of nodes.
@@ -168,7 +168,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	@Nullable
 	public Group<C, N> getGroupAt(long pos) {
 		int id = positions.get(pos);
-		return (id == CID.INVALID) ? null : groups.get(id);
+		return (id != CID.INVALID) ? groups.get(id) : null;
 	}
 
 	/**
@@ -194,7 +194,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 			}
 		}
 
-		ObjectList<Group<C, N>> mergeGroups = new ObjectArrayList<>(mergers.size() - 1);
+		List<Group<C, N>> mergeGroups = new ObjectArrayList<>(mergers.size() - 1);
 
 		for (int id : mergers) {
 			if (id == bestId) {
@@ -244,12 +244,12 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 
 		final int bestId;
 		final Group<C, N> best;
-		final ObjectList<Group<C, N>> merged;
+		final List<Group<C, N>> merged;
 
 		/**
 		 * Constructs a new Merged of the groups.
 		 */
-		Merged(int bestId, Group<C, N> best, ObjectList<Group<C, N>> merged) {
+		Merged(int bestId, Group<C, N> best, List<Group<C, N>> merged) {
 			this.best = best;
 			this.bestId = bestId;
 			this.merged = merged;

@@ -8,6 +8,8 @@ import tesseract.util.Node;
 import javax.annotation.Nonnull;
 import java.util.ArrayDeque;
 import java.util.ConcurrentModificationException;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A Star Algorithm implementation for converting a graph – consisting of the grid – into a route through the grid.
@@ -17,7 +19,7 @@ public class ASFinder {
     private ArrayDeque<Node> path;
     private final INode container;
     private final ArrayDeque<Node> open = new ArrayDeque<>();
-    private final ObjectOpenHashSet<Node> closed = new ObjectOpenHashSet<>();
+    private final Set<Node> closed = new ObjectOpenHashSet<>();
 
     /**
      * Creates a reusable AStarPathfinder instance that will search the provided container.
@@ -146,6 +148,7 @@ public class ASFinder {
                 lowest = n;
             }
         }
+        assert lowest != null;
         return lowest;
     }
 
@@ -156,8 +159,8 @@ public class ASFinder {
      * @return The list of nodes.
      */
     @Nonnull
-    public ObjectList<Node> getNeighboringNodes(@Nonnull Node current) {
-        ObjectList<Node> neighbors = new ObjectArrayList<>(6);
+    public List<Node> getNeighboringNodes(@Nonnull Node current) {
+        List<Node> neighbors = new ObjectArrayList<>(6);
 
         for (Dir direction : Dir.VALUES) {
             long pos = current.offset(direction).asLong();

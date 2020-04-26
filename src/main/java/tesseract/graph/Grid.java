@@ -9,6 +9,7 @@ import tesseract.graph.traverse.BFDivider;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -124,8 +125,8 @@ public class Grid<C extends IConnectable> implements INode {
      * @return Returns paths from the linked node.
      */
     @Nonnull
-    public ObjectList<Path<C>> getPaths(long from) {
-        ObjectList<Path<C>> data = new ObjectArrayList<>();
+    public List<Path<C>> getPaths(long from) {
+        List<Path<C>> data = new ObjectArrayList<>();
 
         for (long to : nodes.keySet()) {
             if (from != to) {
@@ -216,7 +217,7 @@ public class Grid<C extends IConnectable> implements INode {
             return;
         }
 
-        ObjectList<LongLinkedOpenHashSet> colored = new ObjectArrayList<>();
+        List<LongLinkedOpenHashSet> colored = new ObjectArrayList<>();
 
         int bestColor = divider.divide(
             removed -> removed.add(pos),

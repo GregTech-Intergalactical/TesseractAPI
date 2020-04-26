@@ -35,7 +35,7 @@ public interface IElectricNode extends IConnectable, ITickHost {
 	/**
 	 * @return Gets the amount of energy currently stored.
 	 */
-	long getPower();
+	long getEnergy();
 
 	/**
 	 * @return Gets the maximum amount of energy that can be stored.

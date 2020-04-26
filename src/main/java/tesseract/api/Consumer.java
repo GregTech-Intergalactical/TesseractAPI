@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 /**
  * A class that acts as a wrapper for a node component.
  */
-abstract public class NodeWrapper<C extends IConnectable, N extends IConnectable> {
+abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
 
     protected final N node;
     protected final ConnectionType connection;
@@ -24,7 +24,7 @@ abstract public class NodeWrapper<C extends IConnectable, N extends IConnectable
      * @param node The node instance.
      * @param path The path information.
      */
-    protected NodeWrapper(@Nonnull N node, @Nullable Path<C> path) {
+    protected Consumer(@Nonnull N node, @Nullable Path<C> path) {
         this.node = node;
 
         if (path != null) {

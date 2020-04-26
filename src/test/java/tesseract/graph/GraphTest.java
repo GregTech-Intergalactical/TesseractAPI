@@ -195,7 +195,7 @@ public class GraphTest {
         }
 
         @Override
-        public long getPower() {
+        public long getEnergy() {
             return 0L;
         }
 

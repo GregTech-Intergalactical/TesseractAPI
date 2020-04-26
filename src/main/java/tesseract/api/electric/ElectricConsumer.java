@@ -1,6 +1,6 @@
 package tesseract.api.electric;
 
-import tesseract.api.NodeWrapper;
+import tesseract.api.Consumer;
 import tesseract.graph.Path;
 
 import javax.annotation.Nonnull;
@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 /**
  * A class that acts as a container for an electrical consumer.
  */
-public class ElectricConsumer extends NodeWrapper<IElectricCable, IElectricNode> {
+public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
 
     private int loss;
     private int minVoltage = Integer.MAX_VALUE;
@@ -39,7 +39,7 @@ public class ElectricConsumer extends NodeWrapper<IElectricCable, IElectricNode>
      * @return Gets the amperage required for the consumer.
      */
     public int getRequiredAmperage(int voltage) {
-        return (int) Math.min(((node.getCapacity() - node.getPower()) + voltage - 1) / voltage, node.getInputAmperage());
+        return (int) Math.min(((node.getCapacity() - node.getEnergy()) + voltage - 1) / voltage, node.getInputAmperage());
     }
 
     /**

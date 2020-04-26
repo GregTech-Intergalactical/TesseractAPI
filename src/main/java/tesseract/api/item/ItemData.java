@@ -8,8 +8,7 @@ import javax.annotation.Nonnull;
 public class ItemData {
 
     private final int slot;
-    private final Object stack;
-    private final Object item;
+    private final Object stack, item;
 
     /**
      * Creates instance of the data.

@@ -37,19 +37,14 @@ public interface IFluidNode extends IConnectable, ITickHost {
     FluidData extract(@Nonnull Object tank, int amount, boolean simulate);
 
     /**
-     * @param direction Direction to the output.
+     * @param direction Direction to the proceed.
      * @return Gets any available tank.
      **/
     @Nullable
     Object getAvailableTank(@Nonnull Dir direction);
 
     /**
-     * @return Gets the maximum amount of fluid that can be stored.
-     */
-    int getCapacity();
-
-    /**
-     * @param direction Direction to the output.
+     * @param direction Direction to the proceed.
      * @return Gets the initial amount of pressure that can be output.
      */
     int getOutputAmount(@Nonnull Dir direction);
@@ -59,6 +54,11 @@ public interface IFluidNode extends IConnectable, ITickHost {
      * @return Returns the priority of this node as a number.
      */
     int getPriority(@Nonnull Dir direction);
+
+    /**
+     * @return Gets the maximum amount of fluid that can be stored.
+     */
+    int getCapacity();
 
     /**
      * Gets if this storage can have fluid extracted.

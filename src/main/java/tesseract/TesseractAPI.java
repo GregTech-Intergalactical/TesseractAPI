@@ -16,6 +16,10 @@ import tesseract.api.item.ItemController;
 import tesseract.graph.Graph;
 import tesseract.graph.Group;
 import tesseract.graph.Cache;
+import tesseract.graph.ITickingController;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class TesseractAPI {
 
@@ -32,6 +36,7 @@ public class TesseractAPI {
      * @param dim The dimension id.
      * @return The graph instance for the world.
      */
+    @Nonnull
     public static Graph<IElectricCable, IElectricNode> getElectricGraph(int dim) {
         return ELECTRIC_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
     }
@@ -42,6 +47,7 @@ public class TesseractAPI {
      * @param dim The dimension id.
      * @return The graph instance for the world.
      */
+    @Nonnull
     public static Graph<IFluidPipe, IFluidNode> getFluidGraph(int dim) {
         return FLUID_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
     }
@@ -52,6 +58,7 @@ public class TesseractAPI {
      * @param dim The dimension id.
      * @return The graph instance for the world.
      */
+    @Nonnull
     public static Graph<IItemPipe, IItemNode> getItemGraph(int dim) {
         return ITEM_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
     }
@@ -62,7 +69,7 @@ public class TesseractAPI {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public static void registerElectricNode(int dim, long pos, IElectricNode node) {
+    public static void registerElectricNode(int dim, long pos, @Nonnull IElectricNode node) {
         Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dim);
         graph.addNode(pos, new Cache<>(node));
         Group<IElectricCable, IElectricNode> group = graph.getGroupAt(pos);
@@ -85,7 +92,7 @@ public class TesseractAPI {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public static void registerFluidNode(int dim, long pos, IFluidNode node) {
+    public static void registerFluidNode(int dim, long pos, @Nonnull IFluidNode node) {
         Graph<IFluidPipe, IFluidNode> graph = getFluidGraph(dim);
         graph.addNode(pos, new Cache<>(node));
         Group<IFluidPipe, IFluidNode> group = graph.getGroupAt(pos);
@@ -108,7 +115,7 @@ public class TesseractAPI {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public static void registerItemNode(int dim, long pos, IItemNode node) {
+    public static void registerItemNode(int dim, long pos, @Nonnull IItemNode node) {
         Graph<IItemPipe, IItemNode> graph = getItemGraph(dim);
         graph.addNode(pos, new Cache<>(node));
         Group<IItemPipe, IItemNode> group = graph.getGroupAt(pos);
@@ -131,7 +138,7 @@ public class TesseractAPI {
      * @param pos The position at which the cable will be added.
      * @param connector The cable object.
      */
-    public static void registerElectricCable(int dim, long pos, IElectricCable connector) {
+    public static void registerElectricCable(int dim, long pos, @Nonnull IElectricCable connector) {
         getElectricGraph(dim).addConnector(pos, new Cache<>(connector));
     }
 
@@ -141,7 +148,7 @@ public class TesseractAPI {
      * @param pos The position at which the pipe will be added.
      * @param connector The pipe object.
      */
-    public static void registerFluidPipe(int dim, long pos, IFluidPipe connector) {
+    public static void registerFluidPipe(int dim, long pos, @Nonnull IFluidPipe connector) {
         getFluidGraph(dim).addConnector(pos, new Cache<>(connector));
     }
 
@@ -151,7 +158,7 @@ public class TesseractAPI {
      * @param pos The position at which the pipe will be added.
      * @param connector The pipe object.
      */
-    public static void registerItemPipe(int dim, long pos, IItemPipe connector) {
+    public static void registerItemPipe(int dim, long pos, @Nonnull IItemPipe connector) {
         getItemGraph(dim).addConnector(pos, new Cache<>(connector));
     }
 
@@ -180,5 +187,41 @@ public class TesseractAPI {
      */
     public static void removeItem(int dim, long pos){
         getItemGraph(dim).removeAt(pos);
+    }
+
+    /**
+     * Gets an instance of a controller at a given position.
+     * @param dim The dimension id where the electric component is exist.
+     * @param pos The position at which the electric component is exist.
+     * @return The controller object. (Can be null)
+     */
+    @Nullable
+    public static ITickingController getElectricController(int dim, long pos) {
+        Group<?, ?> group = getElectricGraph(dim).getGroupAt(pos);
+        return group != null ? group.getController() : null;
+    }
+
+    /**
+     * Gets an instance of a controller at a given position.
+     * @param dim The dimension id where the fluid component is exist.
+     * @param pos The position at which the fluid component is exist.
+     * @return The controller object. (Can be null)
+     */
+    @Nullable
+    public static ITickingController getFluidController(int dim, long pos) {
+        Group<?, ?> group = getFluidGraph(dim).getGroupAt(pos);
+        return group != null ? group.getController() : null;
+    }
+
+    /**
+     * Gets an instance of a controller at a given position.
+     * @param dim The dimension id where the item component is exist.
+     * @param pos The position at which the item component is exist.
+     * @return The controller object. (Can be null)
+     */
+    @Nullable
+    public static ITickingController getItemController(int dim, long pos) {
+        Group<?, ?> group = getItemGraph(dim).getGroupAt(pos);
+        return group != null ? group.getController() : null;
     }
 }

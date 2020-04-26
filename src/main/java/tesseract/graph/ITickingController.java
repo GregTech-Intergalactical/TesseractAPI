@@ -24,4 +24,10 @@ public interface ITickingController {
      */
     @Nonnull
     ITickingController clone(@Nonnull INode group);
+
+    /**
+     * @return To get simple things like a some information.
+     */
+    @Nonnull
+    String[] getInfo();
 }

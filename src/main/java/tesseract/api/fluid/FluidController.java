@@ -1,23 +1,21 @@
 package tesseract.api.fluid;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.api.ConnectionType;
+import tesseract.api.Controller;
 import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
-import tesseract.util.RandomIterator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static tesseract.TesseractAPI.GLOBAL_FLUID_EVENT;
@@ -25,12 +23,12 @@ import static tesseract.TesseractAPI.GLOBAL_FLUID_EVENT;
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-public class FluidController implements ITickingController {
+public class FluidController extends Controller<IFluidPipe, IFluidNode> {
 
-    private final int dim;
-    private final Group<IFluidPipe, IFluidNode> group;
+    private long totalPressure, lastPressure;
+    private int maxTemperature, isLeaking, lastTemperature, lastLeaking;
     private final Long2ObjectMap<FluidHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
-    private final Object2ObjectMap<IFluidNode, Map<Dir, ObjectList<FluidConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectMap<IFluidNode, Map<Dir, List<FluidConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
@@ -39,8 +37,7 @@ public class FluidController implements ITickingController {
      * @param group The group this controller handles.
      */
     public FluidController(int dim, @Nonnull Group<IFluidPipe, IFluidNode> group) {
-        this.dim = dim;
-        this.group = group;
+        super(dim ,group);
     }
 
     @Override
@@ -53,11 +50,11 @@ public class FluidController implements ITickingController {
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
                     if (producer.canOutput(direction)) {
-                        ObjectList<FluidConsumer> consumers = new ObjectArrayList<>();
+                        List<FluidConsumer> consumers = new ObjectArrayList<>();
                         long offset = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(offset)) {
-                            add(consumers, null, direction.invert(), offset);
+                            onCheck(consumers, null, direction.invert(), offset);
                         } else {
                             Grid<IFluidPipe> grid = group.getGridAt(offset, direction);
                             if (grid != null) {
@@ -65,7 +62,7 @@ public class FluidController implements ITickingController {
                                     if (!path.isEmpty()) {
                                         Node target = path.target();
                                         assert target != null;
-                                        add(consumers, path, target.getDirection(), target.asLong());
+                                        onCheck(consumers, path, target.getDirection(), target.asLong());
                                     }
                                 }
                             }
@@ -79,8 +76,8 @@ public class FluidController implements ITickingController {
             }
         }
 
-        for (Map<Dir, ObjectList<FluidConsumer>> map : data.values()) {
-            for (ObjectList<FluidConsumer> consumers : map.values()) {
+        for (Map<Dir, List<FluidConsumer>> map : data.values()) {
+            for (List<FluidConsumer> consumers : map.values()) {
                 consumers.sort(Comparator.comparingInt(FluidConsumer::getPriority));
             }
         }
@@ -94,22 +91,20 @@ public class FluidController implements ITickingController {
      * @param dir The added direction.
      * @param pos The position of the producer.
      */
-    private void add(@Nonnull ObjectList<FluidConsumer> consumers, @Nullable Path<IFluidPipe> path, @Nonnull Dir dir, long pos) {
+    private void onCheck(@Nonnull List<FluidConsumer> consumers, @Nullable Path<IFluidPipe> path, @Nonnull Dir dir, long pos) {
         IFluidNode consumer = group.getNodes().get(pos).value();
         if (consumer.canInput()) consumers.add(new FluidConsumer(consumer, path, dir));
     }
 
-    /**
-     * Call on the updates to send fluids.
-     */
     @Override
     public void tick() {
+        super.tick();
         holders.clear();
 
-        for (Object2ObjectMap.Entry<IFluidNode, Map<Dir, ObjectList<FluidConsumer>>> e : data.object2ObjectEntrySet()) {
+        for (Object2ObjectMap.Entry<IFluidNode, Map<Dir, List<FluidConsumer>>> e : data.object2ObjectEntrySet()) {
             IFluidNode producer = e.getKey();
 
-            for (Map.Entry<Dir, ObjectList<FluidConsumer>> c : e.getValue().entrySet()) {
+            for (Map.Entry<Dir, List<FluidConsumer>> c : e.getValue().entrySet()) {
                 Dir direction = c.getKey();
 
                 Object tank = producer.getAvailableTank(direction);
@@ -170,9 +165,13 @@ public class FluidController implements ITickingController {
                             long pos = p.getLongKey();
                             IFluidPipe pipe = p.getValue();
 
-                            holders.computeIfAbsent(pos, h -> new FluidHolder(pipe.getCapacity(), pipe.getPressure())).add(amount, fluid);
+                            holders.computeIfAbsent(pos, h -> new FluidHolder(pipe)).add(amount, fluid);
                         }
                     }
+
+                    maxTemperature = Math.max(temperature, maxTemperature);
+                    isLeaking = Math.max(isGaseous ? 1: 0, isLeaking);
+                    totalPressure += amount;
 
                     consumer.insert(drained, false);
 
@@ -197,6 +196,25 @@ public class FluidController implements ITickingController {
                 GLOBAL_FLUID_EVENT.onPipeOverCapacity(dim, pos, absorber.getCapacity());
             }
         }
+    }
+
+    @Override
+    protected void onFrame() {
+        lastTemperature = maxTemperature;
+        lastPressure = totalPressure;
+        lastLeaking = isLeaking;
+        totalPressure = 0L;
+        maxTemperature = isLeaking = 0;
+    }
+
+    @Nonnull
+    @Override
+    public String[] getInfo() {
+        return new String[]{
+            "Maximum Temperature: ".concat(Integer.toString(lastTemperature)),
+            "Total Pressure: ".concat(Long.toString(lastPressure)),
+            "Any Leaks: ".concat(lastLeaking == 1 ? "Yes" : "No")
+        };
     }
 
     @Nonnull

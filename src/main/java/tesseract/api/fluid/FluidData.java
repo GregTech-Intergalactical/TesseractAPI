@@ -7,11 +7,9 @@ import javax.annotation.Nonnull;
  */
 public class FluidData {
 
-    private final int amount;
-    private final int temperature;
     private final boolean isGaseous;
-    private final Object stack;
-    private final Object fluid;
+    private final Object stack, fluid;
+    private final int amount, temperature;
 
     /**
      * Creates instance of the data.
