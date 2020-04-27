@@ -445,7 +445,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     // Just a node then, simply add it to the new group.
                     // The maps are mutated directly here in order to retain the cached connectivity.
                     if (id == CID.INVALID) {
-                        newGroup.nodes.put(reached, Objects.requireNonNull(nodes.remove(reached)));
+                        newGroup.nodes.put(reached, nodes.remove(reached));
                         continue;
                     }
 

@@ -51,12 +51,12 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
                 for (Dir direction : Dir.VALUES) {
                     if (producer.canOutput(direction)) {
                         List<FluidConsumer> consumers = new ObjectArrayList<>();
-                        long offset = position.offset(direction).asLong();
+                        long side = position.offset(direction).asLong();
 
-                        if (group.getNodes().containsKey(offset)) {
-                            onCheck(consumers, null, direction.invert(), offset);
+                        if (group.getNodes().containsKey(side)) {
+                            onCheck(consumers, null, direction.invert(), side);
                         } else {
-                            Grid<IFluidPipe> grid = group.getGridAt(offset, direction);
+                            Grid<IFluidPipe> grid = group.getGridAt(side, direction);
                             if (grid != null) {
                                 for (Path<IFluidPipe> path : grid.getPaths(pos)) {
                                     if (!path.isEmpty()) {

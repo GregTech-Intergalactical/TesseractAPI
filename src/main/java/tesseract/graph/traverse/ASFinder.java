@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.objects.*;
 import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Node;
+import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -64,6 +65,10 @@ public class ASFinder {
                 closed.add(current);
 
                 for (Node n : getNeighboringNodes(current)) {
+
+                    if (n == null) {
+                        break;
+                    }
 
                     if (closed.contains(n)) {
                         continue;
@@ -156,14 +161,15 @@ public class ASFinder {
      * @return The list of nodes.
      */
     @Nonnull
-    public List<Node> getNeighboringNodes(@Nonnull Node current) {
-        List<Node> neighbors = new ObjectArrayList<>(6);
+    public Node[] getNeighboringNodes(@Nonnull Node current) {
+        Node[] neighbors = new Node[6]; int i = 0;
 
         for (Dir direction : Dir.VALUES) {
-            long pos = current.offset(direction).asLong();
+            Pos pos = current.offset(direction);
+            long side = pos.asLong();
 
-            if (container.contains(pos)) {
-                neighbors.add(new Node(pos, direction.invert()));
+            if (container.contains(side)) {
+                neighbors[i++] = new Node(pos, direction.invert());
             }
         }
 

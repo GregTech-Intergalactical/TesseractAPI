@@ -49,12 +49,12 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
                 for (Dir direction : Dir.VALUES) {
                     if (producer.canOutput(direction)) {
                         List<ItemConsumer> consumers = new ObjectArrayList<>();
-                        long offset = position.offset(direction).asLong();
+                        long side = position.offset(direction).asLong();
 
-                        if (group.getNodes().containsKey(offset)) {
-                            onCheck(consumers, null, direction.invert(), offset);
+                        if (group.getNodes().containsKey(side)) {
+                            onCheck(consumers, null, direction.invert(), side);
                         } else {
-                            Grid<IItemPipe> grid = group.getGridAt(offset, direction);
+                            Grid<IItemPipe> grid = group.getGridAt(side, direction);
                             if (grid != null) {
                                 for (Path<IItemPipe> path : grid.getPaths(pos)) {
                                     if (!path.isEmpty()) {

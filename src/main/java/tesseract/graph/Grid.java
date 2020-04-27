@@ -48,6 +48,8 @@ public class Grid<C extends IConnectable> implements INode {
 
     @Override
     public boolean linked(long from, @Nullable Dir towards, long to) {
+        assert towards != null;
+
         Cache<C> cacheFrom = connectors.get(from);
         Cache<C> cacheTo = connectors.get(to);
 
@@ -70,11 +72,13 @@ public class Grid<C extends IConnectable> implements INode {
             return false;
         }
 
-        return validLink && Connectivity.has(connectivityFrom, Objects.requireNonNull(towards)) && Connectivity.has(connectivityTo, towards.invert());
+        return validLink && Connectivity.has(connectivityFrom, towards) && Connectivity.has(connectivityTo, towards.invert());
     }
 
     @Override
     public boolean connects(long pos, @Nullable Dir towards) {
+        assert towards != null;
+
         Cache<C> cache = connectors.get(pos);
         byte connectivity = nodes.get(pos);
 
@@ -86,7 +90,7 @@ public class Grid<C extends IConnectable> implements INode {
             return false;
         }
 
-        return Connectivity.has(connectivity, Objects.requireNonNull(towards));
+        return Connectivity.has(connectivity, towards);
     }
 
     /**

@@ -61,12 +61,12 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
                 for (Dir direction : Dir.VALUES) {
                     if (producer.canOutput(direction)) {
                         List<ElectricConsumer> consumers = new ObjectArrayList<>();
-                        long offset = position.offset(direction).asLong();
+                        long side = position.offset(direction).asLong();
 
-                        if (group.getNodes().containsKey(offset)) {
-                            onCheck(producer, consumers, null, offset);
+                        if (group.getNodes().containsKey(side)) {
+                            onCheck(producer, consumers, null, side);
                         } else {
-                            Grid<IElectricCable> grid = group.getGridAt(offset, direction);
+                            Grid<IElectricCable> grid = group.getGridAt(side, direction);
                             if (grid != null) {
                                 for (Path<IElectricCable> path : grid.getPaths(pos)) {
                                     if (!path.isEmpty()) {

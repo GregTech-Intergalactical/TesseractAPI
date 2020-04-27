@@ -109,7 +109,7 @@ public class Pos {
         this.x = pos.x;
         this.y = pos.y;
         this.z = pos.z;
-        this.value = packAll(pos.x, pos.y, pos.z);
+        this.value = pos.value;
     }
 
     /**

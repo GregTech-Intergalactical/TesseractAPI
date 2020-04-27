@@ -17,6 +17,17 @@ public class Node extends Pos {
     /**
      * Creates a node instance.
      *
+     * @param pos The position to duplicate.
+     * @param direction The direction to the parent.
+     */
+    public Node(@Nonnull Pos pos, @Nonnull Dir direction) {
+        super(pos);
+        setDirection(direction);
+    }
+
+    /**
+     * Creates a node instance.
+     *
      * @param value The compressed position.
      * @param direction The direction to the parent.
      */
