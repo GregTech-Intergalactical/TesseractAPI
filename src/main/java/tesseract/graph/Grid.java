@@ -9,6 +9,7 @@ import tesseract.graph.traverse.BFDivider;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -145,7 +146,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @return An set of path points.
      */
     @Nonnull
-    public ArrayDeque<Node> getPath(long origin, long target) {
+    public Deque<Node> getPath(long origin, long target) {
         return finder.traverse(origin, target);
     }
 

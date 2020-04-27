@@ -6,19 +6,16 @@ import tesseract.util.Dir;
 import tesseract.util.Node;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayDeque;
-import java.util.ConcurrentModificationException;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A Star Algorithm implementation for converting a graph – consisting of the grid – into a route through the grid.
  */
 public class ASFinder {
 
-    private ArrayDeque<Node> path;
+    private Deque<Node> path;
     private final INode container;
-    private final ArrayDeque<Node> open = new ArrayDeque<>();
+    private final Deque<Node> open = new ArrayDeque<>();
     private final Set<Node> closed = new ObjectOpenHashSet<>();
 
     /**
@@ -38,7 +35,7 @@ public class ASFinder {
      * @return An set of the points calculated by the A Star algorithm.
      */
     @Nonnull
-    public ArrayDeque<Node> traverse(long origin, long target) {
+    public Deque<Node> traverse(long origin, long target) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same ASFinder instance");
         }

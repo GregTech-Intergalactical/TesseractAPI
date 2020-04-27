@@ -8,6 +8,7 @@ import tesseract.util.Node;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Iterator;
 
 /**
@@ -26,7 +27,7 @@ public class Path<C extends IConnectable> {
      * @param connectors The connectors array.
      * @param path The path queue.
      */
-    protected Path(@Nonnull Long2ObjectMap<Cache<C>> connectors, @Nonnull ArrayDeque<Node> path) {
+    protected Path(@Nonnull Long2ObjectMap<Cache<C>> connectors, @Nonnull Deque<Node> path) {
         origin = path.pollLast();
         target = path.pollFirst();
 
@@ -34,7 +35,6 @@ public class Path<C extends IConnectable> {
         while (it.hasNext()) {
             Node node = it.next();
             long pos = node.asLong();
-
             C cable = connectors.get(pos).value();
 
             full.put(pos, cable);
