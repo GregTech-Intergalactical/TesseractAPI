@@ -120,8 +120,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             break;
         }
 
-        //TODO: Finish this, connectors will requires resetControllerHost which is bad
-        //      Think about other idea may be?
         if (currentTickHost == null) {
 
             // Lookup for a tickhost among connectors
