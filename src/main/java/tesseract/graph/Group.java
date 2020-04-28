@@ -113,12 +113,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         if (controller == null) return;
         currentTickHost = null;
 
-        for (Cache<N> n : nodes.values()) {
-            if (n == cache || !(n.value() instanceof ITickHost)) {
+        for (Cache<?> n : nodes.values()) {
+            if (nextCache(cache, n)) {
                 continue;
             }
-
-            currentTickHost = (ITickHost) n.value();
             break;
         }
 
@@ -126,12 +124,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             X: for (int id : connectors.values()) {
                 Grid<C> grid = grids.get(id);
 
-                for (Cache<C> c : grid.getConnectors().values()) {
-                    if (c == cache || !(c.value() instanceof ITickHost)) {
+                for (Cache<?> c : grid.getConnectors().values()) {
+                    if (nextCache(cache, c)) {
                         continue;
                     }
-
-                    currentTickHost = (ITickHost) c.value();
                     break X;
                 }
             }
@@ -141,6 +137,22 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             currentTickHost.reset(null, controller);
             controller.change();
         }
+    }
+
+    /**
+     * Trying to look for a new cache.
+     *
+     * @param cache The given cache object.
+     * @param o The current cache.
+     * @return True or false.
+     */
+    private boolean nextCache(@Nullable Cache<?> cache, @Nonnull Cache<?> o) {
+        if (o == cache || !(o.value() instanceof ITickHost)) {
+            return true;
+        }
+
+        currentTickHost = (ITickHost) o.value();
+        return false;
     }
 
     /**
