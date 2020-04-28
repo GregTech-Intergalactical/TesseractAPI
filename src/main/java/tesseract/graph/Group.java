@@ -120,7 +120,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             break;
         }
 
+        //TODO: Finish this, connectors will requires resetControllerHost which is bad
         if (currentTickHost == null) {
+
+            // Lookup for a tickhost among connectors
             X: for (int id : connectors.values()) {
                 Grid<C> grid = grids.get(id);
 
