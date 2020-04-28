@@ -113,6 +113,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         if (controller == null) return;
         currentTickHost = null;
 
+        // Lookup for a ticking host among nodes
         for (Cache<?> n : nodes.values()) {
             if (nextCache(cache, n)) {
                 continue;
@@ -121,8 +122,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         if (currentTickHost == null) {
-
-            // Lookup for a tickhost among connectors
+            // Lookup for a ticking host among connectors
             I: for (int id : connectors.values()) {
                 Grid<C> grid = grids.get(id);
 
