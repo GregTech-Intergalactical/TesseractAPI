@@ -121,6 +121,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         //TODO: Finish this, connectors will requires resetControllerHost which is bad
+        //      Think about other idea may be?
         if (currentTickHost == null) {
 
             // Lookup for a tickhost among connectors
@@ -143,7 +144,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
-     * Trying to look for a new cache.
+     * Trying to switch for a new host.
      *
      * @param cache The given cache object.
      * @param o The current cache.
