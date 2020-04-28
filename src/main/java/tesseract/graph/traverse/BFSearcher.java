@@ -1,7 +1,6 @@
 package tesseract.graph.traverse;
 
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
-import it.unimi.dsi.fastutil.longs.LongArrayIndirectPriorityQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
 import tesseract.graph.INode;

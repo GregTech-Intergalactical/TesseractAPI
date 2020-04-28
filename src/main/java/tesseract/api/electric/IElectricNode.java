@@ -1,7 +1,6 @@
 package tesseract.api.electric;
 
 import tesseract.graph.IConnectable;
-import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
@@ -14,7 +13,7 @@ import javax.annotation.Nonnull;
  * Derived from the Redstone Flux power system designed by King Lemming and originally utilized in Thermal Expansion and related mods.
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
  */
-public interface IElectricNode extends IConnectable, ITickHost {
+public interface IElectricNode extends IConnectable {
 
 	/**
 	 * Adds energy to the node. Returns quantity of energy that was accepted.

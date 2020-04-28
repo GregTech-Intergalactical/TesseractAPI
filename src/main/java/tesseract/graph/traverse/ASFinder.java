@@ -83,8 +83,8 @@ public class ASFinder {
                         }
                     } else {
                         n.setCost(score);
-                        open.add(n);
                         n.setParent(current);
+                        open.add(n);
                     }
 
                     n.setHeuristic(n.heuristic(end));

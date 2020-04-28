@@ -7,7 +7,6 @@ import tesseract.util.Node;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
 

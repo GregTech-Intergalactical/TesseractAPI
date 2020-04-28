@@ -1,15 +1,13 @@
 package tesseract.graph;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.junit.Test;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static tesseract.util.Pos.packAll;
 import static org.junit.Assert.*;
@@ -39,13 +37,13 @@ public class GraphTest {
         graph.addConnector(packAll(0, 0, 0), new Cache<>(new TestConnector()));
         graph.addConnector(packAll(0, 4, 0), new Cache<>(new TestConnector()));
         assertEquals(1, graph.countGroups());
-        ArrayDeque<Node> set1 = new ArrayDeque<>();
+        Deque<Node> set1 = new ArrayDeque<>();
         for (Group<TestConnector, TestNode> group : graph.getGroups().values()) {
             for (Grid<TestConnector> grid : group.getGrids().values()) {
                 set1 = grid.getPath(packAll(0, -1, 0), packAll(0, 6, 0));
             }
         }
-        List<Pos> set2 = new ArrayList<>();
+        List<Pos> set2 = new ObjectArrayList<>();
         set2.add(new Pos(0, -1, 0));
         set2.add(new Pos(0, 0, 0));
         set2.add(new Pos(0, 1, 0));

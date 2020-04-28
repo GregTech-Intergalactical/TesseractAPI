@@ -1,7 +1,6 @@
 package tesseract.api.fluid;
 
 import tesseract.graph.IConnectable;
-import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
@@ -16,7 +15,7 @@ import javax.annotation.Nullable;
  * You are free to handle Fluids in any way that you wish - this is simply an easy default way.
  * DO NOT ASSUME that these objects are used internally in all cases.
  */
-public interface IFluidNode extends IConnectable, ITickHost {
+public interface IFluidNode extends IConnectable {
 
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.

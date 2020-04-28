@@ -2,7 +2,6 @@ package tesseract.api.item;
 
 import it.unimi.dsi.fastutil.ints.IntList;
 import tesseract.graph.IConnectable;
-import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
@@ -17,7 +16,7 @@ import javax.annotation.Nullable;
  * You are free to handle Items in any way that you wish - this is simply an easy default way.
  * DO NOT ASSUME that these objects are used internally in all cases.
  */
-public interface IItemNode extends IConnectable, ITickHost {
+public interface IItemNode extends IConnectable {
 
     /**
      * Inserts an item into an available slot and return the remainder.

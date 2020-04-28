@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Class provides the functionality of any set of nodes.
  */
-public class Graph<C extends IConnectable, N extends IConnectable> implements INode  {
+public class Graph<C extends IConnectable, N extends IConnectable> implements INode {
 
 	private final Int2ObjectMap<Group<C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
 	private final Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
