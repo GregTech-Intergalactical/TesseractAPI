@@ -75,18 +75,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
-     * Resets the current controller host.
-     *
-     * @param node The given node.
-     */
-    private void resetControllerHost(@Nonnull Cache<N> node) {
-        if (currentTickHost != null && node.value() instanceof ITickHost && node.value() == currentTickHost) {
-            currentTickHost.reset(controller, null);
-            findNextValidHost(node);
-        }
-    }
-
-    /**
      * Resets the current tick host.
      */
     private void releaseControllerHost() {
@@ -105,21 +93,48 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
+     * Resets the current controller host.
+     *
+     * @param cache The given cache object.
+     */
+    private void resetControllerHost(@Nonnull Cache<?> cache) {
+        if (currentTickHost != null && cache.value() instanceof ITickHost && cache.value() == currentTickHost) {
+            currentTickHost.reset(controller, null);
+            findNextValidHost(cache);
+        }
+    }
+
+    /**
      * Finds the next available host in the group.
      *
-     * @param node The given node.
+     * @param cache The given cache object.
      */
-    private void findNextValidHost(@Nullable Cache<N> node) {
+    private void findNextValidHost(@Nullable Cache<?> cache) {
         if (controller == null) return;
         currentTickHost = null;
 
         for (Cache<N> n : nodes.values()) {
-            if (n == node || !(n.value() instanceof ITickHost)) {
+            if (n == cache || !(n.value() instanceof ITickHost)) {
                 continue;
             }
 
             currentTickHost = (ITickHost) n.value();
             break;
+        }
+
+        if (currentTickHost == null) {
+            X: for (int id : connectors.values()) {
+                Grid<C> grid = grids.get(id);
+
+                for (Cache<C> c : grid.getConnectors().values()) {
+                    if (c == cache || !(c.value() instanceof ITickHost)) {
+                        continue;
+                    }
+
+                    currentTickHost = (ITickHost) c.value();
+                    break X;
+                }
+            }
         }
 
         if (currentTickHost != null) {
