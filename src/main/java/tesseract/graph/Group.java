@@ -86,7 +86,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * Calls the changing method for the controller.
      */
-    public void updateController() {
+    private void updateController() {
         if (controller != null) {
             controller.change();
         }
@@ -123,14 +123,14 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         if (currentTickHost == null) {
 
             // Lookup for a tickhost among connectors
-            X: for (int id : connectors.values()) {
+            I: for (int id : connectors.values()) {
                 Grid<C> grid = grids.get(id);
 
                 for (Cache<?> c : grid.getConnectors().values()) {
                     if (nextCache(cache, c)) {
                         continue;
                     }
-                    break X;
+                    break I;
                 }
             }
         }
