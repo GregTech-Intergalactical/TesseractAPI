@@ -30,10 +30,9 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
      * Creates instance of the controller.
      *
      * @param dim The dimension id.
-     * @param group The group this controller handles.
      */
-    public ItemController(int dim, @Nonnull Group<IItemPipe, IItemNode> group) {
-        super(dim ,group);
+    public ItemController(int dim) {
+        super(dim);
     }
 
     @Override
@@ -191,8 +190,9 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
 
     @Nonnull
     @Override
-    @SuppressWarnings("unchecked")
     public ITickingController clone(@Nonnull INode group) {
-        return new ItemController(dim, (Group<IItemPipe, IItemNode>) group);
+        Controller<?, ?> controller = new ItemController(dim);
+        controller.setGroup(group);
+        return controller;
     }
 }

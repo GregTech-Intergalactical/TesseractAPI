@@ -290,8 +290,7 @@ public class Pos {
     @Override
     public boolean equals(Object o) {
         if (o instanceof Pos) {
-            Pos obj = (Pos) o;
-            return (value == obj.value);
+            return (value == ((Pos) o).value);
         }
         return false;
     }

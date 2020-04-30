@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import tesseract.api.Controller;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 import tesseract.util.CID;
@@ -59,12 +60,13 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 *
 	 * @param pos The position at which the node will be added.
 	 * @param node The node to add.
+	 * @param controller The controller to use.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addNode(long pos, @Nonnull Cache<N> node) {
+	public boolean addNode(long pos, @Nonnull Cache<N> node, @Nonnull Controller<C, N> controller) {
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleNode(pos, node));
-			if (group != null) group.addNode(pos, node);
+			if (group != null) group.addNode(pos, node, controller);
 			return true;
 		}
 
@@ -76,12 +78,13 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 *
 	 * @param pos The position at which the node will be added.
 	 * @param connector The connector to add.
+	 * @param controller The controller to use.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addConnector(long pos, @Nonnull Cache<C> connector) {
+	public boolean addConnector(long pos, @Nonnull Cache<C> connector, @Nonnull Controller<C, N> controller) {
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
-			if (group != null) group.addConnector(pos, connector);
+			if (group != null) group.addConnector(pos, connector, controller);
 			return true;
 		}
 

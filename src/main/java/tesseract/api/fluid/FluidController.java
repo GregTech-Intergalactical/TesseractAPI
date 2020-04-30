@@ -34,10 +34,9 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
      * Creates instance of the controller.
      *
      * @param dim The dimension id.
-     * @param group The group this controller handles.
      */
-    public FluidController(int dim, @Nonnull Group<IFluidPipe, IFluidNode> group) {
-        super(dim ,group);
+    public FluidController(int dim) {
+        super(dim);
     }
 
     @Override
@@ -219,8 +218,9 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
 
     @Nonnull
     @Override
-    @SuppressWarnings("unchecked")
     public ITickingController clone(@Nonnull INode group) {
-        return new FluidController(dim, (Group<IFluidPipe, IFluidNode>) group);
+        Controller<?, ?> controller = new FluidController(dim);
+        controller.setGroup(group);
+        return controller;
     }
 }

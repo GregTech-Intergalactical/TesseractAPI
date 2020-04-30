@@ -32,10 +32,9 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
      * Creates instance of the controller.
      *
      * @param dim The dimension id.
-     * @param group The group this controller handles.
      */
-    public ElectricController(int dim, @Nonnull Group<IElectricCable, IElectricNode> group) {
-        super(dim ,group);
+    public ElectricController(int dim) {
+        super(dim);
     }
 
     /**
@@ -256,8 +255,9 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
 
     @Nonnull
     @Override
-    @SuppressWarnings("unchecked")
     public ITickingController clone(@Nonnull INode group) {
-        return new ElectricController(dim, (Group<IElectricCable, IElectricNode>) group);
+        Controller<?, ?> controller = new ElectricController(dim);
+        controller.setGroup(group);
+        return controller;
     }
 }

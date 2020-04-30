@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
 import org.apache.commons.collections4.SetUtils;
+import tesseract.api.Controller;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
@@ -77,39 +78,54 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * Resets the current tick host.
      */
-    private void releaseControllerHost() {
+    /*private void releaseControllerHost() {
         if (currentTickHost != null && controller != null) {
             currentTickHost.reset(controller, null);
         }
-    }
+    }*/
 
     /**
      * Calls the changing method for the controller.
+     *
+     * @param cache The given cache object.
+     * @param ticking The ticking instance.
      */
-    private void updateController() {
-        if (controller != null) {
-            controller.change();
+    private void updateController(@Nonnull Cache<?> cache, @Nonnull Controller<C, N> ticking) {
+
+        if (controller == null) {
+            ticking.setGroup(this);
+            controller = ticking;
         }
+
+        if (currentTickHost == null) {
+            // If cache contains tick host set as a new one
+            if (cache.value() instanceof ITickHost) {
+                currentTickHost = (ITickHost) cache.value();
+                currentTickHost.reset(null, controller);
+            }
+        }
+
+        controller.change();
     }
 
     /**
      * Resets the current controller host.
      *
-     * @param cache The given cache object.
+     * @param cache The given cache.
      */
-    private void resetControllerHost(@Nonnull Cache<?> cache) {
+    /*private void resetControllerHost(@Nonnull Cache<?> cache) {
         if (currentTickHost != null && cache.value() instanceof ITickHost && cache.value() == currentTickHost) {
             currentTickHost.reset(controller, null);
             findNextValidHost(cache);
         }
-    }
+    }*/
 
     /**
      * Finds the next available host in the group.
      *
-     * @param cache The given cache object.
+     * @param cache The given cache.
      */
-    private void findNextValidHost(@Nullable Cache<?> cache) {
+    /*private void findNextValidHost(@Nullable Cache<?> cache) {
         if (controller == null) return;
         currentTickHost = null;
 
@@ -139,7 +155,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             currentTickHost.reset(null, controller);
             controller.change();
         }
-    }
+    }*/
 
     /**
      * Trying to switch for a new host.
@@ -197,14 +213,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
-     * Sets the group controller.
-     * @param controller The controller object, can be null.
-     */
-    public void setController(@Nullable ITickingController controller) {
-        this.controller = controller;
-    }
-
-    /**
      * @return Returns group ticking host.
      */
     @Nullable
@@ -213,20 +221,13 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
-     * Sets the group ticking host.
-     * @param currentTickHost The host object, can be null.
-     */
-    public void setCurrentTickHost(@Nullable ITickHost currentTickHost) {
-        this.currentTickHost = currentTickHost;
-    }
-
-    /**
      * Adds a new node to the group.
      *
      * @param pos The given position.
      * @param node The given node.
+     * @param controller The controller to use.
      */
-    public void addNode(long pos, @Nonnull Cache<N> node) {
+    public void addNode(long pos, @Nonnull Cache<N> node, @Nonnull Controller<C, N> controller) {
         nodes.put(pos, node);
 
         Pos position = new Pos(pos);
@@ -249,15 +250,16 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             }
         }
 
-        updateController();
+        updateController(node, controller);
     }
 
     /**
      * Adds a new connector to the group.
      * @param pos The given position.
      * @param connector The given connector.
+     * @param controller The controller to use.
      */
-    public void addConnector(long pos, @Nonnull Cache<C> connector) {
+    public void addConnector(long pos, @Nonnull Cache<C> connector, @Nonnull Controller<C, N> controller) {
 
         Int2ObjectMap<Grid<C>> linked = new Int2ObjectLinkedOpenHashMap<>();
         Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
@@ -357,7 +359,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             }
         }
 
-        updateController();
+        updateController(connector, controller);
     }
 
     /**

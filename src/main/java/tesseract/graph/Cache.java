@@ -44,7 +44,7 @@ public class Cache<T extends IConnectable> {
     }
 
     /**
-     * @return Gets the cache object.
+     * @return Gets the cache.
      */
     @Nonnull
     public T value() {

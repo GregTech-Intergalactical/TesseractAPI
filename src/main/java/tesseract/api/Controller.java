@@ -1,7 +1,10 @@
 package tesseract.api;
 
+import tesseract.api.fluid.IFluidNode;
+import tesseract.api.fluid.IFluidPipe;
 import tesseract.graph.Group;
 import tesseract.graph.IConnectable;
+import tesseract.graph.INode;
 import tesseract.graph.ITickingController;
 
 import javax.annotation.Nonnull;
@@ -13,17 +16,25 @@ abstract public class Controller<C extends IConnectable, N extends IConnectable>
 
     protected int tick;
     protected final int dim;
-    protected final Group<C, N> group;
+    protected Group<C, N> group;
 
     /**
      * Creates instance of the controller.
      *
      * @param dim The dimension id.
+     */
+    protected Controller(int dim) {
+        this.dim = dim;
+    }
+
+    /**
+     * Sets the group for the controller.
+     *
      * @param group The group this controller handles.
      */
-    protected Controller(int dim, @Nonnull Group<C, N> group) {
-        this.dim = dim;
-        this.group = group;
+    @SuppressWarnings("unchecked")
+    public void setGroup(@Nonnull INode group) {
+        this.group = (Group<C, N>) group;
     }
 
     /**

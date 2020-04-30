@@ -13,10 +13,7 @@ import tesseract.api.fluid.IFluidPipe;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
 import tesseract.api.item.ItemController;
-import tesseract.graph.Graph;
-import tesseract.graph.Group;
-import tesseract.graph.Cache;
-import tesseract.graph.ITickingController;
+import tesseract.graph.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -70,20 +67,7 @@ public class TesseractAPI {
      * @param node The node object.
      */
     public static void registerElectricNode(int dim, long pos, @Nonnull IElectricNode node) {
-        Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dim);
-        graph.addNode(pos, new Cache<>(node));
-        Group<IElectricCable, IElectricNode> group = graph.getGroupAt(pos);
-
-        assert group != null;
-
-        if (group.getController() == null) {
-            group.setController(new ElectricController(dim, group));
-        }
-
-        if (group.getCurrentTickHost() == null) {
-            group.setCurrentTickHost(node);
-            node.reset(null, group.getController());
-        }
+        getElectricGraph(dim).addNode(pos, new Cache<>(node), new ElectricController(dim));
     }
 
     /**
@@ -93,20 +77,7 @@ public class TesseractAPI {
      * @param node The node object.
      */
     public static void registerFluidNode(int dim, long pos, @Nonnull IFluidNode node) {
-        Graph<IFluidPipe, IFluidNode> graph = getFluidGraph(dim);
-        graph.addNode(pos, new Cache<>(node));
-        Group<IFluidPipe, IFluidNode> group = graph.getGroupAt(pos);
-
-        assert group != null;
-
-        if (group.getController() == null) {
-            group.setController(new FluidController(dim, group));
-        }
-
-        if (group.getCurrentTickHost() == null) {
-            group.setCurrentTickHost(node);
-            node.reset(null, group.getController());
-        }
+        getFluidGraph(dim).addNode(pos, new Cache<>(node), new FluidController(dim));
     }
 
     /**
@@ -116,20 +87,7 @@ public class TesseractAPI {
      * @param node The node object.
      */
     public static void registerItemNode(int dim, long pos, @Nonnull IItemNode node) {
-        Graph<IItemPipe, IItemNode> graph = getItemGraph(dim);
-        graph.addNode(pos, new Cache<>(node));
-        Group<IItemPipe, IItemNode> group = graph.getGroupAt(pos);
-
-        assert group != null;
-
-        if (group.getController() == null) {
-            group.setController(new ItemController(dim, group));
-        }
-
-        if (group.getCurrentTickHost() == null) {
-            group.setCurrentTickHost(node);
-            node.reset(null, group.getController());
-        }
+        getItemGraph(dim).addNode(pos, new Cache<>(node), new ItemController(dim));
     }
 
     /**
@@ -139,7 +97,7 @@ public class TesseractAPI {
      * @param connector The cable object.
      */
     public static void registerElectricCable(int dim, long pos, @Nonnull IElectricCable connector) {
-        getElectricGraph(dim).addConnector(pos, new Cache<>(connector));
+        getElectricGraph(dim).addConnector(pos, new Cache<>(connector), new ElectricController(dim));
     }
 
     /**
@@ -149,7 +107,7 @@ public class TesseractAPI {
      * @param connector The pipe object.
      */
     public static void registerFluidPipe(int dim, long pos, @Nonnull IFluidPipe connector) {
-        getFluidGraph(dim).addConnector(pos, new Cache<>(connector));
+        getFluidGraph(dim).addConnector(pos, new Cache<>(connector), new FluidController(dim));
     }
 
     /**
@@ -159,7 +117,7 @@ public class TesseractAPI {
      * @param connector The pipe object.
      */
     public static void registerItemPipe(int dim, long pos, @Nonnull IItemPipe connector) {
-        getItemGraph(dim).addConnector(pos, new Cache<>(connector));
+        getItemGraph(dim).addConnector(pos, new Cache<>(connector), new ItemController(dim));
     }
 
     /**
