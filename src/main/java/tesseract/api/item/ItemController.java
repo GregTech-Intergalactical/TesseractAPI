@@ -35,6 +35,16 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
         super(dim);
     }
 
+    /**
+     * Creates instance of the controller.
+     *
+     * @param dim The dimension id.
+     * @param container The group this controller handles.
+     */
+    public ItemController(int dim, @Nonnull INode container) {
+        super(dim, container);
+    }
+
     @Override
     public void change() {
         data.clear();
@@ -191,8 +201,6 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
     @Nonnull
     @Override
     public ITickingController clone(@Nonnull INode group) {
-        Controller<?, ?> controller = new ItemController(dim);
-        controller.setGroup(group);
-        return controller;
+        return new ItemController(dim, group);
     }
 }

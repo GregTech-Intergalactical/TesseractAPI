@@ -3,6 +3,7 @@ package tesseract.graph.traverse;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
@@ -47,7 +48,7 @@ public class BFSearcher {
      * @param excluder A function that can add values to the closed set prior to the search operation.
      *                 They will not be reported or traversed; null is interpreted to mean no exclusions.
      */
-    public void search(long from, @Nonnull LongConsumer reached, @Nullable Consumer<LongOpenHashSet> excluder) {
+    public void search(long from, @Nonnull LongConsumer reached, @Nullable Consumer<LongSet> excluder) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same BFSearcher instance");
         }

@@ -38,6 +38,16 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
     }
 
     /**
+     * Creates instance of the controller.
+     *
+     * @param dim The dimension id.
+     * @param container The group this controller handles.
+     */
+    public ElectricController(int dim, @Nonnull INode container) {
+        super(dim, container);
+    }
+
+    /**
      * Executes when the group structure has changed.
      * <p>
      * First, it clears previous controller map, after it lookup for the position of node and looks for the around grids.
@@ -256,8 +266,6 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
     @Nonnull
     @Override
     public ITickingController clone(@Nonnull INode group) {
-        Controller<?, ?> controller = new ElectricController(dim);
-        controller.setGroup(group);
-        return controller;
+        return new ElectricController(dim, group);
     }
 }

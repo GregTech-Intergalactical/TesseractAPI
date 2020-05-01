@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 public class Grid<C extends IConnectable> implements INode {
 
     private final Long2ObjectMap<Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
-    private final Long2ByteLinkedOpenHashMap nodes = new Long2ByteLinkedOpenHashMap();
+    private final Long2ByteMap nodes = new Long2ByteLinkedOpenHashMap();
     private final BFDivider divider = new BFDivider(this);
     private final ASFinder finder = new ASFinder(this);
 
@@ -216,11 +216,11 @@ public class Grid<C extends IConnectable> implements INode {
         }
 
         if (isExternal(pos)) {
-            removeFinal(pos, null);
+            removeFinal(pos);
             return;
         }
 
-        List<LongLinkedOpenHashSet> colored = new ObjectArrayList<>();
+        List<LongSet> colored = new ObjectArrayList<>();
 
         int bestColor = divider.divide(
             removed -> removed.add(pos),
@@ -261,16 +261,21 @@ public class Grid<C extends IConnectable> implements INode {
             split.accept(newGrid);
         }
 
-        removeFinal(pos, check);
+        removeFinal(pos);
+
+        for (long reached : check) {
+            if (isExternal(reached)) {
+                nodes.remove(reached);
+            }
+        }
     }
 
     /**
      * Removes connector by a position.
      *
      * @param pos The given position.
-     * @param found The set with nodes to check.
      */
-    private void removeFinal(long pos, @Nullable LongSet found) {
+    private void removeFinal(long pos) {
         connectors.remove(pos);
 
         Pos position = new Pos(pos);
@@ -279,16 +284,6 @@ public class Grid<C extends IConnectable> implements INode {
 
             if (nodes.containsKey(side) && isExternal(side)) {
                 nodes.remove(side);
-            }
-        }
-
-        if (found == null) {
-            return;
-        }
-
-        for (long reached : found) {
-            if (isExternal(reached)) {
-                nodes.remove(reached);
             }
         }
     }

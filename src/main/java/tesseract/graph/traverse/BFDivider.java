@@ -3,6 +3,7 @@ package tesseract.graph.traverse;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import tesseract.graph.INode;
 
 import javax.annotation.Nonnull;
@@ -43,7 +44,7 @@ public class BFDivider {
 	 * @return The index in the sequence of split position sets corresponding to the largest set of positions, ie. a
 	 *         return value of 0 indicates that the first returned set was the largest.
 	 */
-	public int divide(@Nonnull Consumer<LongOpenHashSet> removed, @Nonnull Consumer<LongLinkedOpenHashSet> rootProvider, @Nonnull Consumer<LongLinkedOpenHashSet> split) {
+	public int divide(@Nonnull Consumer<LongSet> removed, @Nonnull Consumer<LongSet> rootProvider, @Nonnull Consumer<LongSet> split) {
 		if (!lookup.isEmpty() || !roots.isEmpty()) {
 			throw new ConcurrentModificationException("Attempted to run concurrent divide operations on the same BFDivider instance");
 		}
@@ -67,7 +68,7 @@ public class BFDivider {
 				final int color = currentColor++;
 				roots.put(root, color);
 
-				LongLinkedOpenHashSet found = new LongLinkedOpenHashSet();
+				LongSet found = new LongLinkedOpenHashSet();
 
 				searcher.search(root, reached -> {
 					if (lookup.contains(reached)) {
