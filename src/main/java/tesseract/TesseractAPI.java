@@ -13,9 +13,10 @@ import tesseract.api.fluid.IFluidPipe;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
 import tesseract.api.item.ItemController;
-import tesseract.graph.Graph;
-import tesseract.graph.Group;
-import tesseract.graph.Cache;
+import tesseract.graph.*;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class TesseractAPI {
 
@@ -32,8 +33,9 @@ public class TesseractAPI {
      * @param dim The dimension id.
      * @return The graph instance for the world.
      */
+    @Nonnull
     public static Graph<IElectricCable, IElectricNode> getElectricGraph(int dim) {
-        return ELECTRIC_GRAPH.computeIfAbsent(dim, i -> new Graph<>());
+        return ELECTRIC_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
     }
 
     /**
@@ -42,8 +44,9 @@ public class TesseractAPI {
      * @param dim The dimension id.
      * @return The graph instance for the world.
      */
+    @Nonnull
     public static Graph<IFluidPipe, IFluidNode> getFluidGraph(int dim) {
-        return FLUID_GRAPH.computeIfAbsent(dim, i -> new Graph<>());
+        return FLUID_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
     }
 
     /**
@@ -52,8 +55,9 @@ public class TesseractAPI {
      * @param dim The dimension id.
      * @return The graph instance for the world.
      */
+    @Nonnull
     public static Graph<IItemPipe, IItemNode> getItemGraph(int dim) {
-        return ITEM_GRAPH.computeIfAbsent(dim, i -> new Graph<>());
+        return ITEM_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
     }
 
     /**
@@ -62,21 +66,8 @@ public class TesseractAPI {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public static void registerElectricNode(int dim, long pos, IElectricNode node) {
-        Graph<IElectricCable, IElectricNode> graph = getElectricGraph(dim);
-        graph.addNode(pos, new Cache<>(node));
-        Group<IElectricCable, IElectricNode> group = graph.getGroupAt(pos);
-
-        assert group != null;
-
-        if (group.getController() == null) {
-            group.setController(new ElectricController(dim, group));
-        }
-
-        if (group.getCurrentTickHost() == null) {
-            group.setCurrentTickHost(node);
-            node.reset(null, group.getController());
-        }
+    public static void registerElectricNode(int dim, long pos, @Nonnull IElectricNode node) {
+        getElectricGraph(dim).addNode(pos, new Cache<>(node), new ElectricController(dim));
     }
 
     /**
@@ -85,21 +76,8 @@ public class TesseractAPI {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public static void registerFluidNode(int dim, long pos, IFluidNode node) {
-        Graph<IFluidPipe, IFluidNode> graph = getFluidGraph(dim);
-        graph.addNode(pos, new Cache<>(node));
-        Group<IFluidPipe, IFluidNode> group = graph.getGroupAt(pos);
-
-        assert group != null;
-
-        if (group.getController() == null) {
-            group.setController(new FluidController(dim, group));
-        }
-
-        if (group.getCurrentTickHost() == null) {
-            group.setCurrentTickHost(node);
-            node.reset(null, group.getController());
-        }
+    public static void registerFluidNode(int dim, long pos, @Nonnull IFluidNode node) {
+        getFluidGraph(dim).addNode(pos, new Cache<>(node), new FluidController(dim));
     }
 
     /**
@@ -108,51 +86,38 @@ public class TesseractAPI {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public static void registerItemNode(int dim, long pos, IItemNode node) {
-        Graph<IItemPipe, IItemNode> graph = getItemGraph(dim);
-        graph.addNode(pos, new Cache<>(node));
-        Group<IItemPipe, IItemNode> group = graph.getGroupAt(pos);
-
-        assert group != null;
-
-        if (group.getController() == null) {
-            group.setController(new ItemController(dim, group));
-        }
-
-        if (group.getCurrentTickHost() == null) {
-            group.setCurrentTickHost(node);
-            node.reset(null, group.getController());
-        }
+    public static void registerItemNode(int dim, long pos, @Nonnull IItemNode node) {
+        getItemGraph(dim).addNode(pos, new Cache<>(node), new ItemController(dim));
     }
 
     /**
      * Creates an instance of a class for a given cable connector.
      * @param dim The dimension id where the cable will be added.
      * @param pos The position at which the cable will be added.
-     * @param cable The cable object.
+     * @param connector The cable object.
      */
-    public static void registerElectricCable(int dim, long pos, IElectricCable cable) {
-        getElectricGraph(dim).addConnector(pos, new Cache<>(cable));
+    public static void registerElectricCable(int dim, long pos, @Nonnull IElectricCable connector) {
+        getElectricGraph(dim).addConnector(pos, new Cache<>(connector), new ElectricController(dim));
     }
 
     /**
      * Creates an instance of a class for a given pipe connector.
      * @param dim The dimension id where the pipe will be added.
      * @param pos The position at which the pipe will be added.
-     * @param pipe The pipe object.
+     * @param connector The pipe object.
      */
-    public static void registerFluidPipe(int dim, long pos, IFluidPipe pipe) {
-        getFluidGraph(dim).addConnector(pos, new Cache<>(pipe));
+    public static void registerFluidPipe(int dim, long pos, @Nonnull IFluidPipe connector) {
+        getFluidGraph(dim).addConnector(pos, new Cache<>(connector), new FluidController(dim));
     }
 
     /**
      * Creates an instance of a class for a given pipe connector.
      * @param dim The dimension id where the pipe will be added.
      * @param pos The position at which the pipe will be added.
-     * @param pipe The pipe object.
+     * @param connector The pipe object.
      */
-    public static void registerItemPipe(int dim, long pos, IItemPipe pipe) {
-        getItemGraph(dim).addConnector(pos, new Cache<>(pipe));
+    public static void registerItemPipe(int dim, long pos, @Nonnull IItemPipe connector) {
+        getItemGraph(dim).addConnector(pos, new Cache<>(connector), new ItemController(dim));
     }
 
     /**
@@ -180,5 +145,41 @@ public class TesseractAPI {
      */
     public static void removeItem(int dim, long pos){
         getItemGraph(dim).removeAt(pos);
+    }
+
+    /**
+     * Gets an instance of a controller at a given position.
+     * @param dim The dimension id where the electric component is exist.
+     * @param pos The position at which the electric component is exist.
+     * @return The controller object. (Can be null)
+     */
+    @Nullable
+    public static ITickingController getElectricController(int dim, long pos) {
+        Group<?, ?> group = getElectricGraph(dim).getGroupAt(pos);
+        return group != null ? group.getController() : null;
+    }
+
+    /**
+     * Gets an instance of a controller at a given position.
+     * @param dim The dimension id where the fluid component is exist.
+     * @param pos The position at which the fluid component is exist.
+     * @return The controller object. (Can be null)
+     */
+    @Nullable
+    public static ITickingController getFluidController(int dim, long pos) {
+        Group<?, ?> group = getFluidGraph(dim).getGroupAt(pos);
+        return group != null ? group.getController() : null;
+    }
+
+    /**
+     * Gets an instance of a controller at a given position.
+     * @param dim The dimension id where the item component is exist.
+     * @param pos The position at which the item component is exist.
+     * @return The controller object. (Can be null)
+     */
+    @Nullable
+    public static ITickingController getItemController(int dim, long pos) {
+        Group<?, ?> group = getItemGraph(dim).getGroupAt(pos);
+        return group != null ? group.getController() : null;
     }
 }

@@ -8,8 +8,8 @@ import tesseract.graph.traverse.BFDivider;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.Objects;
+import java.util.Deque;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 public class Grid<C extends IConnectable> implements INode {
 
     private final Long2ObjectMap<Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
-    private final Long2ByteLinkedOpenHashMap nodes = new Long2ByteLinkedOpenHashMap();
+    private final Long2ByteMap nodes = new Long2ByteLinkedOpenHashMap();
     private final BFDivider divider = new BFDivider(this);
     private final ASFinder finder = new ASFinder(this);
 
@@ -46,6 +46,8 @@ public class Grid<C extends IConnectable> implements INode {
 
     @Override
     public boolean linked(long from, @Nullable Dir towards, long to) {
+        assert towards != null;
+
         Cache<C> cacheFrom = connectors.get(from);
         Cache<C> cacheTo = connectors.get(to);
 
@@ -68,11 +70,13 @@ public class Grid<C extends IConnectable> implements INode {
             return false;
         }
 
-        return validLink && Connectivity.has(connectivityFrom, Objects.requireNonNull(towards)) && Connectivity.has(connectivityTo, towards.invert());
+        return validLink && Connectivity.has(connectivityFrom, towards) && Connectivity.has(connectivityTo, towards.invert());
     }
 
     @Override
     public boolean connects(long pos, @Nullable Dir towards) {
+        assert towards != null;
+
         Cache<C> cache = connectors.get(pos);
         byte connectivity = nodes.get(pos);
 
@@ -84,7 +88,7 @@ public class Grid<C extends IConnectable> implements INode {
             return false;
         }
 
-        return Connectivity.has(connectivity, Objects.requireNonNull(towards));
+        return Connectivity.has(connectivity, towards);
     }
 
     /**
@@ -124,8 +128,8 @@ public class Grid<C extends IConnectable> implements INode {
      * @return Returns paths from the linked node.
      */
     @Nonnull
-    public ObjectList<Path<C>> getPaths(long from) {
-        ObjectList<Path<C>> data = new ObjectArrayList<>();
+    public List<Path<C>> getPaths(long from) {
+        List<Path<C>> data = new ObjectArrayList<>();
 
         for (long to : nodes.keySet()) {
             if (from != to) {
@@ -144,7 +148,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @return An set of path points.
      */
     @Nonnull
-    public ArrayDeque<Node> getPath(long origin, long target) {
+    public Deque<Node> getPath(long origin, long target) {
         return finder.traverse(origin, target);
     }
 
@@ -205,18 +209,18 @@ public class Grid<C extends IConnectable> implements INode {
      * @param pos The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
-    public void removeAt(final long pos, @Nonnull Consumer<Grid<C>> split) {
+    public void removeAt(long pos, @Nonnull Consumer<Grid<C>> split) {
 
         if (!contains(pos)) {
             throw new IllegalArgumentException("Grid::remove: Tried to call with a position that does not exist within the grid.");
         }
 
         if (isExternal(pos)) {
-            removeFinal(pos, null);
+            removeFinal(pos);
             return;
         }
 
-        ObjectList<LongLinkedOpenHashSet> colored = new ObjectArrayList<>();
+        List<LongSet> colored = new ObjectArrayList<>();
 
         int bestColor = divider.divide(
             removed -> removed.add(pos),
@@ -257,16 +261,21 @@ public class Grid<C extends IConnectable> implements INode {
             split.accept(newGrid);
         }
 
-        removeFinal(pos, check);
+        removeFinal(pos);
+
+        for (long reached : check) {
+            if (isExternal(reached)) {
+                nodes.remove(reached);
+            }
+        }
     }
 
     /**
      * Removes connector by a position.
      *
      * @param pos The given position.
-     * @param found The set with nodes to check.
      */
-    private void removeFinal(long pos, @Nullable LongSet found) {
+    private void removeFinal(long pos) {
         connectors.remove(pos);
 
         Pos position = new Pos(pos);
@@ -275,16 +284,6 @@ public class Grid<C extends IConnectable> implements INode {
 
             if (nodes.containsKey(side) && isExternal(side)) {
                 nodes.remove(side);
-            }
-        }
-
-        if (found == null) {
-            return;
-        }
-
-        for (long reached : found) {
-            if (isExternal(reached)) {
-                nodes.remove(reached);
             }
         }
     }

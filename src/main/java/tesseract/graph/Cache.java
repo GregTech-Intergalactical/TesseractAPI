@@ -7,15 +7,15 @@ import javax.annotation.Nonnull;
 /**
  * The Cache is a class that should work with connections.
  */
-public class Cache<C extends IConnectable> {
+public class Cache<T extends IConnectable> {
 
     private final byte connectivity;
-    private final C value;
+    private final T value;
 
     /**
      * Creates a cache instance.
      */
-    public Cache(@Nonnull C value) {
+    public Cache(@Nonnull T value) {
         this.value = value;
         this.connectivity = Connectivity.of(value);
     }
@@ -23,7 +23,7 @@ public class Cache<C extends IConnectable> {
     /**
      * Creates a cache instance from a delegate.
      */
-    public Cache(@Nonnull C value, @Nonnull IConnectable delegate) {
+    public Cache(@Nonnull T value, @Nonnull IConnectable delegate) {
         this.value = value;
         this.connectivity = Connectivity.of(delegate);
     }
@@ -44,10 +44,10 @@ public class Cache<C extends IConnectable> {
     }
 
     /**
-     * @return Gets the cache object.
+     * @return Gets the cache.
      */
     @Nonnull
-    public C value() {
+    public T value() {
         return value;
     }
 }

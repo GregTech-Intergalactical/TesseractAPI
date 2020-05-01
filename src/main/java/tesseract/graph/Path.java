@@ -2,12 +2,12 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import tesseract.util.Node;
-import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Iterator;
 
 /**
@@ -15,8 +15,8 @@ import java.util.Iterator;
  */
 public class Path<C extends IConnectable> {
 
-    private final Pos origin;
-    private final Pos target;
+    private final Node origin;
+    private final Node target;
     private final Long2ObjectMap<C> full = new Long2ObjectLinkedOpenHashMap<>();
     private final Long2ObjectMap<C> cross = new Long2ObjectLinkedOpenHashMap<>();
 
@@ -26,7 +26,7 @@ public class Path<C extends IConnectable> {
      * @param connectors The connectors array.
      * @param path The path queue.
      */
-    protected Path(@Nonnull Long2ObjectMap<Cache<C>> connectors, @Nonnull ArrayDeque<Node> path) {
+    protected Path(@Nonnull Long2ObjectMap<Cache<C>> connectors, @Nonnull Deque<Node> path) {
         origin = path.pollLast();
         target = path.pollFirst();
 
@@ -34,7 +34,6 @@ public class Path<C extends IConnectable> {
         while (it.hasNext()) {
             Node node = it.next();
             long pos = node.asLong();
-
             C cable = connectors.get(pos).value();
 
             full.put(pos, cable);
@@ -48,7 +47,7 @@ public class Path<C extends IConnectable> {
      * @return Gets the origin position.
      */
     @Nullable
-    public Pos origin() {
+    public Node origin() {
         return origin;
     }
 
@@ -56,7 +55,7 @@ public class Path<C extends IConnectable> {
      * @return Gets the target position.
      */
     @Nullable
-    public Pos target() {
+    public Node target() {
         return target;
     }
 
@@ -65,7 +64,7 @@ public class Path<C extends IConnectable> {
      */
     @Nonnull
     public Long2ObjectMap<C> getFull() {
-        return full;
+        return Long2ObjectMaps.unmodifiable(full);
     }
 
     /**
@@ -73,7 +72,7 @@ public class Path<C extends IConnectable> {
      */
     @Nonnull
     public Long2ObjectMap<C> getCross() {
-        return cross;
+        return Long2ObjectMaps.unmodifiable(cross);
     }
 
     /**

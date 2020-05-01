@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.*;
 import org.apache.commons.collections4.SetUtils;
+import tesseract.api.Controller;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
@@ -11,7 +12,8 @@ import tesseract.util.CID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Objects;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -40,7 +42,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     @Nonnull
     protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, @Nonnull Cache<N> node) {
         Group<C, N> group = new Group<>();
-        group.addNode(pos, node);
+        group.addNode(pos, node, null);
         return group;
     }
 
@@ -74,18 +76,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
-     * Resets the current controller host.
-     *
-     * @param node The given node.
-     */
-    private void resetControllerHost(@Nonnull Cache<N> node) {
-        if (currentTickHost != null && node.value() instanceof ITickHost && node.value() == currentTickHost) {
-            currentTickHost.reset(controller, null);
-            findNextValidHost(node);
-        }
-    }
-
-    /**
      * Resets the current tick host.
      */
     private void releaseControllerHost() {
@@ -95,36 +85,93 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
-     * Calls the changing method for the controller.
+     * Resets the current controller host.
+     *
+     * @param cache The given cache.
      */
-    public void updateController() {
-        if (controller != null) {
-            controller.change();
+    private void resetControllerHost(@Nonnull Cache<?> cache) {
+        if (currentTickHost != null && cache.value() instanceof ITickHost && cache.value() == currentTickHost) {
+            currentTickHost.reset(controller, null);
+            findNextValidHost(cache);
         }
+    }
+
+    /**
+     * Calls the changing method for the controller.
+     *
+     * @param cache The given cache object.
+     * @param ticking The ticking instance.
+     */
+    private void updateController(@Nonnull Cache<?> cache, @Nullable Controller<C, N> ticking) {
+        if (ticking == null) return;
+
+        if (controller == null) {
+            ticking.set(this);
+            controller = ticking;
+        }
+
+        if (currentTickHost == null) {
+            // If cache contains tick host set as a new one
+            if (cache.value() instanceof ITickHost) {
+                currentTickHost = (ITickHost) cache.value();
+                currentTickHost.reset(null, controller);
+            }
+        }
+
+        controller.change();
     }
 
     /**
      * Finds the next available host in the group.
      *
-     * @param node The given node.
+     * @param cache The given cache.
      */
-    private void findNextValidHost(@Nullable Cache<N> node) {
+    private void findNextValidHost(@Nullable Cache<?> cache) {
         if (controller == null) return;
         currentTickHost = null;
 
-        for (Cache<N> n : nodes.values()) {
-            if (n == node || !(n.value() instanceof ITickHost)) {
+        // Lookup for a ticking host among nodes
+        for (Cache<?> n : nodes.values()) {
+            if (nextCache(cache, n)) {
                 continue;
             }
-
-            currentTickHost = (ITickHost) n.value();
             break;
+        }
+
+        if (currentTickHost == null) {
+            // Lookup for a ticking host among connectors
+            I: for (int id : connectors.values()) {
+                Grid<C> grid = grids.get(id);
+
+                for (Cache<?> c : grid.getConnectors().values()) {
+                    if (nextCache(cache, c)) {
+                        continue;
+                    }
+                    break I;
+                }
+            }
         }
 
         if (currentTickHost != null) {
             currentTickHost.reset(null, controller);
             controller.change();
         }
+    }
+
+    /**
+     * Trying to switch for a new host.
+     *
+     * @param cache The given cache object.
+     * @param o The current cache.
+     * @return True or false.
+     */
+    private boolean nextCache(@Nullable Cache<?> cache, @Nonnull Cache<?> o) {
+        if (o == cache || !(o.value() instanceof ITickHost)) {
+            return true;
+        }
+
+        currentTickHost = (ITickHost) o.value();
+        return false;
     }
 
     /**
@@ -167,14 +214,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
-     * Sets the group controller.
-     * @param controller The controller object, can be null.
-     */
-    public void setController(@Nullable ITickingController controller) {
-        this.controller = controller;
-    }
-
-    /**
      * @return Returns group ticking host.
      */
     @Nullable
@@ -183,20 +222,13 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
-     * Sets the group ticking host.
-     * @param currentTickHost The host object, can be null.
-     */
-    public void setCurrentTickHost(@Nullable ITickHost currentTickHost) {
-        this.currentTickHost = currentTickHost;
-    }
-
-    /**
      * Adds a new node to the group.
      *
      * @param pos The given position.
      * @param node The given node.
+     * @param controller The controller to use.
      */
-    public void addNode(long pos, @Nonnull Cache<N> node) {
+    public void addNode(long pos, @Nonnull Cache<N> node, @Nullable Controller<C, N> controller) {
         nodes.put(pos, node);
 
         Pos position = new Pos(pos);
@@ -219,15 +251,16 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             }
         }
 
-        updateController();
+        updateController(node, controller);
     }
 
     /**
      * Adds a new connector to the group.
      * @param pos The given position.
      * @param connector The given connector.
+     * @param controller The controller to use.
      */
-    public void addConnector(long pos, @Nonnull Cache<C> connector) {
+    public void addConnector(long pos, @Nonnull Cache<C> connector, @Nullable Controller<C, N> controller) {
 
         Int2ObjectMap<Grid<C>> linked = new Int2ObjectLinkedOpenHashMap<>();
         Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
@@ -327,7 +360,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             }
         }
 
-        updateController();
+        updateController(connector, controller);
     }
 
     /**
@@ -338,7 +371,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param pos The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
-    public void removeAt(final long pos, @Nonnull Consumer<Group<C, N>> split) {
+    public void removeAt(long pos, @Nonnull Consumer<Group<C, N>> split) {
 
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.
@@ -348,9 +381,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         // If removing the entry would not cause a group split, then it is safe to remove the entry directly.
         if (isExternal(pos)) {
-            Cache<N> node = nodes.remove(pos);
-            if (node != null) {
-                removeNode(node, pos);
+            if (removeNode(pos)) {
                 return;
             }
 
@@ -386,7 +417,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         // For optimization purposes, the largest colored fragment remains resident within its original group.
         // Note: we don't remove the node yet, but instead just tell the Searcher to exclude it.
         // This is so that we can handle the grid splits ourselves at the end.
-        ObjectList<LongLinkedOpenHashSet> colored = new ObjectArrayList<>();
+        List<LongSet> colored = new ObjectArrayList<>();
 
         int bestColor = divider.divide(
             removed -> removed.add(pos),
@@ -403,7 +434,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             colored::add
         );
 
-        ObjectList<Grid<C>> splitGrids = null;
+        List<Grid<C>> splitGrids = null;
         LongSet excluded = new LongOpenHashSet();
 
         int centerGridId = connectors.get(pos);
@@ -420,10 +451,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             splitGrids.add(centerGrid);
 
         } else {
-            Cache<N> node = nodes.remove(pos);
-            if (node != null) {
-                removeNode(node, pos);
-            }
+            removeNode(pos);
         }
 
         for (int i = 0; i < colored.size(); i++) {
@@ -443,7 +471,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     // Just a node then, simply add it to the new group.
                     // The maps are mutated directly here in order to retain the cached connectivity.
                     if (id == CID.INVALID) {
-                        newGroup.nodes.put(reached, Objects.requireNonNull(nodes.remove(reached)));
+                        newGroup.nodes.put(reached, nodes.remove(reached));
                         continue;
                     }
 
@@ -468,7 +496,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
             // Add the fragments of the center grid, if present, to each group
             if (splitGrids != null) {
-                ObjectIterator<Grid<C>> it = splitGrids.iterator();
+               Iterator<Grid<C>> it = splitGrids.iterator();
 
                 while (it.hasNext()) {
                     Grid<C> grid = it.next();
@@ -498,10 +526,16 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
     /**
      * Removes the nodes from nearest grids and pairs.
-     * @param node The given node.
+     *
      * @param pos The position of the node.
+     * @return True if were deleted, false otherwise.
      */
-    private void removeNode(@Nonnull Cache<N> node, long pos) {
+    private boolean removeNode(long pos) {
+        Cache<N> node = nodes.remove(pos);
+        if (node == null) {
+            return false;
+        }
+
         resetControllerHost(node);
 
         // Clear removing node from nearest grid
@@ -514,6 +548,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 grids.get(id).removeNode(pos);
             }
         }
+
+        return true;
     }
 
     /**

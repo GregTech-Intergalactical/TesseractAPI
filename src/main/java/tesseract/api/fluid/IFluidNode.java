@@ -1,7 +1,6 @@
 package tesseract.api.fluid;
 
 import tesseract.graph.IConnectable;
-import tesseract.graph.ITickHost;
 import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
@@ -16,45 +15,49 @@ import javax.annotation.Nullable;
  * You are free to handle Fluids in any way that you wish - this is simply an easy default way.
  * DO NOT ASSUME that these objects are used internally in all cases.
  */
-public interface IFluidNode extends IConnectable, ITickHost {
+public interface IFluidNode extends IConnectable {
 
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.
-     * @param fluid FluidData attempting to fill the tank.
+     * @param data FluidData attempting to fill the tank.
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    int insert(@Nonnull FluidData fluid, boolean simulate);
+    int insert(@Nonnull FluidData data, boolean simulate);
 
     /**
      * Removes fluid from the node. Returns amount of fluid that was drained.
-     * @param maxDrain Maximum amount of fluid to be removed from the container.
+     * @param tank The tank to extract from.
+     * @param amount Maximum amount of fluid to be removed from the container.
      * @param simulate If true, the drain will only be simulated.
      * @return FluidData representing fluid that was removed (or would be, if simulated) from the tank.
      */
     @Nullable
-    FluidData extract(int maxDrain, boolean simulate);
+    FluidData extract(@Nonnull Object tank, int amount, boolean simulate);
 
     /**
-     * @param fluid FluidData holding the Fluid to be queried.
-     * @return If the tank can hold the fluid (EVER, not at the time of query).
+     * @param direction Direction to the proceed.
+     * @return Gets any available tank.
+     **/
+    @Nullable
+    Object getAvailableTank(@Nonnull Dir direction);
+
+    /**
+     * @param direction Direction to the proceed.
+     * @return Gets the initial amount of pressure that can be output.
      */
-    boolean canHold(@Nonnull FluidData fluid);
+    int getOutputAmount(@Nonnull Dir direction);
+
+    /**
+     * @param direction Direction to the proceed.
+     * @return Returns the priority of this node as a number.
+     */
+    int getPriority(@Nonnull Dir direction);
 
     /**
      * @return Gets the maximum amount of fluid that can be stored.
      */
     int getCapacity();
-
-    /**
-     * @return Gets the initial amount of pressure that can be output.
-     */
-    int getOutputPressure();
-
-    /**
-     * @return Gets the maximum amount of pressure that can be input.
-     */
-    int getInputPressure();
 
     /**
      * Gets if this storage can have fluid extracted.
@@ -71,8 +74,15 @@ public interface IFluidNode extends IConnectable, ITickHost {
     /**
      * Used to determine which sides can output fluid (if any).
      * Output cannot be used as input.
-     * @param direction Direction to the out.
+     * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */
     boolean canOutput(@Nonnull Dir direction);
+
+    /**
+     * @param fluid The Fluid to be queried.
+     * @param direction Direction to the input.
+     * @return If the tank can input the fluid (EVER, not at the time of query).
+     */
+    boolean canInput(@Nonnull Object fluid, @Nonnull Dir direction);
 }

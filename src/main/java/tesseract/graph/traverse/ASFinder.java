@@ -4,20 +4,20 @@ import it.unimi.dsi.fastutil.objects.*;
 import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Node;
+import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayDeque;
-import java.util.ConcurrentModificationException;
+import java.util.*;
 
 /**
  * A Star Algorithm implementation for converting a graph – consisting of the grid – into a route through the grid.
  */
 public class ASFinder {
 
-    private ArrayDeque<Node> path;
+    private Deque<Node> path;
     private final INode container;
-    private final ArrayDeque<Node> open = new ArrayDeque<>();
-    private final ObjectOpenHashSet<Node> closed = new ObjectOpenHashSet<>();
+    private final Deque<Node> open = new ArrayDeque<>();
+    private final Set<Node> closed = new ObjectOpenHashSet<>();
 
     /**
      * Creates a reusable AStarPathfinder instance that will search the provided container.
@@ -36,7 +36,7 @@ public class ASFinder {
      * @return An set of the points calculated by the A Star algorithm.
      */
     @Nonnull
-    public ArrayDeque<Node> traverse(long origin, long target) {
+    public Deque<Node> traverse(long origin, long target) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same ASFinder instance");
         }
@@ -49,7 +49,7 @@ public class ASFinder {
 
         try {
             Node start = new Node(origin, true);
-            Node end = new Node(target);
+            Node end = new Node(target,false);
 
             open.add(start);
 
@@ -66,6 +66,10 @@ public class ASFinder {
 
                 for (Node n : getNeighboringNodes(current)) {
 
+                    if (n == null) {
+                        break;
+                    }
+
                     if (closed.contains(n)) {
                         continue;
                     }
@@ -79,8 +83,8 @@ public class ASFinder {
                         }
                     } else {
                         n.setCost(score);
-                        open.add(n);
                         n.setParent(current);
+                        open.add(n);
                     }
 
                     n.setHeuristic(n.heuristic(end));
@@ -146,6 +150,7 @@ public class ASFinder {
                 lowest = n;
             }
         }
+        assert lowest != null;
         return lowest;
     }
 
@@ -153,17 +158,18 @@ public class ASFinder {
      * Lookups for a set of neighbors of a given node.
      *
      * @param current The given node.
-     * @return The set of nodes.
+     * @return The list of nodes.
      */
     @Nonnull
-    public ObjectList<Node> getNeighboringNodes(@Nonnull Node current) {
-        ObjectList<Node> neighbors = new ObjectArrayList<>(6);
+    public Node[] getNeighboringNodes(@Nonnull Node current) {
+        Node[] neighbors = new Node[6]; int i = 0;
 
         for (Dir direction : Dir.VALUES) {
-            long pos = current.offset(direction).asLong();
+            Pos pos = current.offset(direction);
+            long side = pos.asLong();
 
-            if (container.contains(pos)) {
-                neighbors.add(new Node(pos));
+            if (container.contains(side)) {
+                neighbors[i++] = new Node(pos, direction.invert());
             }
         }
 

@@ -1,13 +1,15 @@
 package tesseract.graph.traverse;
 
+import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
 import java.util.ConcurrentModificationException;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
@@ -24,7 +26,7 @@ import java.util.function.LongConsumer;
 public class BFSearcher {
 
     private final INode container;
-    private final ArrayDeque<Long> open = new ArrayDeque<>();
+    private final LongPriorityQueue open = new LongArrayFIFOQueue();
     private final LongOpenHashSet closed = new LongOpenHashSet();
 
     /**
@@ -46,7 +48,7 @@ public class BFSearcher {
      * @param excluder A function that can add values to the closed set prior to the search operation.
      *                 They will not be reported or traversed; null is interpreted to mean no exclusions.
      */
-    public void search(long from, @Nonnull LongConsumer reached, @Nullable Consumer<LongOpenHashSet> excluder) {
+    public void search(long from, @Nonnull LongConsumer reached, @Nullable Consumer<LongSet> excluder) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same BFSearcher instance");
         }
@@ -61,11 +63,11 @@ public class BFSearcher {
                 return;
             }
 
-            open.add(from);
+            open.enqueue(from);
 
             while (!open.isEmpty()) {
                 // Pick a position
-                long current = open.remove();
+                long current = open.dequeueLong();
 
                 if (closed.contains(current)) {
                     // I don't think this should happen, but it works as a sanity check.
@@ -89,7 +91,7 @@ public class BFSearcher {
 
                     if (container.linked(current, direction, pos)) {
                         // Note: this allocates a new position
-                        open.add(pos);
+                        open.enqueue(pos);
                     }
                 }
             }

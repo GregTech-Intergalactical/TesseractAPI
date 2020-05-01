@@ -8,17 +8,19 @@ import javax.annotation.Nonnull;
 public class ItemData {
 
     private final int slot;
-    private final Object stack;
+    private final Object stack, item;
 
     /**
      * Creates instance of the data.
      *
      * @param slot The slot index.
      * @param stack The ItemStack object.
+     * @param item The item inside an ItemStack.
      */
-    public ItemData(int slot, @Nonnull Object stack) {
+    public ItemData(int slot, @Nonnull Object stack, @Nonnull Object item) {
         this.slot = slot;
         this.stack = stack;
+        this.item = item;
     }
 
     /**
@@ -34,5 +36,13 @@ public class ItemData {
     @Nonnull
     public Object getStack() {
         return stack;
+    }
+
+    /**
+     * @return Gets the fluid inside a FluidStack.
+     */
+    @Nonnull
+    public Object getItem() {
+        return item;
     }
 }

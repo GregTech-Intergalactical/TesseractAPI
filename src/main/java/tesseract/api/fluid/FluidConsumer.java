@@ -2,6 +2,7 @@ package tesseract.api.fluid;
 
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
+import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -15,34 +16,44 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
     private int minCapacity = Integer.MAX_VALUE;
     private int minPressure = Integer.MAX_VALUE;
     private int minTemperature = Integer.MAX_VALUE;
+    private final Dir input;
 
     /**
      * Creates instance of the consumer.
      *
      * @param consumer The consumer node.
      * @param path The path information.
+     * @param dir The added direction.
      */
-    protected FluidConsumer(@Nonnull IFluidNode consumer, @Nullable Path<IFluidPipe> path) {
+    protected FluidConsumer(@Nonnull IFluidNode consumer, @Nullable Path<IFluidPipe> path, @Nonnull Dir dir) {
         super(consumer, path);
+        this.input = dir;
     }
 
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.
      *
-     * @param fluid FluidData attempting to fill the tank.
+     * @param data FluidData attempting to fill the tank.
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    public int insert(@Nonnull FluidData fluid, boolean simulate) {
-        return consumer.insert(fluid, simulate);
+    public int insert(@Nonnull FluidData data, boolean simulate) {
+        return node.insert(data, simulate);
     }
 
     /**
-     * @param fluid FluidData holding the Fluid to be queried.
+     * @param fluid The Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    public boolean canHold(@Nonnull FluidData fluid) {
-        return consumer.canHold(fluid);
+    public boolean canHold(@Nonnull Object fluid) {
+        return node.canInput(fluid, input);
+    }
+
+    /**
+     * @return Returns the priority of this node as a number.
+     */
+    public int getPriority() {
+        return node.getPriority(input);
     }
 
     /**

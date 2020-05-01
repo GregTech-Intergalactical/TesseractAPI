@@ -1,19 +1,21 @@
 package tesseract.api.item;
 
+import javax.annotation.Nonnull;
+
 /**
  * A class that acts a holder of the packets that has passed thought cables.
  */
 public class ItemHolder {
 
-    private int capacity;
+    private int capacity; // current capacity for a pipe
 
     /**
      * Creates instance of the holder.
      *
-     * @param capacity The maximum capacity.
+     * @param pipe The pipe connector.
      */
-    protected ItemHolder(int capacity) {
-        this.capacity = capacity;
+    protected ItemHolder(@Nonnull IItemPipe pipe) {
+        this.capacity = pipe.getCapacity();
     }
 
     /**

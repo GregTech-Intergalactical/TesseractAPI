@@ -1,22 +1,22 @@
 package tesseract.api.electric;
 
+import javax.annotation.Nonnull;
+
 /**
  * A class that acts a holder of the packets that has passed thought cables.
  */
 public class ElectricHolder {
 
     private int amperage;
-    private final int max;
+    private final int maxAmperage;
 
     /**
      * Creates instance of the holder.
      *
-     * @param max The maximum amperage.
-     * @param amperage The initial amperage.
+     * @param cable The cable connector.
      */
-    protected ElectricHolder(int max, int amperage) {
-        this.max = max;
-        this.amperage = amperage;
+    protected ElectricHolder(@Nonnull IElectricCable cable) {
+        this.maxAmperage = cable.getAmps();
     }
 
     /**
@@ -39,6 +39,6 @@ public class ElectricHolder {
      * @return Checks that the holder is not able to handle it.
      */
     public boolean isOverAmperage() {
-        return max < amperage;
+        return maxAmperage < amperage;
     }
 }

@@ -28,18 +28,18 @@ public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
     /**
      * Adds energy to the node. Returns quantity of energy that was accepted.
      *
-     * @param maxRecieve Amount of energy to be inserted.
+     * @param maxReceive Amount of energy to be inserted.
      * @param simulate If true, the insertion will only be simulated.
      */
-    public void insert(long maxRecieve, boolean simulate) {
-        consumer.insert(maxRecieve, simulate);
+    public void insert(long maxReceive, boolean simulate) {
+        node.insert(maxReceive, simulate);
     }
 
     /**
      * @return Gets the amperage required for the consumer.
      */
     public int getRequiredAmperage(int voltage) {
-        return (int) Math.min(((consumer.getCapacity() - consumer.getPower()) + voltage - 1) / voltage, consumer.getInputAmperage());
+        return (int) Math.min(((node.getCapacity() - node.getEnergy()) + voltage - 1) / voltage, node.getInputAmperage());
     }
 
     /**

@@ -1,5 +1,7 @@
 package tesseract.util;
 
+import javax.annotation.Nonnull;
+
 /**
  * @see net.minecraft.util.math.BlockPos
  */
@@ -103,11 +105,11 @@ public class Pos {
      *
      * @param pos The position to duplicate.
      */
-    public Pos(Pos pos) {
+    public Pos(@Nonnull Pos pos) {
         this.x = pos.x;
         this.y = pos.y;
         this.z = pos.z;
-        this.value = packAll(pos.x, pos.y, pos.z);
+        this.value = pos.value;
     }
 
     /**
@@ -118,6 +120,7 @@ public class Pos {
      * @param z coordinate.
      * @return self
      */
+    @Nonnull
     public Pos set(int x, int y, int z) {
         this.x = x;
         this.y = y;
@@ -131,7 +134,8 @@ public class Pos {
      * @param pos The position to update.
      * @return self
      */
-    public Pos set(Pos pos) {
+    @Nonnull
+    public Pos set(@Nonnull Pos pos) {
         this.x = pos.x;
         this.y = pos.y;
         this.z = pos.z;
@@ -146,6 +150,7 @@ public class Pos {
      * @param z coordinate.
      * @return self
      */
+    @Nonnull
     public Pos add(int x, int y, int z) {
         return set(this.x + x, this.y + y, this.z + z);
     }
@@ -156,7 +161,8 @@ public class Pos {
      * @param pos The position to add.
      * @return self
      */
-    public Pos add(Pos pos) {
+    @Nonnull
+    public Pos add(@Nonnull Pos pos) {
         return set(this.x + pos.x, this.y + pos.y, this.z + pos.z);
     }
 
@@ -168,6 +174,7 @@ public class Pos {
      * @param z coordinate.
      * @return self
      */
+    @Nonnull
     public Pos sub(int x, int y, int z) {
         return set(this.x - x, this.y - y, this.z - z);
     }
@@ -178,7 +185,8 @@ public class Pos {
      * @param pos The position to subtract.
      * @return self
      */
-    public Pos sub(Pos pos) {
+    @Nonnull
+    public Pos sub(@Nonnull Pos pos) {
         return set(this.x - pos.x, this.y - pos.y, this.z - pos.z);
     }
 
@@ -216,7 +224,8 @@ public class Pos {
      * @param dir The moving direction.
      * @return The new instance of object.
      */
-    public Pos offset(Dir dir) {
+    @Nonnull
+    public Pos offset(@Nonnull Dir dir) {
         return new Pos(x + dir.getXOffset(), y + dir.getYOffset(), z + dir.getZOffset());
     }
 
@@ -227,7 +236,8 @@ public class Pos {
      * @param n The moving distance.
      * @return The new instance of object.
      */
-    public Pos offset(Dir dir, int n) {
+    @Nonnull
+    public Pos offset(@Nonnull Dir dir, int n) {
         return n == 0 ? this : new Pos(x + dir.getXOffset() * n, y + dir.getYOffset() * n, z + dir.getZOffset() * n);
     }
 
@@ -280,8 +290,7 @@ public class Pos {
     @Override
     public boolean equals(Object o) {
         if (o instanceof Pos) {
-            Pos obj = (Pos) o;
-            return (value == obj.value);
+            return (value == ((Pos) o).value);
         }
         return false;
     }
