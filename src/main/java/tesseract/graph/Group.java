@@ -106,7 +106,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         if (ticking == null) return;
 
         if (controller == null) {
-            ticking.setGroup(this);
+            ticking.set(this);
             controller = ticking;
         }
 
@@ -381,9 +381,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         // If removing the entry would not cause a group split, then it is safe to remove the entry directly.
         if (isExternal(pos)) {
-            Cache<N> node = nodes.remove(pos);
-            if (node != null) {
-                removeNode(node, pos);
+            if (removeNode(pos)) {
                 return;
             }
 
@@ -453,7 +451,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             splitGrids.add(centerGrid);
 
         } else {
-            removeNode(nodes.remove(pos), pos);
+            removeNode(pos);
         }
 
         for (int i = 0; i < colored.size(); i++) {
@@ -528,10 +526,16 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
     /**
      * Removes the nodes from nearest grids and pairs.
-     * @param node The given node.
+     *
      * @param pos The position of the node.
+     * @return True if were deleted, false otherwise.
      */
-    private void removeNode(@Nonnull Cache<N> node, long pos) {
+    private boolean removeNode(long pos) {
+        Cache<N> node = nodes.remove(pos);
+        if (node == null) {
+            return false;
+        }
+
         resetControllerHost(node);
 
         // Clear removing node from nearest grid
@@ -544,6 +548,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 grids.get(id).removeNode(pos);
             }
         }
+
+        return true;
     }
 
     /**

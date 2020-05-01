@@ -28,24 +28,14 @@ abstract public class Controller<C extends IConnectable, N extends IConnectable>
     }
 
     /**
-     * Creates instance of the controller.
+     * Sets the group for the controller.
      *
-     * @param dim The dimension id.
      * @param container The group this controller handles.
      */
     @SuppressWarnings("unchecked")
-    public Controller(int dim, @Nonnull INode container) {
-        this.dim = dim;
+    public Controller<C, N> set(@Nonnull INode container) {
         this.group = (Group<C, N>) container;
-    }
-
-    /**
-     * Sets the group for the controller.
-     *
-     * @param group The group this controller handles.
-     */
-    public void setGroup(@Nonnull Group<C, N> group) {
-        this.group = group;
+        return this;
     }
 
     /**
