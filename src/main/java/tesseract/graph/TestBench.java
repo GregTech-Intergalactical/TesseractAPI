@@ -39,12 +39,12 @@ class TestBench {
                 long position = pos.asLong();
 
                 if (points.length == 5 && points[4].startsWith("c")) {
-                    if (!graph.addConnector(position, new Cache<>(new ExampleConnector()))) {
+                    if (!graph.addConnector(position, new Cache<>(new ExampleConnector()), null)) {
                         System.out.println("Error: connector at" + pos + " already exists in the graph");
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, new Cache<>(new ExampleNode()))) {
+                    if (!graph.addNode(position, new Cache<>(new ExampleNode()), null)) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }

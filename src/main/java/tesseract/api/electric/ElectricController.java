@@ -126,16 +126,18 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
      * @param pos The position of the producer.
      */
     private void onCheck(@Nonnull IElectricNode producer, @Nonnull List<ElectricConsumer> consumers, @Nullable Path<IElectricCable> path, long pos) {
-        IElectricNode c = group.getNodes().get(pos).value();
-        if (c.canInput()) {
-            int voltage = producer.getOutputVoltage();
-            if (voltage > c.getInputVoltage()) {
-                GLOBAL_ELECTRIC_EVENT.onNodeOverVoltage(dim, pos, voltage);
+        IElectricNode node = group.getNodes().get(pos).value();
+        if (node.canInput()) {
+            ElectricConsumer consumer = new ElectricConsumer(node, path);
+            int voltage = producer.getOutputVoltage() - consumer.getLoss();
+            if (voltage <= 0) {
+                return;
+            }
+
+            if (node.canInput(voltage)) {
+                consumers.add(consumer);
             } else {
-                ElectricConsumer consumer = new ElectricConsumer(c, path);
-                if (producer.getOutputVoltage() > consumer.getLoss()) {
-                    consumers.add(consumer);
-                }
+                GLOBAL_ELECTRIC_EVENT.onNodeOverVoltage(dim, pos, voltage);
             }
         }
     }
@@ -170,17 +172,18 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
                 int amperage = consumer.getRequiredAmperage(outputVoltage);
 
                 // look up how much it already got
-                amperage -= obtains.getInt(consumer.getNode());
+                int obtained = obtains.getInt(consumer.getNode());
+                amperage -= obtained;
                 if (amperage <= 0) { // if this consumer received all the energy from the other producers
                     continue;
                 }
 
                 // remember amperes stored in this consumer
                 amperage = Math.min(outputAmperage, amperage);
-                obtains.put(consumer.getNode(), obtains.getInt(consumer.getNode()) + amperage);
+                obtains.put(consumer.getNode(), amperage + obtained);
 
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
-                if (!consumer.canHandle(outputVoltage, amperage) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest cost cable
+                if (consumer.getConnection() != ConnectionType.ADJACENT && !consumer.canHandle(outputVoltage, amperage)) {
                     // Find corrupt cables and return
                     for (Long2ObjectMap.Entry<IElectricCable> c : consumer.getFull().long2ObjectEntrySet()) {
                         long pos = c.getLongKey();

@@ -91,8 +91,8 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
      * @param pos The position of the producer.
      */
     private void onCheck(@Nonnull List<FluidConsumer> consumers, @Nullable Path<IFluidPipe> path, @Nonnull Dir dir, long pos) {
-        IFluidNode consumer = group.getNodes().get(pos).value();
-        if (consumer.canInput()) consumers.add(new FluidConsumer(consumer, path, dir));
+        IFluidNode node = group.getNodes().get(pos).value();
+        if (node.canInput()) consumers.add(new FluidConsumer(node, path, dir));
     }
 
     @Override
@@ -106,8 +106,8 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
             for (Map.Entry<Dir, List<FluidConsumer>> c : e.getValue().entrySet()) {
                 Dir direction = c.getKey();
 
-                Object tank = producer.getAvailableTank(direction);
-                if (tank == null) {
+                int tank = producer.getAvailableTank(direction);
+                if (tank == -1) {
                     continue;
                 }
 
@@ -138,7 +138,7 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
                     assert drained != null;
 
                     // If we are here, then path had some invalid pipes which not suits the limits of temp/pressure/gas
-                    if (!consumer.canHandle(temperature, amount, isGaseous) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest cost pipe
+                    if (consumer.getConnection() != ConnectionType.ADJACENT && !consumer.canHandle(temperature, amount, isGaseous)) {
                         // Find corrupt pipe and return
                         for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull().long2ObjectEntrySet()) {
                             long pos = p.getLongKey();

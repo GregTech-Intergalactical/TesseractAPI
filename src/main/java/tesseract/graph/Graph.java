@@ -63,9 +63,9 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param controller The controller to use.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addNode(long pos, @Nonnull Cache<N> node, @Nonnull Controller<C, N> controller) {
+	public boolean addNode(long pos, @Nonnull Cache<N> node, @Nullable Controller<C, N> controller) {
 		if (!contains(pos)) {
-			Group<C, N> group = add(pos, Group.singleNode(pos, node));
+			Group<C, N> group = add(pos, Group.singleNode(pos, node, controller));
 			if (group != null) group.addNode(pos, node, controller);
 			return true;
 		}
@@ -81,9 +81,9 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param controller The controller to use.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addConnector(long pos, @Nonnull Cache<C> connector, @Nonnull Controller<C, N> controller) {
+	public boolean addConnector(long pos, @Nonnull Cache<C> connector, @Nullable Controller<C, N> controller) {
 		if (!contains(pos)) {
-			Group<C, N> group = add(pos, Group.singleConnector(pos, connector));
+			Group<C, N> group = add(pos, Group.singleConnector(pos, connector, controller));
 			if (group != null) group.addConnector(pos, connector, controller);
 			return true;
 		}

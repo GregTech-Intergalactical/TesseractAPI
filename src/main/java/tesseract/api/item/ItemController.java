@@ -66,7 +66,7 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
                         }
 
                         if (!consumers.isEmpty()) {
-                            data.computeIfAbsent(producer, map -> new EnumMap<>(Dir.class)).put(direction, consumers);
+                            data.computeIfAbsent(producer, m -> new EnumMap<>(Dir.class)).put(direction, consumers);
                         }
                     }
                 }
@@ -89,8 +89,8 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
      * @param pos The position of the producer.
      */
     private void onCheck(@Nonnull List<ItemConsumer> consumers, @Nullable Path<IItemPipe> path, @Nonnull Dir dir, long pos) {
-        IItemNode consumer = group.getNodes().get(pos).value();
-        if (consumer.canInput()) consumers.add(new ItemConsumer(consumer, path, dir));
+        IItemNode node = group.getNodes().get(pos).value();
+        if (node.canInput()) consumers.add(new ItemConsumer(node, path, dir));
     }
 
     @Override
@@ -149,8 +149,10 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
                                     limit = Math.min(limit, holders.computeIfAbsent(pos, h -> new ItemHolder(pipe)).getCapacity());
                                 }
 
-                                for (long pos : consumer.getCross().keySet()) {
-                                    holders.get(pos).reduce(limit);
+                                if (limit > 0) {
+                                    for (long pos : consumer.getCross().keySet()) {
+                                        holders.get(pos).reduce(limit);
+                                    }
                                 }
 
                                 amount = limit;

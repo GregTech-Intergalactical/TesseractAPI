@@ -80,4 +80,10 @@ public interface IElectricNode extends IConnectable {
 	 * @return Returns true if the given direction is output side.
 	 */
 	boolean canOutput(@Nonnull Dir direction);
+
+	/**
+	 * @param voltage The inputting voltage.
+	 * @return
+	 */
+	boolean canInput(int voltage);
 }

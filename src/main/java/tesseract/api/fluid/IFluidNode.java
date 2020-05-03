@@ -33,14 +33,13 @@ public interface IFluidNode extends IConnectable {
      * @return FluidData representing fluid that was removed (or would be, if simulated) from the tank.
      */
     @Nullable
-    FluidData extract(@Nonnull Object tank, int amount, boolean simulate);
+    FluidData extract(int tank, int amount, boolean simulate);
 
     /**
      * @param direction Direction to the proceed.
-     * @return Gets any available tank.
+     * @return Gets any available tank. (-1 when wasn't found any)
      **/
-    @Nullable
-    Object getAvailableTank(@Nonnull Dir direction);
+    int getAvailableTank(@Nonnull Dir direction);
 
     /**
      * @param direction Direction to the proceed.

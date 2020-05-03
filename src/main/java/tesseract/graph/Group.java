@@ -37,26 +37,29 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * @param pos The position of the node.
      * @param node The given node.
+     * @param controller The given controller.
      * @return Create a instance of a class for a given position and node.
      */
     @Nonnull
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, @Nonnull Cache<N> node) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, @Nonnull Cache<N> node, @Nullable Controller<C, N> controller) {
         Group<C, N> group = new Group<>();
-        group.addNode(pos, node, null);
+        group.addNode(pos, node, controller);
         return group;
     }
 
     /**
      * @param pos The position of the connector.
      * @param connector The given connector.
+     * @param controller The given controller.
      * @return Create a instance of a class for a given position and connector.
      */
     @Nonnull
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, @Nonnull Cache<C> connector) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, @Nonnull Cache<C> connector, @Nullable Controller<C, N> controller) {
         Group<C, N> group = new Group<>();
         int id = CID.nextId();
         group.connectors.put(pos, id);
         group.grids.put(id, Grid.singleConnector(pos, connector));
+        group.updateController(connector, controller);
         return group;
     }
 
@@ -385,7 +388,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 return;
             }
 
-            int pairing = connectors.remove(pos);
+            int pairing = removeConnector(pos);
             Grid<C> grid = grids.get(pairing);
 
             // No check is needed here, because the caller already asserts that the Group contains the specified position.
@@ -443,7 +446,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             splitGrids = new ObjectArrayList<>();
 
             for (long move : centerGrid.getConnectors().keySet()) {
-                connectors.remove(move);
+                removeConnector(move);
                 excluded.add(move);
             }
 
@@ -486,7 +489,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     newGroup.grids.put(id, grid);
 
                     for (long moved : grid.getConnectors().keySet()) {
-                        connectors.remove(moved);
+                        removeConnector(moved);
                         newGroup.connectors.put(moved, id);
                     }
                 }
@@ -550,6 +553,21 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         return true;
+    }
+
+    /**
+     * Removes the connector from the grid.
+     *
+     * @param pos The position of the connector.
+     * @return The grid id where removing occurred.
+     */
+    private int removeConnector(long pos) {
+        int id = connectors.remove(pos);
+        Grid<C> grid = grids.get(id);
+        Cache<C> cable = grid.getConnectors().get(pos);
+
+        resetControllerHost(cable);
+        return id;
     }
 
     /**

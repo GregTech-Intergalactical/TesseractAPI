@@ -35,7 +35,7 @@ public class TesseractAPI {
      */
     @Nonnull
     public static Graph<IElectricCable, IElectricNode> getElectricGraph(int dim) {
-        return ELECTRIC_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
+        return ELECTRIC_GRAPH.computeIfAbsent(dim, g -> new Graph<>());
     }
 
     /**
@@ -46,7 +46,7 @@ public class TesseractAPI {
      */
     @Nonnull
     public static Graph<IFluidPipe, IFluidNode> getFluidGraph(int dim) {
-        return FLUID_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
+        return FLUID_GRAPH.computeIfAbsent(dim, g -> new Graph<>());
     }
 
     /**
@@ -57,7 +57,7 @@ public class TesseractAPI {
      */
     @Nonnull
     public static Graph<IItemPipe, IItemNode> getItemGraph(int dim) {
-        return ITEM_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
+        return ITEM_GRAPH.computeIfAbsent(dim, g -> new Graph<>());
     }
 
     /**

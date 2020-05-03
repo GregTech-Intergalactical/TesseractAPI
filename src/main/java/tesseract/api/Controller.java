@@ -1,7 +1,5 @@
 package tesseract.api;
 
-import tesseract.api.fluid.IFluidNode;
-import tesseract.api.fluid.IFluidPipe;
 import tesseract.graph.Group;
 import tesseract.graph.IConnectable;
 import tesseract.graph.INode;
