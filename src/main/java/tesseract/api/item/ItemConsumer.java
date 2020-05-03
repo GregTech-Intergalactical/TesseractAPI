@@ -24,7 +24,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      * @param path The path information.
      * @param dir The input direction.
      */
-    protected ItemConsumer(@Nonnull IItemNode consumer, @Nullable Path<IItemPipe> path, @Nonnull Dir dir) {
+    protected ItemConsumer(IItemNode consumer, @Nullable Path<IItemPipe> path, Dir dir) {
         super(consumer, path);
         input = dir;
     }
@@ -37,7 +37,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      *         May be the same as the input ItemStack if unchanged, otherwise a new ItemStack.
      *         The returned ItemStack can be safely modified after.
      **/
-    public int insert(@Nonnull ItemData data, boolean simulate) {
+    public int insert(ItemData data, boolean simulate) {
         return node.insert(data, simulate);
     }
 
@@ -45,7 +45,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      * @param item The Item to be queried.
      * @return If the storage can hold the item (EVER, not at the time of query).
      */
-    public boolean canAccept(@Nonnull Object item) {
+    public boolean canAccept(Object item) {
         return node.canInput(item, input);
     }
 
@@ -64,7 +64,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
     }
 
     @Override
-    protected void onConnectorCatch(@Nonnull IItemPipe pipe) {
+    protected void onConnectorCatch(IItemPipe pipe) {
         minCapacity = Math.min(minCapacity, pipe.getCapacity());
     }
 }
