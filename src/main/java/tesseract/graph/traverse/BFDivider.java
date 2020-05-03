@@ -5,7 +5,7 @@ import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import tesseract.graph.INode;
 
-import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ConcurrentModificationException;
 import java.util.function.Consumer;
 
@@ -13,6 +13,7 @@ import java.util.function.Consumer;
  * Extension of BFSearcher that helps with dividing up node containers. The BFDivider class executes enough breadth first
  * search operations in order to split up a previously connected set of nodes into divided groups of connected nodes.
  */
+@ParametersAreNonnullByDefault
 public class BFDivider {
 
 	private final BFSearcher searcher;
@@ -24,7 +25,7 @@ public class BFDivider {
 	 *
 	 * @param container The container to use for devides operations.
 	 */
-	public BFDivider(@Nonnull INode container) {
+	public BFDivider(INode container) {
 		searcher = new BFSearcher(container);
 		roots.defaultReturnValue(Integer.MAX_VALUE);
 	}
@@ -43,7 +44,7 @@ public class BFDivider {
 	 * @return The index in the sequence of split position sets corresponding to the largest set of positions, ie. a
 	 *         return value of 0 indicates that the first returned set was the largest.
 	 */
-	public int divide(@Nonnull Consumer<LongSet> removed, @Nonnull Consumer<LongSet> rootProvider, @Nonnull Consumer<LongSet> split) {
+	public int divide(Consumer<LongSet> removed, Consumer<LongSet> rootProvider, Consumer<LongSet> split) {
 		if (!lookup.isEmpty() || !roots.isEmpty()) {
 			throw new ConcurrentModificationException("Attempted to run concurrent divide operations on the same BFDivider instance");
 		}

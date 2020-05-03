@@ -3,8 +3,8 @@ package tesseract.api.fluid;
 import tesseract.graph.IConnectable;
 import tesseract.util.Dir;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * An fluid node is the unit of interaction with fluid inventories.
@@ -15,6 +15,7 @@ import javax.annotation.Nullable;
  * You are free to handle Fluids in any way that you wish - this is simply an easy default way.
  * DO NOT ASSUME that these objects are used internally in all cases.
  */
+@ParametersAreNonnullByDefault
 public interface IFluidNode extends IConnectable {
 
     /**
@@ -23,7 +24,7 @@ public interface IFluidNode extends IConnectable {
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    int insert(@Nonnull FluidData data, boolean simulate);
+    int insert(FluidData data, boolean simulate);
 
     /**
      * Removes fluid from the node. Returns amount of fluid that was drained.
@@ -39,19 +40,19 @@ public interface IFluidNode extends IConnectable {
      * @param direction Direction to the proceed.
      * @return Gets any available tank. (-1 when wasn't found any)
      **/
-    int getAvailableTank(@Nonnull Dir direction);
+    int getAvailableTank(Dir direction);
 
     /**
      * @param direction Direction to the proceed.
      * @return Gets the initial amount of pressure that can be output.
      */
-    int getOutputAmount(@Nonnull Dir direction);
+    int getOutputAmount(Dir direction);
 
     /**
      * @param direction Direction to the proceed.
      * @return Returns the priority of this node as a number.
      */
-    int getPriority(@Nonnull Dir direction);
+    int getPriority(Dir direction);
 
     /**
      * @return Gets the maximum amount of fluid that can be stored.
@@ -76,12 +77,13 @@ public interface IFluidNode extends IConnectable {
      * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */
-    boolean canOutput(@Nonnull Dir direction);
+    boolean canOutput(Dir direction);
 
     /**
+     * Used to determine which fluids and at which direction can be consumed.
      * @param fluid The Fluid to be queried.
      * @param direction Direction to the input.
      * @return If the tank can input the fluid (EVER, not at the time of query).
      */
-    boolean canInput(@Nonnull Object fluid, @Nonnull Dir direction);
+    boolean canInput(Object fluid, Dir direction);
 }

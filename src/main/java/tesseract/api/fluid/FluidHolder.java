@@ -3,12 +3,13 @@ package tesseract.api.fluid;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
-import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Set;
 
 /**
  * A class that acts as holder of the fluid that has passed thought pipes.
  */
+@ParametersAreNonnullByDefault
 public class FluidHolder {
 
     private int pressure;
@@ -20,7 +21,7 @@ public class FluidHolder {
      *
      * @param pipe The pipe connector.
      */
-    protected FluidHolder(@Nonnull IFluidPipe pipe) {
+    protected FluidHolder(IFluidPipe pipe) {
         this.maxCapacity = pipe.getCapacity();
         this.maxPressure = pipe.getPressure();
     }
@@ -31,7 +32,7 @@ public class FluidHolder {
      * @param pressure The added pressure.
      * @param fluid The fluid type.
      */
-    public void add(int pressure, @Nonnull Object fluid) {
+    public void add(int pressure, Object fluid) {
         this.pressure += pressure;
         fluids.add(fluid);
     }

@@ -1,10 +1,12 @@
 package tesseract.graph;
 
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNullableByDefault;
 
 /**
  * Represents a tile entity providing server ticks for the group controller
  */
+@ParametersAreNullableByDefault
 public interface ITickHost {
 
     /**
@@ -13,5 +15,5 @@ public interface ITickHost {
      * @param oldController The previous controller node.
      * @param newController The new controller node.
      */
-    void reset(@Nullable ITickingController oldController, @Nullable ITickingController newController);
+    void reset(ITickingController oldController, ITickingController newController);
 }

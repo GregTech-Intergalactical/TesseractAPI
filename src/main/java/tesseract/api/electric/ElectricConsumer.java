@@ -5,10 +5,13 @@ import tesseract.graph.Path;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * A class that acts as a container for an electrical consumer.
  */
+@ParametersAreNonnullByDefault
+
 public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
 
     private int loss;
@@ -21,7 +24,7 @@ public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
      * @param consumer The consumer node.
      * @param path The path information.
      */
-    protected ElectricConsumer(@Nonnull IElectricNode consumer, @Nullable Path<IElectricCable> path) {
+    protected ElectricConsumer(IElectricNode consumer, @Nullable Path<IElectricCable> path) {
         super(consumer, path);
     }
 
@@ -63,14 +66,14 @@ public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
      *
      * @param consumer An another consumer.
      */
-    public void copy(@Nonnull ElectricConsumer consumer) {
+    public void copy(ElectricConsumer consumer) {
         loss = consumer.loss;
         full = consumer.full;
         cross = consumer.cross;
     }
 
     @Override
-    protected void onConnectorCatch(@Nonnull IElectricCable cable) {
+    protected void onConnectorCatch(IElectricCable cable) {
         loss += cable.getLoss();
         minVoltage = Math.min(minVoltage, cable.getVoltage());
         minAmperage = Math.min(minAmperage, cable.getAmps());

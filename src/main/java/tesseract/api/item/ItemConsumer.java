@@ -6,10 +6,12 @@ import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * A class that acts as a container for a item consumer.
  */
+@ParametersAreNonnullByDefault
 public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
 
     private int minCapacity = Integer.MAX_VALUE;

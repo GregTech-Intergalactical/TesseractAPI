@@ -1,10 +1,12 @@
 package tesseract.graph;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Interface abstracting ticking behaviour for the groups in the graph.
  */
+@ParametersAreNonnullByDefault
 public interface ITickingController {
 
     /**
@@ -23,7 +25,7 @@ public interface ITickingController {
      * @return New controller for the group.
      */
     @Nonnull
-    ITickingController clone(@Nonnull INode group);
+    ITickingController clone(INode group);
 
     /**
      * @return To get simple things like a some information.

@@ -2,10 +2,12 @@ package tesseract.util;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * The Node is a pretty straightforward class resembling regular nodes.
  */
+@ParametersAreNonnullByDefault
 public class Node extends Pos {
 
     private Node parent;
@@ -20,7 +22,7 @@ public class Node extends Pos {
      * @param pos The position to duplicate.
      * @param direction The direction to the parent.
      */
-    public Node(@Nonnull Pos pos, @Nonnull Dir direction) {
+    public Node(Pos pos, Dir direction) {
         super(pos);
         setDirection(direction);
     }
@@ -31,7 +33,7 @@ public class Node extends Pos {
      * @param value The compressed position.
      * @param direction The direction to the parent.
      */
-    public Node(long value, @Nonnull Dir direction) {
+    public Node(long value, Dir direction) {
         super(value);
         setDirection(direction);
     }
@@ -104,7 +106,7 @@ public class Node extends Pos {
      * Sets the parent node.
      * @param parent The parent node.
      */
-    public void setParent(@Nonnull Node parent) {
+    public void setParent(Node parent) {
         this.parent = parent;
     }
 
@@ -120,7 +122,7 @@ public class Node extends Pos {
      * Sets the direction to the parent node.
      * @param direction The direction.
      */
-    public void setDirection(@Nonnull Dir direction) {
+    public void setDirection(Dir direction) {
         this.direction = direction;
     }
 
@@ -157,7 +159,7 @@ public class Node extends Pos {
     /**
      * @return Calculates the heuristic distance.
      */
-    public int heuristic(@Nonnull Node dest) {
+    public int heuristic(Node dest) {
         return distanceTo(dest);
     }
 
@@ -165,7 +167,7 @@ public class Node extends Pos {
      * @param dest Calculates the heuristic to the node.
      * @return The distance value.
      */
-    public int distanceTo(@Nonnull Node dest) {
+    public int distanceTo(Node dest) {
         return Math.abs(x - dest.x) + Math.abs(y - dest.y) + Math.abs(z - dest.z);
     }
 

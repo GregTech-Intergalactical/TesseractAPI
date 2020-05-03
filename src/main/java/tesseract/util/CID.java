@@ -1,10 +1,12 @@
 package tesseract.util;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @link https://gist.github.com/icella/d4011b6808fc549c538c0310528d9e94
  */
+@ParametersAreNonnullByDefault
 public class CID {
 
     public static final int INVALID = Integer.MAX_VALUE;

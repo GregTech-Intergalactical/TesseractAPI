@@ -3,6 +3,7 @@ package tesseract.util;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -10,6 +11,7 @@ import java.util.Random;
 /**
  * Class acts as a wrapper of a random permute iterator over a list.
  */
+@ParametersAreNonnullByDefault
 public class RandomIterator<T> implements Iterator<T> {
 
     final List<T> delegate;
@@ -20,7 +22,7 @@ public class RandomIterator<T> implements Iterator<T> {
      *
      * @param list The provided list.
      */
-    public RandomIterator(@Nonnull List<T> list) {
+    public RandomIterator(List<T> list) {
         delegate = list;
         iterator = new LCG(list.size());
     }

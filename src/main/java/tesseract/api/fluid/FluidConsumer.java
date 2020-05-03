@@ -6,10 +6,13 @@ import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * A class that acts as a container for a fluid consumer.
  */
+@ParametersAreNonnullByDefault
+
 public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
 
     private int isProof = 1;
@@ -25,7 +28,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param path The path information.
      * @param dir The added direction.
      */
-    protected FluidConsumer(@Nonnull IFluidNode consumer, @Nullable Path<IFluidPipe> path, @Nonnull Dir dir) {
+    protected FluidConsumer(IFluidNode consumer, @Nullable Path<IFluidPipe> path, Dir dir) {
         super(consumer, path);
         this.input = dir;
     }
@@ -37,7 +40,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    public int insert(@Nonnull FluidData data, boolean simulate) {
+    public int insert(FluidData data, boolean simulate) {
         return node.insert(data, simulate);
     }
 
@@ -45,7 +48,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param fluid The Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    public boolean canHold(@Nonnull Object fluid) {
+    public boolean canHold(Object fluid) {
         return node.canInput(fluid, input);
     }
 
@@ -67,7 +70,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
     }
 
     @Override
-    protected void onConnectorCatch(@Nonnull IFluidPipe pipe) {
+    protected void onConnectorCatch(IFluidPipe pipe) {
         isProof = Math.min(isProof, pipe.isGasProof() ? 1 : 0);
         minTemperature = Math.min(minTemperature, pipe.getTemperature());
         minCapacity = Math.min(minCapacity, pipe.getCapacity());

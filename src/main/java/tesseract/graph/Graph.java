@@ -11,11 +11,13 @@ import tesseract.util.CID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 /**
  * Class provides the functionality of any set of nodes.
  */
+@ParametersAreNonnullByDefault
 public class Graph<C extends IConnectable, N extends IConnectable> implements INode {
 
 	private final Int2ObjectMap<Group<C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
@@ -63,7 +65,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param controller The controller to use.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addNode(long pos, @Nonnull Cache<N> node, @Nullable Controller<C, N> controller) {
+	public boolean addNode(long pos, Cache<N> node, @Nullable Controller<C, N> controller) {
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleNode(pos, node, controller));
 			if (group != null) group.addNode(pos, node, controller);
@@ -81,7 +83,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param controller The controller to use.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addConnector(long pos, @Nonnull Cache<C> connector, @Nullable Controller<C, N> controller) {
+	public boolean addConnector(long pos, Cache<C> connector, @Nullable Controller<C, N> controller) {
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleConnector(pos, connector, controller));
 			if (group != null) group.addConnector(pos, connector, controller);
@@ -99,7 +101,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @return An existing group, that the caller should add the entry to.
 	 */
 	@Nullable
-	private Group<C, N> add(long pos, @Nonnull Group<C, N> single) {
+	private Group<C, N> add(long pos, Group<C, N> single) {
 		int id;
 		IntSet mergers = getNeighboringGroups(pos);
 		switch (mergers.size()) {
@@ -181,7 +183,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @return The wrapper with groups which should be merged.
 	 */
 	@Nonnull
-	private Merged<C, N> beginMerge(@Nonnull IntSet mergers) {
+	private Merged<C, N> beginMerge(IntSet mergers) {
 		int bestId = mergers.iterator().nextInt();
 		Group<C, N> best = groups.get(bestId);
 		int bestSize = best.countBlocks();

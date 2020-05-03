@@ -2,9 +2,12 @@ package tesseract.api.electric;
 
 import tesseract.graph.IConnectable;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 /**
  * An electric cable is the unit of interaction with electric inventories.
  */
+@ParametersAreNonnullByDefault
 public interface IElectricCable extends IConnectable {
 
 	/**

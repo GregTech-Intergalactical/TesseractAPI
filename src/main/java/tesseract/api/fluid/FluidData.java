@@ -1,10 +1,12 @@
 package tesseract.api.fluid;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * A class that acts as a wrapper for a item stack and a slot index.
  */
+@ParametersAreNonnullByDefault
 public class FluidData {
 
     private final boolean isGaseous;
@@ -20,7 +22,7 @@ public class FluidData {
      * @param temperature The temperature of the fluid.
      * @param isGaseous The state of the fluid.
      */
-    public FluidData(@Nonnull Object stack, @Nonnull Object fluid, int amount, int temperature, boolean isGaseous) {
+    public FluidData(Object stack, Object fluid, int amount, int temperature, boolean isGaseous) {
         this.stack = stack;
         this.fluid = fluid;
         this.amount = amount;

@@ -1,10 +1,11 @@
 package tesseract.api.electric;
 
-import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * A class that acts a holder of the packets that has passed thought cables.
  */
+@ParametersAreNonnullByDefault
 public class ElectricHolder {
 
     private int amperage;
@@ -15,7 +16,7 @@ public class ElectricHolder {
      *
      * @param cable The cable connector.
      */
-    protected ElectricHolder(@Nonnull IElectricCable cable) {
+    protected ElectricHolder(IElectricCable cable) {
         this.maxAmperage = cable.getAmps();
     }
 

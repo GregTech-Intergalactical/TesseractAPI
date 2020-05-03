@@ -5,11 +5,12 @@ import tesseract.graph.IConnectable;
 import tesseract.graph.INode;
 import tesseract.graph.ITickingController;
 
-import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Class acts as a controller in the group of some components.
  */
+@ParametersAreNonnullByDefault
 abstract public class Controller<C extends IConnectable, N extends IConnectable> implements ITickingController {
 
     protected int tick;
@@ -31,7 +32,7 @@ abstract public class Controller<C extends IConnectable, N extends IConnectable>
      * @param container The group this controller handles.
      */
     @SuppressWarnings("unchecked")
-    public Controller<C, N> set(@Nonnull INode container) {
+    public Controller<C, N> set(INode container) {
         this.group = (Group<C, N>) container;
         return this;
     }

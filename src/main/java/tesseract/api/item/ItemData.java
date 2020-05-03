@@ -1,10 +1,12 @@
 package tesseract.api.item;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * A class that acts as a wrapper for a item stack and a slot index.
  */
+@ParametersAreNonnullByDefault
 public class ItemData {
 
     private final int slot;
@@ -17,7 +19,7 @@ public class ItemData {
      * @param stack The ItemStack object.
      * @param item The item inside an ItemStack.
      */
-    public ItemData(int slot, @Nonnull Object stack, @Nonnull Object item) {
+    public ItemData(int slot, Object stack, Object item) {
         this.slot = slot;
         this.stack = stack;
         this.item = item;

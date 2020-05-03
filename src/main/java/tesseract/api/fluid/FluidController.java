@@ -12,6 +12,7 @@ import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -23,6 +24,8 @@ import static tesseract.TesseractAPI.GLOBAL_FLUID_EVENT;
 /**
  * Class acts as a controller in the group of a fluid components.
  */
+@ParametersAreNonnullByDefault
+
 public class FluidController extends Controller<IFluidPipe, IFluidNode> {
 
     private long totalPressure, lastPressure;
@@ -90,7 +93,7 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
      * @param dir The added direction.
      * @param pos The position of the producer.
      */
-    private void onCheck(@Nonnull List<FluidConsumer> consumers, @Nullable Path<IFluidPipe> path, @Nonnull Dir dir, long pos) {
+    private void onCheck(List<FluidConsumer> consumers, @Nullable Path<IFluidPipe> path, Dir dir, long pos) {
         IFluidNode node = group.getNodes().get(pos).value();
         if (node.canInput()) consumers.add(new FluidConsumer(node, path, dir));
     }
@@ -218,7 +221,7 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
 
     @Nonnull
     @Override
-    public ITickingController clone(@Nonnull INode group) {
+    public ITickingController clone(INode group) {
         return new FluidController(dim).set(group);
     }
 }

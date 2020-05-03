@@ -12,6 +12,7 @@ import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 import java.util.Comparator;
 import java.util.List;
@@ -21,6 +22,7 @@ import static tesseract.TesseractAPI.GLOBAL_ELECTRIC_EVENT;
 /**
  * Class acts as a controller in the group of an electrical components.
  */
+@ParametersAreNonnullByDefault
 public class ElectricController extends Controller<IElectricCable, IElectricNode> {
 
     private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
@@ -101,7 +103,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
      * @param producer The producer node.
      * @param consumers The consumer nodes.
      */
-    private void onMerge(@Nonnull IElectricNode producer, @Nonnull List<ElectricConsumer> consumers) {
+    private void onMerge(IElectricNode producer, List<ElectricConsumer> consumers) {
         List<ElectricConsumer> existingConsumers = data.get(producer);
         for (ElectricConsumer c : consumers) {
             boolean found = false;
@@ -125,7 +127,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
      * @param path The paths to consumers.
      * @param pos The position of the producer.
      */
-    private void onCheck(@Nonnull IElectricNode producer, @Nonnull List<ElectricConsumer> consumers, @Nullable Path<IElectricCable> path, long pos) {
+    private void onCheck(IElectricNode producer, List<ElectricConsumer> consumers, @Nullable Path<IElectricCable> path, long pos) {
         IElectricNode node = group.getNodes().get(pos).value();
         if (node.canInput()) {
             ElectricConsumer consumer = new ElectricConsumer(node, path);
@@ -258,7 +260,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
 
     @Nonnull
     @Override
-    public ITickingController clone(@Nonnull INode group) {
+    public ITickingController clone(INode group) {
         return new ElectricController(dim).set(group);
     }
 }

@@ -8,6 +8,7 @@ import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -116,6 +117,7 @@ class TestBench {
         }
     }
 
+    @ParametersAreNonnullByDefault
     private static class ExampleConnector implements IConnectable {
 
         @Override
@@ -124,11 +126,12 @@ class TestBench {
         }
 
         @Override
-        public boolean connects(@Nonnull Dir direction) {
+        public boolean connects(Dir direction) {
             return true;
         }
     }
 
+    @ParametersAreNonnullByDefault
     private static class ExampleNode implements IConnectable, ITickHost {
 
         @Override
@@ -137,7 +140,7 @@ class TestBench {
         }
 
         @Override
-        public boolean connects(@Nonnull Dir direction) {
+        public boolean connects(Dir direction) {
             return true;
         }
 

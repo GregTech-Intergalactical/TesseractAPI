@@ -7,11 +7,13 @@ import tesseract.util.Node;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
 import static tesseract.util.Pos.packAll;
 import static org.junit.Assert.*;
 
+@ParametersAreNonnullByDefault
 public class GraphTest {
     @Test
     public void system() {
@@ -147,7 +149,7 @@ public class GraphTest {
         }
 
         @Override
-        public boolean connects(@Nonnull Dir direction) {
+        public boolean connects(Dir direction) {
             return true;
         }
     }
@@ -160,7 +162,7 @@ public class GraphTest {
         }
 
         @Override
-        public boolean connects(@Nonnull Dir direction) {
+        public boolean connects(Dir direction) {
             return true;
         }
     }

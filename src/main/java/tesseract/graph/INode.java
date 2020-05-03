@@ -3,11 +3,13 @@ package tesseract.graph;
 import tesseract.util.Dir;
 
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * A simple interface for representing objects that contain groups of positions that are connected in various ways.
  * Used by traversal classes in order to determine how they may move from one element to the next.
  */
+@ParametersAreNonnullByDefault
 public interface INode {
 
 	/**
