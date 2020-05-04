@@ -76,16 +76,8 @@ public interface IElectricNode extends IConnectable {
 
 	/**
 	 * Used to determine which sides can output energy (if any).
-	 * Output cannot be used as input.
 	 * @param direction Direction to the output.
 	 * @return Returns true if the given direction is output side.
 	 */
 	boolean canOutput(Dir direction);
-
-	/**
-	 * Used to determine which voltage is allowed to be consumed.
-	 * @param voltage The inputting voltage.
-	 * @return Returns true if the given voltage is correct, false to call over event.
-	 */
-	boolean canInput(int voltage);
 }

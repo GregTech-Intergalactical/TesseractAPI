@@ -55,11 +55,6 @@ public interface IFluidNode extends IConnectable {
     int getPriority(Dir direction);
 
     /**
-     * @return Gets the maximum amount of fluid that can be stored.
-     */
-    int getCapacity();
-
-    /**
      * Gets if this storage can have fluid extracted.
      * @return If this is false, then any calls to extractEnergy will return 0.
      */
@@ -73,7 +68,6 @@ public interface IFluidNode extends IConnectable {
 
     /**
      * Used to determine which sides can output fluid (if any).
-     * Output cannot be used as input.
      * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */

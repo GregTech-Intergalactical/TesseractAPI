@@ -12,7 +12,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * A class that acts as a container for a fluid consumer.
  */
 @ParametersAreNonnullByDefault
-
 public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
 
     private int isProof = 1;

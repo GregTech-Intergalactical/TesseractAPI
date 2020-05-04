@@ -136,7 +136,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
                 return;
             }
 
-            if (node.canInput(voltage)) {
+            if (voltage <= node.getInputVoltage()) {
                 consumers.add(consumer);
             } else {
                 GLOBAL_ELECTRIC_EVENT.onNodeOverVoltage(dim, pos, voltage);

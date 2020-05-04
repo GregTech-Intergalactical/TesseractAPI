@@ -80,7 +80,6 @@ public interface IItemNode extends IConnectable {
 
     /**
      * Used to determine which sides can output item (if any).
-     * Output cannot be used as input.
      * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */

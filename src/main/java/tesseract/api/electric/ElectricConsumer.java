@@ -11,7 +11,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * A class that acts as a container for an electrical consumer.
  */
 @ParametersAreNonnullByDefault
-
 public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
 
     private int loss;
