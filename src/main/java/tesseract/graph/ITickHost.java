@@ -1,6 +1,5 @@
 package tesseract.graph;
 
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNullableByDefault;
 
 /**

@@ -3,7 +3,6 @@ package tesseract.api.electric;
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
