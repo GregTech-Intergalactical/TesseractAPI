@@ -6,10 +6,12 @@ import tesseract.graph.Path;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * A class that acts as a wrapper for a node component.
  */
+@ParametersAreNonnullByDefault
 abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
 
     protected final N node;
@@ -24,7 +26,7 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      * @param node The node instance.
      * @param path The path information.
      */
-    protected Consumer(@Nonnull N node, @Nullable Path<C> path) {
+    protected Consumer(N node, @Nullable Path<C> path) {
         this.node = node;
 
         if (path != null) {
@@ -82,5 +84,5 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      *
      * @param connector The connector object.
      */
-    protected abstract void onConnectorCatch(@Nonnull C connector);
+    protected abstract void onConnectorCatch(C connector);
 }

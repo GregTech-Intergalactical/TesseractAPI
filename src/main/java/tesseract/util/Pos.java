@@ -1,10 +1,12 @@
 package tesseract.util;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * @see net.minecraft.util.math.BlockPos
  */
+@ParametersAreNonnullByDefault
 public class Pos {
 
     protected long value;
@@ -105,7 +107,7 @@ public class Pos {
      *
      * @param pos The position to duplicate.
      */
-    public Pos(@Nonnull Pos pos) {
+    public Pos(Pos pos) {
         this.x = pos.x;
         this.y = pos.y;
         this.z = pos.z;
@@ -135,7 +137,7 @@ public class Pos {
      * @return self
      */
     @Nonnull
-    public Pos set(@Nonnull Pos pos) {
+    public Pos set(Pos pos) {
         this.x = pos.x;
         this.y = pos.y;
         this.z = pos.z;
@@ -162,7 +164,7 @@ public class Pos {
      * @return self
      */
     @Nonnull
-    public Pos add(@Nonnull Pos pos) {
+    public Pos add(Pos pos) {
         return set(this.x + pos.x, this.y + pos.y, this.z + pos.z);
     }
 
@@ -186,7 +188,7 @@ public class Pos {
      * @return self
      */
     @Nonnull
-    public Pos sub(@Nonnull Pos pos) {
+    public Pos sub(Pos pos) {
         return set(this.x - pos.x, this.y - pos.y, this.z - pos.z);
     }
 
@@ -225,7 +227,7 @@ public class Pos {
      * @return The new instance of object.
      */
     @Nonnull
-    public Pos offset(@Nonnull Dir dir) {
+    public Pos offset(Dir dir) {
         return new Pos(x + dir.getXOffset(), y + dir.getYOffset(), z + dir.getZOffset());
     }
 
@@ -237,7 +239,7 @@ public class Pos {
      * @return The new instance of object.
      */
     @Nonnull
-    public Pos offset(@Nonnull Dir dir, int n) {
+    public Pos offset(Dir dir, int n) {
         return n == 0 ? this : new Pos(x + dir.getXOffset() * n, y + dir.getYOffset() * n, z + dir.getZOffset() * n);
     }
 
@@ -290,7 +292,7 @@ public class Pos {
     @Override
     public boolean equals(Object o) {
         if (o instanceof Pos) {
-            return (value == ((Pos) o).value);
+            return value == ((Pos) o).value;
         }
         return false;
     }

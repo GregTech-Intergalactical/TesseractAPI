@@ -6,8 +6,8 @@ import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -39,12 +39,12 @@ class TestBench {
                 long position = pos.asLong();
 
                 if (points.length == 5 && points[4].startsWith("c")) {
-                    if (!graph.addConnector(position, new Cache<>(new ExampleConnector()))) {
+                    if (!graph.addConnector(position, new Cache<>(new ExampleConnector()), null)) {
                         System.out.println("Error: connector at" + pos + " already exists in the graph");
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, new Cache<>(new ExampleNode()))) {
+                    if (!graph.addNode(position, new Cache<>(new ExampleNode()), null)) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }
@@ -116,6 +116,7 @@ class TestBench {
         }
     }
 
+    @ParametersAreNonnullByDefault
     private static class ExampleConnector implements IConnectable {
 
         @Override
@@ -124,11 +125,12 @@ class TestBench {
         }
 
         @Override
-        public boolean connects(@Nonnull Dir direction) {
+        public boolean connects(Dir direction) {
             return true;
         }
     }
 
+    @ParametersAreNonnullByDefault
     private static class ExampleNode implements IConnectable, ITickHost {
 
         @Override
@@ -137,7 +139,7 @@ class TestBench {
         }
 
         @Override
-        public boolean connects(@Nonnull Dir direction) {
+        public boolean connects(Dir direction) {
             return true;
         }
 

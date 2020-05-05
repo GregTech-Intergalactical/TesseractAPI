@@ -3,10 +3,12 @@ package tesseract.graph;
 import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * The Cache is a class that should work with connections.
  */
+@ParametersAreNonnullByDefault
 public class Cache<T extends IConnectable> {
 
     private final byte connectivity;
@@ -15,7 +17,7 @@ public class Cache<T extends IConnectable> {
     /**
      * Creates a cache instance.
      */
-    public Cache(@Nonnull T value) {
+    public Cache(T value) {
         this.value = value;
         this.connectivity = Connectivity.of(value);
     }
@@ -23,7 +25,7 @@ public class Cache<T extends IConnectable> {
     /**
      * Creates a cache instance from a delegate.
      */
-    public Cache(@Nonnull T value, @Nonnull IConnectable delegate) {
+    public Cache(T value, IConnectable delegate) {
         this.value = value;
         this.connectivity = Connectivity.of(delegate);
     }
@@ -32,7 +34,7 @@ public class Cache<T extends IConnectable> {
      * @param direction The direction index.
      * @return True when connect, false otherwise.
      */
-    public boolean connects(@Nonnull Dir direction) {
+    public boolean connects(Dir direction) {
         return Connectivity.has(connectivity, direction);
     }
 

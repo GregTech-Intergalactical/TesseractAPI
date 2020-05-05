@@ -3,7 +3,7 @@ package tesseract.api.electric;
 import tesseract.graph.IConnectable;
 import tesseract.util.Dir;
 
-import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * An electric node is the unit of interaction with electric inventories.
@@ -13,6 +13,7 @@ import javax.annotation.Nonnull;
  * Derived from the Redstone Flux power system designed by King Lemming and originally utilized in Thermal Expansion and related mods.
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
  */
+@ParametersAreNonnullByDefault
 public interface IElectricNode extends IConnectable {
 
 	/**
@@ -75,9 +76,8 @@ public interface IElectricNode extends IConnectable {
 
 	/**
 	 * Used to determine which sides can output energy (if any).
-	 * Output cannot be used as input.
 	 * @param direction Direction to the output.
 	 * @return Returns true if the given direction is output side.
 	 */
-	boolean canOutput(@Nonnull Dir direction);
+	boolean canOutput(Dir direction);
 }

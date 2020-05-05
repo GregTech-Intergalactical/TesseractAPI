@@ -7,12 +7,14 @@ import tesseract.util.Node;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Deque;
 import java.util.Iterator;
 
 /**
  * The Path is a class that should work with paths for grids.
  */
+@ParametersAreNonnullByDefault
 public class Path<C extends IConnectable> {
 
     private final Node origin;
@@ -26,7 +28,7 @@ public class Path<C extends IConnectable> {
      * @param connectors The connectors array.
      * @param path The path queue.
      */
-    protected Path(@Nonnull Long2ObjectMap<Cache<C>> connectors, @Nonnull Deque<Node> path) {
+    protected Path(Long2ObjectMap<Cache<C>> connectors, Deque<Node> path) {
         origin = path.pollLast();
         target = path.pollFirst();
 

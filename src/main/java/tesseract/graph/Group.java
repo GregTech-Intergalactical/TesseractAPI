@@ -12,6 +12,7 @@ import tesseract.util.CID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +21,7 @@ import java.util.function.Consumer;
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
  */
+@ParametersAreNonnullByDefault
 public class Group<C extends IConnectable, N extends IConnectable> implements INode {
 
     private final Long2ObjectMap<Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
@@ -37,26 +39,29 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * @param pos The position of the node.
      * @param node The given node.
+     * @param controller The given controller.
      * @return Create a instance of a class for a given position and node.
      */
     @Nonnull
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, @Nonnull Cache<N> node) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, Cache<N> node, @Nullable Controller<C, N> controller) {
         Group<C, N> group = new Group<>();
-        group.addNode(pos, node, null);
+        group.addNode(pos, node, controller);
         return group;
     }
 
     /**
      * @param pos The position of the connector.
      * @param connector The given connector.
+     * @param controller The given controller.
      * @return Create a instance of a class for a given position and connector.
      */
     @Nonnull
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, @Nonnull Cache<C> connector) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, Cache<C> connector, @Nullable Controller<C, N> controller) {
         Group<C, N> group = new Group<>();
         int id = CID.nextId();
         group.connectors.put(pos, id);
         group.grids.put(id, Grid.singleConnector(pos, connector));
+        group.updateController(connector, controller);
         return group;
     }
 
@@ -89,7 +94,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      *
      * @param cache The given cache.
      */
-    private void resetControllerHost(@Nonnull Cache<?> cache) {
+    private void resetControllerHost(Cache<?> cache) {
         if (currentTickHost != null && cache.value() instanceof ITickHost && cache.value() == currentTickHost) {
             currentTickHost.reset(controller, null);
             findNextValidHost(cache);
@@ -102,7 +107,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param cache The given cache object.
      * @param ticking The ticking instance.
      */
-    private void updateController(@Nonnull Cache<?> cache, @Nullable Controller<C, N> ticking) {
+    private void updateController(Cache<?> cache, @Nullable Controller<C, N> ticking) {
         if (ticking == null) return;
 
         if (controller == null) {
@@ -165,7 +170,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param o The current cache.
      * @return True or false.
      */
-    private boolean nextCache(@Nullable Cache<?> cache, @Nonnull Cache<?> o) {
+    private boolean nextCache(@Nullable Cache<?> cache, Cache<?> o) {
         if (o == cache || !(o.value() instanceof ITickHost)) {
             return true;
         }
@@ -228,7 +233,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param node The given node.
      * @param controller The controller to use.
      */
-    public void addNode(long pos, @Nonnull Cache<N> node, @Nullable Controller<C, N> controller) {
+    public void addNode(long pos, Cache<N> node, @Nullable Controller<C, N> controller) {
         nodes.put(pos, node);
 
         Pos position = new Pos(pos);
@@ -260,7 +265,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param connector The given connector.
      * @param controller The controller to use.
      */
-    public void addConnector(long pos, @Nonnull Cache<C> connector, @Nullable Controller<C, N> controller) {
+    public void addConnector(long pos, Cache<C> connector, @Nullable Controller<C, N> controller) {
 
         Int2ObjectMap<Grid<C>> linked = new Int2ObjectLinkedOpenHashMap<>();
         Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
@@ -371,7 +376,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param pos The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
-    public void removeAt(long pos, @Nonnull Consumer<Group<C, N>> split) {
+    public void removeAt(long pos, Consumer<Group<C, N>> split) {
 
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.
@@ -385,7 +390,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 return;
             }
 
-            int pairing = connectors.remove(pos);
+            int pairing = removeConnector(pos);
             Grid<C> grid = grids.get(pairing);
 
             // No check is needed here, because the caller already asserts that the Group contains the specified position.
@@ -443,7 +448,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             splitGrids = new ObjectArrayList<>();
 
             for (long move : centerGrid.getConnectors().keySet()) {
-                connectors.remove(move);
+                removeConnector(move);
                 excluded.add(move);
             }
 
@@ -486,7 +491,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     newGroup.grids.put(id, grid);
 
                     for (long moved : grid.getConnectors().keySet()) {
-                        connectors.remove(moved);
+                        removeConnector(moved);
                         newGroup.connectors.put(moved, id);
                     }
                 }
@@ -553,12 +558,27 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     /**
+     * Removes the connector from the grid.
+     *
+     * @param pos The position of the connector.
+     * @return The grid id where removing occurred.
+     */
+    private int removeConnector(long pos) {
+        int id = connectors.remove(pos);
+        Grid<C> grid = grids.get(id);
+        Cache<C> cable = grid.getConnectors().get(pos);
+
+        resetControllerHost(cable);
+        return id;
+    }
+
+    /**
      * Adds a new grid to the group.
      *
      * @param id The group id.
      * @param grid The grid object.
      */
-    private void addGrid(int id, @Nonnull Grid<C> grid) {
+    private void addGrid(int id, Grid<C> grid) {
         grids.put(id, grid);
 
         for (long moved : grid.getConnectors().keySet()) {
@@ -574,7 +594,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @return The grid map, guaranteed to not be null.
      */
     @Nullable
-    public Grid<C> getGridAt(long pos, @Nonnull Dir direction) {
+    public Grid<C> getGridAt(long pos, Dir direction) {
         int id = connectors.get(pos);
 
         if (id != CID.INVALID) {
@@ -617,7 +637,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param other The another group.
      * @param pos The given position.
      */
-    public void mergeWith(@Nonnull Group<C, N> other, long pos) {
+    public void mergeWith(Group<C, N> other, long pos) {
         other.releaseControllerHost();
         nodes.putAll(other.nodes);
         connectors.putAll(other.connectors);

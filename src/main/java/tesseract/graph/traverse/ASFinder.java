@@ -7,11 +7,13 @@ import tesseract.util.Node;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
 /**
  * A Star Algorithm implementation for converting a graph – consisting of the grid – into a route through the grid.
  */
+@ParametersAreNonnullByDefault
 public class ASFinder {
 
     private Deque<Node> path;
@@ -24,7 +26,7 @@ public class ASFinder {
      *
      * @param container The container to use for find operations.
      */
-    public ASFinder(@Nonnull INode container) {
+    public ASFinder(INode container) {
         this.container = container;
     }
 
@@ -105,7 +107,7 @@ public class ASFinder {
      *
      * @param current The current node.
      */
-    public void retracePath(@Nonnull Node current) {
+    public void retracePath(Node current) {
         Node temp = current;
         temp.setCrossroad(true); // Consider tail as a part of the crossroad
         path.add(temp);
@@ -123,7 +125,7 @@ public class ASFinder {
      * @param current The current node.
      * @return True or false.
      */
-    public boolean retraceNode(@Nonnull Node current) {
+    public boolean retraceNode(Node current) {
         int connections = 0;
 
         for (Dir direction : Dir.VALUES) {
@@ -161,7 +163,7 @@ public class ASFinder {
      * @return The list of nodes.
      */
     @Nonnull
-    public Node[] getNeighboringNodes(@Nonnull Node current) {
+    public Node[] getNeighboringNodes(Node current) {
         Node[] neighbors = new Node[6]; int i = 0;
 
         for (Dir direction : Dir.VALUES) {

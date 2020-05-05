@@ -12,6 +12,7 @@ import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 import java.util.Comparator;
 import java.util.List;
@@ -21,6 +22,7 @@ import static tesseract.TesseractAPI.GLOBAL_ELECTRIC_EVENT;
 /**
  * Class acts as a controller in the group of an electrical components.
  */
+@ParametersAreNonnullByDefault
 public class ElectricController extends Controller<IElectricCable, IElectricNode> {
 
     private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
@@ -101,7 +103,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
      * @param producer The producer node.
      * @param consumers The consumer nodes.
      */
-    private void onMerge(@Nonnull IElectricNode producer, @Nonnull List<ElectricConsumer> consumers) {
+    private void onMerge(IElectricNode producer, List<ElectricConsumer> consumers) {
         List<ElectricConsumer> existingConsumers = data.get(producer);
         for (ElectricConsumer c : consumers) {
             boolean found = false;
@@ -125,17 +127,19 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
      * @param path The paths to consumers.
      * @param pos The position of the producer.
      */
-    private void onCheck(@Nonnull IElectricNode producer, @Nonnull List<ElectricConsumer> consumers, @Nullable Path<IElectricCable> path, long pos) {
-        IElectricNode c = group.getNodes().get(pos).value();
-        if (c.canInput()) {
-            int voltage = producer.getOutputVoltage();
-            if (voltage > c.getInputVoltage()) {
-                GLOBAL_ELECTRIC_EVENT.onNodeOverVoltage(dim, pos, voltage);
+    private void onCheck(IElectricNode producer, List<ElectricConsumer> consumers, @Nullable Path<IElectricCable> path, long pos) {
+        IElectricNode node = group.getNodes().get(pos).value();
+        if (node.canInput()) {
+            ElectricConsumer consumer = new ElectricConsumer(node, path);
+            int voltage = producer.getOutputVoltage() - consumer.getLoss();
+            if (voltage <= 0) {
+                return;
+            }
+
+            if (voltage <= node.getInputVoltage()) {
+                consumers.add(consumer);
             } else {
-                ElectricConsumer consumer = new ElectricConsumer(c, path);
-                if (producer.getOutputVoltage() > consumer.getLoss()) {
-                    consumers.add(consumer);
-                }
+                GLOBAL_ELECTRIC_EVENT.onNodeOverVoltage(dim, pos, voltage);
             }
         }
     }
@@ -170,17 +174,18 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
                 int amperage = consumer.getRequiredAmperage(outputVoltage);
 
                 // look up how much it already got
-                amperage -= obtains.getInt(consumer.getNode());
+                int obtained = obtains.getInt(consumer.getNode());
+                amperage -= obtained;
                 if (amperage <= 0) { // if this consumer received all the energy from the other producers
                     continue;
                 }
 
                 // remember amperes stored in this consumer
                 amperage = Math.min(outputAmperage, amperage);
-                obtains.put(consumer.getNode(), obtains.getInt(consumer.getNode()) + amperage);
+                obtains.put(consumer.getNode(), amperage + obtained);
 
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
-                if (!consumer.canHandle(outputVoltage, amperage) && consumer.getConnection() != ConnectionType.ADJACENT) { // Fast check by the lowest cost cable
+                if (consumer.getConnection() != ConnectionType.ADJACENT && !consumer.canHandle(outputVoltage, amperage)) {
                     // Find corrupt cables and return
                     for (Long2ObjectMap.Entry<IElectricCable> c : consumer.getFull().long2ObjectEntrySet()) {
                         long pos = c.getLongKey();
@@ -255,7 +260,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
 
     @Nonnull
     @Override
-    public ITickingController clone(@Nonnull INode group) {
+    public ITickingController clone(INode group) {
         return new ElectricController(dim).set(group);
     }
 }

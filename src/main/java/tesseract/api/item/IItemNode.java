@@ -6,6 +6,7 @@ import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * An item node is the unit of interaction with item inventories.
@@ -16,6 +17,7 @@ import javax.annotation.Nullable;
  * You are free to handle Items in any way that you wish - this is simply an easy default way.
  * DO NOT ASSUME that these objects are used internally in all cases.
  */
+@ParametersAreNonnullByDefault
 public interface IItemNode extends IConnectable {
 
     /**
@@ -26,7 +28,7 @@ public interface IItemNode extends IConnectable {
      *         May be the same as the input ItemData if unchanged, otherwise a new ItemData.
      *         The returned ItemData can be safely modified after.
      **/
-    int insert(@Nonnull ItemData data, boolean simulate);
+    int insert(ItemData data, boolean simulate);
 
     /**
      * Extracts an item from an available slot.
@@ -44,19 +46,19 @@ public interface IItemNode extends IConnectable {
      * @return Gets all available slots.
      **/
     @Nonnull
-    IntList getAvailableSlots(@Nonnull Dir direction);
+    IntList getAvailableSlots(Dir direction);
 
     /**
      * @param direction Direction to the proceed.
      * @return Gets the initial amount of items that can be output.
      */
-    int getOutputAmount(@Nonnull Dir direction);
+    int getOutputAmount(Dir direction);
 
     /**
      * @param direction Direction to the proceed.
      * @return Returns the priority of this node as a number.
      */
-    int getPriority(@Nonnull Dir direction);
+    int getPriority(Dir direction);
 
     /**
      * @param slot The slot index.
@@ -78,16 +80,16 @@ public interface IItemNode extends IConnectable {
 
     /**
      * Used to determine which sides can output item (if any).
-     * Output cannot be used as input.
      * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */
-    boolean canOutput(@Nonnull Dir direction);
+    boolean canOutput(Dir direction);
 
     /**
+     * Used to determine which items and at which direction can be consumed.
      * @param item The Item to be queried.
      * @param direction Direction to the input.
      * @return If the storage can input the item (EVER, not at the time of query).
      */
-    boolean canInput(@Nonnull Object item, @Nonnull Dir direction);
+    boolean canInput(Object item, Dir direction);
 }

@@ -15,11 +15,13 @@ import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
 /**
  * Class acts as a controller in the group of an item components.
  */
+@ParametersAreNonnullByDefault
 public class ItemController extends Controller<IItemPipe, IItemNode> {
 
     private int transferred;
@@ -66,7 +68,7 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
                         }
 
                         if (!consumers.isEmpty()) {
-                            data.computeIfAbsent(producer, map -> new EnumMap<>(Dir.class)).put(direction, consumers);
+                            data.computeIfAbsent(producer, m -> new EnumMap<>(Dir.class)).put(direction, consumers);
                         }
                     }
                 }
@@ -88,9 +90,9 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
      * @param dir The added direction.
      * @param pos The position of the producer.
      */
-    private void onCheck(@Nonnull List<ItemConsumer> consumers, @Nullable Path<IItemPipe> path, @Nonnull Dir dir, long pos) {
-        IItemNode consumer = group.getNodes().get(pos).value();
-        if (consumer.canInput()) consumers.add(new ItemConsumer(consumer, path, dir));
+    private void onCheck(List<ItemConsumer> consumers, @Nullable Path<IItemPipe> path, Dir dir, long pos) {
+        IItemNode node = group.getNodes().get(pos).value();
+        if (node.canInput()) consumers.add(new ItemConsumer(node, path, dir));
     }
 
     @Override
@@ -149,8 +151,10 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
                                     limit = Math.min(limit, holders.computeIfAbsent(pos, h -> new ItemHolder(pipe)).getCapacity());
                                 }
 
-                                for (long pos : consumer.getCross().keySet()) {
-                                    holders.get(pos).reduce(limit);
+                                if (limit > 0) {
+                                    for (long pos : consumer.getCross().keySet()) {
+                                        holders.get(pos).reduce(limit);
+                                    }
                                 }
 
                                 amount = limit;
@@ -190,7 +194,7 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
 
     @Nonnull
     @Override
-    public ITickingController clone(@Nonnull INode group) {
+    public ITickingController clone(INode group) {
         return new ItemController(dim).set(group);
     }
 }

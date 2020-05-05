@@ -8,6 +8,7 @@ import tesseract.graph.traverse.BFDivider;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Consumer;
@@ -15,6 +16,7 @@ import java.util.function.Consumer;
 /**
  * Grid provides the functionality of a set of linked nodes.
  */
+@ParametersAreNonnullByDefault
 public class Grid<C extends IConnectable> implements INode {
 
     private final Long2ObjectMap<Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
@@ -33,7 +35,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @return Create a instance of a class for a given position and connector.
      */
     @Nonnull
-    protected static <C extends IConnectable> Grid<C> singleConnector(long pos, @Nonnull Cache<C> connector) {
+    protected static <C extends IConnectable> Grid<C> singleConnector(long pos, Cache<C> connector) {
         Grid<C> grid = new Grid<>();
         grid.connectors.put(pos, connector);
         return grid;
@@ -157,7 +159,7 @@ public class Grid<C extends IConnectable> implements INode {
      *
      * @param other The other grid to merge elements from.
      */
-    public void mergeWith(@Nonnull Grid<C> other) {
+    public void mergeWith(Grid<C> other) {
         connectors.putAll(other.connectors);
         nodes.putAll(other.nodes);
     }
@@ -178,7 +180,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param pos The given position.
      * @param connector The given connector.
      */
-    public void addConnector(long pos, @Nonnull Cache<C> connector) {
+    public void addConnector(long pos, Cache<C> connector) {
         connectors.put(pos, connector);
     }
 
@@ -188,7 +190,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param pos The given position.
      * @param node The given node.
      */
-    public void addNode(long pos, @Nonnull Cache<?> node) {
+    public void addNode(long pos, Cache<?> node) {
         nodes.put(pos, node.connectivity());
     }
 
@@ -209,7 +211,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param pos The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
-    public void removeAt(long pos, @Nonnull Consumer<Grid<C>> split) {
+    public void removeAt(long pos, Consumer<Grid<C>> split) {
 
         if (!contains(pos)) {
             throw new IllegalArgumentException("Grid::remove: Tried to call with a position that does not exist within the grid.");

@@ -1,10 +1,11 @@
 package tesseract.api.fluid;
 
-import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Interface for handling a fluid events. (Controller will handle them)
  */
+@ParametersAreNonnullByDefault
 public interface IFluidEvent {
 
     /**
@@ -37,5 +38,5 @@ public interface IFluidEvent {
      * @param pos The pipe position.
      * @param fluid FluidData holding the Fluid to be queried.
      */
-    void onPipeGasLeak(int dim, long pos, @Nonnull FluidData fluid);
+    void onPipeGasLeak(int dim, long pos, FluidData fluid);
 }

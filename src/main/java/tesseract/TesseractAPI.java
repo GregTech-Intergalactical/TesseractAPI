@@ -17,7 +17,9 @@ import tesseract.graph.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
+@ParametersAreNonnullByDefault
 public class TesseractAPI {
 
     private static final Int2ObjectMap<Graph<IElectricCable, IElectricNode>> ELECTRIC_GRAPH = new Int2ObjectOpenHashMap<>();
@@ -35,7 +37,7 @@ public class TesseractAPI {
      */
     @Nonnull
     public static Graph<IElectricCable, IElectricNode> getElectricGraph(int dim) {
-        return ELECTRIC_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
+        return ELECTRIC_GRAPH.computeIfAbsent(dim, g -> new Graph<>());
     }
 
     /**
@@ -46,7 +48,7 @@ public class TesseractAPI {
      */
     @Nonnull
     public static Graph<IFluidPipe, IFluidNode> getFluidGraph(int dim) {
-        return FLUID_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
+        return FLUID_GRAPH.computeIfAbsent(dim, g -> new Graph<>());
     }
 
     /**
@@ -57,7 +59,7 @@ public class TesseractAPI {
      */
     @Nonnull
     public static Graph<IItemPipe, IItemNode> getItemGraph(int dim) {
-        return ITEM_GRAPH.computeIfAbsent(dim, graph -> new Graph<>());
+        return ITEM_GRAPH.computeIfAbsent(dim, g -> new Graph<>());
     }
 
     /**
@@ -66,7 +68,7 @@ public class TesseractAPI {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public static void registerElectricNode(int dim, long pos, @Nonnull IElectricNode node) {
+    public static void registerElectricNode(int dim, long pos, IElectricNode node) {
         getElectricGraph(dim).addNode(pos, new Cache<>(node), new ElectricController(dim));
     }
 
@@ -76,7 +78,7 @@ public class TesseractAPI {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public static void registerFluidNode(int dim, long pos, @Nonnull IFluidNode node) {
+    public static void registerFluidNode(int dim, long pos, IFluidNode node) {
         getFluidGraph(dim).addNode(pos, new Cache<>(node), new FluidController(dim));
     }
 
@@ -86,7 +88,7 @@ public class TesseractAPI {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public static void registerItemNode(int dim, long pos, @Nonnull IItemNode node) {
+    public static void registerItemNode(int dim, long pos, IItemNode node) {
         getItemGraph(dim).addNode(pos, new Cache<>(node), new ItemController(dim));
     }
 
@@ -96,7 +98,7 @@ public class TesseractAPI {
      * @param pos The position at which the cable will be added.
      * @param connector The cable object.
      */
-    public static void registerElectricCable(int dim, long pos, @Nonnull IElectricCable connector) {
+    public static void registerElectricCable(int dim, long pos, IElectricCable connector) {
         getElectricGraph(dim).addConnector(pos, new Cache<>(connector), new ElectricController(dim));
     }
 
@@ -106,7 +108,7 @@ public class TesseractAPI {
      * @param pos The position at which the pipe will be added.
      * @param connector The pipe object.
      */
-    public static void registerFluidPipe(int dim, long pos, @Nonnull IFluidPipe connector) {
+    public static void registerFluidPipe(int dim, long pos, IFluidPipe connector) {
         getFluidGraph(dim).addConnector(pos, new Cache<>(connector), new FluidController(dim));
     }
 
@@ -116,7 +118,7 @@ public class TesseractAPI {
      * @param pos The position at which the pipe will be added.
      * @param connector The pipe object.
      */
-    public static void registerItemPipe(int dim, long pos, @Nonnull IItemPipe connector) {
+    public static void registerItemPipe(int dim, long pos, IItemPipe connector) {
         getItemGraph(dim).addConnector(pos, new Cache<>(connector), new ItemController(dim));
     }
 

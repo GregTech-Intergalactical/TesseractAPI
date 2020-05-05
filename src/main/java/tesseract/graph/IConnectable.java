@@ -2,22 +2,17 @@ package tesseract.graph;
 
 import tesseract.util.Dir;
 
-import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * A simple interface for representing connectable objects.
  */
+@ParametersAreNonnullByDefault
 public interface IConnectable {
 
     /**
      * @param direction The direction vector.
      * @return True if connect to the direction, false otherwise.
      */
-    boolean connects(@Nonnull Dir direction);
-
-    /**
-     * Executes on the connectable removes.
-     */
-    default void remove() {
-    }
+    boolean connects(Dir direction);
 }
