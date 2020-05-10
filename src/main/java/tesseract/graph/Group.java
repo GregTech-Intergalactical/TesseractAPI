@@ -93,12 +93,11 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * Resets the current controller host.
      *
      * @param cache The given cache.
-     * @param next If true then finds next valid host, false to skip the processing.
      */
-    private void resetControllerHost(Cache<?> cache, boolean next) {
+    private void resetControllerHost(Cache<?> cache) {
         if (currentTickHost != null && cache.value() instanceof ITickHost && cache.value() == currentTickHost) {
             currentTickHost.reset(controller, null);
-            if (next) findNextValidHost(cache);
+            findNextValidHost(cache);
         }
     }
 
@@ -394,7 +393,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             int pairing = connectors.remove(pos);
             Grid<C> grid = grids.get(pairing);
             Cache<C> cable = grid.getConnectors().get(pos);
-            resetControllerHost(cable, true);
+            resetControllerHost(cable);
 
             // No check is needed here, because the caller already asserts that the Group contains the specified position.
             // Thus, if this is not a node, then it is guaranteed to be a connector.
@@ -450,14 +449,9 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             Grid<C> centerGrid = grids.remove(centerGridId);
             splitGrids = new ObjectArrayList<>();
 
-            for (Long2ObjectMap.Entry<Cache<C>> e : centerGrid.getConnectors().long2ObjectEntrySet()) {
-                long move = e.getLongKey();
-                Cache<C> cable = e.getValue();
-
+            for (long move : centerGrid.getConnectors().keySet()) {
                 connectors.remove(move);
                 excluded.add(move);
-
-                resetControllerHost(cable, false);
             }
 
             centerGrid.removeAt(pos, splitGrids::add);
@@ -498,14 +492,9 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     grids.remove(id);
                     newGroup.grids.put(id, grid);
 
-                    for (Long2ObjectMap.Entry<Cache<C>> e : grid.getConnectors().long2ObjectEntrySet()) {
-                        long moved = e.getLongKey();
-                        Cache<C> cable = e.getValue();
-
+                    for (long moved : grid.getConnectors().keySet()) {
                         connectors.remove(moved);
                         newGroup.connectors.put(moved, id);
-
-                        resetControllerHost(cable, false);
                     }
                 }
             } else {
@@ -554,7 +543,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             return false;
         }
 
-        resetControllerHost(node, true);
+        resetControllerHost(node);
 
         // Clear removing node from nearest grid
         Pos position = new Pos(pos);
