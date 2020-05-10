@@ -93,11 +93,12 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * Resets the current controller host.
      *
      * @param cache The given cache.
+     * @param next If true then finds next valid host, false to skip the processing.
      */
-    private void resetControllerHost(Cache<?> cache) {
+    private void resetControllerHost(Cache<?> cache, boolean next) {
         if (currentTickHost != null && cache.value() instanceof ITickHost && cache.value() == currentTickHost) {
             currentTickHost.reset(controller, null);
-            findNextValidHost(cache);
+            if (next) findNextValidHost(cache);
         }
     }
 
@@ -393,7 +394,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             int pairing = connectors.remove(pos);
             Grid<C> grid = grids.get(pairing);
             Cache<C> cable = grid.getConnectors().get(pos);
-            resetControllerHost(cable);
+            resetControllerHost(cable, true);
 
             // No check is needed here, because the caller already asserts that the Group contains the specified position.
             // Thus, if this is not a node, then it is guaranteed to be a connector.
@@ -456,7 +457,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 connectors.remove(move);
                 excluded.add(move);
 
-                resetControllerHost(cable);
+                resetControllerHost(cable, false);
             }
 
             centerGrid.removeAt(pos, splitGrids::add);
@@ -504,7 +505,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                         connectors.remove(moved);
                         newGroup.connectors.put(moved, id);
 
-                        resetControllerHost(cable);
+                        resetControllerHost(cable, false);
                     }
                 }
             } else {
@@ -553,7 +554,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             return false;
         }
 
-        resetControllerHost(node);
+        resetControllerHost(node, true);
 
         // Clear removing node from nearest grid
         Pos position = new Pos(pos);
