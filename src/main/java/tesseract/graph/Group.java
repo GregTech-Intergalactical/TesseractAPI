@@ -390,8 +390,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 return;
             }
 
-            int pairing = removeConnector(pos);
+            int pairing = connectors.remove(pos);
             Grid<C> grid = grids.get(pairing);
+            Cache<C> cable = grid.getConnectors().get(pos);
+            resetControllerHost(cable);
 
             // No check is needed here, because the caller already asserts that the Group contains the specified position.
             // Thus, if this is not a node, then it is guaranteed to be a connector.
@@ -448,7 +450,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             splitGrids = new ObjectArrayList<>();
 
             for (long move : centerGrid.getConnectors().keySet()) {
-                removeConnector(move);
+                connectors.remove(move);
                 excluded.add(move);
             }
 
@@ -491,7 +493,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     newGroup.grids.put(id, grid);
 
                     for (long moved : grid.getConnectors().keySet()) {
-                        removeConnector(moved);
+                        connectors.remove(moved);
                         newGroup.connectors.put(moved, id);
                     }
                 }
@@ -555,21 +557,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         }
 
         return true;
-    }
-
-    /**
-     * Removes the connector from the grid.
-     *
-     * @param pos The position of the connector.
-     * @return The grid id where removing occurred.
-     */
-    private int removeConnector(long pos) {
-        int id = connectors.remove(pos);
-        Grid<C> grid = grids.get(id);
-        Cache<C> cable = grid.getConnectors().get(pos);
-
-        resetControllerHost(cable);
-        return id;
     }
 
     /**
