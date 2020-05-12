@@ -1,6 +1,6 @@
 package tesseract.api.electric;
 
-import tesseract.graph.IConnectable;
+import tesseract.api.IConnectable;
 import tesseract.util.Dir;
 
 import javax.annotation.ParametersAreNonnullByDefault;

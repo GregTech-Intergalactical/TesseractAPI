@@ -3,6 +3,7 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import tesseract.api.IConnectable;
 import tesseract.util.Node;
 
 import javax.annotation.Nonnull;

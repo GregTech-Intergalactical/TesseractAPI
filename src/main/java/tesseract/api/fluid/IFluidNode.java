@@ -1,6 +1,6 @@
 package tesseract.api.fluid;
 
-import tesseract.graph.IConnectable;
+import tesseract.api.IConnectable;
 import tesseract.util.Dir;
 
 import javax.annotation.Nullable;

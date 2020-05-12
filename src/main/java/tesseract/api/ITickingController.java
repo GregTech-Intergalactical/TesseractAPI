@@ -1,4 +1,6 @@
-package tesseract.graph;
+package tesseract.api;
+
+import tesseract.graph.INode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;

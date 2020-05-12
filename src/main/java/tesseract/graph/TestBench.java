@@ -2,6 +2,9 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import tesseract.api.IConnectable;
+import tesseract.api.ITickHost;
+import tesseract.api.ITickingController;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;

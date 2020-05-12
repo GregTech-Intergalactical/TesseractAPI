@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
+import tesseract.api.ITickingController;
 import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Node;

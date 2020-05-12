@@ -8,6 +8,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+//TODO @Qubka unused, delete?
+
 /**
  * Class acts as a wrapper of a random permute iterator over a list.
  */

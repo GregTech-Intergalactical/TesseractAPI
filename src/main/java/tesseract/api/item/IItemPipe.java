@@ -1,6 +1,6 @@
 package tesseract.api.item;
 
-import tesseract.graph.IConnectable;
+import tesseract.api.IConnectable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 

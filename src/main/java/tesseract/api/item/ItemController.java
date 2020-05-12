@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import tesseract.api.Controller;
+import tesseract.api.ITickingController;
 import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Node;
