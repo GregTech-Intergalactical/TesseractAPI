@@ -13,11 +13,10 @@ import tesseract.util.Pos;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-
 import java.util.Comparator;
 import java.util.List;
 
-import static tesseract.TesseractAPI.GLOBAL_ELECTRIC_EVENT;
+import static tesseract.Tesseract.GLOBAL_ELECTRIC_EVENT;
 
 /**
  * Class acts as a controller in the group of an electrical components.

@@ -14,7 +14,9 @@ public interface IElectricEvent {
      * @param pos The node position.
      * @param voltage The current voltage.
      */
-    void onNodeOverVoltage(int dim, long pos, int voltage);
+    default void onNodeOverVoltage(int dim, long pos, int voltage) {
+        //NOOP
+    }
 
     /**
      * Executes when the cable trying to transport higher amount of voltage than can.
@@ -22,7 +24,9 @@ public interface IElectricEvent {
      * @param pos The cable position.
      * @param voltage The current voltage.
      */
-    void onCableOverVoltage(int dim, long pos, int voltage);
+    default void onCableOverVoltage(int dim, long pos, int voltage) {
+        //NOOP
+    }
 
     /**
      * Executes when the cable trying to transport higher amount of amperage than can.
@@ -30,5 +34,7 @@ public interface IElectricEvent {
      * @param pos The cable position.
      * @param amperage The current amperage.
      */
-    void onCableOverAmperage(int dim, long pos, int amperage);
+    default void onCableOverAmperage(int dim, long pos, int amperage) {
+        //NOOP
+    }
 }

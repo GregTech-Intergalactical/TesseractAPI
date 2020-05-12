@@ -2,7 +2,9 @@ package tesseract.api.fluid;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
 import tesseract.graph.*;
@@ -13,13 +15,12 @@ import tesseract.util.Pos;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import static tesseract.TesseractAPI.GLOBAL_FLUID_EVENT;
+import static tesseract.Tesseract.GLOBAL_FLUID_EVENT;
 
 /**
  * Class acts as a controller in the group of a fluid components.
