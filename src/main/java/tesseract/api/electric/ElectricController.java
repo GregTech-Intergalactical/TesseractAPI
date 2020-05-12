@@ -16,13 +16,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Comparator;
 import java.util.List;
 
-import static tesseract.Tesseract.GLOBAL_ELECTRIC_EVENT;
-
 /**
  * Class acts as a controller in the group of an electrical components.
  */
 @ParametersAreNonnullByDefault
-public class ElectricController extends Controller<IElectricCable, IElectricNode> {
+public class ElectricController extends Controller<IElectricCable, IElectricNode> implements IElectricEvent {
 
     private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
     private final Object2IntMap<IElectricNode> obtains = new Object2IntLinkedOpenHashMap<>();
@@ -31,7 +29,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
 
     /**
      * Creates instance of the controller.
-     *
+
      * @param dim The dimension id.
      */
     public ElectricController(int dim) {
@@ -138,7 +136,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
             if (voltage <= node.getInputVoltage()) {
                 consumers.add(consumer);
             } else {
-                GLOBAL_ELECTRIC_EVENT.onNodeOverVoltage(dim, pos, voltage);
+                onNodeOverVoltage(dim, pos, voltage);
             }
         }
     }
@@ -192,10 +190,10 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
 
                         switch (cable.getHandler(outputVoltage, amperage)) {
                             case FAIL_VOLTAGE:
-                                GLOBAL_ELECTRIC_EVENT.onCableOverVoltage(dim, pos, outputVoltage);
+                                onCableOverVoltage(dim, pos, outputVoltage);
                                 break;
                             case FAIL_AMPERAGE:
-                                GLOBAL_ELECTRIC_EVENT.onCableOverAmperage(dim, pos, amperage);
+                                onCableOverAmperage(dim, pos, amperage);
                                 break;
                         }
                     }
@@ -236,7 +234,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
             // TODO: Find proper path to destroy
 
             if (holder.isOverAmperage()) {
-                GLOBAL_ELECTRIC_EVENT.onCableOverAmperage(dim, pos, holder.getAmperage());
+                onCableOverAmperage(dim, pos, holder.getAmperage());
             }
         }
     }
