@@ -33,7 +33,7 @@ public class Connectivity {
      * @return Connectivity state for a connection.
      */
     public static byte with(byte connectivity, Dir side) {
-        return (byte) (connectivity | (1 << side.ordinal()));
+        return (byte) (connectivity | (1 << side.getIndex()));
     }
 
     /**
@@ -42,6 +42,6 @@ public class Connectivity {
      * @return True if a connection is exist, false otherwise.
      */
     public static boolean has(byte connectivity, Dir side) {
-        return (connectivity & (1 << side.ordinal())) > 0;
+        return (connectivity & (1 << side.getIndex())) > 0;
     }
 }
