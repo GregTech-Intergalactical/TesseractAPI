@@ -1,9 +1,7 @@
 package tesseract.api;
 
 import tesseract.graph.Group;
-import tesseract.graph.IConnectable;
 import tesseract.graph.INode;
-import tesseract.graph.ITickingController;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 

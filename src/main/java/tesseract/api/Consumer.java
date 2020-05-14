@@ -1,7 +1,6 @@
 package tesseract.api;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import tesseract.graph.IConnectable;
 import tesseract.graph.Path;
 
 import javax.annotation.Nonnull;

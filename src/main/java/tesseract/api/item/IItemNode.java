@@ -1,7 +1,7 @@
 package tesseract.api.item;
 
 import it.unimi.dsi.fastutil.ints.IntList;
-import tesseract.graph.IConnectable;
+import tesseract.api.IConnectable;
 import tesseract.util.Dir;
 
 import javax.annotation.Nonnull;

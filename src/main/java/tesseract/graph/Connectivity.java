@@ -1,5 +1,6 @@
 package tesseract.graph;
 
+import tesseract.api.IConnectable;
 import tesseract.util.Dir;
 
 import javax.annotation.ParametersAreNonnullByDefault;

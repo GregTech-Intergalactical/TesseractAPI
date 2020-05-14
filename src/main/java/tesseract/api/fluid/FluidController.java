@@ -2,9 +2,12 @@ package tesseract.api.fluid;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
+import tesseract.api.ITickingController;
 import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Node;
@@ -13,19 +16,16 @@ import tesseract.util.Pos;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import static tesseract.TesseractAPI.GLOBAL_FLUID_EVENT;
-
 /**
  * Class acts as a controller in the group of a fluid components.
  */
 @ParametersAreNonnullByDefault
-public class FluidController extends Controller<IFluidPipe, IFluidNode> {
+public class FluidController extends Controller<IFluidPipe, IFluidNode> implements IFluidEvent {
 
     private long totalPressure, lastPressure;
     private int maxTemperature, isLeaking, lastTemperature, lastLeaking;
@@ -148,13 +148,13 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
 
                             switch (pipe.getHandler(temperature, amount, isGaseous)) {
                                 case FAIL_TEMP:
-                                    GLOBAL_FLUID_EVENT.onPipeOverTemp(dim, pos, temperature);
+                                    onPipeOverTemp(dim, pos, temperature);
                                     return;
                                 case FAIL_PRESSURE:
-                                    GLOBAL_FLUID_EVENT.onPipeOverPressure(dim, pos, amount);
+                                    onPipeOverPressure(dim, pos, amount);
                                     return;
                                 case FAIL_LEAK:
-                                    GLOBAL_FLUID_EVENT.onPipeGasLeak(dim, pos, drained);
+                                    onPipeGasLeak(dim, pos, drained);
                                     break;
                             }
                         }
@@ -191,10 +191,10 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> {
             // TODO: Find proper path to destroy
 
             if (absorber.isOverPressure()) {
-                GLOBAL_FLUID_EVENT.onPipeOverPressure(dim, pos, absorber.getPressure());
+                onPipeOverPressure(dim, pos, absorber.getPressure());
             }
             if (absorber.isOverCapacity()) {
-                GLOBAL_FLUID_EVENT.onPipeOverCapacity(dim, pos, absorber.getCapacity());
+                onPipeOverCapacity(dim, pos, absorber.getCapacity());
             }
         }
     }

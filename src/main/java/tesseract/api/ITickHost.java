@@ -1,4 +1,4 @@
-package tesseract.graph;
+package tesseract.api;
 
 import javax.annotation.ParametersAreNullableByDefault;
 
