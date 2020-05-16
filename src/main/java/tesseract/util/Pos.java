@@ -291,7 +291,9 @@ public class Pos {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof Pos) {
+        if (this == o) {
+            return true;
+        } else if (o instanceof Pos) {
             return value == ((Pos) o).value;
         }
         return false;
