@@ -171,7 +171,7 @@ public class ASFinder {
             long side = pos.asLong();
 
             if (container.contains(side)) {
-                neighbors[i++] = new Node(pos, direction.invert());
+                neighbors[i++] = new Node(pos, direction.getOpposite());
             }
         }
 

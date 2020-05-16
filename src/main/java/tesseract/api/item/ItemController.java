@@ -54,7 +54,7 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
                         long side = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(side)) {
-                            onCheck(consumers, null, direction.invert(), side);
+                            onCheck(consumers, null, direction.getOpposite(), side);
                         } else {
                             Grid<IItemPipe> grid = group.getGridAt(side, direction);
                             if (grid != null) {

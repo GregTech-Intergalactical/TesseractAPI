@@ -55,7 +55,7 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
                         long side = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(side)) {
-                            onCheck(consumers, null, direction.invert(), side);
+                            onCheck(consumers, null, direction.getOpposite(), side);
                         } else {
                             Grid<IFluidPipe> grid = group.getGridAt(side, direction);
                             if (grid != null) {
