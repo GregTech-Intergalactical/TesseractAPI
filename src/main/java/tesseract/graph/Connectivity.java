@@ -34,7 +34,7 @@ public class Connectivity {
      * Bitwise set operation.
      *
      * @param connectivity The provided state.
-     * @param side The direction index.
+     * @param side The side index. {@see tesseract.util.Dir}
      * @return Connectivity state for a connection.
      */
     public static byte set(byte connectivity, int side) {
@@ -45,7 +45,7 @@ public class Connectivity {
      * Bitwise clear operation.
      *
      * @param connectivity The provided state.
-     * @param side The direction index.
+     * @param side The side index. {@see tesseract.util.Dir}
      * @return Connectivity state for a connection.
      */
     public static byte clear(byte connectivity, int side) {
@@ -56,7 +56,7 @@ public class Connectivity {
      * Bitwise toggle operation.
      *
      * @param connectivity The provided state.
-     * @param side The direction index.
+     * @param side The side index. {@see tesseract.util.Dir}
      * @return Connectivity state for a connection.
      */
     public static byte toggle(byte connectivity, int side) {
@@ -67,7 +67,7 @@ public class Connectivity {
      * Bitwise check operation.
      *
      * @param connectivity The provided state.
-     * @param side The direction index.
+     * @param side The side index. {@see tesseract.util.Dir}
      * @return True if a connection is exist, false otherwise.
      */
     public static boolean has(byte connectivity, int side) {
