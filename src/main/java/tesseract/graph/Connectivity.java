@@ -13,6 +13,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class Connectivity {
 
     /**
+     * Initialize connectivity for a given instance.
+     *
      * @param connectable The given instance.
      * @return Gets the connectivity for instance.
      */
@@ -21,7 +23,7 @@ public class Connectivity {
 
         for (Dir direction : Dir.VALUES) {
             if (connectable.connects(direction)) {
-                connectivity = Connectivity.with(connectivity, direction);
+                connectivity = Connectivity.set(connectivity, direction.getIndex());
             }
         }
 
@@ -29,20 +31,46 @@ public class Connectivity {
     }
 
     /**
+     * Bitwise set operation.
+     *
      * @param connectivity The provided state.
      * @param side The direction index.
      * @return Connectivity state for a connection.
      */
-    public static byte with(byte connectivity, Dir side) {
-        return (byte) (connectivity | (1 << side.getIndex()));
+    public static byte set(byte connectivity, int side) {
+        return (byte) (connectivity | (1 << side));
     }
 
     /**
+     * Bitwise clear operation.
+     *
+     * @param connectivity The provided state.
+     * @param side The direction index.
+     * @return Connectivity state for a connection.
+     */
+    public static byte clear(byte connectivity, int side) {
+        return (byte) (connectivity & ~(1 << side));
+    }
+
+    /**
+     * Bitwise toggle operation.
+     *
+     * @param connectivity The provided state.
+     * @param side The direction index.
+     * @return Connectivity state for a connection.
+     */
+    public static byte toggle(byte connectivity, int side) {
+        return (byte) (connectivity ^ (1 << side));
+    }
+
+    /**
+     * Bitwise check operation.
+     *
      * @param connectivity The provided state.
      * @param side The direction index.
      * @return True if a connection is exist, false otherwise.
      */
-    public static boolean has(byte connectivity, Dir side) {
-        return (connectivity & (1 << side.getIndex())) > 0;
+    public static boolean has(byte connectivity, int side) {
+        return (connectivity & (1 << side)) > 0;
     }
 }
