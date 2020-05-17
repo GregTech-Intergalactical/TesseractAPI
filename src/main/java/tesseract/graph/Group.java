@@ -253,7 +253,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 Grid<C> grid = grids.get(id);
                 side = position.offset(direction).asLong();
 
-                if (grid.connects(side, direction.invert())) {
+                if (grid.connects(side, direction.getOpposite())) {
                     grid.addNode(pos, node);
                 }
             }
@@ -299,7 +299,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
             Grid<C> grid = grids.get(id);
 
-            if (grid.connects(side, direction.invert())) {
+            if (grid.connects(side, direction.getOpposite())) {
                 linked.put(id, grid);
 
                 if (grid.countConnectors() > bestCount) {
@@ -335,7 +335,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
             Cache<N> node = nodes.get(move);
 
-            if (node.connects(direction.invert())) {
+            if (node.connects(direction.getOpposite())) {
                 bestGrid.addNode(move, node);
             }
         }
@@ -589,7 +589,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         if (id != CID.INVALID) {
             Grid<C> grid = grids.get(id);
-            if (grid.connects(pos, direction.invert())) {
+            if (grid.connects(pos, direction.getOpposite())) {
                 return grid;
             }
         }
@@ -664,7 +664,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     continue;
                 }
 
-                if (grid.connects(side, direction.invert())) {
+                if (grid.connects(side, direction.getOpposite())) {
                     currentGrid.mergeWith(grid);
                     for (long move : grid.getConnectors().keySet()) {
                         connectors.put(move, pairing);

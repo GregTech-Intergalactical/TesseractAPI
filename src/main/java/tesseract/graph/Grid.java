@@ -73,7 +73,7 @@ public class Grid<C extends IConnectable> implements INode {
             return false;
         }
 
-        return validLink && Connectivity.has(connectivityFrom, towards) && Connectivity.has(connectivityTo, towards.invert());
+        return validLink && Connectivity.has(connectivityFrom, towards.getIndex()) && Connectivity.has(connectivityTo, towards.getOpposite().getIndex());
     }
 
     @Override
@@ -91,7 +91,7 @@ public class Grid<C extends IConnectable> implements INode {
             return false;
         }
 
-        return Connectivity.has(connectivity, towards);
+        return Connectivity.has(connectivity, towards.getIndex());
     }
 
     /**

@@ -68,7 +68,7 @@ public enum Dir {
      * @return Return the inverted direction.
      */
     @Nonnull
-    public Dir invert() {
+    public Dir getOpposite() {
         return VALUES[opposite];
     }
 }

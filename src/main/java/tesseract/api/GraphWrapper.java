@@ -12,6 +12,8 @@ import java.util.function.IntFunction;
 @ParametersAreNonnullByDefault
 public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
 
+    // TODO: Uncomment until fix
+
     protected final Int2ObjectMap<Graph<C, N>> graph = new Int2ObjectOpenHashMap<>();
     protected final IntFunction<Controller<C, N>> supplier;
 
@@ -33,7 +35,7 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param controller The controller for the node
      */
     public void registerNode(int dim, long pos, N node, Controller<C, N> controller) {
-        getGraph(dim).addNode(pos, new Cache<>(node), controller);
+        //getGraph(dim).addNode(pos, new Cache<>(node), controller);
     }
 
     /**
@@ -44,7 +46,7 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param node The node object.
      */
     public void registerNode(int dim, long pos, N node) {
-        getGraph(dim).addNode(pos, new Cache<>(node), supplier.apply(dim));
+        //getGraph(dim).addNode(pos, new Cache<>(node), supplier.apply(dim));
     }
 
     /**
@@ -56,7 +58,7 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param controller The controller for the node
      */
     public void registerConnector(int dim, long pos, C connector, Controller<C, N> controller) {
-        getGraph(dim).addConnector(pos, new Cache<>(connector), controller);
+        //getGraph(dim).addConnector(pos, new Cache<>(connector), controller);
     }
 
     /**
@@ -67,7 +69,7 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param connector The connector object.
      */
     public void registerConnector(int dim, long pos, C connector) {
-        getGraph(dim).addConnector(pos, new Cache<>(connector), supplier.apply(dim));
+        //getGraph(dim).addConnector(pos, new Cache<>(connector), supplier.apply(dim));
     }
 
     /**
@@ -101,6 +103,6 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param pos The position at which the electric component will be added.
      */
     public void remove(int dim, long pos) {
-        getGraph(dim).removeAt(pos);
+        //getGraph(dim).removeAt(pos);
     }
 }
