@@ -276,7 +276,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         int bestCount = 0;
         int bestId = CID.INVALID;
 
-        int neighbors = 0;
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
             if (!connector.connects(direction)) {
@@ -289,13 +288,10 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             if (id == CID.INVALID) {
                 // Collect joining nodes
                 if (nodes.containsKey(side)) {
-                    neighbors++;
                     joined.put(side, direction);
                 }
                 continue;
             }
-
-            neighbors++;
 
             Grid<C> grid = grids.get(id);
 
@@ -308,10 +304,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                     bestId = id;
                 }
             }
-        }
-
-        if (neighbors == 0) {
-            throw new IllegalStateException("Group::addConnector: Attempted to add a position that would not be touching the group!");
         }
 
         if (linked.isEmpty()) {
