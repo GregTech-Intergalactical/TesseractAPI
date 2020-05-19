@@ -84,16 +84,6 @@ minecraft {
                 }
             }
         }
-
-        clientIdea {
-            parent runs.client
-            ideaModule "${project.name}.main"
-        }
-
-        dataIdea {
-            parent runs.data
-            ideaModule "${project.name}.main"
-        }
     }
 }
 
