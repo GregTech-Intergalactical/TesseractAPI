@@ -332,31 +332,28 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             }
         }
 
-        if (bestCount == -1) {
-            // Grid was just initialized
-            return;
-        }
+        if (bestCount != -1) {
+            // Add to the best grid
+            connectors.put(pos, bestId);
+            bestGrid.addConnector(pos, connector);
 
-        // Add to the best grid
-        connectors.put(pos, bestId);
-        bestGrid.addConnector(pos, connector);
+            if (linked.size() > 1) {
+                // Other grids to merge with
+                for (Int2ObjectMap.Entry<Grid<C>> e : linked.int2ObjectEntrySet()) {
+                    int id = e.getIntKey();
+                    Grid<C> grid = e.getValue();
 
-        if (linked.size() > 1) {
-            // Other grids to merge with
-            for (Int2ObjectMap.Entry<Grid<C>> e : linked.int2ObjectEntrySet()) {
-                int id = e.getIntKey();
-                Grid<C> grid = e.getValue();
+                    if (id == bestId) {
+                        continue;
+                    }
 
-                if (id == bestId) {
-                    continue;
+                    bestGrid.mergeWith(grid);
+                    for (long item : grid.getConnectors().keySet()) {
+                        connectors.put(item, bestId);
+                    }
+
+                    grids.remove(id);
                 }
-
-                bestGrid.mergeWith(grid);
-                for (long item : grid.getConnectors().keySet()) {
-                    connectors.put(item, bestId);
-                }
-
-                grids.remove(id);
             }
         }
 
