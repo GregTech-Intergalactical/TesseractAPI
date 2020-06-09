@@ -24,7 +24,6 @@ import java.util.List;
 public class ElectricController extends Controller<IElectricCable, IElectricNode> implements IElectricEvent {
 
     private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
-    private final Object2IntMap<IElectricNode> obtains = new Object2IntLinkedOpenHashMap<>();
     private final Long2ObjectMap<ElectricHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
     private final Object2ObjectMap<IElectricNode, List<ElectricConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
 
@@ -157,30 +156,24 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
     @Override
     public void tick() {
         super.tick();
-        obtains.clear();
         holders.clear();
 
         for (Object2ObjectMap.Entry<IElectricNode, List<ElectricConsumer>> e : data.object2ObjectEntrySet()) {
             IElectricNode producer = e.getKey();
             int outputVoltage = producer.getOutputVoltage();
-            int outputAmperage = producer.getOutputAmperage();
+            int outputAmperage = (int)Math.min(producer.getEnergy()/outputVoltage, producer.getOutputAmperage());
             if (outputAmperage <= 0) {
                 continue;
             }
 
             for (ElectricConsumer consumer : e.getValue()) {
                 int amperage = consumer.getRequiredAmperage(outputVoltage);
-
-                // look up how much it already got
-                int obtained = obtains.getInt(consumer.getNode());
-                amperage -= obtained;
                 if (amperage <= 0) { // if this consumer received all the energy from the other producers
                     continue;
                 }
 
                 // remember amperes stored in this consumer
                 amperage = Math.min(outputAmperage, amperage);
-                obtains.put(consumer.getNode(), amperage + obtained);
 
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
                 if (consumer.getConnection() != ConnectionType.ADJACENT && !consumer.canHandle(outputVoltage, amperage)) {
@@ -206,7 +199,6 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
                     for (Long2ObjectMap.Entry<IElectricCable> c : consumer.getCross().long2ObjectEntrySet()) {
                         long pos = c.getLongKey();
                         IElectricCable cable = c.getValue();
-
                         holders.computeIfAbsent(pos, h -> new ElectricHolder(cable)).add(amperage);
                     }
                 }

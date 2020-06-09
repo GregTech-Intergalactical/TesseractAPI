@@ -40,7 +40,9 @@ public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
      * @return Gets the amperage required for the consumer.
      */
     public int getRequiredAmperage(int voltage) {
-        return (int) Math.min(((node.getCapacity() - node.getEnergy()) + voltage - 1) / voltage, node.getInputAmperage());
+        if (voltage <= loss)
+            return 0;
+        return (int) Math.min(((node.getCapacity() - node.getEnergy())) / (voltage - loss), node.getInputAmperage());
     }
 
     /**
