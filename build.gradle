@@ -14,7 +14,6 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'java'
 
-version = "${tesseract_version}"
 group = 'com.tesseract.api' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'tesseract'
 
@@ -135,6 +134,30 @@ jar {
     }
 }
 
+def getVersionAppendage() {
+    if (System.env.TRAVIS) {
+        return System.env.TRAVIS_BUILD_NUMBER
+    }
+
+    def proc = 'git rev-parse --short HEAD'.execute()
+    proc.waitFor()
+    return 'dev-' + proc.exitValue() ? 'unknown' : proc.text.trim()
+}
+
+version = tesseract_version + '.' + getVersionAppendage()
+
+// Deobfuscated jar; development purposes.
+task deobfJar(type: Jar, dependsOn: 'jar') {
+    from sourceSets.main.output
+    classifier "dev"
+}
+
+// Sources jar; development purposes.
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier "sources"
+}
+
 // Maven publishing:
 // (includes universal, development, source
 publishing {
@@ -147,14 +170,7 @@ publishing {
     }
 }
 
-// Deobfuscated jar; development purposes.
-task deobfJar(type: Jar, dependsOn: 'jar') {
-    from sourceSets.main.output
-    classifier "dev"
-}
-
-// Sources jar; development purposes.
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allSource
-    classifier "sources"
+artifacts {
+    deobfJar
+    sourcesJar
 }
