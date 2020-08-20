@@ -14,7 +14,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'java'
 
-group = 'com.tesseract.api' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+group = 'com.github.gregtech-intergalactical' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'tesseract'
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
@@ -119,18 +119,6 @@ dependencies {
 
 }
 
-static def getVersionAppendage() {
-    if (System.env.TRAVIS) {
-        return System.env.TRAVIS_BUILD_NUMBER
-    }
-
-    def proc = 'git rev-parse --short HEAD'.execute()
-    proc.waitFor()
-    return 'dev-' + proc.exitValue() ? 'unknown' : proc.text.trim()
-}
-
-version = tesseract_version + '.' + getVersionAppendage()
-
 // Example for how to get properties into the manifest for reading by the runtime..
 jar {
     manifest {
@@ -159,13 +147,29 @@ task sourcesJar(type: Jar) {
 }
 
 // Maven publishing:
-// (includes universal, development, source
+// (includes universal, development, sources)
 publishing {
     publications {
         java(MavenPublication) {
             artifact jar
             artifact deobfJar
             artifact sourcesJar
+        }
+    }
+
+    repositories {
+        maven {
+            url = 'https://files.axelandre42.ovh/maven/'
+            authentication {
+                basic(BasicAuthentication)
+            }
+
+            if (System.env.MAVEN_USERNAME && System.env.MAVEN_PASSWORD) {
+                credentials {
+                    username = System.env.USERNAME
+                    password = System.env.PASSWORD
+                }
+            }
         }
     }
 }
