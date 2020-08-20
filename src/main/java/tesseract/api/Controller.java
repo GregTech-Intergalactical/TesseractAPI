@@ -3,12 +3,9 @@ package tesseract.api;
 import tesseract.graph.Group;
 import tesseract.graph.INode;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * Class acts as a controller in the group of some components.
  */
-@ParametersAreNonnullByDefault
 abstract public class Controller<C extends IConnectable, N extends IConnectable> implements ITickingController {
 
     protected int tick;

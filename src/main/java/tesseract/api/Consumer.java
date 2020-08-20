@@ -3,14 +3,9 @@ package tesseract.api;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import tesseract.graph.Path;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * A class that acts as a wrapper for a node component.
  */
-@ParametersAreNonnullByDefault
 abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
 
     protected final N node;
@@ -25,7 +20,7 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      * @param node The node instance.
      * @param path The path information.
      */
-    protected Consumer(N node, @Nullable Path<C> path) {
+    protected Consumer(N node, Path<C> path) {
         this.node = node;
 
         if (path != null) {
@@ -49,7 +44,6 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
     /**
      * @return Gets the node ref.
      */
-    @Nonnull
     public N getNode() {
         return node;
     }
@@ -57,7 +51,6 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
     /**
      * @return Gets the connection type.
      */
-    @Nonnull
     public ConnectionType getConnection() {
         return connection;
     }
@@ -65,7 +58,6 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
     /**
      * @return Gets the cross path of connectors.
      */
-    @Nonnull
     public Long2ObjectMap<C> getCross() {
         return cross;
     }
@@ -73,7 +65,6 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
     /**
      * @return Gets the full path of connectors.
      */
-    @Nonnull
     public Long2ObjectMap<C> getFull() {
         return full;
     }

@@ -13,9 +13,6 @@ import tesseract.util.Dir;
 import tesseract.util.Pos;
 import tesseract.util.CID;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -24,7 +21,6 @@ import java.util.function.Consumer;
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
  */
-@ParametersAreNonnullByDefault
 public class Group<C extends IConnectable, N extends IConnectable> implements INode {
 
     private final Long2ObjectMap<Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
@@ -45,8 +41,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param controller The given controller.
      * @return Create a instance of a class for a given position and node.
      */
-    @Nonnull
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, Cache<N> node, @Nullable Controller<C, N> controller) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, Cache<N> node, Controller<C, N> controller) {
         Group<C, N> group = new Group<>();
         group.addNode(pos, node, controller);
         return group;
@@ -58,8 +53,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param controller The given controller.
      * @return Create a instance of a class for a given position and connector.
      */
-    @Nonnull
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, Cache<C> connector, @Nullable Controller<C, N> controller) {
+    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, Cache<C> connector, Controller<C, N> controller) {
         Group<C, N> group = new Group<>();
         int id = CID.nextId();
         group.connectors.put(pos, id);
@@ -74,12 +68,12 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     }
 
     @Override
-    public boolean linked(long from, @Nullable Dir towards, long to) {
+    public boolean linked(long from, Dir towards, long to) {
         return contains(from) && contains(to);
     }
 
     @Override
-    public boolean connects(long pos, @Nullable Dir towards) {
+    public boolean connects(long pos, Dir towards) {
         return contains(pos);
     }
 
@@ -110,7 +104,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param cache The given cache object.
      * @param ticking The ticking instance.
      */
-    private void updateController(Cache<?> cache, @Nullable Controller<C, N> ticking) {
+    private void updateController(Cache<?> cache, Controller<C, N> ticking) {
         if (ticking == null) return;
 
         if (controller == null) {
@@ -134,7 +128,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      *
      * @param cache The given cache.
      */
-    private void findNextValidHost(@Nullable Cache<?> cache) {
+    private void findNextValidHost(Cache<?> cache) {
         if (controller == null) return;
         currentTickHost = null;
 
@@ -173,7 +167,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param o The current cache.
      * @return True or false.
      */
-    private boolean nextCache(@Nullable Cache<?> cache, Cache<?> o) {
+    private boolean nextCache(Cache<?> cache, Cache<?> o) {
         if (o == cache || !(o.value() instanceof ITickHost)) {
             return true;
         }
@@ -192,7 +186,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * @return Returns blocks set.
      */
-    @Nonnull
     public Set<Long> getBlocks() {
         return SetUtils.union(nodes.keySet(), connectors.keySet());
     }
@@ -200,7 +193,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * @return Returns nodes map.
      */
-    @Nonnull
     public Long2ObjectMap<Cache<N>> getNodes() {
         return Long2ObjectMaps.unmodifiable(nodes);
     }
@@ -208,7 +200,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * @return Returns grids set.
      */
-    @Nonnull
     public Int2ObjectMap<Grid<C>> getGrids() {
         return Int2ObjectMaps.unmodifiable(grids);
     }
@@ -216,7 +207,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * @return Returns group controller.
      */
-    @Nullable
     public ITickingController getController() {
         return controller;
     }
@@ -224,7 +214,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
     /**
      * @return Returns group ticking host.
      */
-    @Nullable
     public ITickHost getCurrentTickHost() {
         return currentTickHost;
     }
@@ -236,7 +225,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param node The given node.
      * @param controller The controller to use.
      */
-    public void addNode(long pos, Cache<N> node, @Nullable Controller<C, N> controller) {
+    public void addNode(long pos, Cache<N> node, Controller<C, N> controller) {
         nodes.put(pos, node);
 
         Pos position = new Pos(pos);
@@ -268,7 +257,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param connector The given connector.
      * @param controller The controller to use.
      */
-    public void addConnector(long pos, Cache<C> connector, @Nullable Controller<C, N> controller) {
+    public void addConnector(long pos, Cache<C> connector, Controller<C, N> controller) {
 
         Int2ObjectMap<Grid<C>> linked = new Int2ObjectLinkedOpenHashMap<>();
         Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
@@ -572,7 +561,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param direction The direction we are looking to.
      * @return The grid map, guaranteed to not be null.
      */
-    @Nullable
     public Grid<C> getGridAt(long pos, Dir direction) {
         int id = connectors.get(pos);
 

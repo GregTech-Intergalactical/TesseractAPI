@@ -14,15 +14,11 @@ import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
 /**
  * Class acts as a controller in the group of an item components.
  */
-@ParametersAreNonnullByDefault
 public class ItemController extends Controller<IItemPipe, IItemNode> {
 
     private int transferred;
@@ -91,7 +87,7 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
      * @param dir The added direction.
      * @param pos The position of the producer.
      */
-    private void onCheck(List<ItemConsumer> consumers, @Nullable Path<IItemPipe> path, Dir dir, long pos) {
+    private void onCheck(List<ItemConsumer> consumers, Path<IItemPipe> path, Dir dir, long pos) {
         IItemNode node = group.getNodes().get(pos).value();
         if (node.canInput()) consumers.add(new ItemConsumer(node, path, dir));
     }
@@ -187,13 +183,11 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
         }
     }
 
-    @Nonnull
     @Override
     public String[] getInfo() {
         return new String[]{"Total Transferred: ".concat(Integer.toString(transferred))};
     }
 
-    @Nonnull
     @Override
     public ITickingController clone(INode group) {
         return new ItemController(dim).set(group);

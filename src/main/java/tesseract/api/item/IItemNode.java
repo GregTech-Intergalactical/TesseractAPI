@@ -4,20 +4,14 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import tesseract.api.IConnectable;
 import tesseract.util.Dir;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * An item node is the unit of interaction with item inventories.
  * <p>
- * A reference implementation can be found at {@link net.minecraftforge.items.IItemHandler}.
- *
  * This interface represents an Item Storage. IT IS NOT REQUIRED but is provided for convenience.
  * You are free to handle Items in any way that you wish - this is simply an easy default way.
  * DO NOT ASSUME that these objects are used internally in all cases.
+ * </p>
  */
-@ParametersAreNonnullByDefault
 public interface IItemNode extends IConnectable {
 
     /**
@@ -38,14 +32,12 @@ public interface IItemNode extends IConnectable {
      * @return ItemData extracted from the slot, must be null if nothing can be extracted.
      *         The returned ItemData can be safely modified after, so item handlers should return a new or copied stack.
      **/
-    @Nullable
     ItemData extract(int slot, int amount, boolean simulate);
 
     /**
      * @param direction The direction index.
      * @return Gets all available slots.
      **/
-    @Nonnull
     IntList getAvailableSlots(Dir direction);
 
     /**

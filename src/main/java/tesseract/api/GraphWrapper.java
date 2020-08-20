@@ -4,12 +4,8 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import tesseract.graph.*;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.function.IntFunction;
 
-@ParametersAreNonnullByDefault
 public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
 
     protected final Int2ObjectMap<Graph<C, N>> graph = new Int2ObjectOpenHashMap<>();
@@ -76,7 +72,6 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param dim The dimension id.
      * @return The graph instance for the world.
      */
-    @Nonnull
     public Graph<C, N> getGraph(int dim) {
         return graph.computeIfAbsent(dim, k -> new Graph<>());
     }
@@ -88,7 +83,6 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param pos The position at which the electric component is exist.
      * @return The controller object. (Can be null)
      */
-    @Nullable
     public ITickingController getController(int dim, long pos) {
         Group<?, ?> group = getGraph(dim).getGroupAt(pos);
         return group != null ? group.getController() : null;

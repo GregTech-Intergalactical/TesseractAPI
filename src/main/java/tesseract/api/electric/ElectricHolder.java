@@ -1,11 +1,8 @@
 package tesseract.api.electric;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * A class that acts a holder of the packets that has passed thought cables.
  */
-@ParametersAreNonnullByDefault
 public class ElectricHolder {
 
     private int amperage;

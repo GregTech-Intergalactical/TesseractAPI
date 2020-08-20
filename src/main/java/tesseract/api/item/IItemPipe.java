@@ -2,12 +2,9 @@ package tesseract.api.item;
 
 import tesseract.api.IConnectable;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * A item pipe is the unit of interaction with item inventories.
  */
-@ParametersAreNonnullByDefault
 public interface IItemPipe extends IConnectable {
 
     /**

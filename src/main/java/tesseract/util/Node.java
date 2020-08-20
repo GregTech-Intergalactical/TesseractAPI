@@ -1,13 +1,8 @@
 package tesseract.util;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * The Node is a pretty straightforward class resembling regular nodes.
  */
-@ParametersAreNonnullByDefault
 public class Node extends Pos {
 
     private Node parent;
@@ -97,7 +92,6 @@ public class Node extends Pos {
     /**
      * @return Gets the parent node.
      */
-    @Nullable
     public Node getParent() {
         return parent;
     }
@@ -113,7 +107,6 @@ public class Node extends Pos {
     /**
      * @return Gets the direction to the parent node.
      */
-    @Nonnull
     public Dir getDirection() {
         return direction;
     }

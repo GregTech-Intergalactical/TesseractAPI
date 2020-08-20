@@ -3,13 +3,9 @@ package tesseract.api.electric;
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * A class that acts as a container for an electrical consumer.
  */
-@ParametersAreNonnullByDefault
 public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
 
     private int loss;
@@ -22,7 +18,7 @@ public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
      * @param consumer The consumer node.
      * @param path The path information.
      */
-    protected ElectricConsumer(IElectricNode consumer, @Nullable Path<IElectricCable> path) {
+    protected ElectricConsumer(IElectricNode consumer, Path<IElectricCable> path) {
         super(consumer, path);
     }
 

@@ -6,14 +6,11 @@ import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
 /**
  * A Star Algorithm implementation for converting a graph – consisting of the grid – into a route through the grid.
  */
-@ParametersAreNonnullByDefault
 public class ASFinder {
 
     private Deque<Node> path;
@@ -37,7 +34,6 @@ public class ASFinder {
      * @param target The end position of the traverse operation.
      * @return An set of the points calculated by the A Star algorithm.
      */
-    @Nonnull
     public Deque<Node> traverse(long origin, long target) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same ASFinder instance");
@@ -144,7 +140,6 @@ public class ASFinder {
      *
      * @return The found node.
      */
-    @Nonnull
     private Node getLowestF() {
         Node lowest = open.peek();
         for (Node n : open) {
@@ -162,7 +157,6 @@ public class ASFinder {
      * @param current The given node.
      * @return The list of nodes.
      */
-    @Nonnull
     public Node[] getNeighboringNodes(Node current) {
         Node[] neighbors = new Node[6]; int i = 0;
 

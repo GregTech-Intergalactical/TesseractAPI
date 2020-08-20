@@ -1,11 +1,8 @@
 package tesseract.api.electric;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * Interface for handling an electric events. (Controller will handle them)
  */
-@ParametersAreNonnullByDefault
 public interface IElectricEvent {
 
     /**

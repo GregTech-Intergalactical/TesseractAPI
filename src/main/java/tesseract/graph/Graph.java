@@ -10,15 +10,11 @@ import tesseract.util.Dir;
 import tesseract.util.Pos;
 import tesseract.util.CID;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 /**
  * Class provides the functionality of any set of nodes.
  */
-@ParametersAreNonnullByDefault
 public class Graph<C extends IConnectable, N extends IConnectable> implements INode {
 
 	private final Int2ObjectMap<Group<C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
@@ -34,12 +30,12 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	}
 
 	@Override
-	public boolean linked(long from, @Nullable Dir towards, long to) {
+	public boolean linked(long from, Dir towards, long to) {
 		return positions.containsKey(from) && positions.containsKey(to) && positions.get(from) == positions.get(to);
 	}
 
 	@Override
-	public boolean connects(long pos, @Nullable Dir towards) {
+	public boolean connects(long pos, Dir towards) {
 		return contains(pos);
 	}
 
@@ -53,7 +49,6 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	/**
 	 * @return Gets the groups map.
 	 */
-	@Nonnull
 	public Int2ObjectMap<Group<C, N>> getGroups() {
 		return Int2ObjectMaps.unmodifiable(groups);
 	}
@@ -66,7 +61,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param controller The controller to use.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addNode(long pos, Cache<N> node, @Nullable Controller<C, N> controller) {
+	public boolean addNode(long pos, Cache<N> node, Controller<C, N> controller) {
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleNode(pos, node, controller));
 			if (group != null) group.addNode(pos, node, controller);
@@ -84,7 +79,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param controller The controller to use.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addConnector(long pos, Cache<C> connector, @Nullable Controller<C, N> controller) {
+	public boolean addConnector(long pos, Cache<C> connector, Controller<C, N> controller) {
 		if (!contains(pos)) {
 			Group<C, N> group = add(pos, Group.singleConnector(pos, connector, controller));
 			if (group != null) group.addConnector(pos, connector, controller);
@@ -101,7 +96,6 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param single A group containing a single entry, if the position is not touching any existing positions.
 	 * @return An existing group, that the caller should add the entry to.
 	 */
-	@Nullable
 	private Group<C, N> add(long pos, Group<C, N> single) {
 		int id;
 		IntSet mergers = getNeighboringGroups(pos);
@@ -171,7 +165,6 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The position of the group.
 	 * @return The group, guaranteed to not be null.
 	 */
-	@Nullable
 	public Group<C, N> getGroupAt(long pos) {
 		int id = positions.get(pos);
 		return (id != CID.INVALID) ? groups.get(id) : null;
@@ -183,7 +176,6 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param mergers An array of neighbors groups id.
 	 * @return The wrapper with groups which should be merged.
 	 */
-	@Nonnull
 	private Merged<C, N> beginMerge(IntSet mergers) {
 		int bestId = mergers.iterator().nextInt();
 		Group<C, N> best = groups.get(bestId);
@@ -226,7 +218,6 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param pos The search position.
 	 * @return The set of the groups which are neighbors to each other.
 	 */
-	@Nonnull
 	private IntSet getNeighboringGroups(long pos) {
 		IntSet neighbors = new IntLinkedOpenHashSet(6);
 
