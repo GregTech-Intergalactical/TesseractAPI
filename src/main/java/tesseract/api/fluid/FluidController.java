@@ -13,9 +13,6 @@ import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
@@ -24,7 +21,6 @@ import java.util.Map;
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-@ParametersAreNonnullByDefault
 public class FluidController extends Controller<IFluidPipe, IFluidNode> implements IFluidEvent {
 
     private long totalPressure, lastPressure;
@@ -92,7 +88,7 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
      * @param dir The added direction.
      * @param pos The position of the producer.
      */
-    private void onCheck(List<FluidConsumer> consumers, @Nullable Path<IFluidPipe> path, Dir dir, long pos) {
+    private void onCheck(List<FluidConsumer> consumers, Path<IFluidPipe> path, Dir dir, long pos) {
         IFluidNode node = group.getNodes().get(pos).value();
         if (node.canInput()) consumers.add(new FluidConsumer(node, path, dir));
     }
@@ -208,7 +204,6 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
         maxTemperature = isLeaking = 0;
     }
 
-    @Nonnull
     @Override
     public String[] getInfo() {
         return new String[]{
@@ -218,7 +213,6 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
         };
     }
 
-    @Nonnull
     @Override
     public ITickingController clone(INode group) {
         return new FluidController(dim).set(group);

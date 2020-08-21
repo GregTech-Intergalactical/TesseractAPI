@@ -3,13 +3,11 @@ package tesseract.api.fluid;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Set;
 
 /**
  * A class that acts as holder of the fluid that has passed thought pipes.
  */
-@ParametersAreNonnullByDefault
 public class FluidHolder {
 
     private int pressure;

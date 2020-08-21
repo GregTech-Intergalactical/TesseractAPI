@@ -1,11 +1,8 @@
 package tesseract.api.fluid;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * Interface for handling a fluid events. (Controller will handle them)
  */
-@ParametersAreNonnullByDefault
 public interface IFluidEvent {
 
     /**
