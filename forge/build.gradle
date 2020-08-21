@@ -5,6 +5,8 @@ plugins {
 }
 
 archivesBaseName = 'tesseract-forge'
+version = rootProject.version
+group = rootProject.group
 
 minecraft {
     // The mappings can be changed at any time, and must be in the following format.
@@ -73,6 +75,8 @@ minecraft {
     }
 }
 
+assemble.dependsOn shadowJar
+
 configurations {
     embed
     implementation.extendsFrom(embed)
@@ -83,7 +87,7 @@ shadowJar {
 }
 
 // Deobfuscated jar; development purposes.
-task deobfJar(type: Jar, dependsOn: 'jar') {
+task deobfJar(type: Jar, dependsOn: 'shadowJar') {
     from sourceSets.main.output
     classifier "dev"
 }
@@ -105,10 +109,14 @@ dependencies {
 publishing {
     publications {
         forge(MavenPublication) {
-            artifact jar
+            artifactId = archivesBaseName
+            artifact shadowJar
             artifact deobfJar
             artifact sourcesJar
         }
+    }
+    repositories {
+        rootProject.configurePublishingRepositories(delegate)
     }
 }
 

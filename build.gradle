@@ -4,19 +4,38 @@ plugins {
     id 'java'
 }
 
-evaluationDependsOnChildren()
+evaluationDependsOn(':version')
 
 group = 'com.github.gregtech-intergalactical' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'tesseract'
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
+assemble.dependsOn shadowJar
+
 configurations {
     embed
+    deobf
+
+    embed.extendsFrom(implementation)
+    testCompile.extendsFrom(shadow)
+}
+
+jar {
+    classifier 'base'
 }
 
 shadowJar {
     configurations = [project.configurations.embed]
+    classifier 'fat'
+}
+
+// Deobfuscated jar; development purposes.
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+task deobfJar(type: ShadowJar) {
+    from sourceSets.main.output
+    configurations = [project.configurations.deobf]
+    classifier "dev"
 }
 
 repositories {
@@ -24,42 +43,50 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.apache.commons:commons-collections4:4.4'
-    implementation 'it.unimi.dsi:fastutil:8.4.1'
+    //   Main dependencies:
+    // Declare here your dependencies here with:
+    // 'shadow' if the jar shouldn't be included in the fat jar,
+    // 'implementation' if the jar should be included in the jar
+    shadow 'org.apache.commons:commons-collections4:4.4'
+    shadow 'it.unimi.dsi:fastutil:8.2.1'
 
-    // Test dependencies:
+    //   Test dependencies:
     testImplementation 'junit:junit:4.11'
 
-    // Embedded dependencies:
+    //   Embedded dependencies:
     // Those will be included in the fat jar.
     embed project(path: ':forge', configuration: 'archives')
+    deobf project(path: ':forge', configuration: 'deobf')
+    //embed project(path: ':fabric', configuration: 'archives') TODO coming soon(tm).
 }
 
 // Maven publishing:
-// (includes universal and common)
+
+def configurePublishingRepositories(repositoryHandler) {
+    repositoryHandler.maven {
+        url = 'https://files.axelandre42.ovh/maven/'
+        authentication {
+            basic(BasicAuthentication)
+        }
+
+        if (System.env.MAVEN_USERNAME && System.env.MAVEN_PASSWORD) {
+            credentials {
+                username = System.env.USERNAME
+                password = System.env.PASSWORD
+            }
+        }
+    }
+}
+
 publishing {
     publications {
-        universal(MavenPublication) {
+        fat(MavenPublication) {
             artifact shadowJar
-        }
-        base(MavenPublication) {
             artifact jar
         }
     }
 
     repositories {
-        maven {
-            url = 'https://files.axelandre42.ovh/maven/'
-            authentication {
-                basic(BasicAuthentication)
-            }
-
-            if (System.env.MAVEN_USERNAME && System.env.MAVEN_PASSWORD) {
-                credentials {
-                    username = System.env.USERNAME
-                    password = System.env.PASSWORD
-                }
-            }
-        }
+        configurePublishingRepositories(delegate)
     }
 }
