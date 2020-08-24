@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import tesseract.graph.INode;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ConcurrentModificationException;
 import java.util.function.Consumer;
 
@@ -13,7 +12,6 @@ import java.util.function.Consumer;
  * Extension of BFSearcher that helps with dividing up node containers. The BFDivider class executes enough breadth first
  * search operations in order to split up a previously connected set of nodes into divided groups of connected nodes.
  */
-@ParametersAreNonnullByDefault
 public class BFDivider {
 
 	private final BFSearcher searcher;

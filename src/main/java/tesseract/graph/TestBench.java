@@ -9,8 +9,6 @@ import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -119,7 +117,6 @@ class TestBench {
         }
     }
 
-    @ParametersAreNonnullByDefault
     private static class ExampleConnector implements IConnectable {
 
         @Override
@@ -133,7 +130,6 @@ class TestBench {
         }
     }
 
-    @ParametersAreNonnullByDefault
     private static class ExampleNode implements IConnectable, ITickHost {
 
         @Override
@@ -147,7 +143,7 @@ class TestBench {
         }
 
         @Override
-        public void reset(@Nullable ITickingController oldController, @Nullable ITickingController newController) {
+        public void reset(ITickingController oldController, ITickingController newController) {
             System.out.println("oldController: " + oldController + "| newController: " + newController);
         }
     }

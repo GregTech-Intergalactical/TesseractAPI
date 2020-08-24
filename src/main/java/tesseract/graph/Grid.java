@@ -7,9 +7,6 @@ import tesseract.util.*;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Consumer;
@@ -17,7 +14,6 @@ import java.util.function.Consumer;
 /**
  * Grid provides the functionality of a set of linked nodes.
  */
-@ParametersAreNonnullByDefault
 public class Grid<C extends IConnectable> implements INode {
 
     private final Long2ObjectMap<Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
@@ -35,7 +31,6 @@ public class Grid<C extends IConnectable> implements INode {
      * @param connector The given connector.
      * @return Create a instance of a class for a given position and connector.
      */
-    @Nonnull
     protected static <C extends IConnectable> Grid<C> singleConnector(long pos, Cache<C> connector) {
         Grid<C> grid = new Grid<>();
         grid.connectors.put(pos, connector);
@@ -48,7 +43,7 @@ public class Grid<C extends IConnectable> implements INode {
     }
 
     @Override
-    public boolean linked(long from, @Nullable Dir towards, long to) {
+    public boolean linked(long from, Dir towards, long to) {
         assert towards != null;
 
         Cache<C> cacheFrom = connectors.get(from);
@@ -77,7 +72,7 @@ public class Grid<C extends IConnectable> implements INode {
     }
 
     @Override
-    public boolean connects(long pos, @Nullable Dir towards) {
+    public boolean connects(long pos, Dir towards) {
         assert towards != null;
 
         Cache<C> cache = connectors.get(pos);
@@ -111,7 +106,6 @@ public class Grid<C extends IConnectable> implements INode {
     /**
      * @return Returns connectors map.
      */
-    @Nonnull
     public Long2ObjectMap<Cache<C>> getConnectors() {
         return Long2ObjectMaps.unmodifiable(connectors);
     }
@@ -119,7 +113,6 @@ public class Grid<C extends IConnectable> implements INode {
     /**
      * @return Returns nodes map.
      */
-    @Nonnull
     public Long2ByteMap getNodes() {
         return Long2ByteMaps.unmodifiable(nodes);
     }
@@ -130,7 +123,6 @@ public class Grid<C extends IConnectable> implements INode {
      * @param from The position of the linked node.
      * @return Returns paths from the linked node.
      */
-    @Nonnull
     public List<Path<C>> getPaths(long from) {
         List<Path<C>> data = new ObjectArrayList<>();
 
@@ -150,7 +142,6 @@ public class Grid<C extends IConnectable> implements INode {
      * @param target The end position of the traverse operation.
      * @return An set of path points.
      */
-    @Nonnull
     public Deque<Node> getPath(long origin, long target) {
         return finder.traverse(origin, target);
     }

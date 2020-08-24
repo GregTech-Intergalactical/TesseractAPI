@@ -1,12 +1,9 @@
 package tesseract.util;
 
-import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * @see net.minecraft.util.Direction
+ * Direction enum
  */
-@ParametersAreNonnullByDefault
 public enum Dir {
 
     DOWN(0, 1, new Pos(0, -1, 0)),
@@ -67,7 +64,6 @@ public enum Dir {
     /**
      * @return Return the inverted direction.
      */
-    @Nonnull
     public Dir getOpposite() {
         return VALUES[opposite];
     }

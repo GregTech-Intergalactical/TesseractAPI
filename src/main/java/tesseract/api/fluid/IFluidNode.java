@@ -3,19 +3,14 @@ package tesseract.api.fluid;
 import tesseract.api.IConnectable;
 import tesseract.util.Dir;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * An fluid node is the unit of interaction with fluid inventories.
  * <p>
- * A reference implementation can be found at {@link net.minecraftforge.fluids.IFluidTank}.
- *
  * This interface represents a Fluid Tank. IT IS NOT REQUIRED but is provided for convenience.
  * You are free to handle Fluids in any way that you wish - this is simply an easy default way.
  * DO NOT ASSUME that these objects are used internally in all cases.
+ * </p>
  */
-@ParametersAreNonnullByDefault
 public interface IFluidNode extends IConnectable {
 
     /**
@@ -33,7 +28,6 @@ public interface IFluidNode extends IConnectable {
      * @param simulate If true, the drain will only be simulated.
      * @return FluidData representing fluid that was removed (or would be, if simulated) from the tank.
      */
-    @Nullable
     FluidData extract(int tank, int amount, boolean simulate);
 
     /**

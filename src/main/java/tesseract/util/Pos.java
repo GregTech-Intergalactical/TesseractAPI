@@ -1,12 +1,8 @@
 package tesseract.util;
 
-import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
- * @see net.minecraft.util.math.BlockPos
+ * Position in world.
  */
-@ParametersAreNonnullByDefault
 public class Pos {
 
     protected long value;
@@ -122,7 +118,6 @@ public class Pos {
      * @param z coordinate.
      * @return self
      */
-    @Nonnull
     public Pos set(int x, int y, int z) {
         this.x = x;
         this.y = y;
@@ -136,7 +131,6 @@ public class Pos {
      * @param pos The position to update.
      * @return self
      */
-    @Nonnull
     public Pos set(Pos pos) {
         this.x = pos.x;
         this.y = pos.y;
@@ -152,7 +146,6 @@ public class Pos {
      * @param z coordinate.
      * @return self
      */
-    @Nonnull
     public Pos add(int x, int y, int z) {
         return set(this.x + x, this.y + y, this.z + z);
     }
@@ -163,7 +156,6 @@ public class Pos {
      * @param pos The position to add.
      * @return self
      */
-    @Nonnull
     public Pos add(Pos pos) {
         return set(this.x + pos.x, this.y + pos.y, this.z + pos.z);
     }
@@ -176,7 +168,6 @@ public class Pos {
      * @param z coordinate.
      * @return self
      */
-    @Nonnull
     public Pos sub(int x, int y, int z) {
         return set(this.x - x, this.y - y, this.z - z);
     }
@@ -187,7 +178,6 @@ public class Pos {
      * @param pos The position to subtract.
      * @return self
      */
-    @Nonnull
     public Pos sub(Pos pos) {
         return set(this.x - pos.x, this.y - pos.y, this.z - pos.z);
     }
@@ -226,7 +216,6 @@ public class Pos {
      * @param dir The moving direction.
      * @return The new instance of object.
      */
-    @Nonnull
     public Pos offset(Dir dir) {
         return new Pos(x + dir.getXOffset(), y + dir.getYOffset(), z + dir.getZOffset());
     }
@@ -238,7 +227,6 @@ public class Pos {
      * @param n The moving distance.
      * @return The new instance of object.
      */
-    @Nonnull
     public Pos offset(Dir dir, int n) {
         return n == 0 ? this : new Pos(x + dir.getXOffset() * n, y + dir.getYOffset() * n, z + dir.getZOffset() * n);
     }

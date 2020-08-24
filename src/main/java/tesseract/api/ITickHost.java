@@ -1,11 +1,8 @@
 package tesseract.api;
 
-import javax.annotation.ParametersAreNullableByDefault;
-
 /**
  * Represents a tile entity providing server ticks for the group controller
  */
-@ParametersAreNullableByDefault
 public interface ITickHost {
 
     /**

@@ -11,16 +11,12 @@ import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Comparator;
 import java.util.List;
 
 /**
  * Class acts as a controller in the group of an electrical components.
  */
-@ParametersAreNonnullByDefault
 public class ElectricController extends Controller<IElectricCable, IElectricNode> implements IElectricEvent {
 
     private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
@@ -124,7 +120,7 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
      * @param path The paths to consumers.
      * @param pos The position of the producer.
      */
-    private void onCheck(IElectricNode producer, List<ElectricConsumer> consumers, @Nullable Path<IElectricCable> path, long pos) {
+    private void onCheck(IElectricNode producer, List<ElectricConsumer> consumers, Path<IElectricCable> path, long pos) {
         IElectricNode node = group.getNodes().get(pos).value();
         if (node.canInput()) {
             ElectricConsumer consumer = new ElectricConsumer(node, path);
@@ -239,7 +235,6 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
         totalAmperage = totalVoltage = 0L;
     }
 
-    @Nonnull
     @Override
     public String[] getInfo() {
         return new String[]{
@@ -248,7 +243,6 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
         };
     }
 
-    @Nonnull
     @Override
     public ITickingController clone(INode group) {
         return new ElectricController(dim).set(group);

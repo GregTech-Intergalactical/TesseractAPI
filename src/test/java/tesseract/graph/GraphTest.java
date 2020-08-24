@@ -7,13 +7,11 @@ import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
 import static tesseract.util.Pos.packAll;
 import static org.junit.Assert.*;
 
-@ParametersAreNonnullByDefault
 public class GraphTest {
     @Test
     public void system() {

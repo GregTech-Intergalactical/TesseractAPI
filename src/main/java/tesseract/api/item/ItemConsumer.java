@@ -4,13 +4,9 @@ import tesseract.api.Consumer;
 import tesseract.graph.Path;
 import tesseract.util.Dir;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * A class that acts as a container for a item consumer.
  */
-@ParametersAreNonnullByDefault
 public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
 
     private int minCapacity = Integer.MAX_VALUE;
@@ -23,7 +19,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      * @param path The path information.
      * @param dir The input direction.
      */
-    protected ItemConsumer(IItemNode consumer, @Nullable Path<IItemPipe> path, Dir dir) {
+    protected ItemConsumer(IItemNode consumer, Path<IItemPipe> path, Dir dir) {
         super(consumer, path);
         input = dir;
     }

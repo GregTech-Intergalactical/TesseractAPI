@@ -2,12 +2,9 @@ package tesseract.api;
 
 import tesseract.util.Dir;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * A simple interface for representing connectable objects.
  */
-@ParametersAreNonnullByDefault
 public interface IConnectable {
 
     /**

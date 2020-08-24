@@ -8,8 +8,6 @@ import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ConcurrentModificationException;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
@@ -23,7 +21,6 @@ import java.util.function.LongConsumer;
  * Due to the above behavior, it is not safe to use BFSearcher from multiple threads. If two search operations happen
  * concurrently from different threads, then they will conflict, mixing results between each operation.
  */
-@ParametersAreNonnullByDefault
 public class BFSearcher {
 
     private final INode container;
@@ -49,7 +46,7 @@ public class BFSearcher {
      * @param excluder A function that can add values to the closed set prior to the search operation.
      *                 They will not be reported or traversed; null is interpreted to mean no exclusions.
      */
-    public void search(long from, LongConsumer reached, @Nullable Consumer<LongSet> excluder) {
+    public void search(long from, LongConsumer reached, Consumer<LongSet> excluder) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same BFSearcher instance");
         }

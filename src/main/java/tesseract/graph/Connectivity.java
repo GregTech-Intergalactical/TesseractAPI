@@ -3,13 +3,10 @@ package tesseract.graph;
 import tesseract.api.IConnectable;
 import tesseract.util.Dir;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 
 /**
  * A class that acts as a controller for a connectivity of the connectables.
  */
-@ParametersAreNonnullByDefault
 public class Connectivity {
 
     /**

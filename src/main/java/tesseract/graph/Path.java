@@ -6,16 +6,12 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import tesseract.api.IConnectable;
 import tesseract.util.Node;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Deque;
 import java.util.Iterator;
 
 /**
  * The Path is a class that should work with paths for grids.
  */
-@ParametersAreNonnullByDefault
 public class Path<C extends IConnectable> {
 
     private final Node origin;
@@ -49,7 +45,6 @@ public class Path<C extends IConnectable> {
     /**
      * @return Gets the origin position.
      */
-    @Nullable
     public Node origin() {
         return origin;
     }
@@ -57,7 +52,6 @@ public class Path<C extends IConnectable> {
     /**
      * @return Gets the target position.
      */
-    @Nullable
     public Node target() {
         return target;
     }
@@ -65,7 +59,6 @@ public class Path<C extends IConnectable> {
     /**
      * @return Gets the full connectors path.
      */
-    @Nonnull
     public Long2ObjectMap<C> getFull() {
         return Long2ObjectMaps.unmodifiable(full);
     }
@@ -73,7 +66,6 @@ public class Path<C extends IConnectable> {
     /**
      * @return Gets the crossroad connectors path.
      */
-    @Nonnull
     public Long2ObjectMap<C> getCross() {
         return Long2ObjectMaps.unmodifiable(cross);
     }

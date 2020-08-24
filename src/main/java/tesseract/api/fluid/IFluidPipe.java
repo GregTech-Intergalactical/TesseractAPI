@@ -2,12 +2,9 @@ package tesseract.api.fluid;
 
 import tesseract.api.IConnectable;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 /**
  * A fluid pipe is the unit of interaction with fluid inventories.
  */
-@ParametersAreNonnullByDefault
 public interface IFluidPipe extends IConnectable {
 
     /**
