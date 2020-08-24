@@ -96,6 +96,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             currentTickHost.reset(controller, null);
             findNextValidHost(cache);
         }
+        else if (controller != null)
+            controller.change();
     }
 
     /**
