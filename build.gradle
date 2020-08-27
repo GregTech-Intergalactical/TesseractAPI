@@ -85,8 +85,9 @@ static def configurePublishingRepositories(repositoryHandler) {
 publishing {
     publications {
         fat(MavenPublication) {
-            artifact shadowJar
             artifact jar
+            artifact shadowJar
+            artifact deobfJar
         }
     }
 
