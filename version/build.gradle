@@ -28,7 +28,7 @@ def getVersionAppendage() {
         return "." + System.env.TRAVIS_BUILD_NUMBER
     }
 
-    if (useGitRef) {
+    if (useGitRef && grgit) {
         return "-" + grgit.head().abbreviatedId
     }
 
