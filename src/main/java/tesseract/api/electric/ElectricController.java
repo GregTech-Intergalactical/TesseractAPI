@@ -89,7 +89,6 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
         }
     }
 
-
     /**
      * Merge the existing consumers with new ones.
      *
@@ -156,8 +155,9 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
 
         for (Object2ObjectMap.Entry<IElectricNode, List<ElectricConsumer>> e : data.object2ObjectEntrySet()) {
             IElectricNode producer = e.getKey();
+
             int outputVoltage = producer.getOutputVoltage();
-            int outputAmperage = (int)Math.min(producer.getEnergy()/outputVoltage, producer.getOutputAmperage());
+            int outputAmperage = (int) Math.min(producer.getEnergy() / outputVoltage, producer.getOutputAmperage());
             if (outputAmperage <= 0) {
                 continue;
             }
