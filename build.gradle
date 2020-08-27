@@ -27,7 +27,6 @@ jar {
 
 shadowJar {
     configurations = [project.configurations.embed]
-    classifier 'fat'
 }
 
 // Deobfuscated jar; development purposes.
