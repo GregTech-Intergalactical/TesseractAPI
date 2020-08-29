@@ -39,6 +39,7 @@ task deobfJar(type: ShadowJar) {
 
 repositories {
     jcenter()
+    maven { url = 'https://files.minecraftforge.net/maven' }
 }
 
 dependencies {
@@ -81,16 +82,24 @@ static def configurePublishingRepositories(repositoryHandler) {
     }
 }
 
-publishing {
-    publications {
-        fat(MavenPublication) {
-            artifact jar
-            artifact shadowJar
-            artifact deobfJar
+if (!System.env.RELEASE) {
+    build.dependsOn ':forge:publishToMavenLocal'
+}
+
+project.afterEvaluate {
+
+    publishing {
+        publications {
+            fat(MavenPublication) {
+                artifact jar
+                artifact shadowJar
+                artifact deobfJar
+            }
+        }
+
+        repositories {
+            configurePublishingRepositories(delegate)
         }
     }
 
-    repositories {
-        configurePublishingRepositories(delegate)
-    }
 }
