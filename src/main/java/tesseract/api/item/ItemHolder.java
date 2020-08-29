@@ -1,7 +1,7 @@
 package tesseract.api.item;
 
 /**
- * A class that acts a holder of the packets that has passed thought cables.
+ * A class that acts a holder of the packets that has passed thought pipes.
  */
 public class ItemHolder {
 
