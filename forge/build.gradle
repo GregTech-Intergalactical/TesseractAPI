@@ -78,6 +78,7 @@ minecraft {
 assemble.dependsOn shadowJar
 
 configurations {
+    deobf
     embed
     implementation.extendsFrom(embed)
 }
@@ -87,8 +88,10 @@ shadowJar {
 }
 
 // Deobfuscated jar; development purposes.
-task deobfJar(type: Jar, dependsOn: 'shadowJar') {
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+task deobfJar(type: ShadowJar, dependsOn: 'classes') {
     from sourceSets.main.output
+    configurations = [project.configurations.embed]
     classifier "dev"
 }
 
@@ -110,9 +113,8 @@ publishing {
     publications {
         forge(MavenPublication) {
             artifactId = archivesBaseName
-            artifact shadowJar
             artifact deobfJar
-            artifact sourcesJar
+            artifact shadowJar
         }
     }
     repositories {
@@ -121,6 +123,5 @@ publishing {
 }
 
 artifacts {
-    deobfJar
-    sourcesJar
+    deobf deobfJar
 }

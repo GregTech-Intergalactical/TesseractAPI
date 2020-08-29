@@ -27,7 +27,6 @@ jar {
 
 shadowJar {
     configurations = [project.configurations.embed]
-    classifier 'fat'
 }
 
 // Deobfuscated jar; development purposes.
@@ -55,6 +54,7 @@ dependencies {
 
     //   Embedded dependencies:
     // Those will be included in the fat jar.
+    // You will likely not edit those dependencies.
     embed project(path: ':forge', configuration: 'archives')
     deobf project(path: ':forge', configuration: 'deobf')
     //embed project(path: ':fabric', configuration: 'archives') TODO coming soon(tm).
@@ -62,15 +62,16 @@ dependencies {
 
 // Maven publishing:
 
-def configurePublishingRepositories(repositoryHandler) {
+static def configurePublishingRepositories(repositoryHandler) {
     if (System.env.MAVEN_URL) {
         repositoryHandler.maven {
             url = System.env.MAVEN_URL
-            authentication {
-                basic(BasicAuthentication)
-            }
 
             if (System.env.MAVEN_USERNAME && System.env.MAVEN_PASSWORD) {
+                authentication {
+                    basic(BasicAuthentication)
+                }
+
                 credentials {
                     username = System.env.USERNAME
                     password = System.env.PASSWORD
@@ -83,8 +84,9 @@ def configurePublishingRepositories(repositoryHandler) {
 publishing {
     publications {
         fat(MavenPublication) {
-            artifact shadowJar
             artifact jar
+            artifact shadowJar
+            artifact deobfJar
         }
     }
 

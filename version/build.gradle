@@ -1,3 +1,6 @@
+plugins {
+    id 'org.ajoberstar.grgit' version '3.0.0'
+}
 
 def loadProperties(String filename) {
     def properties = new Properties()
@@ -25,10 +28,8 @@ def getVersionAppendage() {
         return "." + System.env.TRAVIS_BUILD_NUMBER
     }
 
-    if (useGitRef) {
-        def proc = 'git rev-parse --short HEAD'.execute()
-        proc.waitFor()
-        return proc.exitValue() ? '-unknown' : "-dev-" + proc.text.trim()
+    if (useGitRef && grgit) {
+        return "-" + grgit.head().abbreviatedId
     }
 
     return '-unknown'
