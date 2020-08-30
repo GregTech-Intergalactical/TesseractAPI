@@ -4,7 +4,7 @@ plugins {
     id 'java'
 }
 
-evaluationDependsOn(':version')
+//evaluationDependsOn(':version')
 
 group = 'com.github.gregtech-intergalactical' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'tesseract'
@@ -19,10 +19,6 @@ configurations {
 
     embed.extendsFrom(implementation)
     testCompile.extendsFrom(shadow)
-}
-
-jar {
-    classifier 'base'
 }
 
 shadowJar {
@@ -80,26 +76,4 @@ static def configurePublishingRepositories(repositoryHandler) {
             }
         }
     }
-}
-
-if (!System.env.RELEASE) {
-    build.dependsOn ':forge:publishToMavenLocal'
-}
-
-project.afterEvaluate {
-
-    publishing {
-        publications {
-            fat(MavenPublication) {
-                artifact jar
-                artifact shadowJar
-                artifact deobfJar
-            }
-        }
-
-        repositories {
-            configurePublishingRepositories(delegate)
-        }
-    }
-
 }

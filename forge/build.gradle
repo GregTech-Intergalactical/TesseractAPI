@@ -1,7 +1,11 @@
+
 plugins {
-    id 'net.minecraftforge.gradle.userdev' version '3.1.1'
-    id 'com.github.johnrengelman.shadow'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
     id 'maven-publish'
+}
+apply plugin: 'net.minecraftforge.gradle'
+repositories {
+    maven { url 'http://dvs1.progwml6.com/files/maven' }
 }
 
 archivesBaseName = 'tesseract-forge'
@@ -106,20 +110,20 @@ repositories {
 }
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    embed project(':')
+    embed project(':tesseract')
 }
 
 publishing {
     publications {
         forge(MavenPublication) {
-            artifactId = archivesBaseName
+            //artifactId = archivesBaseName
             artifact deobfJar
             artifact shadowJar
         }
     }
-    repositories {
-        rootProject.configurePublishingRepositories(delegate)
-    }
+    //repositories {
+    //    rootProject.configurePublishingRepositories(delegate)
+    //}
 }
 
 artifacts {
