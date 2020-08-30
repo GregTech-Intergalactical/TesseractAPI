@@ -4,7 +4,7 @@ plugins {
     id 'java'
 }
 
-evaluationDependsOn(':version')
+//evaluationDependsOn(':version')
 
 group = 'com.github.gregtech-intergalactical' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'tesseract'
@@ -21,10 +21,6 @@ configurations {
     testCompile.extendsFrom(shadow)
 }
 
-jar {
-    classifier 'base'
-}
-
 shadowJar {
     configurations = [project.configurations.embed]
 }
@@ -39,6 +35,7 @@ task deobfJar(type: ShadowJar) {
 
 repositories {
     jcenter()
+    maven { url = 'https://files.minecraftforge.net/maven' }
 }
 
 dependencies {
@@ -78,19 +75,5 @@ static def configurePublishingRepositories(repositoryHandler) {
                 }
             }
         }
-    }
-}
-
-publishing {
-    publications {
-        fat(MavenPublication) {
-            artifact jar
-            artifact shadowJar
-            artifact deobfJar
-        }
-    }
-
-    repositories {
-        configurePublishingRepositories(delegate)
     }
 }
