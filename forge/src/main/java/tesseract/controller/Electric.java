@@ -1,17 +1,8 @@
 package tesseract.controller;
 
-import net.minecraft.block.Blocks;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Explosion;
-import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
-import tesseract.api.electric.ElectricController;
-
-import javax.annotation.Nullable;
-import java.util.Optional;
+import tesseract.api.energygt.ElectricController;
 
 // TODO: Make explosions depend on voltage, amp
 public class Electric extends ElectricController {

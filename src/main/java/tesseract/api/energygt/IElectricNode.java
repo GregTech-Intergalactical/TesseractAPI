@@ -1,4 +1,4 @@
-package tesseract.api.electric;
+package tesseract.api.energygt;
 
 import tesseract.api.IConnectable;
 import tesseract.util.Dir;

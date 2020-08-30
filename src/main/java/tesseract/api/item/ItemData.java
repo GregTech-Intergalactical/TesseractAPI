@@ -3,22 +3,20 @@ package tesseract.api.item;
 /**
  * A class that acts as a wrapper for a item stack and a slot index.
  */
-public class ItemData {
+public class ItemData<T> {
 
     private final int slot;
-    private final Object stack, item;
+    private final T stack;
 
     /**
      * Creates instance of the data.
      *
      * @param slot The slot index.
      * @param stack The ItemStack object.
-     * @param item The item inside an ItemStack.
      */
-    public ItemData(int slot, Object stack, Object item) {
+    public ItemData(int slot, T stack) {
         this.slot = slot;
         this.stack = stack;
-        this.item = item;
     }
 
     /**
@@ -31,14 +29,7 @@ public class ItemData {
     /**
      * @return Gets the ItemStack object.
      */
-    public Object getStack() {
+    public T getStack() {
         return stack;
-    }
-
-    /**
-     * @return Gets the fluid inside a FluidStack.
-     */
-    public Object getItem() {
-        return item;
     }
 }

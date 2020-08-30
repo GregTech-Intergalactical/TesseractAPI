@@ -11,7 +11,7 @@ import tesseract.util.Dir;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IFluidNode extends IConnectable {
+public interface IFluidNode<T> extends IConnectable {
 
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.
@@ -19,7 +19,7 @@ public interface IFluidNode extends IConnectable {
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    int insert(FluidData data, boolean simulate);
+    int insert(FluidData<T> data, boolean simulate);
 
     /**
      * Removes fluid from the node. Returns amount of fluid that was drained.
@@ -28,7 +28,7 @@ public interface IFluidNode extends IConnectable {
      * @param simulate If true, the drain will only be simulated.
      * @return FluidData representing fluid that was removed (or would be, if simulated) from the tank.
      */
-    FluidData extract(int tank, int amount, boolean simulate);
+    FluidData<T> extract(int tank, int amount, boolean simulate);
 
     /**
      * @param direction Direction to the proceed.

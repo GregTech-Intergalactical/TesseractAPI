@@ -21,12 +21,12 @@ import java.util.Map;
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-public class FluidController extends Controller<IFluidPipe, IFluidNode> implements IFluidEvent {
+public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFluidPipe, N> implements IFluidEvent<T> {
 
     private long totalPressure, lastPressure;
     private int maxTemperature, isLeaking, lastTemperature, lastLeaking;
-    private final Long2ObjectMap<FluidHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
-    private final Object2ObjectMap<IFluidNode, Map<Dir, List<FluidConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<FluidHolder<T>> holders = new Long2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectMap<N, Map<Dir, List<FluidConsumer<T>>>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
@@ -39,15 +39,15 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
 
     @Override
     public void change() {
-        for (Long2ObjectMap.Entry<Cache<IFluidNode>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<Cache<N>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
-            IFluidNode producer = e.getValue().value();
+            N producer = e.getValue().value();
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
                     if (producer.canOutput(direction)) {
-                        List<FluidConsumer> consumers = new ObjectArrayList<>();
+                        List<FluidConsumer<T>> consumers = new ObjectArrayList<>();
                         long side = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(side)) {
@@ -73,8 +73,8 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
             }
         }
 
-        for (Map<Dir, List<FluidConsumer>> map : data.values()) {
-            for (List<FluidConsumer> consumers : map.values()) {
+        for (Map<Dir, List<FluidConsumer<T>>> map : data.values()) {
+            for (List<FluidConsumer<T>> consumers : map.values()) {
                 consumers.sort(Comparator.comparingInt(FluidConsumer::getPriority));
             }
         }
@@ -88,9 +88,9 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
      * @param dir The added direction.
      * @param pos The position of the producer.
      */
-    private void onCheck(List<FluidConsumer> consumers, Path<IFluidPipe> path, Dir dir, long pos) {
-        IFluidNode node = group.getNodes().get(pos).value();
-        if (node.canInput()) consumers.add(new FluidConsumer(node, path, dir));
+    private void onCheck(List<FluidConsumer<T>> consumers, Path<IFluidPipe> path, Dir dir, long pos) {
+        N node = group.getNodes().get(pos).value();
+        if (node.canInput()) consumers.add(new FluidConsumer<>(node, path, dir));
     }
 
     @Override
@@ -98,10 +98,10 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
         super.tick();
         holders.clear();
 
-        for (Object2ObjectMap.Entry<IFluidNode, Map<Dir, List<FluidConsumer>>> e : data.object2ObjectEntrySet()) {
-            IFluidNode producer = e.getKey();
+        for (Object2ObjectMap.Entry<N, Map<Dir, List<FluidConsumer<T>>>> e : data.object2ObjectEntrySet()) {
+            N producer = e.getKey();
 
-            for (Map.Entry<Dir, List<FluidConsumer>> c : e.getValue().entrySet()) {
+            for (Map.Entry<Dir, List<FluidConsumer<T>>> c : e.getValue().entrySet()) {
                 Dir direction = c.getKey();
 
                 int tank = producer.getAvailableTank(direction);
@@ -111,15 +111,15 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
 
                 int outputAmount = producer.getOutputAmount(direction);
 
-                for (FluidConsumer consumer : c.getValue()) {
+                for (FluidConsumer<T> consumer : c.getValue()) {
 
-                    FluidData data = producer.extract(tank, outputAmount, true);
+                    FluidData<T> data = producer.extract(tank, outputAmount, true);
                     if (data == null) {
                         continue;
                     }
 
-                    Object fluid = data.getFluid();
-                    if (!consumer.canHold(fluid)) {
+                    T stack = data.getStack();
+                    if (!consumer.canHold(stack)) {
                         continue;
                     }
 
@@ -131,7 +131,7 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
                     int temperature = data.getTemperature();
                     boolean isGaseous = data.isGaseous();
 
-                    FluidData drained = producer.extract(tank, amount, false);
+                    FluidData<T> drained = producer.extract(tank, amount, false);
 
                     assert drained != null;
 
@@ -162,7 +162,7 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
                             long pos = p.getLongKey();
                             IFluidPipe pipe = p.getValue();
 
-                            holders.computeIfAbsent(pos, h -> new FluidHolder(pipe)).add(amount, fluid);
+                            holders.computeIfAbsent(pos, h -> new FluidHolder<>(pipe)).add(amount, stack);
                         }
                     }
 
@@ -180,9 +180,9 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
             }
         }
 
-        for (Long2ObjectMap.Entry<FluidHolder> e : holders.long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<FluidHolder<T>> e : holders.long2ObjectEntrySet()) {
             long pos = e.getLongKey();
-            FluidHolder absorber = e.getValue();
+            FluidHolder<T> absorber = e.getValue();
 
             // TODO: Find proper path to destroy
 
@@ -215,6 +215,6 @@ public class FluidController extends Controller<IFluidPipe, IFluidNode> implemen
 
     @Override
     public ITickingController clone(INode group) {
-        return new FluidController(dim).set(group);
+        return new FluidController<>(dim).set(group);
     }
 }

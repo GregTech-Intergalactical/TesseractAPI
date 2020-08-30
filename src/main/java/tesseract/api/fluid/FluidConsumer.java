@@ -7,7 +7,7 @@ import tesseract.util.Dir;
 /**
  * A class that acts as a container for a fluid consumer.
  */
-public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
+public class FluidConsumer<T> extends Consumer<IFluidPipe, IFluidNode<T>> {
 
     private int isProof = 1;
     private int minCapacity = Integer.MAX_VALUE;
@@ -22,7 +22,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param path The path information.
      * @param dir The added direction.
      */
-    protected FluidConsumer(IFluidNode consumer, Path<IFluidPipe> path, Dir dir) {
+    protected FluidConsumer(IFluidNode<T> consumer, Path<IFluidPipe> path, Dir dir) {
         super(consumer, path);
         this.input = dir;
     }
@@ -34,7 +34,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    public int insert(FluidData data, boolean simulate) {
+    public int insert(FluidData<T> data, boolean simulate) {
         return node.insert(data, simulate);
     }
 

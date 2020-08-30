@@ -8,11 +8,11 @@ import java.util.Set;
 /**
  * A class that acts as holder of the fluid that has passed thought pipes.
  */
-public class FluidHolder {
+public class FluidHolder<T> {
 
     private int pressure;
     private final int maxPressure, maxCapacity;
-    private final Set<Object> fluids = new ObjectOpenHashSet<>();
+    private final Set<T> fluids = new ObjectOpenHashSet<>();
 
     /**
      * Creates instance of the holder.
@@ -30,7 +30,7 @@ public class FluidHolder {
      * @param pressure The added pressure.
      * @param fluid The fluid type.
      */
-    public void add(int pressure, Object fluid) {
+    public void add(int pressure, T fluid) {
         this.pressure += pressure;
         fluids.add(fluid);
     }

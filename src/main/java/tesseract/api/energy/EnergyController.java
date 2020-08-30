@@ -1,4 +1,4 @@
-package tesseract.api.flux;
+package tesseract.api.energy;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -18,20 +18,20 @@ import tesseract.util.Pos;
 import java.util.List;
 
 /**
- * Class acts as a controller in the group of a redstone flux components.
+ * Class acts as a controller in the group of a energy components.
  */
-public class FluxController extends Controller<IFluxCable, IFluxNode> {
+public class EnergyController extends Controller<ITesseractCable, ITesseractNode> {
 
     private long totalEnergy, lastEnergy;
-    private final Long2ObjectMap<FluxHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
-    private final Object2ObjectMap<IFluxNode, List<FluxConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<EnergyHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectMap<ITesseractNode, List<EnergyConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
 
      * @param dim The dimension id.
      */
-    public FluxController(int dim) {
+    public EnergyController(int dim) {
         super(dim);
     }
 
@@ -49,23 +49,23 @@ public class FluxController extends Controller<IFluxCable, IFluxNode> {
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<Cache<IFluxNode>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<Cache<ITesseractNode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
-            IFluxNode producer = e.getValue().value();
+            ITesseractNode producer = e.getValue().value();
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
                     if (producer.canOutput(direction)) {
-                        List<FluxConsumer> consumers = new ObjectArrayList<>();
+                        List<EnergyConsumer> consumers = new ObjectArrayList<>();
                         long side = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(side)) {
                             onCheck(consumers, null, side);
                         } else {
-                            Grid<IFluxCable> grid = group.getGridAt(side, direction);
+                            Grid<ITesseractCable> grid = group.getGridAt(side, direction);
                             if (grid != null) {
-                                for (Path<IFluxCable> path : grid.getPaths(pos)) {
+                                for (Path<ITesseractCable> path : grid.getPaths(pos)) {
                                     if (!path.isEmpty()) {
                                         Node target = path.target();
                                         assert target != null;
@@ -94,11 +94,11 @@ public class FluxController extends Controller<IFluxCable, IFluxNode> {
      * @param producer The producer node.
      * @param consumers The consumer nodes.
      */
-    private void onMerge(IFluxNode producer, List<FluxConsumer> consumers) {
-        List<FluxConsumer> existingConsumers = data.get(producer);
-        for (FluxConsumer c : consumers) {
+    private void onMerge(ITesseractNode producer, List<EnergyConsumer> consumers) {
+        List<EnergyConsumer> existingConsumers = data.get(producer);
+        for (EnergyConsumer c : consumers) {
             boolean found = false;
-            for (FluxConsumer ec : existingConsumers) {
+            for (EnergyConsumer ec : existingConsumers) {
                 if (ec.getNode() == c.getNode()) {
                     found = true;
                 }
@@ -114,9 +114,9 @@ public class FluxController extends Controller<IFluxCable, IFluxNode> {
      * @param path The paths to consumers.
      * @param pos The position of the producer.
      */
-    private void onCheck(List<FluxConsumer> consumers, Path<IFluxCable> path, long pos) {
-        IFluxNode node = group.getNodes().get(pos).value();
-        if (node.canInput()) consumers.add(new FluxConsumer(node, path));
+    private void onCheck(List<EnergyConsumer> consumers, Path<ITesseractCable> path, long pos) {
+        ITesseractNode node = group.getNodes().get(pos).value();
+        if (node.canInput()) consumers.add(new EnergyConsumer(node, path));
     }
 
     /**
@@ -136,15 +136,15 @@ public class FluxController extends Controller<IFluxCable, IFluxNode> {
         super.tick();
         holders.clear();
 
-        for (Object2ObjectMap.Entry<IFluxNode, List<FluxConsumer>> e : data.object2ObjectEntrySet()) {
-            IFluxNode producer = e.getKey();
+        for (Object2ObjectMap.Entry<ITesseractNode, List<EnergyConsumer>> e : data.object2ObjectEntrySet()) {
+            ITesseractNode producer = e.getKey();
 
             long outputEnergy = Math.min(producer.getEnergy(), producer.getOutputEnergy());
             if (outputEnergy <= 0L) {
                 continue;
             }
 
-            for (FluxConsumer consumer : e.getValue()) {
+            for (EnergyConsumer consumer : e.getValue()) {
 
                 long extracted = producer.extract(outputEnergy, true);
                 if (extracted <= 0L) {
@@ -167,11 +167,11 @@ public class FluxController extends Controller<IFluxCable, IFluxNode> {
 
                     case VARIATE:
                         long limit = inserted;
-                        for (Long2ObjectMap.Entry<IFluxCable> p : consumer.getCross().long2ObjectEntrySet()) {
+                        for (Long2ObjectMap.Entry<ITesseractCable> p : consumer.getCross().long2ObjectEntrySet()) {
                             long pos = p.getLongKey();
-                            IFluxCable cable = p.getValue();
+                            ITesseractCable cable = p.getValue();
 
-                            limit = Math.min(limit, holders.computeIfAbsent(pos, h -> new FluxHolder(cable)).getCapacity());
+                            limit = Math.min(limit, holders.computeIfAbsent(pos, h -> new EnergyHolder(cable)).getCapacity());
                         }
 
                         if (limit > 0) {
@@ -217,6 +217,6 @@ public class FluxController extends Controller<IFluxCable, IFluxNode> {
 
     @Override
     public ITickingController clone(INode group) {
-        return new FluxController(dim).set(group);
+        return new EnergyController(dim).set(group);
     }
 }
