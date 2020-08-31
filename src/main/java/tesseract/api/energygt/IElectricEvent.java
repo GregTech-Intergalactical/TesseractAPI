@@ -1,4 +1,4 @@
-package tesseract.api.electric;
+package tesseract.api.energygt;
 
 /**
  * Interface for handling an electric events. (Controller will handle them)

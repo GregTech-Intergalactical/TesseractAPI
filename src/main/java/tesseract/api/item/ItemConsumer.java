@@ -7,7 +7,7 @@ import tesseract.util.Dir;
 /**
  * A class that acts as a container for a item consumer.
  */
-public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
+public class ItemConsumer<T> extends Consumer<IItemPipe, IItemNode<T>> {
 
     private int minCapacity = Integer.MAX_VALUE;
     private final Dir input;
@@ -19,7 +19,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      * @param path The path information.
      * @param dir The input direction.
      */
-    protected ItemConsumer(IItemNode consumer, Path<IItemPipe> path, Dir dir) {
+    protected ItemConsumer(IItemNode<T> consumer, Path<IItemPipe> path, Dir dir) {
         super(consumer, path);
         input = dir;
     }
@@ -32,7 +32,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      *         May be the same as the input ItemStack if unchanged, otherwise a new ItemStack.
      *         The returned ItemStack can be safely modified after.
      **/
-    public int insert(ItemData data, boolean simulate) {
+    public int insert(ItemData<T> data, boolean simulate) {
         return node.insert(data, simulate);
     }
 

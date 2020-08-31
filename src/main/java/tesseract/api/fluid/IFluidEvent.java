@@ -3,7 +3,7 @@ package tesseract.api.fluid;
 /**
  * Interface for handling a fluid events. (Controller will handle them)
  */
-public interface IFluidEvent {
+public interface IFluidEvent<T> {
 
     /**
      * Executes when the cable trying to transport higher amount of pressure than can.
@@ -41,7 +41,7 @@ public interface IFluidEvent {
      * @param pos The pipe position.
      * @param fluid FluidData holding the Fluid to be queried.
      */
-    default void onPipeGasLeak(int dim, long pos, FluidData fluid) {
+    default void onPipeGasLeak(int dim, long pos, FluidData<T> fluid) {
         //NOOP
     }
 }

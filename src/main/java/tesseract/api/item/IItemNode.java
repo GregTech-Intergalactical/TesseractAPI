@@ -12,7 +12,7 @@ import tesseract.util.Dir;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IItemNode extends IConnectable {
+public interface IItemNode<T> extends IConnectable {
 
     /**
      * Inserts an item into an available slot and return the remainder.
@@ -22,7 +22,7 @@ public interface IItemNode extends IConnectable {
      *         May be the same as the input ItemData if unchanged, otherwise a new ItemData.
      *         The returned ItemData can be safely modified after.
      **/
-    int insert(ItemData data, boolean simulate);
+    int insert(ItemData<T> data, boolean simulate);
 
     /**
      * Extracts an item from an available slot.
@@ -32,7 +32,7 @@ public interface IItemNode extends IConnectable {
      * @return ItemData extracted from the slot, must be null if nothing can be extracted.
      *         The returned ItemData can be safely modified after, so item handlers should return a new or copied stack.
      **/
-    ItemData extract(int slot, int amount, boolean simulate);
+    ItemData<T> extract(int slot, int amount, boolean simulate);
 
     /**
      * @param direction The direction index.

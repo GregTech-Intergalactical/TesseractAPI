@@ -1,4 +1,4 @@
-package tesseract.api.electric;
+package tesseract.api.energygt;
 
 /**
  * Enumerator used for classification of events for node/cable.

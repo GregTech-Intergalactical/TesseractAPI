@@ -19,11 +19,11 @@ import java.util.*;
 /**
  * Class acts as a controller in the group of an item components.
  */
-public class ItemController extends Controller<IItemPipe, IItemNode> {
+public class ItemController<T, N extends IItemNode<T>> extends Controller<IItemPipe, N> {
 
     private int transferred;
     private final Long2ObjectMap<ItemHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
-    private final Object2ObjectMap<IItemNode, Map<Dir, List<ItemConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectMap<N, Map<Dir, List<ItemConsumer<T>>>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
@@ -38,15 +38,15 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<Cache<IItemNode>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<Cache<N>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
-            IItemNode producer = e.getValue().value();
+            N producer = e.getValue().value();
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
                     if (producer.canOutput(direction)) {
-                        List<ItemConsumer> consumers = new ObjectArrayList<>();
+                        List<ItemConsumer<T>> consumers = new ObjectArrayList<>();
                         long side = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(side)) {
@@ -72,8 +72,8 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
             }
         }
 
-        for (Map<Dir, List<ItemConsumer>> map : data.values()) {
-            for (List<ItemConsumer> consumers : map.values()) {
+        for (Map<Dir, List<ItemConsumer<T>>> map : data.values()) {
+            for (List<ItemConsumer<T>> consumers : map.values()) {
                 consumers.sort(Comparator.comparingInt(ItemConsumer::getPriority));
             }
         }
@@ -87,9 +87,9 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
      * @param dir The added direction.
      * @param pos The position of the producer.
      */
-    private void onCheck(List<ItemConsumer> consumers, Path<IItemPipe> path, Dir dir, long pos) {
-        IItemNode node = group.getNodes().get(pos).value();
-        if (node.canInput()) consumers.add(new ItemConsumer(node, path, dir));
+    private void onCheck(List<ItemConsumer<T>> consumers, Path<IItemPipe> path, Dir dir, long pos) {
+        N node = group.getNodes().get(pos).value();
+        if (node.canInput()) consumers.add(new ItemConsumer<>(node, path, dir));
     }
 
     @Override
@@ -97,10 +97,10 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
         transferred = 0;
         holders.clear();
 
-        for (Object2ObjectMap.Entry<IItemNode, Map<Dir, List<ItemConsumer>>> e : data.object2ObjectEntrySet()) {
-            IItemNode producer = e.getKey();
+        for (Object2ObjectMap.Entry<N, Map<Dir, List<ItemConsumer<T>>>> e : data.object2ObjectEntrySet()) {
+            N producer = e.getKey();
 
-            for (Map.Entry<Dir, List<ItemConsumer>> c : e.getValue().entrySet()) {
+            for (Map.Entry<Dir, List<ItemConsumer<T>>> c : e.getValue().entrySet()) {
                 Dir direction = c.getKey();
 
                 IntList slots = producer.getAvailableSlots(direction);
@@ -111,17 +111,17 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
                 IntIterator it = slots.iterator();
                 int outputAmount = producer.getOutputAmount(direction);
 
-                I:for (ItemConsumer consumer : c.getValue()) {
+                I:for (ItemConsumer<T> consumer : c.getValue()) {
                     while (it.hasNext()) {
                         int slot = it.nextInt();
 
-                        ItemData data = producer.extract(slot, outputAmount, true);
+                        ItemData<T> data = producer.extract(slot, outputAmount, true);
                         if (data == null) {
                             continue;
                         }
 
-                        Object item = data.getItem();
-                        if (!consumer.canAccept(item)) {
+                        T stack = data.getStack();
+                        if (!consumer.canAccept(stack)) {
                             continue;
                         }
 
@@ -162,7 +162,7 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
                             continue I;
                         }
 
-                        ItemData extracted = producer.extract(slot, amount, false);
+                        ItemData<T> extracted = producer.extract(slot, amount, false);
 
                         assert extracted != null;
                         transferred += amount;
@@ -190,6 +190,6 @@ public class ItemController extends Controller<IItemPipe, IItemNode> {
 
     @Override
     public ITickingController clone(INode group) {
-        return new ItemController(dim).set(group);
+        return new ItemController<>(dim).set(group);
     }
 }

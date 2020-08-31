@@ -3,24 +3,22 @@ package tesseract.api.fluid;
 /**
  * A class that acts as a wrapper for a item stack and a slot index.
  */
-public class FluidData {
+public class FluidData<T> {
 
+    private final T stack;
     private final boolean isGaseous;
-    private final Object stack, fluid;
     private final int amount, temperature;
 
     /**
      * Creates instance of the data.
      *
      * @param stack The FluidStack object.
-     * @param fluid The fluid inside a FluidStack.
      * @param amount The amount of the fluid.
      * @param temperature The temperature of the fluid.
      * @param isGaseous The state of the fluid.
      */
-    public FluidData(Object stack, Object fluid, int amount, int temperature, boolean isGaseous) {
+    public FluidData(T stack, int amount, int temperature, boolean isGaseous) {
         this.stack = stack;
-        this.fluid = fluid;
         this.amount = amount;
         this.temperature = temperature;
         this.isGaseous = isGaseous;
@@ -29,15 +27,8 @@ public class FluidData {
     /**
      * @return Gets the FluidStack object.
      */
-    public Object getStack() {
+    public T getStack() {
         return stack;
-    }
-
-    /**
-     * @return Gets the fluid inside a FluidStack.
-     */
-    public Object getFluid() {
-        return fluid;
     }
 
     /**

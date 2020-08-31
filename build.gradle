@@ -57,6 +57,10 @@ dependencies {
     //embed project(path: ':fabric', configuration: 'archives') TODO coming soon(tm).
 }
 
+jar {
+    zip64 true
+}
+
 // Maven publishing:
 
 static def configurePublishingRepositories(repositoryHandler) {

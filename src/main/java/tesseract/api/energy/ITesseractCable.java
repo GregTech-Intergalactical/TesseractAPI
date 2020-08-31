@@ -1,11 +1,11 @@
-package tesseract.api.flux;
+package tesseract.api.energy;
 
 import tesseract.api.IConnectable;
 
 /**
  * A flux cable is the unit of interaction with electric inventories.
  */
-public interface IFluxCable extends IConnectable {
+public interface ITesseractCable extends IConnectable {
 
     /**
      * Returns the maximum amount of energy that this item component will permit to pass through or be received in a single tick.

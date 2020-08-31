@@ -1,4 +1,4 @@
-package tesseract.api.electric;
+package tesseract.api.energygt;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;

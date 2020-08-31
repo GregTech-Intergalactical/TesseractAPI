@@ -1,4 +1,4 @@
-package tesseract.api.electric;
+package tesseract.api.energygt;
 
 /**
  * A class that acts a holder of the packets that has passed thought cables.
