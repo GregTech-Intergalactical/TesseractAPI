@@ -65,6 +65,8 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
         loss = consumer.loss;
         full = consumer.full;
         cross = consumer.cross;
+        minVoltage = consumer.minVoltage;
+        minAmperage = consumer.minAmperage;
     }
 
     @Override
