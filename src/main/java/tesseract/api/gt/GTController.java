@@ -159,7 +159,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
             IGTNode producer = e.getKey();
 
             int outputVoltage = producer.getOutputVoltage();
-            int outputAmperage = (int) Math.min(producer.getEnergy() / outputVoltage, producer.getOutputAmperage());
+            int outputAmperage = producer.getOutputAmperage();
             if (outputAmperage <= 0) {
                 continue;
             }
