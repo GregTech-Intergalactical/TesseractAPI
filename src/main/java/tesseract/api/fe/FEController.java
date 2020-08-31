@@ -1,4 +1,4 @@
-package tesseract.api.energy;
+package tesseract.api.fe;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -20,18 +20,18 @@ import java.util.List;
 /**
  * Class acts as a controller in the group of a energy components.
  */
-public class EnergyController extends Controller<ITesseractCable, ITesseractNode> {
+public class FEController extends Controller<IFECable, IFENode> {
 
     private long totalEnergy, lastEnergy;
-    private final Long2ObjectMap<EnergyHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
-    private final Object2ObjectMap<ITesseractNode, List<EnergyConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<FEHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectMap<IFENode, List<FEConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
 
      * @param dim The dimension id.
      */
-    public EnergyController(int dim) {
+    public FEController(int dim) {
         super(dim);
     }
 
@@ -49,23 +49,23 @@ public class EnergyController extends Controller<ITesseractCable, ITesseractNode
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<Cache<ITesseractNode>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<Cache<IFENode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
-            ITesseractNode producer = e.getValue().value();
+            IFENode producer = e.getValue().value();
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
                     if (producer.canOutput(direction)) {
-                        List<EnergyConsumer> consumers = new ObjectArrayList<>();
+                        List<FEConsumer> consumers = new ObjectArrayList<>();
                         long side = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(side)) {
                             onCheck(consumers, null, side);
                         } else {
-                            Grid<ITesseractCable> grid = group.getGridAt(side, direction);
+                            Grid<IFECable> grid = group.getGridAt(side, direction);
                             if (grid != null) {
-                                for (Path<ITesseractCable> path : grid.getPaths(pos)) {
+                                for (Path<IFECable> path : grid.getPaths(pos)) {
                                     if (!path.isEmpty()) {
                                         Node target = path.target();
                                         assert target != null;
@@ -94,11 +94,11 @@ public class EnergyController extends Controller<ITesseractCable, ITesseractNode
      * @param producer The producer node.
      * @param consumers The consumer nodes.
      */
-    private void onMerge(ITesseractNode producer, List<EnergyConsumer> consumers) {
-        List<EnergyConsumer> existingConsumers = data.get(producer);
-        for (EnergyConsumer c : consumers) {
+    private void onMerge(IFENode producer, List<FEConsumer> consumers) {
+        List<FEConsumer> existingConsumers = data.get(producer);
+        for (FEConsumer c : consumers) {
             boolean found = false;
-            for (EnergyConsumer ec : existingConsumers) {
+            for (FEConsumer ec : existingConsumers) {
                 if (ec.getNode() == c.getNode()) {
                     found = true;
                 }
@@ -114,9 +114,9 @@ public class EnergyController extends Controller<ITesseractCable, ITesseractNode
      * @param path The paths to consumers.
      * @param pos The position of the producer.
      */
-    private void onCheck(List<EnergyConsumer> consumers, Path<ITesseractCable> path, long pos) {
-        ITesseractNode node = group.getNodes().get(pos).value();
-        if (node.canInput()) consumers.add(new EnergyConsumer(node, path));
+    private void onCheck(List<FEConsumer> consumers, Path<IFECable> path, long pos) {
+        IFENode node = group.getNodes().get(pos).value();
+        if (node.canInput()) consumers.add(new FEConsumer(node, path));
     }
 
     /**
@@ -136,15 +136,15 @@ public class EnergyController extends Controller<ITesseractCable, ITesseractNode
         super.tick();
         holders.clear();
 
-        for (Object2ObjectMap.Entry<ITesseractNode, List<EnergyConsumer>> e : data.object2ObjectEntrySet()) {
-            ITesseractNode producer = e.getKey();
+        for (Object2ObjectMap.Entry<IFENode, List<FEConsumer>> e : data.object2ObjectEntrySet()) {
+            IFENode producer = e.getKey();
 
             long outputEnergy = Math.min(producer.getEnergy(), producer.getOutputEnergy());
             if (outputEnergy <= 0L) {
                 continue;
             }
 
-            for (EnergyConsumer consumer : e.getValue()) {
+            for (FEConsumer consumer : e.getValue()) {
 
                 long extracted = producer.extract(outputEnergy, true);
                 if (extracted <= 0L) {
@@ -167,11 +167,11 @@ public class EnergyController extends Controller<ITesseractCable, ITesseractNode
 
                     case VARIATE:
                         long limit = inserted;
-                        for (Long2ObjectMap.Entry<ITesseractCable> p : consumer.getCross().long2ObjectEntrySet()) {
+                        for (Long2ObjectMap.Entry<IFECable> p : consumer.getCross().long2ObjectEntrySet()) {
                             long pos = p.getLongKey();
-                            ITesseractCable cable = p.getValue();
+                            IFECable cable = p.getValue();
 
-                            limit = Math.min(limit, holders.computeIfAbsent(pos, h -> new EnergyHolder(cable)).getCapacity());
+                            limit = Math.min(limit, holders.computeIfAbsent(pos, h -> new FEHolder(cable)).getCapacity());
                         }
 
                         if (limit > 0) {
@@ -217,6 +217,6 @@ public class EnergyController extends Controller<ITesseractCable, ITesseractNode
 
     @Override
     public ITickingController clone(INode group) {
-        return new EnergyController(dim).set(group);
+        return new FEController(dim).set(group);
     }
 }

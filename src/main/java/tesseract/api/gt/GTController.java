@@ -1,4 +1,4 @@
-package tesseract.api.energygt;
+package tesseract.api.gt;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -17,18 +17,19 @@ import java.util.List;
 /**
  * Class acts as a controller in the group of an electrical components.
  */
-public class ElectricController extends Controller<IElectricCable, IElectricNode> implements IElectricEvent {
+public class GTController extends Controller<IGTCable, IGTNode> implements IGTEvent {
 
     private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
-    private final Long2ObjectMap<ElectricHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
-    private final Object2ObjectMap<IElectricNode, List<ElectricConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<GTHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
+    private final Object2IntMap<IGTNode> obtains = new Object2IntLinkedOpenHashMap<>();
+    private final Object2ObjectMap<IGTNode, List<GTConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
 
      * @param dim The dimension id.
      */
-    public ElectricController(int dim) {
+    public GTController(int dim) {
         super(dim);
     }
 
@@ -46,23 +47,23 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<Cache<IElectricNode>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<Cache<IGTNode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
-            IElectricNode producer = e.getValue().value();
+            IGTNode producer = e.getValue().value();
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
                     if (producer.canOutput(direction)) {
-                        List<ElectricConsumer> consumers = new ObjectArrayList<>();
+                        List<GTConsumer> consumers = new ObjectArrayList<>();
                         long side = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(side)) {
                             onCheck(producer, consumers, null, side);
                         } else {
-                            Grid<IElectricCable> grid = group.getGridAt(side, direction);
+                            Grid<IGTCable> grid = group.getGridAt(side, direction);
                             if (grid != null) {
-                                for (Path<IElectricCable> path : grid.getPaths(pos)) {
+                                for (Path<IGTCable> path : grid.getPaths(pos)) {
                                     if (!path.isEmpty()) {
                                         Node target = path.target();
                                         assert target != null;
@@ -84,8 +85,8 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
             }
         }
 
-        for (List<ElectricConsumer> consumers : data.values()) {
-            consumers.sort(Comparator.comparingInt(ElectricConsumer::getLoss).reversed());
+        for (List<GTConsumer> consumers : data.values()) {
+            consumers.sort(Comparator.comparingInt(GTConsumer::getLoss).reversed());
         }
     }
 
@@ -95,11 +96,11 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
      * @param producer The producer node.
      * @param consumers The consumer nodes.
      */
-    private void onMerge(IElectricNode producer, List<ElectricConsumer> consumers) {
-        List<ElectricConsumer> existingConsumers = data.get(producer);
-        for (ElectricConsumer c : consumers) {
+    private void onMerge(IGTNode producer, List<GTConsumer> consumers) {
+        List<GTConsumer> existingConsumers = data.get(producer);
+        for (GTConsumer c : consumers) {
             boolean found = false;
-            for (ElectricConsumer ec : existingConsumers) {
+            for (GTConsumer ec : existingConsumers) {
                 if (ec.getNode() == c.getNode()) {
                     found = true;
                     if (ec.getLoss() > c.getLoss()) {
@@ -119,10 +120,10 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
      * @param path The paths to consumers.
      * @param pos The position of the producer.
      */
-    private void onCheck(IElectricNode producer, List<ElectricConsumer> consumers, Path<IElectricCable> path, long pos) {
-        IElectricNode node = group.getNodes().get(pos).value();
+    private void onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long pos) {
+        IGTNode node = group.getNodes().get(pos).value();
         if (node.canInput()) {
-            ElectricConsumer consumer = new ElectricConsumer(node, path);
+            GTConsumer consumer = new GTConsumer(node, path);
             int voltage = producer.getOutputVoltage() - consumer.getLoss();
             if (voltage <= 0) {
                 return;
@@ -152,31 +153,37 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
     public void tick() {
         super.tick();
         holders.clear();
+        obtains.clear();
 
-        for (Object2ObjectMap.Entry<IElectricNode, List<ElectricConsumer>> e : data.object2ObjectEntrySet()) {
-            IElectricNode producer = e.getKey();
+        for (Object2ObjectMap.Entry<IGTNode, List<GTConsumer>> e : data.object2ObjectEntrySet()) {
+            IGTNode producer = e.getKey();
 
             int outputVoltage = producer.getOutputVoltage();
-            int outputAmperage = (int) Math.min(producer.getEnergy() / outputVoltage, producer.getOutputAmperage());
+            int outputAmperage = producer.getOutputAmperage();
             if (outputAmperage <= 0) {
                 continue;
             }
 
-            for (ElectricConsumer consumer : e.getValue()) {
+            for (GTConsumer consumer : e.getValue()) {
                 int amperage = consumer.getRequiredAmperage(outputVoltage);
+
+                // look up how much it already got
+                int obtained = obtains.getInt(consumer.getNode());
+                amperage -= obtained;
                 if (amperage <= 0) { // if this consumer received all the energy from the other producers
                     continue;
                 }
 
                 // remember amperes stored in this consumer
                 amperage = Math.min(outputAmperage, amperage);
+                obtains.put(consumer.getNode(), amperage + obtained);
 
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
                 if (consumer.getConnection() != ConnectionType.ADJACENT && !consumer.canHandle(outputVoltage, amperage)) {
                     // Find corrupt cables and return
-                    for (Long2ObjectMap.Entry<IElectricCable> c : consumer.getFull().long2ObjectEntrySet()) {
+                    for (Long2ObjectMap.Entry<IGTCable> c : consumer.getFull().long2ObjectEntrySet()) {
                         long pos = c.getLongKey();
-                        IElectricCable cable = c.getValue();
+                        IGTCable cable = c.getValue();
 
                         switch (cable.getHandler(outputVoltage, amperage)) {
                             case FAIL_VOLTAGE:
@@ -192,10 +199,10 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
 
                 // Stores the amp into holder for path only for variate connection
                 if (consumer.getConnection() == ConnectionType.VARIATE) {
-                    for (Long2ObjectMap.Entry<IElectricCable> c : consumer.getCross().long2ObjectEntrySet()) {
+                    for (Long2ObjectMap.Entry<IGTCable> c : consumer.getCross().long2ObjectEntrySet()) {
                         long pos = c.getLongKey();
-                        IElectricCable cable = c.getValue();
-                        holders.computeIfAbsent(pos, h -> new ElectricHolder(cable)).add(amperage);
+                        IGTCable cable = c.getValue();
+                        holders.computeIfAbsent(pos, h -> new GTHolder(cable)).add(amperage);
                     }
                 }
 
@@ -216,9 +223,9 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
             }
         }
 
-        for (Long2ObjectMap.Entry<ElectricHolder> e : holders.long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<GTHolder> e : holders.long2ObjectEntrySet()) {
             long pos = e.getLongKey();
-            ElectricHolder holder = e.getValue();
+            GTHolder holder = e.getValue();
 
             // TODO: Find proper path to destroy
 
@@ -245,6 +252,6 @@ public class ElectricController extends Controller<IElectricCable, IElectricNode
 
     @Override
     public ITickingController clone(INode group) {
-        return new ElectricController(dim).set(group);
+        return new GTController(dim).set(group);
     }
 }

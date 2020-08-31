@@ -1,9 +1,9 @@
-package tesseract.api.energy;
+package tesseract.api.fe;
 
 /**
  * A class that acts a holder of the packets that has passed thought cables.
  */
-public class EnergyHolder {
+public class FEHolder {
 
     private long capacity; // current capacity for a cable
 
@@ -12,7 +12,7 @@ public class EnergyHolder {
      *
      * @param cable The pipe connector.
      */
-    protected EnergyHolder(ITesseractCable cable) {
+    protected FEHolder(IFECable cable) {
         this.capacity = cable.getCapacity();
     }
 
