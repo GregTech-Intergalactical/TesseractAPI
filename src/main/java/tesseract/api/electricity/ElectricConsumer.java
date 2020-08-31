@@ -1,4 +1,4 @@
-package tesseract.api.energygt;
+package tesseract.api.electricity;
 
 import tesseract.api.Consumer;
 import tesseract.graph.Path;

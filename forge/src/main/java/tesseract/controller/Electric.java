@@ -2,7 +2,7 @@ package tesseract.controller;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Explosion;
-import tesseract.api.energygt.ElectricController;
+import tesseract.api.electricity.ElectricController;
 
 // TODO: Make explosions depend on voltage, amp
 public class Electric extends ElectricController {
