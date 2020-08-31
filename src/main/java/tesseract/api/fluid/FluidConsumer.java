@@ -24,6 +24,7 @@ public class FluidConsumer<T> extends Consumer<IFluidPipe, IFluidNode<T>> {
      */
     protected FluidConsumer(IFluidNode<T> consumer, Path<IFluidPipe> path, Dir dir) {
         super(consumer, path);
+        init();
         this.input = dir;
     }
 

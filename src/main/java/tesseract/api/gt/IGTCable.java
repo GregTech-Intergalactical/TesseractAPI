@@ -1,11 +1,11 @@
-package tesseract.api.energygt;
+package tesseract.api.gt;
 
 import tesseract.api.IConnectable;
 
 /**
  * An electric cable is the unit of interaction with electric inventories.
  */
-public interface IElectricCable extends IConnectable {
+public interface IGTCable extends IConnectable {
 
 	/**
 	 * Returns the energy that this electrical component will permit to lost through or be received in a single tick.
@@ -30,10 +30,10 @@ public interface IElectricCable extends IConnectable {
 	 * @param amperage The current amperage.
 	 * @return Checks that the cable is able to handle single packet.
 	 */
-	default ElectricStatus getHandler(int voltage, int amperage) {
-		if (getVoltage() < voltage) return ElectricStatus.FAIL_VOLTAGE;
-		else if (getAmps() < amperage) return ElectricStatus.FAIL_AMPERAGE;
-		return ElectricStatus.SUCCESS;
+	default GTStatus getHandler(int voltage, int amperage) {
+		if (getVoltage() < voltage) return GTStatus.FAIL_VOLTAGE;
+		else if (getAmps() < amperage) return GTStatus.FAIL_AMPERAGE;
+		return GTStatus.SUCCESS;
 	}
 }
 

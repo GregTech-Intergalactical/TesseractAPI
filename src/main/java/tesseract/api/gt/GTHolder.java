@@ -1,9 +1,9 @@
-package tesseract.api.energygt;
+package tesseract.api.gt;
 
 /**
  * A class that acts a holder of the packets that has passed thought cables.
  */
-public class ElectricHolder {
+public class GTHolder {
 
     private int amperage;
     private final int maxAmperage;
@@ -13,7 +13,7 @@ public class ElectricHolder {
      *
      * @param cable The cable connector.
      */
-    protected ElectricHolder(IElectricCable cable) {
+    protected GTHolder(IGTCable cable) {
         this.maxAmperage = cable.getAmps();
     }
 

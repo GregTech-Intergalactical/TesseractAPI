@@ -21,6 +21,7 @@ public class ItemConsumer<T> extends Consumer<IItemPipe, IItemNode<T>> {
      */
     protected ItemConsumer(IItemNode<T> consumer, Path<IItemPipe> path, Dir dir) {
         super(consumer, path);
+        init();
         input = dir;
     }
 
