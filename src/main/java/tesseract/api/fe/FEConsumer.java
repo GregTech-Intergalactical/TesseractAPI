@@ -1,4 +1,4 @@
-package tesseract.api.energy;
+package tesseract.api.fe;
 
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
@@ -6,7 +6,7 @@ import tesseract.graph.Path;
 /**
  * A class that acts as a container for a item consumer.
  */
-public class EnergyConsumer extends Consumer<ITesseractCable, ITesseractNode> {
+public class FEConsumer extends Consumer<IFECable, IFENode> {
 
     private long minCapacity = Long.MAX_VALUE;
 
@@ -16,8 +16,9 @@ public class EnergyConsumer extends Consumer<ITesseractCable, ITesseractNode> {
      * @param consumer The consumer node.
      * @param path The path information.
      */
-    protected EnergyConsumer(ITesseractNode consumer, Path<ITesseractCable> path) {
+    protected FEConsumer(IFENode consumer, Path<IFECable> path) {
         super(consumer, path);
+        init();
     }
 
     /**
@@ -39,7 +40,7 @@ public class EnergyConsumer extends Consumer<ITesseractCable, ITesseractNode> {
     }
 
     @Override
-    protected void onConnectorCatch(ITesseractCable cable) {
+    protected void onConnectorCatch(IFECable cable) {
         minCapacity = Math.min(minCapacity, cable.getCapacity());
     }
 }

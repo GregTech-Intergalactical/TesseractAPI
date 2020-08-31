@@ -1,4 +1,4 @@
-package tesseract.api.electricity;
+package tesseract.api.gt;
 
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
@@ -6,7 +6,7 @@ import tesseract.graph.Path;
 /**
  * A class that acts as a container for an electrical consumer.
  */
-public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
+public class GTConsumer extends Consumer<IGTCable, IGTNode> {
 
     private int loss;
     private int minVoltage = Integer.MAX_VALUE;
@@ -18,8 +18,9 @@ public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
      * @param consumer The consumer node.
      * @param path The path information.
      */
-    protected ElectricConsumer(IElectricNode consumer, Path<IElectricCable> path) {
+    protected GTConsumer(IGTNode consumer, Path<IGTCable> path) {
         super(consumer, path);
+        init();
     }
 
     /**
@@ -36,7 +37,7 @@ public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
      * @return Gets the amperage required for the consumer.
      */
     public int getRequiredAmperage(int voltage) {
-        return voltage > loss ? (int) Math.min(((node.getCapacity() - node.getEnergy())) / (voltage - loss), node.getInputAmperage()) : 0;
+        return (int) Math.min(((node.getCapacity() - node.getEnergy())) / (voltage - loss), node.getInputAmperage());
     }
 
     /**
@@ -60,14 +61,16 @@ public class ElectricConsumer extends Consumer<IElectricCable, IElectricNode> {
      *
      * @param consumer An another consumer.
      */
-    public void copy(ElectricConsumer consumer) {
+    public void copy(GTConsumer consumer) {
         loss = consumer.loss;
         full = consumer.full;
         cross = consumer.cross;
+        minVoltage = consumer.minVoltage;
+        minAmperage = consumer.minAmperage;
     }
 
     @Override
-    protected void onConnectorCatch(IElectricCable cable) {
+    protected void onConnectorCatch(IGTCable cable) {
         loss += cable.getLoss();
         minVoltage = Math.min(minVoltage, cable.getVoltage());
         minAmperage = Math.min(minAmperage, cable.getAmps());

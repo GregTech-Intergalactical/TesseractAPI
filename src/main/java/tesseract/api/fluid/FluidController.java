@@ -39,6 +39,8 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
 
     @Override
     public void change() {
+        data.clear();
+
         for (Long2ObjectMap.Entry<Cache<N>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
             N producer = e.getValue().value();

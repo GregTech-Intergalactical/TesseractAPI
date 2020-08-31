@@ -1,9 +1,9 @@
-package tesseract.api.electricity;
+package tesseract.api.gt;
 
 /**
  * Interface for handling an electric events. (Controller will handle them)
  */
-public interface IElectricEvent {
+public interface IGTEvent {
 
     /**
      * Executes when the node trying to receive higher amount of voltage than can.

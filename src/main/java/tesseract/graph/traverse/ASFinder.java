@@ -47,7 +47,7 @@ public class ASFinder {
 
         try {
             Node start = new Node(origin, true);
-            Node end = new Node(target,false);
+            Node end = new Node(target, false);
 
             open.add(start);
 

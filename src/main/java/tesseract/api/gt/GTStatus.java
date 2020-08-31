@@ -1,9 +1,9 @@
-package tesseract.api.electricity;
+package tesseract.api.gt;
 
 /**
  * Enumerator used for classification of events for node/cable.
  */
-public enum ElectricStatus {
+public enum GTStatus {
     SUCCESS,
 
     FAIL_VOLTAGE,

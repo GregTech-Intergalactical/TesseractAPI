@@ -28,16 +28,21 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
             cross = path.getCross();
         }
 
-        if (full != null) {
-            for (C connector : full.values()) {
-                onConnectorCatch(connector);
-            }
-        }
-
         if (cross == null || cross.size() == 0) {
             connection = (full == null) ? ConnectionType.ADJACENT : ConnectionType.SINGLE;
         } else {
             connection = ConnectionType.VARIATE;
+        }
+    }
+
+    /**
+     * Initialize all connectors of the full path.
+     */
+    public void init() {
+        if (full != null) {
+            for (C connector : full.values()) {
+                onConnectorCatch(connector);
+            }
         }
     }
 

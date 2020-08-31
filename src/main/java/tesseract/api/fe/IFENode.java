@@ -1,4 +1,4 @@
-package tesseract.api.energy;
+package tesseract.api.fe;
 
 import tesseract.api.IConnectable;
 import tesseract.util.Dir;
@@ -10,7 +10,7 @@ import tesseract.util.Dir;
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
  * </p>
  */
-public interface ITesseractNode extends IConnectable {
+public interface IFENode extends IConnectable {
 
     /**
      * Adds energy to the node. Returns quantity of energy that was accepted.
