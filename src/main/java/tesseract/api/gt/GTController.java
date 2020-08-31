@@ -21,6 +21,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
 
     private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
     private final Long2ObjectMap<GTHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
+    private final Object2IntMap<IGTNode> obtains = new Object2IntLinkedOpenHashMap<>();
     private final Object2ObjectMap<IGTNode, List<GTConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -152,6 +153,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
     public void tick() {
         super.tick();
         holders.clear();
+        obtains.clear();
 
         for (Object2ObjectMap.Entry<IGTNode, List<GTConsumer>> e : data.object2ObjectEntrySet()) {
             IGTNode producer = e.getKey();
@@ -164,12 +166,17 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
 
             for (GTConsumer consumer : e.getValue()) {
                 int amperage = consumer.getRequiredAmperage(outputVoltage);
+
+                // look up how much it already got
+                int obtained = obtains.getInt(consumer.getNode());
+                amperage -= obtained;
                 if (amperage <= 0) { // if this consumer received all the energy from the other producers
                     continue;
                 }
 
                 // remember amperes stored in this consumer
                 amperage = Math.min(outputAmperage, amperage);
+                obtains.put(consumer.getNode(), amperage + obtained);
 
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
                 if (consumer.getConnection() != ConnectionType.ADJACENT && !consumer.canHandle(outputVoltage, amperage)) {
