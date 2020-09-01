@@ -162,9 +162,14 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
             // Get the how many amps and energy producer can send
             long energy = producer.getEnergy();
             int outputVoltage = producer.getOutputVoltage();
-            int outputAmperage = (int) Math.min((energy / outputVoltage), producer.getOutputAmperage());
+            int outputAmperage = producer.getOutputAmperage();
             if (outputAmperage <= 0) {
                 continue;
+            }
+            outputAmperage = (int) Math.min((energy / outputVoltage), outputAmperage);
+            if (outputAmperage <= 0) { // just for sending the last piece of energy
+                outputVoltage = (int) energy;
+                outputAmperage = 1;
             }
 
             for (GTConsumer consumer : e.getValue()) {
