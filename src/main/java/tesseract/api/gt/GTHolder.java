@@ -1,20 +1,18 @@
 package tesseract.api.gt;
 
 /**
- * A class that acts a holder of the packets that has passed thought cables.
+ * A class that imitates a holder of the packets that has passed thought cables.
  */
 public class GTHolder {
 
-    private int amperage;
-    private final int maxAmperage;
-
     /**
-     * Creates instance of the holder.
+     * Creates long with the holder.
      *
      * @param cable The cable connector.
+     * @param amperage The initial amperage.
      */
-    protected GTHolder(IGTCable cable) {
-        this.maxAmperage = cable.getAmps();
+    protected static long create(IGTCable cable, int amperage) {
+        return (long) cable.getAmps() << 32 | amperage;
     }
 
     /**
@@ -22,21 +20,28 @@ public class GTHolder {
      *
      * @param amperage The added amperage.
      */
-    public void add(int amperage) {
-        this.amperage += amperage;
+    protected static long add(long holder, int amperage) {
+        return (long) getMaxAmperage(holder) << 32 | getAmperage(holder) + amperage;
     }
 
     /**
      * @return Gets a current amperage.
      */
-    public int getAmperage() {
-        return amperage;
+    protected static int getAmperage(long holder) {
+        return (int)(holder);
+    }
+
+    /**
+     * @return Gets a maximum amperage.
+     */
+    protected static int getMaxAmperage(long holder) {
+        return (int)(holder >> 32);
     }
 
     /**
      * @return Checks that the holder is not able to handle it.
      */
-    public boolean isOverAmperage() {
-        return maxAmperage < amperage;
+    protected static boolean isOverAmperage(long holder) {
+        return getMaxAmperage(holder) < getAmperage(holder);
     }
 }

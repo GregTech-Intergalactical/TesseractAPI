@@ -1,6 +1,7 @@
 package tesseract.api.gt;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2LongLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
 import tesseract.api.ConnectionType;
@@ -20,8 +21,8 @@ import java.util.List;
 public class GTController extends Controller<IGTCable, IGTNode> implements IGTEvent {
 
     private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
-    private final Long2ObjectMap<GTHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
-    private final Object2IntMap<IGTNode> obtains = new Object2IntLinkedOpenHashMap<>();
+    private final Long2LongMap holders = new Long2LongLinkedOpenHashMap();
+    private final Object2IntMap<IGTNode> obtains = new Object2IntOpenHashMap<>();
     private final Object2ObjectMap<IGTNode, List<GTConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -158,8 +159,10 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
         for (Object2ObjectMap.Entry<IGTNode, List<GTConsumer>> e : data.object2ObjectEntrySet()) {
             IGTNode producer = e.getKey();
 
+            // Get the how many amps and energy producer can send
+            long energy = producer.getEnergy();
             int outputVoltage = producer.getOutputVoltage();
-            int outputAmperage = producer.getOutputAmperage();
+            int outputAmperage = (int) Math.min((energy / outputVoltage), producer.getOutputAmperage());
             if (outputAmperage <= 0) {
                 continue;
             }
@@ -167,14 +170,14 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
             for (GTConsumer consumer : e.getValue()) {
                 int amperage = consumer.getRequiredAmperage(outputVoltage);
 
-                // look up how much it already got
+                // Look up how much it already got
                 int obtained = obtains.getInt(consumer.getNode());
                 amperage -= obtained;
                 if (amperage <= 0) { // if this consumer received all the energy from the other producers
                     continue;
                 }
 
-                // remember amperes stored in this consumer
+                // Remember amperes stored in this consumer
                 amperage = Math.min(outputAmperage, amperage);
                 obtains.put(consumer.getNode(), amperage + obtained);
 
@@ -202,7 +205,9 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
                     for (Long2ObjectMap.Entry<IGTCable> c : consumer.getCross().long2ObjectEntrySet()) {
                         long pos = c.getLongKey();
                         IGTCable cable = c.getValue();
-                        holders.computeIfAbsent(pos, h -> new GTHolder(cable)).add(amperage);
+
+                        long holder = holders.get(pos);
+                        holders.put(pos, (holder == 0L) ? GTHolder.create(cable, amperage) : GTHolder.add(holder, amperage));
                     }
                 }
 
@@ -223,14 +228,14 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
             }
         }
 
-        for (Long2ObjectMap.Entry<GTHolder> e : holders.long2ObjectEntrySet()) {
+        for (Long2LongMap.Entry e : holders.long2LongEntrySet()) {
             long pos = e.getLongKey();
-            GTHolder holder = e.getValue();
+            long holder = e.getLongValue();
 
             // TODO: Find proper path to destroy
 
-            if (holder.isOverAmperage()) {
-                onCableOverAmperage(dim, pos, holder.getAmperage());
+            if (GTHolder.isOverAmperage(holder)) {
+                onCableOverAmperage(dim, pos, GTHolder.getAmperage(holder));
             }
         }
     }
