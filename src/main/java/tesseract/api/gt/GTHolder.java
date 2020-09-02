@@ -6,7 +6,7 @@ package tesseract.api.gt;
 public class GTHolder {
 
     /**
-     * Creates long with the holder.
+     * Creates long with the packed holder.
      *
      * @param cable The cable connector.
      * @param amperage The initial amperage.
@@ -18,6 +18,7 @@ public class GTHolder {
     /**
      * Adds a new amperage.
      *
+     * @param holder The long with the packed holder.
      * @param amperage The added amperage.
      */
     protected static long add(long holder, int amperage) {
@@ -25,6 +26,7 @@ public class GTHolder {
     }
 
     /**
+     * @param holder The long with the packed holder.
      * @return Gets a current amperage.
      */
     protected static int getAmperage(long holder) {
@@ -32,6 +34,7 @@ public class GTHolder {
     }
 
     /**
+     * @param holder The long with the packed holder.
      * @return Gets a maximum amperage.
      */
     protected static int getMaxAmperage(long holder) {
@@ -39,6 +42,7 @@ public class GTHolder {
     }
 
     /**
+     * @param holder The long with the packed holder.
      * @return Checks that the holder is not able to handle it.
      */
     protected static boolean isOverAmperage(long holder) {
