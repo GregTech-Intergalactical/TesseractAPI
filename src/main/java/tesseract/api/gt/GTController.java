@@ -161,19 +161,24 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
 
             // Get the how many amps and energy producer can send
             long energy = producer.getEnergy();
-            int outputVoltage = producer.getOutputVoltage();
-            int outputAmperage = producer.getOutputAmperage();
-            if (outputAmperage <= 0) {
+            int voltage_out = producer.getOutputVoltage();
+            int amperage_in = producer.getOutputAmperage();
+            if (amperage_in <= 0) {
                 continue;
             }
-            outputAmperage = (int) Math.min((energy / outputVoltage), outputAmperage);
-            if (outputAmperage <= 0) { // just for sending the last piece of energy
-                outputVoltage = (int) energy;
-                outputAmperage = 1;
+            amperage_in = (int) Math.min((energy / voltage_out), amperage_in);
+            if (amperage_in <= 0) { // just for sending the last piece of energy
+                voltage_out = (int) energy;
+                amperage_in = 1;
             }
 
             for (GTConsumer consumer : e.getValue()) {
-                int amperage = consumer.getRequiredAmperage(outputVoltage);
+                int voltage = voltage_out - consumer.getLoss();
+                if (voltage <= 0) {
+                    continue;
+                }
+
+                int amperage = consumer.getRequiredAmperage(voltage);
 
                 // Look up how much it already got
                 int obtained = obtains.getInt(consumer.getNode());
@@ -183,19 +188,19 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
                 }
 
                 // Remember amperes stored in this consumer
-                amperage = Math.min(outputAmperage, amperage);
+                amperage = Math.min(amperage_in, amperage);
                 obtains.put(consumer.getNode(), amperage + obtained);
 
                 // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
-                if (consumer.getConnection() != ConnectionType.ADJACENT && !consumer.canHandle(outputVoltage, amperage)) {
+                if (consumer.getConnection() != ConnectionType.ADJACENT && !consumer.canHandle(voltage_out, amperage)) {
                     // Find corrupt cables and return
                     for (Long2ObjectMap.Entry<IGTCable> c : consumer.getFull().long2ObjectEntrySet()) {
                         long pos = c.getLongKey();
                         IGTCable cable = c.getValue();
 
-                        switch (cable.getHandler(outputVoltage, amperage)) {
+                        switch (cable.getHandler(voltage_out, amperage)) {
                             case FAIL_VOLTAGE:
-                                onCableOverVoltage(dim, pos, outputVoltage);
+                                onCableOverVoltage(dim, pos, voltage_out);
                                 break;
                             case FAIL_AMPERAGE:
                                 onCableOverAmperage(dim, pos, amperage);
@@ -216,18 +221,18 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
                     }
                 }
 
-                long ampL = amperage; // cast here
-                long inserted = (outputVoltage - consumer.getLoss()) * ampL;
-                long extracted = outputVoltage * ampL;
+                long amp = amperage; // cast here
+                long inserted = voltage * amp;
+                long extracted = voltage_out * amp;
 
                 totalVoltage += extracted;
-                totalAmperage += ampL;
+                totalAmperage += amp;
 
                 consumer.insert(inserted, false);
                 producer.extract(extracted, false);
 
-                outputAmperage -= amperage;
-                if (outputAmperage <= 0) {
+                amperage_in -= amperage;
+                if (amperage_in <= 0) {
                     break;
                 }
             }
