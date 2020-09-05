@@ -1,12 +1,22 @@
+buildscript {
+    repositories {
+        maven { url 'https://files.minecraftforge.net/maven' }
+        jcenter()
+        mavenCentral()
+        gradlePluginPortal()
+
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath "com.github.jengelman.gradle.plugins:shadow:5.2.0"
+    }
+}
 
 plugins {
-    id 'com.github.johnrengelman.shadow' version '5.2.0'
     id 'maven-publish'
 }
 apply plugin: 'net.minecraftforge.gradle'
-repositories {
-    maven { url 'http://dvs1.progwml6.com/files/maven' }
-}
+apply plugin: "com.github.johnrengelman.shadow"
 
 archivesBaseName = 'tesseract-forge'
 version = rootProject.version
@@ -110,7 +120,11 @@ repositories {
 }
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    embed project(':tesseract')
+    if (rootProject.name == "tesseract") {
+        embed project(path: ":")
+    } else {
+        embed project(path: ":tesseract")
+    }
 }
 
 publishing {

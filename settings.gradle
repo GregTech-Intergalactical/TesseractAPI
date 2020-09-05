@@ -10,5 +10,5 @@ pluginManagement {
 }
 
 rootProject.name = 'tesseract'
-include 'version'
-include 'forge'
+include ':version'
+include ':forge'
