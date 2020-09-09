@@ -26,33 +26,9 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param dim The dimension id where the node will be added.
      * @param pos The position at which the node will be added.
      * @param node The node object.
-     * @param controller The controller for the node
-     */
-    public void registerNode(int dim, long pos, N node, Controller<C, N> controller) {
-        getGraph(dim).addNode(pos, new Cache<>(node), controller);
-    }
-
-    /**
-     * Creates an instance of a class for a given node.
-     *
-     * @param dim The dimension id where the node will be added.
-     * @param pos The position at which the node will be added.
-     * @param node The node object.
      */
     public void registerNode(int dim, long pos, N node) {
         getGraph(dim).addNode(pos, new Cache<>(node), supplier.apply(dim));
-    }
-
-    /**
-     * Creates an instance of a class for a given connector.
-     *
-     * @param dim The dimension id where the node will be added.
-     * @param pos The position at which the node will be added.
-     * @param connector The connector object.
-     * @param controller The controller for the node
-     */
-    public void registerConnector(int dim, long pos, C connector, Controller<C, N> controller) {
-        getGraph(dim).addConnector(pos, new Cache<>(connector), controller);
     }
 
     /**
