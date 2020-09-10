@@ -1,8 +1,14 @@
 package tesseract;
 
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import tesseract.api.GraphWrapper;
 import tesseract.api.gt.IGTCable;
 import tesseract.api.gt.IGTNode;
@@ -23,9 +29,24 @@ public class Tesseract {
 
 	public static final String API_ID = "tesseract";
 	public static final String API_NAME = "Tesseract API";
+	public static final String VERSION = "0.0.1";
+	public static final String DEPENDS = "";
 
-	public static final GraphWrapper<IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
-	public static final GraphWrapper<IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new);
-	public static final GraphWrapper<IFluidPipe, IFluidNode<FluidStack>> FLUID = new GraphWrapper<>(Fluid::new);
-	public static final GraphWrapper<IItemPipe, IItemNode<ItemStack>> ITEM = new GraphWrapper<>(ItemController::new);
+	public static GraphWrapper<IFECable, IFENode> FE_ENERGY;
+	public static GraphWrapper<IGTCable, IGTNode> GT_ENERGY;
+	public static GraphWrapper<IFluidPipe, IFluidNode<FluidStack>> FLUID;
+	public static GraphWrapper<IItemPipe, IItemNode<ItemStack>> ITEM;
+
+	public Tesseract() {
+		FMLJavaModLoadingContext.get().getModEventBus().register(this);
+		MinecraftForge.EVENT_BUS.register(this);
+	}
+
+	@SubscribeEvent
+	public void init(FMLServerAboutToStartEvent e) {
+		FE_ENERGY = new GraphWrapper<>(FEController::new);
+		GT_ENERGY = new GraphWrapper<>(Energy::new);
+		FLUID = new GraphWrapper<>(Fluid::new);
+		ITEM = new GraphWrapper<>(ItemController::new);
+	}
 }
