@@ -33,11 +33,14 @@ public class Path<C extends IConnectable> {
         while (it.hasNext()) {
             Node node = it.next();
             long pos = node.asLong();
-            C cable = connectors.get(pos).value();
 
-            full.put(pos, cable);
-            if (node.isCrossroad()) {
-                cross.put(pos, cable);
+            Cache<C> cache = connectors.get(pos);
+            if (cache != null) {
+                C cable = cache.value();
+                full.put(pos, cable);
+                if (node.isCrossroad()) {
+                    cross.put(pos, cable);
+                }
             }
         }
     }

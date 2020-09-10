@@ -11,6 +11,7 @@ import tesseract.util.Pos;
 import tesseract.util.CID;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Class provides the functionality of any set of nodes.
@@ -63,7 +64,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 */
 	public boolean addNode(long pos, Cache<N> node, Controller<C, N> controller) {
 		if (!contains(pos)) {
-			Group<C, N> group = add(pos, Group.singleNode(pos, node, controller));
+			Group<C, N> group = add(pos, () -> Group.singleNode(pos, node, controller));
 			if (group != null) group.addNode(pos, node, controller);
 			return true;
 		}
@@ -81,7 +82,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 */
 	public boolean addConnector(long pos, Cache<C> connector, Controller<C, N> controller) {
 		if (!contains(pos)) {
-			Group<C, N> group = add(pos, Group.singleConnector(pos, connector, controller));
+			Group<C, N> group = add(pos, () -> Group.singleConnector(pos, connector, controller));
 			if (group != null) group.addConnector(pos, connector, controller);
 			return true;
 		}
@@ -96,14 +97,14 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @param single A group containing a single entry, if the position is not touching any existing positions.
 	 * @return An existing group, that the caller should add the entry to.
 	 */
-	private Group<C, N> add(long pos, Group<C, N> single) {
+	private Group<C, N> add(long pos, Supplier<Group<C, N>> single) {
 		int id;
 		IntSet mergers = getNeighboringGroups(pos);
 		switch (mergers.size()) {
 			case 0:
 				id = CID.nextId();
 				positions.put(pos, id);
-				groups.put(id, single);
+				groups.put(id, single.get());
 				return null;
 
 			case 1:
