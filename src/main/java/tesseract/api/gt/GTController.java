@@ -87,7 +87,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
         }
 
         for (List<GTConsumer> consumers : data.values()) {
-            consumers.sort(Comparator.comparingInt(GTConsumer::getLoss).reversed());
+            consumers.sort(Comparator.comparingInt(GTConsumer::getLoss));
         }
     }
 
