@@ -1,6 +1,7 @@
 package tesseract.api.fe;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2LongMap;
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
@@ -23,7 +24,7 @@ import java.util.List;
 public class FEController extends Controller<IFECable, IFENode> {
 
     private long totalEnergy, lastEnergy;
-    private final Long2ObjectMap<FEHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2LongMap holders = new Long2LongOpenHashMap();
     private final Object2ObjectMap<IFENode, List<FEConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -33,6 +34,7 @@ public class FEController extends Controller<IFECable, IFENode> {
      */
     public FEController(int dim) {
         super(dim);
+        holders.defaultReturnValue(-1L);
     }
 
     /**
@@ -85,6 +87,10 @@ public class FEController extends Controller<IFECable, IFENode> {
                     }
                 }
             }
+        }
+
+        for (List<FEConsumer> consumers : data.values()) {
+            consumers.sort(FEConsumer.COMPARATOR);
         }
     }
 
@@ -171,12 +177,17 @@ public class FEController extends Controller<IFECable, IFENode> {
                             long pos = p.getLongKey();
                             IFECable cable = p.getValue();
 
-                            limit = Math.min(limit, holders.computeIfAbsent(pos, h -> new FEHolder(cable)).getCapacity());
+                            long capacity = holders.get(pos);
+                            if (capacity == -1L) {
+                                capacity = cable.getCapacity();
+                                holders.put(pos, capacity);
+                            }
+                            limit = Math.min(limit, capacity);
                         }
 
                         if (limit > 0) {
                             for (long pos : consumer.getCross().keySet()) {
-                                holders.get(pos).reduce(limit);
+                                holders.put(pos, Math.max(holders.get(pos) - limit, 0L));
                             }
                         }
 

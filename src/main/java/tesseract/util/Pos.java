@@ -122,6 +122,7 @@ public class Pos {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.value = packAll(x, y, z);
         return this;
     }
 
@@ -135,6 +136,7 @@ public class Pos {
         this.x = pos.x;
         this.y = pos.y;
         this.z = pos.z;
+        this.value = pos.value;
         return this;
     }
 

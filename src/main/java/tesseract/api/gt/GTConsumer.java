@@ -3,6 +3,10 @@ package tesseract.api.gt;
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
 
+import java.util.Comparator;
+
+import static java.lang.Integer.compare;
+
 /**
  * A class that acts as a container for an electrical consumer.
  */
@@ -11,6 +15,9 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
     private int loss;
     private int minVoltage = Integer.MAX_VALUE;
     private int minAmperage = Integer.MAX_VALUE;
+
+    // Way of the sorting by the loss and the distance to the node
+    public static final Comparator<GTConsumer> COMPARATOR = (t1, t2) -> (t1.getDistance() == t2.getDistance()) ? compare(t1.getLoss(), t2.getLoss()) : compare(t1.getDistance(), t2.getDistance());
 
     /**
      * Creates instance of the consumer.
@@ -38,6 +45,13 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
      */
     public int getRequiredAmperage(int voltage) {
         return (int) Math.min(((node.getCapacity() - node.getEnergy())) / voltage, node.getInputAmperage());
+    }
+
+    /**
+     * @return Returns the priority of this node as a number.
+     */
+    public int getPriority() {
+        return 0;
     }
 
     /**

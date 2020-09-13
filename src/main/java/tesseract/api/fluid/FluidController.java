@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import tesseract.api.ConnectionType;
+import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.graph.*;
@@ -77,7 +78,7 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
 
         for (Map<Dir, List<FluidConsumer<T>>> map : data.values()) {
             for (List<FluidConsumer<T>> consumers : map.values()) {
-                consumers.sort(Comparator.comparingInt(FluidConsumer::getPriority));
+                consumers.sort(Consumer.COMPARATOR);
             }
         }
     }
