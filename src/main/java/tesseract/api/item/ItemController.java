@@ -4,10 +4,12 @@ import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.graph.*;
@@ -23,7 +25,7 @@ import java.util.*;
 public class ItemController<T, N extends IItemNode<T>> extends Controller<IItemPipe, N> {
 
     private int transferred;
-    private final Long2IntMap holders = new Long2IntLinkedOpenHashMap();
+    private final Long2IntMap holders = new Long2IntOpenHashMap();
     private final Object2ObjectMap<N, Map<Dir, List<ItemConsumer<T>>>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -76,7 +78,7 @@ public class ItemController<T, N extends IItemNode<T>> extends Controller<IItemP
 
         for (Map<Dir, List<ItemConsumer<T>>> map : data.values()) {
             for (List<ItemConsumer<T>> consumers : map.values()) {
-                consumers.sort(Comparator.comparingInt(ItemConsumer::getPriority));
+                consumers.sort(Consumer.COMPARATOR);
             }
         }
     }

@@ -3,6 +3,10 @@ package tesseract.api;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import tesseract.graph.Path;
 
+import java.util.Comparator;
+
+import static java.lang.Integer.compare;
+
 /**
  * A class that acts as a wrapper for a node component.
  */
@@ -13,6 +17,10 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
 
     protected Long2ObjectMap<C> full;
     protected Long2ObjectMap<C> cross;
+    protected int distance;
+
+    // Way of the sorting by the priority level and the distance to the node
+    public static final Comparator<Consumer<?, ?>> COMPARATOR = (t1, t2) -> (t1.getPriority() == 0 && t2.getPriority() == 0) ? compare(t1.getDistance(), t2.getDistance()) : compare(t2.getPriority(), t1.getPriority());
 
     /**
      * Creates instance of the node.
@@ -40,6 +48,7 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      */
     public void init() {
         if (full != null) {
+            distance = full.size();
             for (C connector : full.values()) {
                 onConnectorCatch(connector);
             }
@@ -51,6 +60,14 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      */
     public N getNode() {
         return node;
+    }
+
+
+    /**
+     * @return Gets the total distance from to the given consumer.
+     */
+    public int getDistance() {
+        return distance;
     }
 
     /**
@@ -80,4 +97,9 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      * @param connector The connector object.
      */
     protected abstract void onConnectorCatch(C connector);
+
+    /**
+     * @return Returns the priority of this node as a number.
+     */
+    protected abstract int getPriority();
 }
