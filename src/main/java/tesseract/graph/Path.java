@@ -63,14 +63,14 @@ public class Path<C extends IConnectable> {
      * @return Gets the full connectors path.
      */
     public Long2ObjectMap<C> getFull() {
-        return Long2ObjectMaps.unmodifiable(full);
+        return full;
     }
 
     /**
      * @return Gets the crossroad connectors path.
      */
     public Long2ObjectMap<C> getCross() {
-        return Long2ObjectMaps.unmodifiable(cross);
+        return cross;
     }
 
     /**
