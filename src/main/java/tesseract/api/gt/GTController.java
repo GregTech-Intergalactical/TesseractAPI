@@ -122,7 +122,12 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
      * @param pos The position of the producer.
      */
     private void onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long pos) {
-        IGTNode node = group.getNodes().get(pos).value();
+        Cache<IGTNode> nodee = group.getNodes().get(pos);
+        if (nodee == null) {
+            System.out.println("Error in onCheck, null cache.");
+            return;
+        }
+        IGTNode node = nodee.value();
         if (node.canInput()) {
             GTConsumer consumer = new GTConsumer(node, path);
             int voltage = producer.getOutputVoltage() - consumer.getLoss();
