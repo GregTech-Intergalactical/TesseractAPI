@@ -107,14 +107,14 @@ public class Grid<C extends IConnectable> implements INode {
      * @return Returns connectors map.
      */
     public Long2ObjectMap<Cache<C>> getConnectors() {
-        return Long2ObjectMaps.unmodifiable(connectors);
+        return connectors;
     }
 
     /**
      * @return Returns nodes map.
      */
     public Long2ByteMap getNodes() {
-        return Long2ByteMaps.unmodifiable(nodes);
+        return nodes;
     }
 
     /**

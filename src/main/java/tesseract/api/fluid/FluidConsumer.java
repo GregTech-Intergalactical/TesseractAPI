@@ -43,7 +43,7 @@ public class FluidConsumer<T> extends Consumer<IFluidPipe, IFluidNode<T>> {
      * @param fluid The Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    public boolean canHold(Object fluid) {
+    public boolean canHold(T fluid) {
         return node.canInput(fluid, input);
     }
 

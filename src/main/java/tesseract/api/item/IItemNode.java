@@ -83,5 +83,5 @@ public interface IItemNode<T> extends IConnectable {
      * @param direction Direction to the input.
      * @return If the storage can input the item (EVER, not at the time of query).
      */
-    boolean canInput(Object item, Dir direction);
+    boolean canInput(T item, Dir direction);
 }

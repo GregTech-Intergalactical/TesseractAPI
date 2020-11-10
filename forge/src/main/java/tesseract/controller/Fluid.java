@@ -3,12 +3,13 @@ package tesseract.controller;
 import net.minecraft.block.Blocks;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.Explosion;
 import tesseract.api.fluid.FluidController;
 import tesseract.api.fluid.FluidData;
 import tesseract.api.fluid.IFluidNode;
 
 import javax.annotation.Nonnull;
+
+import static net.minecraft.world.Explosion.Mode.*;
 
 // TODO: Make explosions depend on pressure, capacity, temperature
 public class Fluid<T> extends FluidController<T, IFluidNode<T>> {
@@ -24,12 +25,12 @@ public class Fluid<T> extends FluidController<T, IFluidNode<T>> {
 
     @Override
     public void onPipeOverPressure(int dim, long pos, int pressure) {
-        Utils.getServerWorld(dim).ifPresent(w -> Utils.createExplosion(w, BlockPos.fromLong(pos), 4.0F, Explosion.Mode.BREAK));
+        Utils.getServerWorld(dim).ifPresent(w -> Utils.createExplosion(w, BlockPos.fromLong(pos), 4.0F, DESTROY));
     }
 
     @Override
     public void onPipeOverCapacity(int dim, long pos, int capacity) {
-        Utils.getServerWorld(dim).ifPresent(w -> Utils.createExplosion(w, BlockPos.fromLong(pos), 1.0F, Explosion.Mode.NONE));
+        Utils.getServerWorld(dim).ifPresent(w -> Utils.createExplosion(w, BlockPos.fromLong(pos), 1.0F, BREAK));
     }
 
     @Override

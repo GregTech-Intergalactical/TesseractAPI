@@ -51,7 +51,7 @@ public class Graph<C extends IConnectable, N extends IConnectable> implements IN
 	 * @return Gets the groups map.
 	 */
 	public Int2ObjectMap<Group<C, N>> getGroups() {
-		return Int2ObjectMaps.unmodifiable(groups);
+		return groups;
 	}
 
 	/**

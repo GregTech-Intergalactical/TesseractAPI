@@ -197,14 +197,14 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @return Returns nodes map.
      */
     public Long2ObjectMap<Cache<N>> getNodes() {
-        return Long2ObjectMaps.unmodifiable(nodes);
+        return nodes;
     }
 
     /**
      * @return Returns grids set.
      */
     public Int2ObjectMap<Grid<C>> getGrids() {
-        return Int2ObjectMaps.unmodifiable(grids);
+        return grids;
     }
 
     /**

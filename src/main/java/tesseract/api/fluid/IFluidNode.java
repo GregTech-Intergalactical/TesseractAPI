@@ -73,5 +73,5 @@ public interface IFluidNode<T> extends IConnectable {
      * @param direction Direction to the input.
      * @return If the tank can input the fluid (EVER, not at the time of query).
      */
-    boolean canInput(Object fluid, Dir direction);
+    boolean canInput(T fluid, Dir direction);
 }

@@ -19,7 +19,7 @@ public class Utils {
     }
 
     public static void createExplosion(ServerWorld world, BlockPos pos, float explosionRadius, Explosion.Mode modeIn) {
-        world.createExplosion(null, pos.getX(), pos.getY() + 0.0625D, pos.getZ(), explosionRadius, true, modeIn);
+        world.createExplosion(null, pos.getX(), pos.getY() + 0.0625D, pos.getZ(), explosionRadius, modeIn == Explosion.Mode.DESTROY, modeIn);
         world.spawnParticle(ParticleTypes.SMOKE, pos.getX(), pos.getY() + 0.5D, pos.getZ(), 1, 0, 0, 0, 0.0D);
     }
 

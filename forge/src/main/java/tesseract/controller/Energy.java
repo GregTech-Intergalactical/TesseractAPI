@@ -1,8 +1,9 @@
 package tesseract.controller;
 
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.Explosion;
 import tesseract.api.gt.GTController;
+
+import static net.minecraft.world.Explosion.Mode.*;
 
 // TODO: Make explosions depend on voltage, amp
 public class Energy extends GTController {
@@ -18,7 +19,7 @@ public class Energy extends GTController {
 
     @Override
     public void onNodeOverVoltage(int dim, long pos, int voltage) {
-        Utils.getServerWorld(dim).ifPresent(w -> Utils.createExplosion(w, BlockPos.fromLong(pos), 4.0F, Explosion.Mode.BREAK));
+        Utils.getServerWorld(dim).ifPresent(w -> Utils.createExplosion(w, BlockPos.fromLong(pos), 4.0F, DESTROY));
     }
 
     @Override

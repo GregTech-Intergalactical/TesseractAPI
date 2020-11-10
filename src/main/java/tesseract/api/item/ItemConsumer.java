@@ -41,7 +41,7 @@ public class ItemConsumer<T> extends Consumer<IItemPipe, IItemNode<T>> {
      * @param item The Item to be queried.
      * @return If the storage can hold the item (EVER, not at the time of query).
      */
-    public boolean canAccept(Object item) {
+    public boolean canAccept(T item) {
         return node.canInput(item, input);
     }
 
