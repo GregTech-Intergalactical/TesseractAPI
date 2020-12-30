@@ -1,6 +1,7 @@
 package tesseract.api.gt;
 
 import tesseract.api.IConnectable;
+import tesseract.api.IRefreshable;
 import tesseract.util.Dir;
 
 /**
@@ -10,7 +11,7 @@ import tesseract.util.Dir;
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
  * </p>
  */
-public interface IGTNode extends IConnectable {
+public interface IGTNode extends IConnectable, IRefreshable {
 
 	/**
 	 * Adds energy to the node. Returns quantity of energy that was accepted.
@@ -69,6 +70,13 @@ public interface IGTNode extends IConnectable {
 	 * @return If this is false, then any calls to receiveEnergy will return 0.
 	 */
 	boolean canInput();
+
+	/**
+	 * Used to determine if this storage can receive energy in the given direction.
+	 * @param direction the direction.
+	 * @return If this is false, then any calls to receiveEnergy will return 0.
+	 */
+	boolean canInput(Dir direction);
 
 	/**
 	 * Used to determine which sides can output energy (if any).

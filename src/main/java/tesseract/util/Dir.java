@@ -1,6 +1,12 @@
 package tesseract.util;
 
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Direction enum
  */
@@ -16,6 +22,18 @@ public enum Dir {
     public static final Dir[] VALUES;
     private final int index, opposite;
     private final Pos direction;
+
+    public static final Map<Pos,Dir> POS_TO_DIR;
+
+    static {
+        POS_TO_DIR = new Object2ObjectOpenHashMap<>();
+        POS_TO_DIR.put(new Pos(0,-1,0), DOWN);
+        POS_TO_DIR.put(new Pos(0,1,0), UP);
+        POS_TO_DIR.put(new Pos(0,0,-1), NORTH);
+        POS_TO_DIR.put(new Pos(0,0,1), SOUTH);
+        POS_TO_DIR.put(new Pos(-1,0,0), WEST);
+        POS_TO_DIR.put(new Pos(1,0,0), EAST);
+    }
 
     static {
         VALUES = values();

@@ -60,7 +60,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
                         long side = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(side)) {
-                            onCheck(producer, consumers, null, side);
+                            onCheck(producer, consumers, null, pos,side);
                         } else {
                             Grid<IGTCable> grid = group.getGridAt(side, direction);
                             if (grid != null) {
@@ -68,7 +68,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
                                     if (!path.isEmpty()) {
                                         Node target = path.target();
                                         assert target != null;
-                                        onCheck(producer, consumers, path, target.asLong());
+                                        onCheck(producer, consumers, path,pos, target.asLong());
                                     }
                                 }
                             }
@@ -119,16 +119,20 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
      * @param producer The producer node.
      * @param consumers The consumer nodes.
      * @param path The paths to consumers.
-     * @param pos The position of the producer.
+     * @param consumerPos The position of the consumer.
+     * @param producerPos The position of the producer.
      */
-    private void onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long pos) {
-        Cache<IGTNode> nodee = group.getNodes().get(pos);
+    private void onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long producerPos, long consumerPos) {
+        Cache<IGTNode> nodee = group.getNodes().get(consumerPos);
         if (nodee == null) {
             System.out.println("Error in onCheck, null cache.");
             return;
         }
         IGTNode node = nodee.value();
-        if (node.canInput()) {
+        Pos pos = new Pos(consumerPos).sub(new Pos(producerPos));
+        Dir dir = path != null ? path.target().getDirection().getOpposite()
+                : Dir.POS_TO_DIR.get(pos).getOpposite();
+        if (node.canInput(dir)) {
             GTConsumer consumer = new GTConsumer(node, path);
             int voltage = producer.getOutputVoltage() - consumer.getLoss();
             if (voltage <= 0) {
@@ -138,7 +142,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
             if (voltage <= node.getInputVoltage()) {
                 consumers.add(consumer);
             } else {
-                onNodeOverVoltage(dim, pos, voltage);
+                onNodeOverVoltage(dim, consumerPos, voltage);
             }
         }
     }

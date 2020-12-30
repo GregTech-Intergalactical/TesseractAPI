@@ -2,6 +2,7 @@ package tesseract.api.item;
 
 import it.unimi.dsi.fastutil.ints.IntList;
 import tesseract.api.IConnectable;
+import tesseract.api.IRefreshable;
 import tesseract.util.Dir;
 
 /**
@@ -12,7 +13,7 @@ import tesseract.util.Dir;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IItemNode<T> extends IConnectable {
+public interface IItemNode<T> extends IConnectable, IRefreshable {
 
     /**
      * Inserts an item into an available slot and return the remainder.

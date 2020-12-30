@@ -1,6 +1,7 @@
 package tesseract.api.fluid;
 
 import tesseract.api.IConnectable;
+import tesseract.api.IRefreshable;
 import tesseract.util.Dir;
 
 /**
@@ -11,7 +12,7 @@ import tesseract.util.Dir;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IFluidNode<T> extends IConnectable {
+public interface IFluidNode<T> extends IConnectable, IRefreshable {
 
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.
