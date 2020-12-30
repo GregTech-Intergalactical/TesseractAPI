@@ -12,7 +12,6 @@ import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -46,8 +45,11 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
      */
     @Override
     public void change() {
+        //noinspection StatementWithEmptyBody
+        while(!changeInternal()); // not sure how many times we may break the network while changing it
+    }
+    private boolean changeInternal(){
         data.clear();
-
         for (Long2ObjectMap.Entry<Cache<IGTNode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
             IGTNode producer = e.getValue().value();
@@ -60,7 +62,8 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
                         long side = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(side)) {
-                            onCheck(producer, consumers, null, pos,side);
+                            if (!onCheck(producer, consumers, null, pos,side))
+                                return false;
                         } else {
                             Grid<IGTCable> grid = group.getGridAt(side, direction);
                             if (grid != null) {
@@ -68,7 +71,8 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
                                     if (!path.isEmpty()) {
                                         Node target = path.target();
                                         assert target != null;
-                                        onCheck(producer, consumers, path,pos, target.asLong());
+                                        if (!onCheck(producer, consumers, path,pos, target.asLong()))
+                                            return false;
                                     }
                                 }
                             }
@@ -89,6 +93,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
         for (List<GTConsumer> consumers : data.values()) {
             consumers.sort(GTConsumer.COMPARATOR);
         }
+        return true;
     }
 
     /**
@@ -122,11 +127,11 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
      * @param consumerPos The position of the consumer.
      * @param producerPos The position of the producer.
      */
-    private void onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long producerPos, long consumerPos) {
+    private boolean onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long producerPos, long consumerPos) {
         Cache<IGTNode> nodee = group.getNodes().get(consumerPos);
         if (nodee == null) {
             System.out.println("Error in onCheck, null cache.");
-            return;
+            return false;
         }
         IGTNode node = nodee.value();
         Pos pos = new Pos(consumerPos).sub(new Pos(producerPos));
@@ -136,15 +141,17 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
             GTConsumer consumer = new GTConsumer(node, path);
             int voltage = producer.getOutputVoltage() - consumer.getLoss();
             if (voltage <= 0) {
-                return;
+                return false;
             }
 
             if (voltage <= node.getInputVoltage()) {
                 consumers.add(consumer);
+                return true;
             } else {
                 onNodeOverVoltage(dim, consumerPos, voltage);
             }
         }
+        return false;
     }
 
     /**
