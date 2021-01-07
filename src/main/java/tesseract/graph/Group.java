@@ -527,7 +527,6 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             return false;
         }
 
-        resetControllerHost(node);
 
         // Clear removing node from nearest grid
         Pos position = new Pos(pos);
@@ -539,6 +538,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
                 grids.get(id).removeNode(pos);
             }
         }
+        resetControllerHost(node);
 
         return true;
     }

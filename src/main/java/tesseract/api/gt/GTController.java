@@ -135,7 +135,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
         }
         IGTNode node = nodee.value();
         Pos pos = new Pos(consumerPos).sub(new Pos(producerPos));
-        Dir dir = path != null ? path.target().getDirection().getOpposite()
+        Dir dir = path != null ? path.target().getDirection()
                 : Dir.POS_TO_DIR.get(pos).getOpposite();
         if (node.canInput(dir)) {
             GTConsumer consumer = new GTConsumer(node, path);
@@ -149,9 +149,10 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
                 return true;
             } else {
                 onNodeOverVoltage(dim, consumerPos, voltage);
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     /**
