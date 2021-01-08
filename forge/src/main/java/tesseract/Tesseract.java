@@ -2,6 +2,7 @@ package tesseract;
 
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.common.Mod;
@@ -49,4 +50,14 @@ public class Tesseract {
 		FLUID = new GraphWrapper<>(Fluid::new);
 		ITEM = new GraphWrapper<>(ItemController::new);
 	}
+    @SubscribeEvent
+    public void onServerTick(TickEvent.WorldTickEvent event) {
+        if (event.side.isServer()) {
+            int dim = event.world.getDimension().getType().getId();
+            GT_ENERGY.tick(dim);
+            FE_ENERGY.tick(dim);
+            FLUID.tick(dim);
+            ITEM.tick(dim);
+        }
+    }
 }
