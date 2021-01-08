@@ -73,4 +73,10 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
     public void remove(int dim, long pos) {
         getGraph(dim).removeAt(pos);
     }
+
+    public void tick(int dim) {
+        Graph<C, N> g = graph.get(dim);
+        if (g != null)
+            g.getGroups().forEach((pos, gr) -> gr.getController().tick());
+    }
 }

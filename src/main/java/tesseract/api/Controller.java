@@ -26,7 +26,6 @@ abstract public class Controller<C extends IConnectable, N extends IConnectable>
      *
      * @param container The group this controller handles.
      */
-    @SuppressWarnings("unchecked")
     public Controller<C, N> set(INode container) {
         this.group = (Group<C, N>) container;
         return this;
