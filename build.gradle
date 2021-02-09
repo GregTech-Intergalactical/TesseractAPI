@@ -14,6 +14,14 @@ plugins {
     id 'maven-publish'
     id 'java'
 }
+
+sourceSets {
+    main{
+        java {
+            srcDir("src/main/java")
+        }
+    }
+}
 apply plugin: "com.github.johnrengelman.shadow"
 //evaluationDependsOn(':version')
 
@@ -59,42 +67,25 @@ dependencies {
 
     //   Test dependencies:
     testImplementation 'junit:junit:4.11'
-
-    //   Embedded dependencies:
-    // Those will be included in the fat jar.
-    // You will likely not edit those dependencies.
-    if (rootProject.name == "tesseract") {
-        embed project(path: ':forge', configuration: 'archives')
-        deobf project(path: ':forge', configuration: 'deobf')
-    } else {
-        embed project(path: ':tesseract:forge', configuration: 'archives')
-        deobf project(path: ':tesseract:forge', configuration: 'deobf')
-    }
-        
-    //embed project(path: ':fabric', configuration: 'archives') TODO coming soon(tm).
 }
 
 jar {
     zip64 true
 }
 
-// Maven publishing:
-
-static def configurePublishingRepositories(repositoryHandler) {
-    if (System.env.MAVEN_URL) {
-        repositoryHandler.maven {
-            url = System.env.MAVEN_URL
-
-            if (System.env.MAVEN_USERNAME && System.env.MAVEN_PASSWORD) {
-                authentication {
-                    basic(BasicAuthentication)
-                }
-
-                credentials {
-                    username = System.env.USERNAME
-                    password = System.env.PASSWORD
-                }
-            }
+publishing {
+    publications {
+        forge(MavenPublication) {
+            //artifactId = archivesBaseName
+            artifact deobfJar
+            artifact shadowJar
         }
     }
+    //repositories {
+    //    rootProject.configurePublishingRepositories(delegate)
+    //}
+}
+
+artifacts {
+    deobf deobfJar
 }

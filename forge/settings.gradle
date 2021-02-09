@@ -9,5 +9,8 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'tesseract'
+rootProject.name = 'tesseractforge'
 
+includeBuild('../') {
+
+}
