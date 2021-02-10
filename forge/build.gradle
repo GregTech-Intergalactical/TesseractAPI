@@ -101,6 +101,7 @@ configurations {
     embed
     implementation.extendsFrom(embed)
 }
+
 shadowJar {
     configurations = [project.configurations.embed]
 }
@@ -110,15 +111,19 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 task deobfJar(type: ShadowJar) {
     from sourceSets.main.output
     configurations = [project.configurations.embed]
-    classifier "dev"
-    dependsOn gradle.includedBuild("tesseract").task(":deobfJar")
+    classifier "deobf"
+    //dependsOn gradle.includedBuild("tesseract").task(":deobfJar")
 }
 
-
-// Sources jar; development purposes.
-task sourcesJar(type: Jar) {
+task sourcesJar(type: ShadowJar, dependsOn: classes) {
+    description = 'Creates a JAR containing the source code.'
+    classifier 'sources'
     from sourceSets.main.allSource
-    classifier "sources"
+}
+
+artifacts {
+    archives sourcesJar
+    archives deobfJar
 }
 
 repositories {
@@ -127,10 +132,7 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-   // embed (group: 'com.github.gregtech-intergalactical', name: 'tesseract')
-   // compileOnly (group: 'com.github.gregtech-intergalactical', name: 'tesseract')
-    embed (group: 'com.github.gregtech-intergalactical', name: 'tesseract')
-    //deobf (group: 'com.github.gregtech-intergalactical', name: 'tesseract', configuration: 'deobf')
+    embed project(':tesseract')//(group: 'com.github.gregtech-intergalactical', name: 'tesseract')
 }
 
 
@@ -147,6 +149,6 @@ publishing {
     //}
 }
 
-artifacts {
-    deobf deobfJar
+jar {
+    zip64 true
 }

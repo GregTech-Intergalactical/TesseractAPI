@@ -1,77 +1,127 @@
 buildscript {
     repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
+        maven { url 'https://files.minecraftforge.net/maven' }
+        jcenter()
+        mavenCentral()
+        gradlePluginPortal()
+
     }
     dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
         classpath "com.github.jengelman.gradle.plugins:shadow:5.2.0"
     }
 }
 
-
 plugins {
     id 'maven-publish'
-    id 'java'
 }
-
-sourceSets {
-    main{
-        java {
-            srcDir("src/main/java")
-        }
-    }
-}
+apply plugin: 'net.minecraftforge.gradle'
 apply plugin: "com.github.johnrengelman.shadow"
-//evaluationDependsOn(':version')
 
-group = 'com.github.gregtech-intergalactical' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+apply plugin: 'java'
+
 archivesBaseName = 'tesseract'
+version = "0.0.1"
+group = "com.github.gregtech-intergalactical"
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
-assemble.dependsOn shadowJar
+minecraft {
+    // The mappings can be changed at any time, and must be in the following format.
+    // snapshot_YYYYMMDD   Snapshot are built nightly.
+    // stable_#            Stables are built at the discretion of the MCP team.
+    // Use non-default mappings at your own risk. they may not always work.
+    // Simply re-run your setup task after changing the mappings to update your workspace.
+    mappings channel: 'snapshot', version: "${mappings_version}"
+    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 
-configurations {
-    embed
-    deobf
+    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
-    embed.extendsFrom(implementation)
-    testCompile.extendsFrom(shadow)
+    // Default run configurations.
+    // These can be tweaked, removed, or duplicated as needed.
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                tesseract {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                tesseract {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            args '--mod', 'tesseract', '--all', '--output', '"' + rootProject.file('src/generated/resources/') + '"',
+                    '--existing', '"' + sourceSets.main.resources.srcDirs[0] + '"'
+
+            mods {
+                tesseract {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
 }
 
-shadowJar {
-    configurations = [project.configurations.embed]
-}
-
-// Deobfuscated jar; development purposes.
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-task deobfJar(type: ShadowJar) {
+task deobfJar(type: Jar) {
     from sourceSets.main.output
-    configurations = [project.configurations.deobf]
-    classifier "dev"
+   // configurations = [project.configurations.embed]
+    classifier "deobf"
+    //dependsOn gradle.includedBuild("tesseract").task(":deobfJar")
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    description = 'Creates a JAR containing the source code.'
+    classifier 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+    archives deobfJar
 }
 
 repositories {
     jcenter()
-    maven { url = 'https://files.minecraftforge.net/maven' }
 }
 
 dependencies {
-    //   Main dependencies:
-    // Declare here your dependencies here with:
-    // 'shadow' if the jar shouldn't be included in the fat jar,
-    // 'implementation' if the jar should be included in the jar
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     shadow 'org.apache.commons:commons-collections4:4.4'
     shadow 'it.unimi.dsi:fastutil:8.2.1'
-
-    //   Test dependencies:
-    testImplementation 'junit:junit:4.11'
+    //embed project(':tesseract')//(group: 'com.github.gregtech-intergalactical', name: 'tesseract')
 }
 
-jar {
-    zip64 true
-}
 
 publishing {
     publications {
@@ -86,6 +136,6 @@ publishing {
     //}
 }
 
-artifacts {
-    deobf deobfJar
+jar {
+    zip64 true
 }

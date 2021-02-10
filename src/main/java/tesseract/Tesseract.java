@@ -52,7 +52,7 @@ public class Tesseract {
 	}
     @SubscribeEvent
     public void onServerTick(TickEvent.WorldTickEvent event) {
-        if (event.side.isServer()) {
+		if (event.side.isServer()) {
             int dim = event.world.getDimension().getType().getId();
             GT_ENERGY.tick(dim);
             FE_ENERGY.tick(dim);
