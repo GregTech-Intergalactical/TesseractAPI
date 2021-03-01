@@ -11,6 +11,11 @@ public class FluidConsumer<T> extends Consumer<IFluidPipe, IFluidNode<T>> {
 
     private int isProof = 1;
     private int minCapacity = Integer.MAX_VALUE;
+
+    public int getMinPressure() {
+        return minPressure;
+    }
+
     private int minPressure = Integer.MAX_VALUE;
     private int minTemperature = Integer.MAX_VALUE;
     private final Dir input;

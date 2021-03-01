@@ -12,7 +12,6 @@ public interface IFluidEvent<T> {
      * @param pressure The current pressure.
      */
     default void onPipeOverPressure(int dim, long pos, int pressure) {
-        //NOOP
     }
 
     /**
@@ -36,12 +35,13 @@ public interface IFluidEvent<T> {
     }
 
     /**
-     * Executes when the pipe trying to transport gas than can.
+     * Executes when the pipe trying to transport gas that can leak.
+     * Returns resulting fluid stack
      * @param dim The dimension id.
      * @param pos The pipe position.
      * @param fluid FluidData holding the Fluid to be queried.
      */
-    default void onPipeGasLeak(int dim, long pos, FluidData<T> fluid) {
-        //NOOP
+    default FluidData<T> onPipeGasLeak(int dim, long pos, FluidData<T> fluid) {
+        return fluid;
     }
 }
