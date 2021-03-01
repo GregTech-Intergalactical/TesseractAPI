@@ -14,7 +14,6 @@ import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +23,12 @@ import java.util.Map;
  */
 public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFluidPipe, N> implements IFluidEvent<T> {
 
+    // TODO: assign the value from Antimatter config
+    public static boolean HARDCORE_PIPES = false;
+    public static double PIPE_LEAK = 0.9;
     private long totalPressure, lastPressure;
-    private int maxTemperature, isLeaking, lastTemperature, lastLeaking;
+    private int maxTemperature, lastTemperature;
+    private boolean isLeaking, lastLeaking;
     private final Long2ObjectMap<FluidHolder<T>> holders = new Long2ObjectLinkedOpenHashMap<>();
     private final Object2ObjectMap<N, Map<Dir, List<FluidConsumer<T>>>> data = new Object2ObjectLinkedOpenHashMap<>();
 
@@ -130,6 +133,8 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
                     if (amount <= 0) {
                         continue;
                     }
+                    if (!HARDCORE_PIPES && amount > consumer.getMinPressure())
+                        amount = consumer.getMinPressure();
 
                     int temperature = data.getTemperature();
                     boolean isGaseous = data.isGaseous();
@@ -153,7 +158,8 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
                                     onPipeOverPressure(dim, pos, amount);
                                     return;
                                 case FAIL_LEAK:
-                                    onPipeGasLeak(dim, pos, drained);
+                                    drained = onPipeGasLeak(dim, pos, drained);
+                                    isLeaking = true;
                                     break;
                             }
                         }
@@ -170,7 +176,6 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
                     }
 
                     maxTemperature = Math.max(temperature, maxTemperature);
-                    isLeaking = Math.max(isGaseous ? 1: 0, isLeaking);
                     totalPressure += amount;
 
                     consumer.insert(drained, false);
@@ -204,7 +209,8 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
         lastPressure = totalPressure;
         lastLeaking = isLeaking;
         totalPressure = 0L;
-        maxTemperature = isLeaking = 0;
+        maxTemperature = 0;
+        isLeaking = false;
     }
 
     @Override
@@ -212,7 +218,7 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
         return new String[]{
             "Maximum Temperature: ".concat(Integer.toString(lastTemperature)),
             "Total Pressure: ".concat(Long.toString(lastPressure)),
-            "Any Leaks: ".concat(lastLeaking == 1 ? "Yes" : "No")
+            "Any Leaks: ".concat(lastLeaking ? "Yes" : "No")
         };
     }
 
