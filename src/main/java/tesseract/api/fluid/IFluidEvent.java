@@ -38,12 +38,13 @@ public interface IFluidEvent<T> {
     }
 
     /**
-     * Executes when the pipe trying to transport gas than can.
+     * Executes when the pipe trying to transport gas that can leak.
+     * Returns resulting fluid stack
      * @param dim The dimension id.
      * @param pos The pipe position.
      * @param fluid FluidData holding the Fluid to be queried.
      */
-    default void onPipeGasLeak(ServerWorld world, long pos, FluidData<T> fluid) {
-        //NOOP
+    default FluidData<T> onPipeGasLeak(ServerWorld world, long pos, FluidData<T> fluid) {
+        return fluid;
     }
 }

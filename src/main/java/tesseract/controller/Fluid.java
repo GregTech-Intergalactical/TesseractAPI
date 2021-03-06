@@ -28,7 +28,7 @@ public class Fluid<T> extends FluidController<T, IFluidNode<T>> {
 
     @Override
     public void onPipeOverPressure(ServerWorld w, long pos, int pressure) {
-        Utils.createExplosion(w, BlockPos.fromLong(pos), 4.0F, Explosion.Mode.BREAK);
+        if (HARDCORE_PIPES) Utils.createExplosion(w, BlockPos.fromLong(pos), 4.0F, Explosion.Mode.BREAK);
     }
 
     @Override
@@ -42,8 +42,7 @@ public class Fluid<T> extends FluidController<T, IFluidNode<T>> {
     }
 
     @Override
-    public void onPipeGasLeak(ServerWorld w, long pos, @Nonnull FluidData<T> fluid) {
-        T resource = fluid.getStack();
-       // resource.setAmount((int)(resource.getAmount() * AntimatterConfig.GAMEPLAY.PIPE_LEAK));
+    public FluidData<T> onPipeGasLeak(int dim, long pos, @Nonnull FluidData<T> fluid) {
+        return new FluidData<T>(fluid.getStack(), (int) Math.floor(fluid.getAmount() * PIPE_LEAK), fluid.getTemperature(), fluid.isGaseous());
     }
 }
