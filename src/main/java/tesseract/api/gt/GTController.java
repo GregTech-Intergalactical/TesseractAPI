@@ -4,15 +4,22 @@ import it.unimi.dsi.fastutil.longs.Long2LongLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
-import tesseract.graph.*;
+import tesseract.graph.Cache;
+import tesseract.graph.Grid;
+import tesseract.graph.INode;
+import tesseract.graph.Path;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Class acts as a controller in the group of an electrical components.
@@ -29,8 +36,8 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
 
      * @param dim The dimension id.
      */
-    public GTController(int dim) {
-        super(dim);
+    public GTController(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
+        super(supplier,dim);
     }
 
     /**
@@ -148,7 +155,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
                 consumers.add(consumer);
                 return true;
             } else {
-                onNodeOverVoltage(dim, consumerPos, voltage);
+                onNodeOverVoltage(getWorld(), consumerPos, voltage);
                 return false;
             }
         }
@@ -217,10 +224,10 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
 
                         switch (cable.getHandler(voltage_out, amperage)) {
                             case FAIL_VOLTAGE:
-                                onCableOverVoltage(dim, pos, voltage_out);
+                                onCableOverVoltage(getWorld(), pos, voltage_out);
                                 break;
                             case FAIL_AMPERAGE:
-                                onCableOverAmperage(dim, pos, amperage);
+                                onCableOverAmperage(getWorld(), pos, amperage);
                                 break;
                         }
                     }
@@ -262,7 +269,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
             // TODO: Find proper path to destroy
 
             if (GTHolder.isOverAmperage(holder)) {
-                onCableOverAmperage(dim, pos, GTHolder.getAmperage(holder));
+                onCableOverAmperage(getWorld(),pos, GTHolder.getAmperage(holder));
             }
         }
     }
@@ -284,6 +291,6 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
 
     @Override
     public ITickingController clone(INode group) {
-        return new GTController(dim).set(group);
+        return new GTController(WORLD_SUPPLIER, dim).set(group);
     }
 }

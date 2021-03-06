@@ -1,11 +1,13 @@
 package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.*;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import tesseract.api.IConnectable;
-import tesseract.util.*;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
+import tesseract.util.Dir;
+import tesseract.util.Node;
+import tesseract.util.Pos;
 
 import java.util.Deque;
 import java.util.List;

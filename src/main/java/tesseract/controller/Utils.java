@@ -5,18 +5,9 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Explosion;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
-
-import java.util.Optional;
 
 public class Utils {
-    public static Optional<ServerWorld> getServerWorld(int dimension) {
-        DimensionType type = DimensionType.getById(dimension);
-        if (type == null) return Optional.empty();
-        return Optional.of(ServerLifecycleHooks.getCurrentServer().getWorld(type));
-    }
 
     public static void createExplosion(ServerWorld world, BlockPos pos, float explosionRadius, Explosion.Mode modeIn) {
         world.createExplosion(null, pos.getX(), pos.getY() + 0.0625D, pos.getZ(), explosionRadius, true, modeIn);

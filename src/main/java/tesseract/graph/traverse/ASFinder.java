@@ -1,12 +1,15 @@
 package tesseract.graph.traverse;
 
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import tesseract.graph.INode;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ConcurrentModificationException;
+import java.util.Deque;
+import java.util.Set;
 
 /**
  * A Star Algorithm implementation for converting a graph – consisting of the grid – into a route through the grid.

@@ -2,6 +2,7 @@ modLoader="javafml"
 #loaderVersion="[${loader_version},)"
 loaderVersion="[31,)"
 issueTrackerURL="https://github.com/GregTech-Intergalactical/TesseractAPI/issues"
+license="LGPL-v3"
 
 [[mods]]
 modId="tesseract"

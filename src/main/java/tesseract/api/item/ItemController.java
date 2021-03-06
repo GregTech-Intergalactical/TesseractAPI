@@ -2,22 +2,30 @@ package tesseract.api.item;
 
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
-import tesseract.graph.*;
+import tesseract.graph.Cache;
+import tesseract.graph.Grid;
+import tesseract.graph.INode;
+import tesseract.graph.Path;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Class acts as a controller in the group of an item components.
@@ -33,8 +41,8 @@ public class ItemController<T, N extends IItemNode<T>> extends Controller<IItemP
      *
      * @param dim The dimension id.
      */
-    public ItemController(int dim) {
-        super(dim);
+    public ItemController(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
+        super(supplier, dim);
         holders.defaultReturnValue(-1);
     }
 
@@ -199,6 +207,6 @@ public class ItemController<T, N extends IItemNode<T>> extends Controller<IItemP
 
     @Override
     public ITickingController clone(INode group) {
-        return new ItemController<>(dim).set(group);
+        return new ItemController<>(WORLD_SUPPLIER,dim).set(group);
     }
 }

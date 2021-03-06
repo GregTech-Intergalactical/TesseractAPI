@@ -6,6 +6,9 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.graph.Cache;
@@ -17,6 +20,7 @@ import tesseract.util.Node;
 import tesseract.util.Pos;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Class acts as a controller in the group of a energy components.
@@ -32,8 +36,8 @@ public class FEController extends Controller<IFECable, IFENode> {
 
      * @param dim The dimension id.
      */
-    public FEController(int dim) {
-        super(dim);
+    public FEController(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
+        super(supplier,dim);
         holders.defaultReturnValue(-1L);
     }
 
@@ -228,6 +232,6 @@ public class FEController extends Controller<IFECable, IFENode> {
 
     @Override
     public ITickingController clone(INode group) {
-        return new FEController(dim).set(group);
+        return new FEController(WORLD_SUPPLIER, dim).set(group);
     }
 }

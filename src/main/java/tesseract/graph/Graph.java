@@ -6,9 +6,9 @@ import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
+import tesseract.util.CID;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
-import tesseract.util.CID;
 
 import java.util.List;
 import java.util.function.Supplier;

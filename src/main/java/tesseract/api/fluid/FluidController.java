@@ -5,19 +5,25 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
-import tesseract.graph.*;
+import tesseract.graph.Cache;
+import tesseract.graph.Grid;
+import tesseract.graph.INode;
+import tesseract.graph.Path;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Class acts as a controller in the group of a fluid components.
@@ -34,8 +40,8 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
      *
      * @param dim The dimension id.
      */
-    public FluidController(int dim) {
-        super(dim);
+    public FluidController(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
+        super(supplier,dim);
     }
 
     @Override
@@ -147,13 +153,13 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
 
                             switch (pipe.getHandler(temperature, amount, isGaseous)) {
                                 case FAIL_TEMP:
-                                    onPipeOverTemp(dim, pos, temperature);
+                                    onPipeOverTemp(getWorld(), pos, temperature);
                                     return;
                                 case FAIL_PRESSURE:
-                                    onPipeOverPressure(dim, pos, amount);
+                                    onPipeOverPressure(getWorld(), pos, amount);
                                     return;
                                 case FAIL_LEAK:
-                                    onPipeGasLeak(dim, pos, drained);
+                                    onPipeGasLeak(getWorld(), pos, drained);
                                     break;
                             }
                         }
@@ -190,10 +196,10 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
             // TODO: Find proper path to destroy
 
             if (absorber.isOverPressure()) {
-                onPipeOverPressure(dim, pos, absorber.getPressure());
+                onPipeOverPressure(getWorld(), pos, absorber.getPressure());
             }
             if (absorber.isOverCapacity()) {
-                onPipeOverCapacity(dim, pos, absorber.getCapacity());
+                onPipeOverCapacity(getWorld(), pos, absorber.getCapacity());
             }
         }
     }
@@ -218,6 +224,6 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
 
     @Override
     public ITickingController clone(INode group) {
-        return new FluidController<>(dim).set(group);
+        return new FluidController<>(WORLD_SUPPLIER, dim).set(group);
     }
 }

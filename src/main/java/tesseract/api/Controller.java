@@ -1,7 +1,12 @@
 package tesseract.api;
 
+import net.minecraft.util.RegistryKey;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import tesseract.graph.Group;
 import tesseract.graph.INode;
+
+import java.util.function.Function;
 
 /**
  * Class acts as a controller in the group of some components.
@@ -9,16 +14,19 @@ import tesseract.graph.INode;
 abstract public class Controller<C extends IConnectable, N extends IConnectable> implements ITickingController {
 
     protected int tick;
-    protected final int dim;
+    protected final RegistryKey<World> dim;
     protected Group<C, N> group;
+
+    protected final Function<RegistryKey<World>, ServerWorld> WORLD_SUPPLIER;
 
     /**
      * Creates instance of the controller.
      *
      * @param dim The dimension id.
      */
-    protected Controller(int dim) {
+    protected Controller(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
         this.dim = dim;
+        this.WORLD_SUPPLIER = supplier;
     }
 
     /**
@@ -46,4 +54,8 @@ abstract public class Controller<C extends IConnectable, N extends IConnectable>
      * Frame handler, which executes each second.
      */
     protected abstract void onFrame();
+
+    protected ServerWorld getWorld() {
+        return this.WORLD_SUPPLIER.apply(dim);
+    }
 }
