@@ -165,7 +165,7 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
                                     onPipeOverPressure(getWorld(), pos, amount);
                                     return;
                                 case FAIL_LEAK:
-                                    drained = onPipeGasLeak(dim, pos, drained);
+                                    drained = onPipeGasLeak(getWorld(), pos, drained);
                                     isLeaking = true;
                                     break;
                             }

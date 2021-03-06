@@ -42,7 +42,7 @@ public class Fluid<T> extends FluidController<T, IFluidNode<T>> {
     }
 
     @Override
-    public FluidData<T> onPipeGasLeak(int dim, long pos, @Nonnull FluidData<T> fluid) {
+    public FluidData<T> onPipeGasLeak(ServerWorld world, long pos, @Nonnull FluidData<T> fluid) {
         return new FluidData<T>(fluid.getStack(), (int) Math.floor(fluid.getAmount() * PIPE_LEAK), fluid.getTemperature(), fluid.isGaseous());
     }
 }
