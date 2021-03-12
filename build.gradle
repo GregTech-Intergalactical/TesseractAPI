@@ -119,9 +119,7 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     shadow 'org.apache.commons:commons-collections4:4.4'
     shadow 'it.unimi.dsi:fastutil:8.2.1'
-    //embed project(':tesseract')//(group: 'com.github.gregtech-intergalactical', name: 'tesseract')
 }
-
 
 publishing {
     publications {
