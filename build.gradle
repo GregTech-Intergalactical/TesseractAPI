@@ -93,24 +93,6 @@ minecraft {
     }
 }
 
-task deobfJar(type: Jar) {
-    from sourceSets.main.output
-   // configurations = [project.configurations.embed]
-    classifier "deobf"
-    //dependsOn gradle.includedBuild("tesseract").task(":deobfJar")
-}
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    description = 'Creates a JAR containing the source code.'
-    classifier 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives sourcesJar
-    archives deobfJar
-}
-
 repositories {
     jcenter()
 }
@@ -125,8 +107,7 @@ publishing {
     publications {
         forge(MavenPublication) {
             //artifactId = archivesBaseName
-            artifact deobfJar
-            artifact shadowJar
+            artifact jar
         }
     }
     //repositories {
