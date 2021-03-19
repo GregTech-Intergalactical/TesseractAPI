@@ -50,7 +50,7 @@ public class Tesseract {
 	}
     @SubscribeEvent
     public void onServerTick(TickEvent.WorldTickEvent event) {
-		if (event.side.isServer()) {
+		if (event.side.isServer() && event.phase == TickEvent.Phase.START) {
 			RegistryKey<World> dim = event.world.getDimensionKey();
             GT_ENERGY.tick(dim);
             FE_ENERGY.tick(dim);
