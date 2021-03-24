@@ -144,7 +144,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
         Pos pos = new Pos(consumerPos).sub(new Pos(producerPos));
         Dir dir = path != null ? path.target().getDirection()
                 : Dir.POS_TO_DIR.get(pos).getOpposite();
-        if (node.canInput(dir)) {
+        if (node.canInput(dir) && node.connects(dir)) {
             GTConsumer consumer = new GTConsumer(node, path);
             int voltage = producer.getOutputVoltage() - consumer.getLoss();
             if (voltage <= 0) {

@@ -103,7 +103,7 @@ public class FluidController<T, N extends IFluidNode<T>> extends Controller<IFlu
      */
     private void onCheck(List<FluidConsumer<T>> consumers, Path<IFluidPipe> path, Dir dir, long pos) {
         N node = group.getNodes().get(pos).value();
-        if (node.canInput()) consumers.add(new FluidConsumer<>(node, path, dir));
+        if (node.canInput() & node.connects(dir)) consumers.add(new FluidConsumer<>(node, path, dir));
     }
 
     @Override

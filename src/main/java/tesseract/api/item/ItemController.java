@@ -101,7 +101,7 @@ public class ItemController<T, N extends IItemNode<T>> extends Controller<IItemP
      */
     private void onCheck(List<ItemConsumer<T>> consumers, Path<IItemPipe> path, Dir dir, long pos) {
         N node = group.getNodes().get(pos).value();
-        if (node.canInput()) consumers.add(new ItemConsumer<>(node, path, dir));
+        if (node.canInput() && node.connects(dir)) consumers.add(new ItemConsumer<>(node, path, dir));
     }
 
     @Override
