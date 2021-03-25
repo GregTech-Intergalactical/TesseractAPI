@@ -8,7 +8,10 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.Direction;
 import net.minecraft.util.RegistryKey;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import tesseract.api.Consumer;
@@ -30,11 +33,11 @@ import java.util.function.Function;
 /**
  * Class acts as a controller in the group of an item components.
  */
-public class ItemController<T, N extends IItemNode<T>> extends Controller<IItemPipe, N> {
+public class ItemController<N extends IItemNode> extends Controller<IItemPipe, N> {
 
     private int transferred;
     private final Long2IntMap holders = new Long2IntOpenHashMap();
-    private final Object2ObjectMap<N, Map<Dir, List<ItemConsumer<T>>>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectMap<N, Map<Dir, List<ItemConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
@@ -44,6 +47,11 @@ public class ItemController<T, N extends IItemNode<T>> extends Controller<IItemP
     public ItemController(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
         super(supplier, dim);
         holders.defaultReturnValue(-1);
+    }
+
+    @Override
+    protected void onFrame() {
+
     }
 
     @Override
@@ -58,7 +66,7 @@ public class ItemController<T, N extends IItemNode<T>> extends Controller<IItemP
                 Pos position = new Pos(pos);
                 for (Dir direction : Dir.VALUES) {
                     if (producer.canOutput(direction)) {
-                        List<ItemConsumer<T>> consumers = new ObjectArrayList<>();
+                        List<ItemConsumer> consumers = new ObjectArrayList<>();
                         long side = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(side)) {
@@ -84,11 +92,78 @@ public class ItemController<T, N extends IItemNode<T>> extends Controller<IItemP
             }
         }
 
-        for (Map<Dir, List<ItemConsumer<T>>> map : data.values()) {
-            for (List<ItemConsumer<T>> consumers : map.values()) {
+        for (Map<Dir, List<ItemConsumer>> map : data.values()) {
+            for (List<ItemConsumer> consumers : map.values()) {
                 consumers.sort(Consumer.COMPARATOR);
             }
         }
+    }
+
+    public ItemStack insert(Pos producerPos, Dir direction, ItemStack stack, boolean simulate) {
+        Cache<N> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
+        if (node == null) return stack;
+        Map<Dir, List<ItemConsumer>> map = this.data.get(node.value());
+        if (map == null) return stack;
+        List<ItemConsumer> list = map.get(direction.getOpposite());
+        if (list == null) return stack;
+        for (ItemConsumer consumer : list) {
+            if (!consumer.canAccept(stack)) {
+                continue;
+            }
+
+            int amount = consumer.insert(stack, true);
+            if (amount <= 0) {
+                continue;
+            }
+            if (simulate) {
+                ItemStack newStack = stack.copy();
+                newStack.setCount(newStack.getCount()-amount);
+                return newStack;
+            }
+
+            // Stores the pressure into holder for path only for variate connection
+            switch (consumer.getConnection()) {
+                case SINGLE:
+                    int min = consumer.getMinCapacity(); // Fast check by the lowest cost pipe
+                    if (min < amount) {
+                        amount = min;
+                    }
+                    break;
+
+                case VARIATE:
+                    int limit = amount;
+                    for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
+                        long pos = p.getLongKey();
+                        IItemPipe pipe = p.getValue();
+
+                        int capacity = holders.get(pos);
+                        if (capacity == -1) {
+                            capacity = pipe.getCapacity();
+                            holders.put(pos, capacity);
+                        }
+                        limit = Math.min(limit, capacity);
+                    }
+
+                    if (limit > 0) {
+                        for (long pos : consumer.getCross().keySet()) {
+                            holders.put(pos, Math.max(holders.get(pos) - limit, 0));
+                        }
+                    }
+
+                    amount = limit;
+                    break;
+            }
+
+            if (amount <= 0) {
+                return stack;
+            } else {
+                ItemStack newStack = stack.copy();
+                consumer.insert(stack, false);
+                newStack.setCount(newStack.getCount()-amount);
+                return newStack;
+            }
+        }
+        return stack;
     }
 
     /**
@@ -99,105 +174,9 @@ public class ItemController<T, N extends IItemNode<T>> extends Controller<IItemP
      * @param dir The added direction.
      * @param pos The position of the producer.
      */
-    private void onCheck(List<ItemConsumer<T>> consumers, Path<IItemPipe> path, Dir dir, long pos) {
+    private void onCheck(List<ItemConsumer> consumers, Path<IItemPipe> path, Dir dir, long pos) {
         N node = group.getNodes().get(pos).value();
-        if (node.canInput() && node.connects(dir)) consumers.add(new ItemConsumer<>(node, path, dir));
-    }
-
-    @Override
-    protected void onFrame() {
-        transferred = 0;
-        holders.clear();
-
-        for (Object2ObjectMap.Entry<N, Map<Dir, List<ItemConsumer<T>>>> e : data.object2ObjectEntrySet()) {
-            N producer = e.getKey();
-
-            for (Map.Entry<Dir, List<ItemConsumer<T>>> c : e.getValue().entrySet()) {
-                Dir direction = c.getKey();
-
-                IntList slots = producer.getAvailableSlots(direction);
-                if (slots.isEmpty()) {
-                    continue;
-                }
-
-                IntIterator it = slots.iterator();
-                int outputAmount = producer.getOutputAmount(direction);
-
-                I:for (ItemConsumer<T> consumer : c.getValue()) {
-                    while (it.hasNext()) {
-                        int slot = it.nextInt();
-
-                        ItemData<T> data = producer.extract(slot, outputAmount, true);
-                        if (data == null) {
-                            continue;
-                        }
-
-                        T stack = data.getStack();
-                        if (!consumer.canAccept(stack)) {
-                            continue;
-                        }
-
-                        int amount = consumer.insert(data, true);
-                        if (amount <= 0) {
-                            continue;
-                        }
-
-                        // Stores the pressure into holder for path only for variate connection
-                        switch (consumer.getConnection()) {
-                            case SINGLE:
-                                int min = consumer.getMinCapacity(); // Fast check by the lowest cost pipe
-                                if (min < amount) {
-                                    amount = min;
-                                }
-                                break;
-
-                            case VARIATE:
-                                int limit = amount;
-                                for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
-                                    long pos = p.getLongKey();
-                                    IItemPipe pipe = p.getValue();
-
-                                    int capacity = holders.get(pos);
-                                    if (capacity == -1) {
-                                        capacity = pipe.getCapacity();
-                                        holders.put(pos, capacity);
-                                    }
-                                    limit = Math.min(limit, capacity);
-                                }
-
-                                if (limit > 0) {
-                                    for (long pos : consumer.getCross().keySet()) {
-                                        holders.put(pos, Math.max(holders.get(pos) - limit, 0));
-                                    }
-                                }
-
-                                amount = limit;
-                                break;
-                        }
-
-                        if (amount <= 0) {
-                            continue I;
-                        }
-
-                        ItemData<T> extracted = producer.extract(slot, amount, false);
-
-                        assert extracted != null;
-                        transferred += amount;
-
-                        consumer.insert(extracted, false);
-
-                        outputAmount -= amount;
-                        if (outputAmount <= 0) {
-                            break I;
-                        }
-
-                        if (producer.isEmpty(slot)) {
-                            it.remove();
-                        }
-                    }
-                }
-            }
-        }
+        if (node.canInput() && node.connects(dir)) consumers.add(new ItemConsumer(node, path, dir));
     }
 
     @Override

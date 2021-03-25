@@ -35,7 +35,7 @@ public class Tesseract {
 	public static GraphWrapper<IFECable, IFENode> FE_ENERGY;
 	public static GraphWrapper<IGTCable, IGTNode> GT_ENERGY;
 	public static GraphWrapper<IFluidPipe, IFluidNode<FluidStack>> FLUID;
-	public static GraphWrapper<IItemPipe, IItemNode<ItemStack>> ITEM;
+	public static GraphWrapper<IItemPipe, IItemNode> ITEM;
 
 	public Tesseract() {
 		MinecraftForge.EVENT_BUS.register(this);
