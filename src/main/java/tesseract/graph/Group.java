@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.collections4.SetUtils;
+import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
 import tesseract.api.ITickingController;
@@ -90,7 +91,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             ticking.set(this);
             controller = ticking;
         }
-        controller.change();
+        if (Tesseract.hadFirstTick())
+            controller.change();
     }
 
     /**
@@ -140,22 +142,16 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
-            if (!node.connects(direction)) {
+            int connector = connectors.get(position.offset(direction).asLong());
+            if (connector == CID.INVALID) {
+                continue;
+            }
+            Grid<C> grid = grids.get(connector);
+            if (!grid.connects(pos, direction.getOpposite())) {
                 continue;
             }
 
-            long side = position.offset(direction).asLong();
-            int id = connectors.get(side);
-
-            // Add a node to the neighboring grid ?
-            if (id != CID.INVALID) {
-                Grid<C> grid = grids.get(id);
-                side = position.offset(direction).asLong();
-
-                if (grid.connects(side, direction.getOpposite())) {
-                    grid.addNode(pos, node);
-                }
-            }
+            grid.addNode(pos, node);
         }
 
         updateController(controller);
@@ -223,10 +219,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         for (Long2ObjectMap.Entry<Dir> e : joined.long2ObjectEntrySet()) {
             long move = e.getLongKey();
             Dir direction = e.getValue();
-
             Cache<N> node = nodes.get(move);
-
-            if (node.connects(direction.getOpposite())) {
+            if (connector.connects(direction)) {
                 bestGrid.addNode(move, node);
             }
         }

@@ -12,6 +12,7 @@ import tesseract.util.Pos;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Grid provides the functionality of a set of linked nodes.
@@ -19,13 +20,13 @@ import java.util.function.Consumer;
 public class Grid<C extends IConnectable> implements INode {
 
     private final Long2ObjectMap<Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
-    private final Long2ByteMap nodes = new Long2ByteLinkedOpenHashMap();
+    private final Long2ObjectMap<Supplier<Byte>> nodes = new Long2ObjectOpenHashMap<>();
     private final BFDivider divider = new BFDivider(this);
     private final ASFinder finder = new ASFinder(this);
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
-        nodes.defaultReturnValue(Byte.MAX_VALUE);
+        nodes.defaultReturnValue(() -> Byte.MAX_VALUE);
     }
 
     /**
@@ -51,8 +52,8 @@ public class Grid<C extends IConnectable> implements INode {
         Cache<C> cacheFrom = connectors.get(from);
         Cache<C> cacheTo = connectors.get(to);
 
-        byte connectivityFrom = nodes.get(from);
-        byte connectivityTo = nodes.get(to);
+        byte connectivityFrom = nodes.get(from).get();
+        byte connectivityTo = nodes.get(to).get();
 
         boolean validLink = false;
 
@@ -78,7 +79,7 @@ public class Grid<C extends IConnectable> implements INode {
         assert towards != null;
 
         Cache<C> cache = connectors.get(pos);
-        byte connectivity = nodes.get(pos);
+        byte connectivity = nodes.get(pos).get();
 
         if (cache != null) {
             connectivity = cache.connectivity();
@@ -115,8 +116,8 @@ public class Grid<C extends IConnectable> implements INode {
     /**
      * @return Returns nodes map.
      */
-    public Long2ByteMap getNodes() {
-        return Long2ByteMaps.unmodifiable(nodes);
+    public Long2ObjectMap<Supplier<Byte>> getNodes() {
+        return Long2ObjectMaps.unmodifiable(nodes);
     }
 
     /**
@@ -185,7 +186,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param node The given node.
      */
     public void addNode(long pos, Cache<?> node) {
-        nodes.put(pos, node.connectivity());
+        nodes.put(pos, () -> node.connectivity());
     }
 
     /**
@@ -245,11 +246,11 @@ public class Grid<C extends IConnectable> implements INode {
             LongSet found = colored.get(i);
 
             for (long reached : found) {
-                byte connectivity = nodes.get(reached);
+                byte connectivity = nodes.get(reached).get();
 
                 if (connectivity != Byte.MAX_VALUE) {
                     check.add(reached);
-                    newGrid.nodes.put(reached, connectivity);
+                    newGrid.nodes.put(reached, () -> connectivity);
                 } else {
                     newGrid.connectors.put(reached, connectors.remove(reached));
                 }

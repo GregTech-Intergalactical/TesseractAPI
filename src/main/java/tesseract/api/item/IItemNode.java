@@ -85,5 +85,5 @@ public interface IItemNode extends IConnectable, IRefreshable {
      * @param direction Direction to the input.
      * @return If the storage can input the item (EVER, not at the time of query).
      */
-    boolean canInput(Object item, Dir direction);
+    boolean canInput(ItemStack item, Dir direction);
 }

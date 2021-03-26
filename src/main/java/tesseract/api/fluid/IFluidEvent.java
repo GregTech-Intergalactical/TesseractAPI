@@ -1,6 +1,7 @@
 package tesseract.api.fluid;
 
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.fluids.FluidStack;
 
 /**
  * Interface for handling a fluid events. (Controller will handle them)
@@ -44,7 +45,7 @@ public interface IFluidEvent<T> {
      * @param pos The pipe position.
      * @param fluid FluidData holding the Fluid to be queried.
      */
-    default FluidData<T> onPipeGasLeak(ServerWorld world, long pos, FluidData<T> fluid) {
+    default FluidStack onPipeGasLeak(ServerWorld world, long pos, FluidStack fluid) {
         return fluid;
     }
 }

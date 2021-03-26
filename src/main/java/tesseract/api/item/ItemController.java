@@ -1,7 +1,5 @@
 package tesseract.api.item;
 
-import it.unimi.dsi.fastutil.ints.IntIterator;
-import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -9,9 +7,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.Direction;
 import net.minecraft.util.RegistryKey;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import tesseract.api.Consumer;
@@ -34,11 +30,9 @@ import java.util.function.Function;
  * Class acts as a controller in the group of an item components.
  */
 public class ItemController<N extends IItemNode> extends Controller<IItemPipe, N> {
-
     private int transferred;
     private final Long2IntMap holders = new Long2IntOpenHashMap();
     private final Object2ObjectMap<N, Map<Dir, List<ItemConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
-
     /**
      * Creates instance of the controller.
      *
@@ -115,11 +109,6 @@ public class ItemController<N extends IItemNode> extends Controller<IItemPipe, N
             if (amount <= 0) {
                 continue;
             }
-            if (simulate) {
-                ItemStack newStack = stack.copy();
-                newStack.setCount(newStack.getCount()-amount);
-                return newStack;
-            }
 
             // Stores the pressure into holder for path only for variate connection
             switch (consumer.getConnection()) {
@@ -144,7 +133,7 @@ public class ItemController<N extends IItemNode> extends Controller<IItemPipe, N
                         limit = Math.min(limit, capacity);
                     }
 
-                    if (limit > 0) {
+                    if (!simulate && limit > 0) {
                         for (long pos : consumer.getCross().keySet()) {
                             holders.put(pos, Math.max(holders.get(pos) - limit, 0));
                         }
@@ -153,7 +142,11 @@ public class ItemController<N extends IItemNode> extends Controller<IItemPipe, N
                     amount = limit;
                     break;
             }
-
+            if (simulate) {
+                ItemStack newStack = stack.copy();
+                newStack.setCount(newStack.getCount()-amount);
+                return newStack;
+            }
             if (amount <= 0) {
                 return stack;
             } else {

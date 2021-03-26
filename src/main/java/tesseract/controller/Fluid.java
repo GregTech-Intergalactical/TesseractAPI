@@ -7,6 +7,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.fluids.FluidStack;
 import tesseract.api.fluid.FluidController;
 import tesseract.api.fluid.FluidData;
 import tesseract.api.fluid.IFluidNode;
@@ -15,7 +16,7 @@ import javax.annotation.Nonnull;
 import java.util.function.Function;
 
 // TODO: Make explosions depend on pressure, capacity, temperature
-public class Fluid<T> extends FluidController<T, IFluidNode<T>> {
+public class Fluid<T> extends FluidController<T, IFluidNode> {
 
     /**
      * Creates instance of the tesseract.controller.
@@ -42,7 +43,8 @@ public class Fluid<T> extends FluidController<T, IFluidNode<T>> {
     }
 
     @Override
-    public FluidData<T> onPipeGasLeak(ServerWorld world, long pos, @Nonnull FluidData<T> fluid) {
-        return new FluidData<T>(fluid.getStack(), (int) Math.floor(fluid.getAmount() * PIPE_LEAK), fluid.getTemperature(), fluid.isGaseous());
+    public FluidStack onPipeGasLeak(ServerWorld world, long pos, @Nonnull FluidStack fluid) {
+        return super.onPipeGasLeak(world, pos, fluid);
+        //return new FluidData<T>(fluid.getStack(), (int) Math.floor(fluid.getAmount() * PIPE_LEAK), fluid.getTemperature(), fluid.isGaseous());
     }
 }

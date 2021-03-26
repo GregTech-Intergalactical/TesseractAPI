@@ -11,6 +11,7 @@ import tesseract.graph.Group;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
 
@@ -36,7 +37,7 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public void registerNode(RegistryKey<World> dim, long pos, N node) {
+    public void registerNode(RegistryKey<World> dim, long pos, Supplier<N> node) {
         getGraph(dim).addNode(pos, new Cache<>(node), supplier.apply(worldSupplier,dim));
     }
 
@@ -87,5 +88,9 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
         Graph<C, N> g = graph.get(dim);
         if (g != null)
             g.getGroups().forEach((pos, gr) -> gr.getController().tick());
+    }
+
+    public void onFirstTick(RegistryKey<World> dim) {
+        getGraph(dim).getGroups().values().forEach(t -> t.getController().change());
     }
 }
