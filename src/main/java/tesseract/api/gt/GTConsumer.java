@@ -110,6 +110,8 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
         public void onTick() {
             ampsReceived = 0;
             euReceived = 0;
+            ampsSent = 0;
+            euSent = 0;
         }
 
         public boolean extract(boolean simulate, int amps, long eu) {
