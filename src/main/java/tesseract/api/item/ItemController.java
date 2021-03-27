@@ -95,18 +95,18 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
 
     public int insert(Pos producerPos, Dir direction, ItemStack stack, boolean simulate) {
         Cache<N> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
-        if (node == null) return 0;
+        if (node == null) return stack.getCount();
         Map<Dir, List<ItemConsumer>> map = this.data.get(node.value());
-        if (map == null) return 0;
+        if (map == null) return stack.getCount();
         List<ItemConsumer> list = map.get(direction.getOpposite());
-        if (list == null) return 0;
+        if (list == null) return stack.getCount();
         for (ItemConsumer consumer : list) {
             if (!consumer.canAccept(stack)) {
                 continue;
             }
 
             int amount = consumer.insert(stack, true);
-            if (amount <= 0) {
+            if (amount == stack.getCount()) {
                 continue;
             }
 
@@ -143,13 +143,13 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
                     break;
             }
             if (simulate) {
-                return stack.getCount()-amount;
+                return amount;
             }
-            if (amount <= 0) {
-                return 0;
+            if (amount == stack.getCount()) {
+                return stack.getCount();
             } else {
                 consumer.insert(stack, false);
-                return stack.getCount()-amount;
+                return amount;
             }
         }
         return stack.getCount();
