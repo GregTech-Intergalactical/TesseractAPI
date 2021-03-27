@@ -181,12 +181,12 @@ public class TesseractGTCapability implements IEnergyHandler {
 
     @Override
     public boolean canInput() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean canInput(Dir direction) {
-        return false;
+        return true;
     }
 
     @Override
