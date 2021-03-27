@@ -1,21 +1,24 @@
 package tesseract.api;
 
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import tesseract.graph.Group;
 import tesseract.graph.INode;
+import tesseract.util.Dir;
+import tesseract.util.Pos;
 
 import java.util.function.Function;
 
 /**
  * Class acts as a controller in the group of some components.
  */
-abstract public class Controller<C extends IConnectable, N extends IConnectable> implements ITickingController {
+abstract public class Controller<T, C extends IConnectable, N extends IConnectable> implements ITickingController {
 
     protected int tick;
     protected final RegistryKey<World> dim;
-    protected Group<C, N> group;
+    protected Group<T, C, N> group;
 
     protected final Function<RegistryKey<World>, ServerWorld> WORLD_SUPPLIER;
 
@@ -34,8 +37,8 @@ abstract public class Controller<C extends IConnectable, N extends IConnectable>
      *
      * @param container The group this controller handles.
      */
-    public Controller<C, N> set(INode container) {
-        this.group = (Group<C, N>) container;
+    public Controller<T, C, N> set(INode container) {
+        this.group = (Group<T, C, N>) container;
         return this;
     }
 
@@ -49,6 +52,8 @@ abstract public class Controller<C extends IConnectable, N extends IConnectable>
             onFrame();
         }
     }
+
+    public abstract int insert(Pos producerPos, Dir direction, T stack, boolean simulate);
 
     /**
      * Frame handler, which executes each second.

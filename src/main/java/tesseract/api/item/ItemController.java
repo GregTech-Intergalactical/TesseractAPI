@@ -29,7 +29,7 @@ import java.util.function.Function;
 /**
  * Class acts as a controller in the group of an item components.
  */
-public class ItemController<N extends IItemNode> extends Controller<IItemPipe, N> {
+public class ItemController<N extends IItemNode> extends Controller<ItemStack, IItemPipe, N> {
     private int transferred;
     private final Long2IntMap holders = new Long2IntOpenHashMap();
     private final Object2ObjectMap<N, Map<Dir, List<ItemConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
@@ -93,13 +93,13 @@ public class ItemController<N extends IItemNode> extends Controller<IItemPipe, N
         }
     }
 
-    public ItemStack insert(Pos producerPos, Dir direction, ItemStack stack, boolean simulate) {
+    public int insert(Pos producerPos, Dir direction, ItemStack stack, boolean simulate) {
         Cache<N> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
-        if (node == null) return stack;
+        if (node == null) return 0;
         Map<Dir, List<ItemConsumer>> map = this.data.get(node.value());
-        if (map == null) return stack;
+        if (map == null) return 0;
         List<ItemConsumer> list = map.get(direction.getOpposite());
-        if (list == null) return stack;
+        if (list == null) return 0;
         for (ItemConsumer consumer : list) {
             if (!consumer.canAccept(stack)) {
                 continue;
@@ -143,20 +143,16 @@ public class ItemController<N extends IItemNode> extends Controller<IItemPipe, N
                     break;
             }
             if (simulate) {
-                ItemStack newStack = stack.copy();
-                newStack.setCount(newStack.getCount()-amount);
-                return newStack;
+                return stack.getCount()-amount;
             }
             if (amount <= 0) {
-                return stack;
+                return 0;
             } else {
-                ItemStack newStack = stack.copy();
                 consumer.insert(stack, false);
-                newStack.setCount(newStack.getCount()-amount);
-                return newStack;
+                return stack.getCount()-amount;
             }
         }
-        return stack;
+        return stack.getCount();
     }
 
     /**

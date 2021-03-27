@@ -5,7 +5,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraftforge.items.IItemHandler;
 import tesseract.Tesseract;
-import tesseract.api.item.ItemController;
+import tesseract.api.Controller;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
@@ -35,7 +35,10 @@ public class TesseractItemCapability implements IItemHandler {
     @Nonnull
     @Override
     public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
-        return ((ItemController)Tesseract.ITEM.getController(tile.getWorld().getDimensionKey(), tile.getPos().toLong())).insert(new Pos(tile.getPos().toLong()), Dir.VALUES[side.getIndex()],stack, simulate);
+        int inserted = ((Controller)Tesseract.ITEM.getController(tile.getWorld().getDimensionKey(), tile.getPos().toLong())).insert(new Pos(tile.getPos().toLong()), Dir.VALUES[side.getIndex()],stack, simulate);
+        ItemStack newStack = stack.copy();
+        newStack.setCount(newStack.getCount() - inserted);
+        return newStack;
     }
 
     @Nonnull

@@ -13,11 +13,11 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
+public class GraphWrapper<T, C extends IConnectable, N extends IConnectable> {
 
-    protected final Object2ObjectMap<RegistryKey<World>, Graph<C, N>> graph = new Object2ObjectOpenHashMap<>();
+    protected final Object2ObjectMap<RegistryKey<World>, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
     //TODO: maybe do this better.
-    protected final BiFunction<Function<RegistryKey<World>, ServerWorld>,RegistryKey<World>, Controller<C, N>> supplier;
+    protected final BiFunction<Function<RegistryKey<World>, ServerWorld>,RegistryKey<World>, Controller<T, C, N>> supplier;
     protected final Function<RegistryKey<World>, ServerWorld> worldSupplier;
 
     /**
@@ -25,7 +25,7 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      *
      * @param supplier The default controller supplier.
      */
-    public GraphWrapper(Function<RegistryKey<World>, ServerWorld> worldSupplier, BiFunction<Function<RegistryKey<World>, ServerWorld>,RegistryKey<World>, Controller<C, N>> supplier) {
+    public GraphWrapper(Function<RegistryKey<World>, ServerWorld> worldSupplier, BiFunction<Function<RegistryKey<World>, ServerWorld>,RegistryKey<World>, Controller<T, C, N>> supplier) {
         this.supplier = supplier;
         this.worldSupplier = worldSupplier;
     }
@@ -39,6 +39,10 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      */
     public void registerNode(RegistryKey<World> dim, long pos, Supplier<N> node) {
         getGraph(dim).addNode(pos, new Cache<>(node), supplier.apply(worldSupplier,dim));
+    }
+
+    public void refreshNode(RegistryKey<World> dim, long pos) {
+        getGraph(dim).refreshNode(pos);
     }
 
     /**
@@ -58,7 +62,7 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param dim The dimension id.
      * @return The graph instance for the world.
      */
-    public Graph<C, N> getGraph(RegistryKey<World> dim) {
+    public Graph<T, C, N> getGraph(RegistryKey<World> dim) {
         return graph.computeIfAbsent(dim, k -> new Graph<>());
     }
 
@@ -70,7 +74,7 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @return The controller object. (Can be null)
      */
     public ITickingController getController(RegistryKey<World> dim, long pos) {
-        Group<?, ?> group = getGraph(dim).getGroupAt(pos);
+        Group<?, ?, ?> group = getGraph(dim).getGroupAt(pos);
         return group != null ? group.getController() : null;
     }
 
@@ -85,7 +89,7 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
     }
 
     public void tick(RegistryKey<World> dim) {
-        Graph<C, N> g = graph.get(dim);
+        Graph<T, C, N> g = graph.get(dim);
         if (g != null)
             g.getGroups().forEach((pos, gr) -> gr.getController().tick());
     }

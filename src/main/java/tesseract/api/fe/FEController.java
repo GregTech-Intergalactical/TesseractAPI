@@ -25,7 +25,7 @@ import java.util.function.Function;
 /**
  * Class acts as a controller in the group of a energy components.
  */
-public class FEController extends Controller<IFECable, IFENode> {
+public class FEController extends Controller<Integer, IFECable, IFENode> {
 
     private long totalEnergy, lastEnergy;
     private final Long2LongMap holders = new Long2LongOpenHashMap();
@@ -215,6 +215,11 @@ public class FEController extends Controller<IFECable, IFENode> {
                 }
             }
         }
+    }
+
+    @Override
+    public int insert(Pos producerPos, Dir direction, Integer stack, boolean simulate) {
+        return 0;
     }
 
     @Override

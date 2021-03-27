@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
 import java.util.function.Function;
 
 // TODO: Make explosions depend on pressure, capacity, temperature
-public class Fluid<T> extends FluidController<T, IFluidNode> {
+public class Fluid extends FluidController<IFluidNode> {
 
     /**
      * Creates instance of the tesseract.controller.

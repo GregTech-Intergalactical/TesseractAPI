@@ -31,7 +31,7 @@ import java.util.function.Function;
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-public class FluidController<T, N extends IFluidNode> extends Controller<IFluidPipe, N> implements IFluidEvent {
+public class FluidController<N extends IFluidNode> extends Controller<FluidStack, IFluidPipe, N> implements IFluidEvent {
 
     // TODO: assign the value from Antimatter config
     public static boolean HARDCORE_PIPES = false;
