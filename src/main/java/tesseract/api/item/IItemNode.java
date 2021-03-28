@@ -1,6 +1,7 @@
 package tesseract.api.item;
 
 import it.unimi.dsi.fastutil.ints.IntList;
+import net.minecraft.item.ItemStack;
 import tesseract.api.IConnectable;
 import tesseract.api.IRefreshable;
 import tesseract.util.Dir;
@@ -13,7 +14,7 @@ import tesseract.util.Dir;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IItemNode<T> extends IConnectable, IRefreshable {
+public interface IItemNode extends IConnectable, IRefreshable {
 
     /**
      * Inserts an item into an available slot and return the remainder.
@@ -23,7 +24,7 @@ public interface IItemNode<T> extends IConnectable, IRefreshable {
      *         May be the same as the input ItemData if unchanged, otherwise a new ItemData.
      *         The returned ItemData can be safely modified after.
      **/
-    int insert(ItemData<T> data, boolean simulate);
+    int insert(ItemStack data, boolean simulate);
 
     /**
      * Extracts an item from an available slot.
@@ -33,7 +34,7 @@ public interface IItemNode<T> extends IConnectable, IRefreshable {
      * @return ItemData extracted from the slot, must be null if nothing can be extracted.
      *         The returned ItemData can be safely modified after, so item handlers should return a new or copied stack.
      **/
-    ItemData<T> extract(int slot, int amount, boolean simulate);
+    ItemStack extract(int slot, int amount, boolean simulate);
 
     /**
      * @param direction The direction index.
@@ -84,5 +85,5 @@ public interface IItemNode<T> extends IConnectable, IRefreshable {
      * @param direction Direction to the input.
      * @return If the storage can input the item (EVER, not at the time of query).
      */
-    boolean canInput(Object item, Dir direction);
+    boolean canInput(ItemStack item, Dir direction);
 }

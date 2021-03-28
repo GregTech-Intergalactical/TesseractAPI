@@ -19,7 +19,7 @@ class TestBench {
 
     public static void main(String[] args) throws Exception {
 
-        Graph<ExampleConnector, ExampleNode> graph = new Graph<>();
+        Graph<Integer,ExampleConnector, ExampleNode> graph = new Graph<>();
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
@@ -73,7 +73,7 @@ class TestBench {
                 long origin = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
                 long target = packAll(Integer.parseInt(points[4]), Integer.parseInt(points[5]), Integer.parseInt(points[6]));
 
-                for (Int2ObjectMap.Entry<Group<ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
+                for (Int2ObjectMap.Entry<Group<Integer,ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                     for (Grid<ExampleConnector> grid : group.getValue().getGrids().values()) {
                         for (Node node : grid.getPath(origin, target)) {
                             System.out.println(node);
@@ -87,7 +87,7 @@ class TestBench {
 
             System.out.println("Graph contains " + graph.countGroups() + " groups:");
 
-            for (Int2ObjectMap.Entry<Group<ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
+            for (Int2ObjectMap.Entry<Group<Integer,ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                 System.out.println("  Group " + group.getIntKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
 
                 for (Long2ObjectMap.Entry<Cache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {

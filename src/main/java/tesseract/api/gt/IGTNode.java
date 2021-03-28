@@ -84,4 +84,6 @@ public interface IGTNode extends IConnectable, IRefreshable {
 	 * @return Returns true if the given direction is output side.
 	 */
 	boolean canOutput(Dir direction);
+
+	GTConsumer.State getState();
 }

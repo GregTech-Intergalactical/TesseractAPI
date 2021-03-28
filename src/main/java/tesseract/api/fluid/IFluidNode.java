@@ -1,5 +1,6 @@
 package tesseract.api.fluid;
 
+import net.minecraftforge.fluids.FluidStack;
 import tesseract.api.IConnectable;
 import tesseract.api.IRefreshable;
 import tesseract.util.Dir;
@@ -12,7 +13,7 @@ import tesseract.util.Dir;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IFluidNode<T> extends IConnectable, IRefreshable {
+public interface IFluidNode extends IConnectable, IRefreshable {
 
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.
@@ -20,7 +21,7 @@ public interface IFluidNode<T> extends IConnectable, IRefreshable {
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    int insert(FluidData<T> data, boolean simulate);
+    int insert(FluidStack data, boolean simulate);
 
     /**
      * Removes fluid from the node. Returns amount of fluid that was drained.
@@ -29,7 +30,7 @@ public interface IFluidNode<T> extends IConnectable, IRefreshable {
      * @param simulate If true, the drain will only be simulated.
      * @return FluidData representing fluid that was removed (or would be, if simulated) from the tank.
      */
-    FluidData<T> extract(int tank, int amount, boolean simulate);
+    FluidStack extract(int tank, int amount, boolean simulate);
 
     /**
      * @param direction Direction to the proceed.
@@ -74,5 +75,5 @@ public interface IFluidNode<T> extends IConnectable, IRefreshable {
      * @param direction Direction to the input.
      * @return If the tank can input the fluid (EVER, not at the time of query).
      */
-    boolean canInput(Object fluid, Dir direction);
+    boolean canInput(FluidStack fluid, Dir direction);
 }

@@ -8,8 +8,11 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
+import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import tesseract.api.GraphWrapper;
+import tesseract.api.capability.TesseractGTCapability;
 import tesseract.api.fe.FEController;
 import tesseract.api.fe.IFECable;
 import tesseract.api.fe.IFENode;
@@ -32,13 +35,24 @@ public class Tesseract {
 	public static final String VERSION = "0.0.1";
 	public static final String DEPENDS = "";
 
-	public static GraphWrapper<IFECable, IFENode> FE_ENERGY;
-	public static GraphWrapper<IGTCable, IGTNode> GT_ENERGY;
-	public static GraphWrapper<IFluidPipe, IFluidNode<FluidStack>> FLUID;
-	public static GraphWrapper<IItemPipe, IItemNode<ItemStack>> ITEM;
+	public static GraphWrapper<Integer,IFECable, IFENode> FE_ENERGY;
+	public static GraphWrapper<Long,IGTCable, IGTNode> GT_ENERGY;
+	public static GraphWrapper<FluidStack,IFluidPipe, IFluidNode> FLUID;
+	public static GraphWrapper<ItemStack,IItemPipe, IItemNode> ITEM;
 
 	public Tesseract() {
 		MinecraftForge.EVENT_BUS.register(this);
+	}
+
+	@SubscribeEvent
+	public void commonSetup(FMLCommonSetupEvent event) {
+		TesseractGTCapability.register();
+	}
+
+	private static boolean firstTick = false;
+
+	public static boolean hadFirstTick() {
+		return firstTick;
 	}
 
 	@SubscribeEvent
@@ -48,10 +62,23 @@ public class Tesseract {
 		FLUID = new GraphWrapper<>(e.getServer()::getWorld,Fluid::new);
 		ITEM = new GraphWrapper<>(e.getServer()::getWorld,ItemController::new);
 	}
+
+	@SubscribeEvent
+	public void serverStoppedEvent(FMLServerStoppedEvent e) {
+		firstTick = false;
+	}
+
     @SubscribeEvent
     public void onServerTick(TickEvent.WorldTickEvent event) {
+		RegistryKey<World> dim = event.world.getDimensionKey();
+		if (!hadFirstTick()) {
+			GT_ENERGY.onFirstTick(dim);
+			FE_ENERGY.onFirstTick(dim);
+			FLUID.onFirstTick(dim);
+			ITEM.onFirstTick(dim);
+		}
+		firstTick = true;
 		if (event.side.isServer() && event.phase == TickEvent.Phase.START) {
-			RegistryKey<World> dim = event.world.getDimensionKey();
             GT_ENERGY.tick(dim);
             FE_ENERGY.tick(dim);
             FLUID.tick(dim);

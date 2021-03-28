@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.collections4.SetUtils;
+import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
 import tesseract.api.ITickingController;
@@ -22,7 +23,7 @@ import java.util.function.Consumer;
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
  */
-public class Group<C extends IConnectable, N extends IConnectable> implements INode {
+public class Group<T, C extends IConnectable, N extends IConnectable> implements INode {
 
     private final Long2ObjectMap<Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
     private final Int2ObjectMap<Grid<C>> grids = new Int2ObjectLinkedOpenHashMap<>();
@@ -41,8 +42,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param controller The given controller.
      * @return Create a instance of a class for a given position and node.
      */
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleNode(long pos, Cache<N> node, Controller<C, N> controller) {
-        Group<C, N> group = new Group<>();
+    protected static <T, C extends IConnectable, N extends IConnectable> Group<T, C, N> singleNode(long pos, Cache<N> node, Controller<T, C, N> controller) {
+        Group<T, C, N> group = new Group<>();
         group.addNode(pos, node, controller);
         return group;
     }
@@ -53,8 +54,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param controller The given controller.
      * @return Create a instance of a class for a given position and connector.
      */
-    protected static <C extends IConnectable, N extends IConnectable> Group<C, N> singleConnector(long pos, Cache<C> connector, Controller<C, N> controller) {
-        Group<C, N> group = new Group<>();
+    protected static <T, C extends IConnectable, N extends IConnectable> Group<T, C, N> singleConnector(long pos, Cache<C> connector, Controller<T, C, N> controller) {
+        Group<T, C, N> group = new Group<>();
         int id = CID.nextId();
         group.connectors.put(pos, id);
         group.grids.put(id, Grid.singleConnector(pos, connector));
@@ -82,7 +83,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      *
      * @param ticking The ticking instance.
      */
-    private void updateController(Controller<C, N> ticking) {
+    private void updateController(Controller<T, C, N> ticking) {
         if (ticking == null)
             return;
 
@@ -90,7 +91,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
             ticking.set(this);
             controller = ticking;
         }
-        controller.change();
+        if (Tesseract.hadFirstTick())
+            controller.change();
     }
 
     /**
@@ -135,27 +137,21 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param node The given node.
      * @param controller The controller to use.
      */
-    public void addNode(long pos, Cache<N> node, Controller<C, N> controller) {
+    public void addNode(long pos, Cache<N> node, Controller<T, C, N> controller) {
         nodes.put(pos, node);
 
         Pos position = new Pos(pos);
         for (Dir direction : Dir.VALUES) {
-            if (!node.connects(direction)) {
+            int connector = connectors.get(position.offset(direction).asLong());
+            if (connector == CID.INVALID) {
+                continue;
+            }
+            Grid<C> grid = grids.get(connector);
+            if (!grid.connects(pos, direction.getOpposite())) {
                 continue;
             }
 
-            long side = position.offset(direction).asLong();
-            int id = connectors.get(side);
-
-            // Add a node to the neighboring grid ?
-            if (id != CID.INVALID) {
-                Grid<C> grid = grids.get(id);
-                side = position.offset(direction).asLong();
-
-                if (grid.connects(side, direction.getOpposite())) {
-                    grid.addNode(pos, node);
-                }
-            }
+            grid.addNode(pos, node);
         }
 
         updateController(controller);
@@ -167,7 +163,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param connector The given connector.
      * @param controller The controller to use.
      */
-    public void addConnector(long pos, Cache<C> connector, Controller<C, N> controller) {
+    public void addConnector(long pos, Cache<C> connector, Controller<T, C, N> controller) {
 
         Int2ObjectMap<Grid<C>> linked = new Int2ObjectLinkedOpenHashMap<>();
         Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
@@ -223,10 +219,8 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
         for (Long2ObjectMap.Entry<Dir> e : joined.long2ObjectEntrySet()) {
             long move = e.getLongKey();
             Dir direction = e.getValue();
-
             Cache<N> node = nodes.get(move);
-
-            if (node.connects(direction.getOpposite())) {
+            if (connector.connects(direction)) {
                 bestGrid.addNode(move, node);
             }
         }
@@ -267,7 +261,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param pos The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
-    public void removeAt(long pos, Consumer<Group<C, N>> split) {
+    public void removeAt(long pos, Consumer<Group<T, C, N>> split) {
 
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.
@@ -352,7 +346,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
 
         for (int i = 0; i < colored.size(); i++) {
             LongSet found = colored.get(i);
-            Group<C, N> newGroup;
+            Group<T, C, N> newGroup;
 
             if (i != bestColor) {
                 newGroup = new Group<>();
@@ -509,7 +503,7 @@ public class Group<C extends IConnectable, N extends IConnectable> implements IN
      * @param other The another group.
      * @param pos The given position.
      */
-    public void mergeWith(Group<C, N> other, long pos) {
+    public void mergeWith(Group<T, C, N> other, long pos) {
         nodes.putAll(other.nodes);
         connectors.putAll(other.connectors);
 

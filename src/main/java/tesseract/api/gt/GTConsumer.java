@@ -63,11 +63,15 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
 
     /**
      * @param voltage The current voltage.
-     * @param amperage The current amperage.
+     *
      * @return Checks that the consumer is able to receive energy.
      */
-    public boolean canHandle(int voltage, int amperage) {
-        return minVoltage >= voltage && minAmperage >= amperage;
+    public boolean canHandle(int voltage) {
+        return minVoltage >= voltage;
+    }
+
+    public boolean canHandleAmp(int minAmperage) {
+        return this.minAmperage >= minAmperage;
     }
 
     /**
@@ -88,5 +92,54 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
         loss += cable.getLoss();
         minVoltage = Math.min(minVoltage, cable.getVoltage());
         minAmperage = Math.min(minAmperage, cable.getAmps());
+    }
+
+    public static class State {
+        int ampsReceived;
+        int ampsSent;
+        long euReceived;
+        long euSent;
+        public final IGTNode handler;
+
+        public State(IGTNode handler) {
+            ampsReceived = 0;
+            euReceived = 0;
+            this.handler = handler;
+        }
+
+        public void onTick() {
+            ampsReceived = 0;
+            euReceived = 0;
+            ampsSent = 0;
+            euSent = 0;
+        }
+
+        public boolean extract(boolean simulate, int amps, long eu) {
+            if (handler.canOutput()) {
+                if (simulate) {
+                    return ampsSent+amps <= handler.getOutputAmperage();
+                }
+                if (ampsSent+amps > handler.getInputAmperage()) {
+                    return false;
+                }
+            }
+            ampsSent += amps;
+            euSent += eu;
+            return true;
+        }
+
+        public boolean receive(boolean simulate, int amps, long eu) {
+            if (handler.canInput()) {
+                if (simulate) {
+                    return ampsReceived+amps <= handler.getInputAmperage();
+                }
+                if (ampsReceived+amps > handler.getInputAmperage()) {
+                    return false;
+                }
+            }
+            ampsReceived += amps;
+            euReceived += eu;
+            return true;
+        }
     }
 }
