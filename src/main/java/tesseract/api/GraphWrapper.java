@@ -73,7 +73,7 @@ public class GraphWrapper<T, C extends IConnectable, N extends IConnectable> {
      * @param pos The position at which the electric component is exist.
      * @return The controller object. (Can be null)
      */
-    public ITickingController getController(RegistryKey<World> dim, long pos) {
+    public ITickingController<T, C, N> getController(RegistryKey<World> dim, long pos) {
         Group<?, ?, ?> group = getGraph(dim).getGroupAt(pos);
         return group != null ? group.getController() : null;
     }

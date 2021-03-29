@@ -28,14 +28,21 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
 
     /**
      * Inserts an item into an available slot and return the remainder.
-     * @param data ItemData to insert. This must not be modified by the item handler.
+     * @param stack ItemData to insert. This must not be modified by the item handler.
      * @param simulate If true, the insertion is only simulated
      * @return The remaining ItemStack that was not inserted (if the entire stack is accepted, then return an empty ItemStack).
      *         May be the same as the input ItemStack if unchanged, otherwise a new ItemStack.
      *         The returned ItemStack can be safely modified after.
      **/
-    public int insert(ItemStack data, boolean simulate) {
-        return node.insert(data, simulate);
+    public int insert(ItemStack stack, boolean simulate) {
+        int count = stack.getCount();
+        for (int i = 0; i < node.getSlots(); i++) {
+            ItemStack inserted = node.insertItem(i, stack, simulate);
+            if (inserted.getCount() < stack.getCount()) {
+                return inserted.getCount();
+            }
+        }
+        return count;
     }
 
     /**

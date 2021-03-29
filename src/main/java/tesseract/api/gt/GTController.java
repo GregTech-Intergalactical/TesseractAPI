@@ -10,7 +10,6 @@ import net.minecraft.world.server.ServerWorld;
 import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
-import tesseract.api.item.ItemConsumer;
 import tesseract.graph.Cache;
 import tesseract.graph.Grid;
 import tesseract.graph.INode;
@@ -20,7 +19,6 @@ import tesseract.util.Node;
 import tesseract.util.Pos;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -179,18 +177,8 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     @Override
     public void tick() {
         super.tick();
-
-        for (Long2LongMap.Entry e : holders.long2LongEntrySet()) {
-            long pos = e.getLongKey();
-            long holder = e.getLongValue();
-
-            // TODO: Find proper path to destroy
-
-            if (GTHolder.isOverAmperage(holder)) {
-                onCableOverAmperage(getWorld(),pos, GTHolder.getAmperage(holder));
-            }
-        }
         holders.clear();
+        obtains.clear();
     }
 
     @Override
@@ -221,7 +209,6 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             }
 
             int amperage = consumer.getRequiredAmperage(voltage);
-
             // Look up how much it already got
             //int obtained = obtains.getInt(consumer.getNode());
            // amperage -= obtained;
@@ -231,11 +218,10 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
 
             // Remember amperes stored in this consumer
             amperage = Math.min(amperage_in, amperage);
-            //if (!simulate)
-                //obtains.put(consumer.getNode(), amperage + obtained);
-
+            int received = obtains.getInt(consumer.getNode());
+            amperage = Math.min(amperage, consumer.getNode().getInputAmperage()-received);
             // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
-            if (!simulate && consumer.getConnection() != ConnectionType.ADJACENT && !consumer.canHandle(voltage_out)) {
+            if (!simulate && !consumer.canHandle(voltage_out)) {
                 // Find corrupt cables and return
                 for (Long2ObjectMap.Entry<IGTCable> c : consumer.getFull().long2ObjectEntrySet()) {
                     long pos = c.getLongKey();
@@ -272,6 +258,10 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
                 for (int i = 0; i < amp; i++) {
                     consumer.insert(voltage, false);
                 }
+                obtains.computeInt(consumer.getNode(), (n, v) -> {
+                    if (v == null) v = 0;
+                    return v + (int)amp;
+                });
                 return stack.intValue();
             }
             return (int) extracted;

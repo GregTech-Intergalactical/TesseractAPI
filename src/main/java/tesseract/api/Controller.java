@@ -1,6 +1,5 @@
 package tesseract.api;
 
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
@@ -14,7 +13,7 @@ import java.util.function.Function;
 /**
  * Class acts as a controller in the group of some components.
  */
-abstract public class Controller<T, C extends IConnectable, N extends IConnectable> implements ITickingController {
+abstract public class Controller<T, C extends IConnectable, N extends IConnectable> implements ITickingController<T, C, N> {
 
     protected int tick;
     protected final RegistryKey<World> dim;
@@ -52,8 +51,6 @@ abstract public class Controller<T, C extends IConnectable, N extends IConnectab
             onFrame();
         }
     }
-
-    public abstract int insert(Pos producerPos, Dir direction, T stack, boolean simulate);
 
     /**
      * Frame handler, which executes each second.

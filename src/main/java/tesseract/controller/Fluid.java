@@ -9,7 +9,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fluids.FluidStack;
 import tesseract.api.fluid.FluidController;
-import tesseract.api.fluid.FluidData;
 import tesseract.api.fluid.IFluidNode;
 
 import javax.annotation.Nonnull;

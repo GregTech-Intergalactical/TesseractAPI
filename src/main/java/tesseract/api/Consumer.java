@@ -37,7 +37,7 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
         }
 
         if (cross == null || cross.size() == 0) {
-            connection = (full == null) ? ConnectionType.ADJACENT : ConnectionType.SINGLE;
+            connection = /*(full == null) ? ConnectionType.ADJACENT :*/ ConnectionType.SINGLE;
         } else {
             connection = ConnectionType.VARIATE;
         }

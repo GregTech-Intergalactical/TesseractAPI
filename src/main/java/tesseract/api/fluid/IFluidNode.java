@@ -1,6 +1,7 @@
 package tesseract.api.fluid;
 
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import tesseract.api.IConnectable;
 import tesseract.api.IRefreshable;
 import tesseract.util.Dir;
@@ -13,37 +14,7 @@ import tesseract.util.Dir;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IFluidNode extends IConnectable, IRefreshable {
-
-    /**
-     * Adds fluid to the node. Returns amount of fluid that was filled.
-     * @param data FluidData attempting to fill the tank.
-     * @param simulate If true, the fill will only be simulated.
-     * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
-     */
-    int insert(FluidStack data, boolean simulate);
-
-    /**
-     * Removes fluid from the node. Returns amount of fluid that was drained.
-     * @param tank The tank to extract from.
-     * @param amount Maximum amount of fluid to be removed from the container.
-     * @param simulate If true, the drain will only be simulated.
-     * @return FluidData representing fluid that was removed (or would be, if simulated) from the tank.
-     */
-    FluidStack extract(int tank, int amount, boolean simulate);
-
-    /**
-     * @param direction Direction to the proceed.
-     * @return Gets any available tank. (-1 when wasn't found any)
-     **/
-    int getAvailableTank(Dir direction);
-
-    /**
-     * @param direction Direction to the proceed.
-     * @return Gets the initial amount of pressure that can be output.
-     */
-    int getOutputAmount(Dir direction);
-
+public interface IFluidNode extends IFluidHandler, IConnectable, IRefreshable {
     /**
      * @param direction Direction to the proceed.
      * @return Returns the priority of this node as a number.
@@ -75,5 +46,7 @@ public interface IFluidNode extends IConnectable, IRefreshable {
      * @param direction Direction to the input.
      * @return If the tank can input the fluid (EVER, not at the time of query).
      */
-    boolean canInput(FluidStack fluid, Dir direction);
+    default boolean canInput(FluidStack fluid, Dir direction) {
+        return true;
+    }
 }

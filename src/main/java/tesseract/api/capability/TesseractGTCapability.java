@@ -1,6 +1,5 @@
 package tesseract.api.capability;
 
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.tileentity.TileEntity;
@@ -12,7 +11,6 @@ import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.gt.GTConsumer;
 import tesseract.api.gt.IEnergyHandler;
-import tesseract.api.gt.IGTNode;
 import tesseract.util.Dir;
 import tesseract.util.Pos;
 
@@ -135,8 +133,7 @@ public class TesseractGTCapability implements IEnergyHandler {
 
     @Override
     public long insert(long maxReceive, boolean simulate) {
-        int inserted = ((Controller) Tesseract.GT_ENERGY.getController(tile.getWorld().getDimensionKey(), tile.getPos().toLong())).insert(new Pos(tile.getPos().toLong()), Dir.VALUES[side.getIndex()],maxReceive, simulate);
-        return inserted;
+        return Tesseract.GT_ENERGY.getController(tile.getWorld().getDimensionKey(), tile.getPos().toLong()).insert(new Pos(tile.getPos().toLong()), Dir.VALUES[side.getIndex()],maxReceive, simulate);
     }
 
     @Override

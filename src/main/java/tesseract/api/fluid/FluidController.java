@@ -5,16 +5,13 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fluids.FluidStack;
-import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
-import tesseract.api.item.ItemConsumer;
 import tesseract.graph.Cache;
 import tesseract.graph.Grid;
 import tesseract.graph.INode;
@@ -39,7 +36,7 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
     private long totalPressure, lastPressure;
     private int maxTemperature, lastTemperature;
     private boolean isLeaking, lastLeaking;
-    private final Long2ObjectMap<FluidHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<FluidHolder<FluidStack>> holders = new Long2ObjectLinkedOpenHashMap<>();
     private final Object2ObjectMap<N, Map<Dir, List<FluidConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -96,6 +93,12 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
         }
     }
 
+    @Override
+    public void tick() {
+        super.tick();
+        holders.clear();
+    }
+
     /**
      * Adds available consumers to the list.
      *
@@ -116,13 +119,6 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
         if (map == null) return 0;
         List<FluidConsumer> list = map.get(direction.getOpposite());
         if (list == null) return 0;
-
-        N producer = node.value();
-
-        int tank = producer.getAvailableTank(direction);
-        if (tank == -1) {
-            return 0;
-        }
 
         int outputAmount = stack.getAmount();//producer.getOutputAmount(direction);
         for (FluidConsumer consumer : list) {
@@ -145,7 +141,7 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
             //FluidStack drained = producer.extract(tank, amount, false);
 
             // If we are here, then path had some invalid pipes which not suits the limits of temp/pressure/gas
-            if (!simulate && consumer.getConnection() != ConnectionType.ADJACENT && !consumer.canHandle(temperature, amount, isGaseous)) {
+            if (!simulate && !consumer.canHandle(temperature, amount, isGaseous)) {
                 // Find corrupt pipe and return
                 for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull().long2ObjectEntrySet()) {
                     long pos = p.getLongKey();
@@ -167,12 +163,12 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
             }
 
             // Stores the pressure into holder for path only for variate connection
-            if (!simulate && consumer.getConnection() == ConnectionType.VARIATE) {
-                for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getCross().long2ObjectEntrySet()) {
+            if (!simulate) {
+                for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull().long2ObjectEntrySet()) {
                     long pos = p.getLongKey();
                     IFluidPipe pipe = p.getValue();
 
-                    holders.computeIfAbsent(pos, h -> new FluidHolder<>(pipe)).add(amount, stack);
+                    holders.computeIfAbsent(pos, h -> new FluidHolder<FluidStack>(pipe)).add(amount, stack);
                 }
             }
 
@@ -190,7 +186,7 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
             }
         }
         if (!simulate) {
-            for (Long2ObjectMap.Entry<FluidHolder> e : holders.long2ObjectEntrySet()) {
+            for (Long2ObjectMap.Entry<FluidHolder<FluidStack>> e : holders.long2ObjectEntrySet()) {
                 long pos = e.getLongKey();
                 FluidHolder absorber = e.getValue();
 

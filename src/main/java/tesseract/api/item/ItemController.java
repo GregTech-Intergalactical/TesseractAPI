@@ -134,7 +134,7 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
                     }
 
                     if (!simulate && limit > 0) {
-                        for (long pos : consumer.getCross().keySet()) {
+                        for (long pos : consumer.getFull().keySet()) {
                             holders.put(pos, Math.max(holders.get(pos) - limit, 0));
                         }
                     }
@@ -174,7 +174,7 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
     }
 
     @Override
-    public ITickingController clone(INode group) {
-        return new ItemController<>(WORLD_SUPPLIER,dim).set(group);
+    public ITickingController<ItemStack, IItemPipe, N> clone(INode group) {
+        return new ItemController<N>(WORLD_SUPPLIER,dim).set(group);
     }
 }
