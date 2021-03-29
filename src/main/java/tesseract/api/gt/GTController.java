@@ -150,14 +150,8 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             if (voltage <= 0) {
                 return false;
             }
-
-            if (voltage <= node.getInputVoltage()) {
-                consumers.add(consumer);
-                return true;
-            } else {
-                //onNodeOverVoltage(getWorld(), consumerPos, voltage);
-                return false;
-            }
+            consumers.add(consumer);
+            return true;
         }
         return true;
     }
