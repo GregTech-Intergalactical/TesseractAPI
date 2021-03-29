@@ -133,9 +133,9 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
                         limit = Math.min(limit, capacity);
                     }
 
-                    if (!simulate && limit > 0) {
+                    if (!simulate && limit < stack.getCount()) {
                         for (long pos : consumer.getFull().keySet()) {
-                            holders.put(pos, Math.max(holders.get(pos) - limit, 0));
+                            holders.put(pos, Math.max(holders.get(pos) - (stack.getCount()-limit), 0));
                         }
                     }
 
