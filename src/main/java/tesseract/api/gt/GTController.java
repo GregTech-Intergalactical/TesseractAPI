@@ -148,7 +148,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             GTConsumer consumer = new GTConsumer(node, path);
             int voltage = producer.getOutputVoltage() - consumer.getLoss();
             if (voltage <= 0) {
-                return false;
+                return true;
             }
             consumers.add(consumer);
             return true;
@@ -215,6 +215,8 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             int received = obtains.getInt(consumer.getNode());
             amperage = Math.min(amperage, consumer.getNode().getInputAmperage()-received);
             // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
+            if (amperage == 0)
+                continue;
             if (!simulate && !consumer.canHandle(voltage_out)) {
                 // Find corrupt cables and return
                 for (Long2ObjectMap.Entry<IGTCable> c : consumer.getFull().long2ObjectEntrySet()) {
