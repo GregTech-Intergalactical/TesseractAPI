@@ -21,7 +21,7 @@ apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: 'java'
 
 archivesBaseName = 'TesseractAPI'
-version = "0.1"
+version = "${minecraft_version}-${mod_version}"
 group = "com.github.gregtech-intergalactical"
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
@@ -125,4 +125,15 @@ publishing {
 
 jar {
     zip64 true
+    manifest {
+        attributes([
+                "Specification-Title": project.name,
+                "Specification-Vendor": "GregTech Intergalactical",
+                "Specification-Version": project.version,
+                "Implementation-Title": project.name,
+                "Implementation-Version": project.version,
+                "Implementation-Vendor": "GregTech Intergalactical",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
 }
