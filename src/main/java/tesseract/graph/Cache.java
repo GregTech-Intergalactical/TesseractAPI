@@ -11,7 +11,8 @@ import java.util.function.Supplier;
  */
 public class Cache<T extends IConnectable> {
 
-    private final LazyValue<Byte> connectivity;
+    /** Byte value associated with cache, e.g. connectivity or ref count. **/
+    private byte associated;
     private final LazyValue<T> value;
 
     /**
@@ -19,12 +20,12 @@ public class Cache<T extends IConnectable> {
      */
     public Cache(Supplier<T> value) {
         this.value = new LazyValue<>(value);
-        this.connectivity = new LazyValue<>(() -> Connectivity.of(value.get()));
+        this.associated = 1;
     }
 
     public Cache(T value) {
         this.value = new LazyValue<>(() -> value);
-        this.connectivity = new LazyValue<>(() -> Connectivity.of(this.value.getValue()));
+        this.associated = Connectivity.of(this.value.getValue());
     }
 
     /**
@@ -40,14 +41,14 @@ public class Cache<T extends IConnectable> {
      * @return True when connect, false otherwise.
      */
     public boolean connects(Dir direction) {
-        return Connectivity.has(connectivity.getValue(), direction.getIndex());
+        return Connectivity.has(associated, direction.getIndex());
     }
 
     /**
      * @return Gets the connection state.
      */
-    public byte connectivity() {
-        return connectivity.getValue();
+    public byte associated() {
+        return associated;
     }
 
     /**
@@ -55,5 +56,14 @@ public class Cache<T extends IConnectable> {
      */
     public T value() {
         return value.getValue();
+    }
+
+    public void increaseCount() {
+        this.associated++;
+    }
+
+    public boolean decreaseCount() {
+        this.associated--;
+        return associated == 0;
     }
 }

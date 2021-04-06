@@ -147,7 +147,7 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
                 continue;
             }
             Grid<C> grid = grids.get(connector);
-            if (!grid.connects(pos, direction.getOpposite())) {
+            if (!grid.connects(position.offset(direction).asLong(), direction.getOpposite())) {
                 continue;
             }
 
@@ -253,16 +253,7 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
         updateController(controller);
     }
 
-    /**
-     * Removes an entry from the Group, potentially splitting it if needed. By calling this function, the caller asserts
-     * that this group contains the specified position; the function may misbehave if the group does not actually contain
-     * the specified position.
-     *
-     * @param pos The position of the entry to remove.
-     * @param split A consumer for the resulting fresh graphs from the split operation.
-     */
-    public void removeAt(long pos, Consumer<Group<T, C, N>> split) {
-
+    private void internalRemove(long pos, Consumer<Group<T, C, N>> split) {
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.
         if (!contains(pos)) {
@@ -283,15 +274,15 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
             // No check is needed here, because the caller already asserts that the Group contains the specified position.
             // Thus, if this is not a node, then it is guaranteed to be a connector.
             grid.removeAt(
-                pos,
-                newGrid -> {
-                    int newId = CID.nextId();
-                    grids.put(newId, newGrid);
+                    pos,
+                    newGrid -> {
+                        int newId = CID.nextId();
+                        grids.put(newId, newGrid);
 
-                    for (long move : newGrid.getConnectors().keySet()) {
-                        connectors.put(move, newId);
+                        for (long move : newGrid.getConnectors().keySet()) {
+                            connectors.put(move, newId);
+                        }
                     }
-                }
             );
 
             // Avoid leaving empty grids within the grid list.
@@ -310,18 +301,18 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
         List<LongSet> colored = new ObjectArrayList<>();
 
         int bestColor = divider.divide(
-            removed -> removed.add(pos),
-            roots -> {
-                Pos position = new Pos(pos);
-                for (Dir direction : Dir.VALUES) {
-                    long side = position.offset(direction).asLong();
+                removed -> removed.add(pos),
+                roots -> {
+                    Pos position = new Pos(pos);
+                    for (Dir direction : Dir.VALUES) {
+                        long side = position.offset(direction).asLong();
 
-                    if (linked(pos, direction, side)) {
-                        roots.add(side);
+                        if (linked(pos, direction, side)) {
+                            roots.add(side);
+                        }
                     }
-                }
-            },
-            colored::add
+                },
+                colored::add
         );
 
         List<Grid<C>> splitGrids = null;
@@ -386,7 +377,7 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
 
             // Add the fragments of the center grid, if present, to each group
             if (splitGrids != null) {
-               Iterator<Grid<C>> it = splitGrids.iterator();
+                Iterator<Grid<C>> it = splitGrids.iterator();
 
                 while (it.hasNext()) {
                     Grid<C> grid = it.next();
@@ -408,9 +399,28 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
                 split.accept(newGroup);
             }
             else
-                if (controller != null)
-                    controller.change();
+            if (controller != null)
+                controller.change();
         }
+    }
+
+    /**
+     * Removes an entry from the Group, potentially splitting it if needed. By calling this function, the caller asserts
+     * that this group contains the specified position; the function may misbehave if the group does not actually contain
+     * the specified position.
+     *
+     * @param pos The position of the entry to remove.
+     * @param split A consumer for the resulting fresh graphs from the split operation.
+     */
+    public boolean removeAt(long pos, Consumer<Group<T, C, N>> split) {
+        Cache<N> node = nodes.get(pos);
+        if (node != null) {
+            if (!node.decreaseCount()) {
+                return false;
+            }
+        }
+        internalRemove(pos, split);
+        return true;
     }
 
     /**
@@ -424,7 +434,6 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
         if (node == null) {
             return false;
         }
-
 
         // Clear removing node from nearest grid
         Pos position = new Pos(pos);
@@ -549,5 +558,9 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
         }
 
         grids.putAll(other.grids);
+    }
+
+    public void incrementNode(long pos) {
+        this.nodes.get(pos).increaseCount();
     }
 }

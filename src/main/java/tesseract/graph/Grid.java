@@ -12,7 +12,6 @@ import tesseract.util.Pos;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * Grid provides the functionality of a set of linked nodes.
@@ -20,13 +19,13 @@ import java.util.function.Supplier;
 public class Grid<C extends IConnectable> implements INode {
 
     private final Long2ObjectMap<Cache<C>> connectors = new Long2ObjectLinkedOpenHashMap<>();
-    private final Long2ObjectMap<Supplier<Byte>> nodes = new Long2ObjectOpenHashMap<>();
+    private final LongSet nodes = new LongOpenHashSet();
     private final BFDivider divider = new BFDivider(this);
     private final ASFinder finder = new ASFinder(this);
 
     // Prevent the creation of empty grids externally, a caller needs to use singleConnector.
     private Grid() {
-        nodes.defaultReturnValue(() -> Byte.MAX_VALUE);
+
     }
 
     /**
@@ -42,7 +41,7 @@ public class Grid<C extends IConnectable> implements INode {
 
     @Override
     public boolean contains(long pos) {
-        return connectors.containsKey(pos) || nodes.containsKey(pos);
+        return connectors.containsKey(pos) || nodes.contains(pos);
     }
 
     @Override
@@ -52,26 +51,22 @@ public class Grid<C extends IConnectable> implements INode {
         Cache<C> cacheFrom = connectors.get(from);
         Cache<C> cacheTo = connectors.get(to);
 
-        byte connectivityFrom = nodes.get(from).get();
-        byte connectivityTo = nodes.get(to).get();
-
-        boolean validLink = false;
+        byte connectivityFrom = Byte.MAX_VALUE;
+        byte connectivityTo = Byte.MAX_VALUE;
 
         if (cacheFrom != null) {
-            validLink = true;
-            connectivityFrom = cacheFrom.connectivity();
+            connectivityFrom = cacheFrom.associated();
         }
 
         if (cacheTo != null) {
-            validLink = true;
-            connectivityTo = cacheTo.connectivity();
+            connectivityTo = cacheTo.associated();
         }
 
         if (connectivityFrom == Byte.MAX_VALUE || connectivityTo == Byte.MAX_VALUE) {
             return false;
         }
 
-        return validLink && Connectivity.has(connectivityFrom, towards.getIndex()) && Connectivity.has(connectivityTo, towards.getOpposite().getIndex());
+        return Connectivity.has(connectivityFrom, towards.getIndex()) && Connectivity.has(connectivityTo, towards.getOpposite().getIndex());
     }
 
     @Override
@@ -79,10 +74,10 @@ public class Grid<C extends IConnectable> implements INode {
         assert towards != null;
 
         Cache<C> cache = connectors.get(pos);
-        byte connectivity = nodes.get(pos).get();
+        byte connectivity = Byte.MAX_VALUE;//nodes.get(pos).get();
 
         if (cache != null) {
-            connectivity = cache.connectivity();
+            connectivity = cache.associated();
         }
 
         if (connectivity == Byte.MAX_VALUE) {
@@ -116,8 +111,8 @@ public class Grid<C extends IConnectable> implements INode {
     /**
      * @return Returns nodes map.
      */
-    public Long2ObjectMap<Supplier<Byte>> getNodes() {
-        return Long2ObjectMaps.unmodifiable(nodes);
+    public LongSet getNodes() {
+        return LongSets.unmodifiable(nodes);
     }
 
     /**
@@ -129,7 +124,7 @@ public class Grid<C extends IConnectable> implements INode {
     public List<Path<C>> getPaths(long from) {
         List<Path<C>> data = new ObjectArrayList<>();
 
-        for (long to : nodes.keySet()) {
+        for (long to : nodes) {
             if (from != to) {
                 data.add(new Path<>(connectors, finder.traverse(from, to)));
             }
@@ -156,7 +151,9 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public void mergeWith(Grid<C> other) {
         connectors.putAll(other.connectors);
-        nodes.putAll(other.nodes);
+        for (long node : other.nodes) {
+            this.nodes.add(node);
+        }
     }
 
     /**
@@ -186,7 +183,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param node The given node.
      */
     public void addNode(long pos, Cache<?> node) {
-        nodes.put(pos, () -> node.connectivity());
+        nodes.add(pos);
     }
 
     /**
@@ -246,14 +243,7 @@ public class Grid<C extends IConnectable> implements INode {
             LongSet found = colored.get(i);
 
             for (long reached : found) {
-                byte connectivity = nodes.get(reached).get();
-
-                if (connectivity != Byte.MAX_VALUE) {
-                    check.add(reached);
-                    newGrid.nodes.put(reached, () -> connectivity);
-                } else {
-                    newGrid.connectors.put(reached, connectors.remove(reached));
-                }
+                newGrid.connectors.put(reached, connectors.remove(reached));
             }
             split.accept(newGrid);
         }
@@ -279,7 +269,7 @@ public class Grid<C extends IConnectable> implements INode {
         for (Dir direction : Dir.VALUES) {
             long side = position.offset(direction).asLong();
 
-            if (nodes.containsKey(side) && isExternal(side)) {
+            if (nodes.contains(side) && isExternal(side)) {
                 nodes.remove(side);
             }
         }
@@ -302,7 +292,7 @@ public class Grid<C extends IConnectable> implements INode {
         for (Dir direction : Dir.VALUES) {
             long side = position.offset(direction).asLong();
 
-            if (!nodes.containsKey(side) && linked(pos, direction, side)) {
+            if (!nodes.contains(side) && linked(pos, direction, side)) {
                 neighbors++;
             }
         }

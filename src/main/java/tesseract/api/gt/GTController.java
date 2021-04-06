@@ -275,8 +275,8 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     @Override
     public String[] getInfo() {
         return new String[]{
-            "Total Voltage: ".concat(Long.toString(lastVoltage)),
-            "Total Amperage: ".concat(Long.toString(lastAmperage)),
+            "Total Voltage (per tick average): ".concat(Long.toString(lastVoltage/20)),
+            "Total Amperage (per tick average): ".concat(Long.toString(lastAmperage/20)),
         };
     }
 

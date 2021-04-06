@@ -43,7 +43,7 @@ class TestBench {
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, new Cache<>(new ExampleNode()), null)) {
+                    if (!graph.addNode(position, ExampleNode::new, null)) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }
@@ -104,7 +104,7 @@ class TestBench {
                     int linked = grid.countNodes();
                     if (linked != 0) {
                         System.out.println("      Grid contains " + linked + " linked nodes:");
-                        for (long pos : grid.getNodes().keySet()) {
+                        for (long pos : grid.getNodes()) {
                             System.out.println("          Node at " + new Pos(pos));
                         }
                     }

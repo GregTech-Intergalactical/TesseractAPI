@@ -62,10 +62,14 @@ public class Graph<T, C extends IConnectable, N extends IConnectable> implements
 	 * @param controller The controller to use.
 	 * @return True on success or false otherwise.
 	 */
-	public boolean addNode(long pos, Cache<N> node, Controller<T, C, N> controller) {
+	public boolean addNode(long pos, Supplier<N> node, Controller<T, C, N> controller) {
 		if (!contains(pos)) {
-			Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, node, controller));
-			if (group != null) group.addNode(pos, node, controller);
+			Cache<N> cache = new Cache<>(node);
+			Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, controller));
+			if (group != null) group.addNode(pos, cache, controller);
+			return true;
+		} else if (this.getGroupAt(pos).getNodes().containsKey(pos)) {
+			this.getGroupAt(pos).incrementNode(pos);
 			return true;
 		}
 
@@ -140,7 +144,7 @@ public class Graph<T, C extends IConnectable, N extends IConnectable> implements
 	 * @param pos The position of the entry to remove.
 	 */
 	public void removeAt(long pos) {
-		int id = positions.remove(pos);
+		int id = positions.get(pos);
 
 		if (id == CID.INVALID) {
 			return;
@@ -148,7 +152,7 @@ public class Graph<T, C extends IConnectable, N extends IConnectable> implements
 
 		Group<T, C, N> group = groups.get(id);
 
-		group.removeAt(pos, newGroup -> {
+		boolean ok = group.removeAt(pos, newGroup -> {
 			int newId = CID.nextId();
 			groups.put(newId, newGroup);
 
@@ -164,6 +168,9 @@ public class Graph<T, C extends IConnectable, N extends IConnectable> implements
 				}
 			}
 		});
+		if (ok) {
+			positions.remove(pos);
+		}
 
 		if (group.countBlocks() == 0) {
 			groups.remove(id);
