@@ -13,10 +13,7 @@ import net.minecraft.world.server.ServerWorld;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
-import tesseract.graph.Cache;
-import tesseract.graph.Grid;
-import tesseract.graph.INode;
-import tesseract.graph.Path;
+import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
@@ -52,7 +49,7 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<Cache<N>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<NodeCache<N>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
             N producer = e.getValue().value();
 
@@ -94,7 +91,7 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
     }
 
     public int insert(Pos producerPos, Dir direction, ItemStack stack, boolean simulate) {
-        Cache<N> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
+        NodeCache<N> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
         if (node == null) return stack.getCount();
         Map<Dir, List<ItemConsumer>> map = this.data.get(node.value());
         if (map == null) return stack.getCount();
@@ -149,6 +146,7 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
                 return stack.getCount();
             } else {
                 consumer.insert(stack, false);
+                transferred += amount;
                 return amount;
             }
         }
@@ -165,11 +163,11 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
      */
     private void onCheck(List<ItemConsumer> consumers, Path<IItemPipe> path, Dir dir, long pos) {
         N node = group.getNodes().get(pos).value();
-        if (node.canInput() && node.connects(dir)) consumers.add(new ItemConsumer(node, path, dir));
+        if (node.canInput(dir)) consumers.add(new ItemConsumer(node, path, dir));
     }
 
     @Override
-    public String[] getInfo() {
+    public String[] getInfo(long pos) {
         return new String[]{"Total Transferred: ".concat(Integer.toString(transferred))};
     }
 

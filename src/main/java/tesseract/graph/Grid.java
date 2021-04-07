@@ -55,11 +55,11 @@ public class Grid<C extends IConnectable> implements INode {
         byte connectivityTo = Byte.MAX_VALUE;
 
         if (cacheFrom != null) {
-            connectivityFrom = cacheFrom.associated();
+            connectivityFrom = cacheFrom.connectivity();
         }
 
         if (cacheTo != null) {
-            connectivityTo = cacheTo.associated();
+            connectivityTo = cacheTo.connectivity();
         }
 
         if (connectivityFrom == Byte.MAX_VALUE || connectivityTo == Byte.MAX_VALUE) {
@@ -77,7 +77,7 @@ public class Grid<C extends IConnectable> implements INode {
         byte connectivity = Byte.MAX_VALUE;//nodes.get(pos).get();
 
         if (cache != null) {
-            connectivity = cache.associated();
+            connectivity = cache.connectivity();
         }
 
         if (connectivity == Byte.MAX_VALUE) {
@@ -180,9 +180,8 @@ public class Grid<C extends IConnectable> implements INode {
      * Adds a new node to the grid.
      *
      * @param pos The given position.
-     * @param node The given node.
      */
-    public void addNode(long pos, Cache<?> node) {
+    public void addNode(long pos) {
         nodes.add(pos);
     }
 

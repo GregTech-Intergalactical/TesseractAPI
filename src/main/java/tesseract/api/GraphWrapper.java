@@ -13,7 +13,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class GraphWrapper<T, C extends IConnectable, N extends IConnectable> {
+public class GraphWrapper<T, C extends IConnectable, N> {
 
     protected final Object2ObjectMap<RegistryKey<World>, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
     //TODO: maybe do this better.

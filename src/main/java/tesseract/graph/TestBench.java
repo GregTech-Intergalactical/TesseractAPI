@@ -90,7 +90,7 @@ class TestBench {
             for (Int2ObjectMap.Entry<Group<Integer,ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                 System.out.println("  Group " + group.getIntKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
 
-                for (Long2ObjectMap.Entry<Cache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
+                for (Long2ObjectMap.Entry<NodeCache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
                     System.out.println("    Node at " +  new Pos(node.getLongKey()) + ": " + node.getValue().value());
                 }
 

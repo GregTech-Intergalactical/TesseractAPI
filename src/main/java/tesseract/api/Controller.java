@@ -13,7 +13,7 @@ import java.util.function.Function;
 /**
  * Class acts as a controller in the group of some components.
  */
-abstract public class Controller<T, C extends IConnectable, N extends IConnectable> implements ITickingController<T, C, N> {
+abstract public class Controller<T, C extends IConnectable, N> implements ITickingController<T, C, N> {
 
     protected int tick;
     protected final RegistryKey<World> dim;

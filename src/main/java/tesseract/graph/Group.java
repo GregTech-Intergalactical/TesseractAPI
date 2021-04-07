@@ -23,9 +23,9 @@ import java.util.function.Consumer;
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
  */
-public class Group<T, C extends IConnectable, N extends IConnectable> implements INode {
+public class Group<T, C extends IConnectable, N> implements INode {
 
-    private final Long2ObjectMap<Cache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<NodeCache<N>> nodes = new Long2ObjectLinkedOpenHashMap<>();
     private final Int2ObjectMap<Grid<C>> grids = new Int2ObjectLinkedOpenHashMap<>();
     private final Long2IntMap connectors = new Long2IntLinkedOpenHashMap(); // connectors pairing
     private final BFDivider divider = new BFDivider(this);
@@ -42,7 +42,7 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
      * @param controller The given controller.
      * @return Create a instance of a class for a given position and node.
      */
-    protected static <T, C extends IConnectable, N extends IConnectable> Group<T, C, N> singleNode(long pos, Cache<N> node, Controller<T, C, N> controller) {
+    protected static <T, C extends IConnectable, N> Group<T, C, N> singleNode(long pos, NodeCache<N> node, Controller<T, C, N> controller) {
         Group<T, C, N> group = new Group<>();
         group.addNode(pos, node, controller);
         return group;
@@ -54,7 +54,7 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
      * @param controller The given controller.
      * @return Create a instance of a class for a given position and connector.
      */
-    protected static <T, C extends IConnectable, N extends IConnectable> Group<T, C, N> singleConnector(long pos, Cache<C> connector, Controller<T, C, N> controller) {
+    protected static <T, C extends IConnectable, N> Group<T, C, N> singleConnector(long pos, Cache<C> connector, Controller<T, C, N> controller) {
         Group<T, C, N> group = new Group<>();
         int id = CID.nextId();
         group.connectors.put(pos, id);
@@ -112,7 +112,7 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
     /**
      * @return Returns nodes map.
      */
-    public Long2ObjectMap<Cache<N>> getNodes() {
+    public Long2ObjectMap<NodeCache<N>> getNodes() {
         return Long2ObjectMaps.unmodifiable(nodes);
     }
 
@@ -137,7 +137,7 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
      * @param node The given node.
      * @param controller The controller to use.
      */
-    public void addNode(long pos, Cache<N> node, Controller<T, C, N> controller) {
+    public void addNode(long pos, NodeCache<N> node, Controller<T, C, N> controller) {
         nodes.put(pos, node);
 
         Pos position = new Pos(pos);
@@ -151,7 +151,7 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
                 continue;
             }
 
-            grid.addNode(pos, node);
+            grid.addNode(pos);
         }
 
         updateController(controller);
@@ -219,9 +219,9 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
         for (Long2ObjectMap.Entry<Dir> e : joined.long2ObjectEntrySet()) {
             long move = e.getLongKey();
             Dir direction = e.getValue();
-            Cache<N> node = nodes.get(move);
+            NodeCache<N> node = nodes.get(move);
             if (connector.connects(direction)) {
-                bestGrid.addNode(move, node);
+                bestGrid.addNode(move);
             }
         }
 
@@ -413,7 +413,7 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
     public boolean removeAt(long pos, Consumer<Group<T, C, N>> split) {
-        Cache<N> node = nodes.get(pos);
+        NodeCache<N> node = nodes.get(pos);
         if (node != null) {
             if (!node.decreaseCount()) {
                 return false;
@@ -430,7 +430,7 @@ public class Group<T, C extends IConnectable, N extends IConnectable> implements
      * @return True if were deleted, false otherwise.
      */
     private boolean removeNode(long pos) {
-        Cache<N> node = nodes.remove(pos);
+        NodeCache<N> node = nodes.remove(pos);
         if (node == null) {
             return false;
         }

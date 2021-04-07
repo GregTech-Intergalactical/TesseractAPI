@@ -11,59 +11,36 @@ import java.util.function.Supplier;
  */
 public class Cache<T extends IConnectable> {
 
-    /** Byte value associated with cache, e.g. connectivity or ref count. **/
-    private byte associated;
-    private final LazyValue<T> value;
+    private final byte connectivity;
+    private final T value;
 
     /**
      * Creates a cache instance.
      */
-    public Cache(Supplier<T> value) {
-        this.value = new LazyValue<>(value);
-        this.associated = 1;
-    }
-
     public Cache(T value) {
-        this.value = new LazyValue<>(() -> value);
-        this.associated = Connectivity.of(this.value.getValue());
-    }
-
-    /**
-     * Creates a cache instance from a delegate.
-     */
-    /*public Cache(T value, IConnectable delegate) {
         this.value = value;
-        this.connectivity = Connectivity.of(delegate);
-    }*/
+        this.connectivity = Connectivity.of(value);
+    }
 
     /**
      * @param direction The direction index.
      * @return True when connect, false otherwise.
      */
     public boolean connects(Dir direction) {
-        return Connectivity.has(associated, direction.getIndex());
+        return Connectivity.has(connectivity, direction.getIndex());
     }
 
     /**
      * @return Gets the connection state.
      */
-    public byte associated() {
-        return associated;
+    public byte connectivity() {
+        return connectivity;
     }
 
     /**
      * @return Gets the cache.
      */
     public T value() {
-        return value.getValue();
-    }
-
-    public void increaseCount() {
-        this.associated++;
-    }
-
-    public boolean decreaseCount() {
-        this.associated--;
-        return associated == 0;
+        return value;
     }
 }

@@ -11,10 +11,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
-import tesseract.graph.Cache;
-import tesseract.graph.Grid;
-import tesseract.graph.INode;
-import tesseract.graph.Path;
+import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
@@ -55,7 +52,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<Cache<IFENode>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<NodeCache<IFENode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
             IFENode producer = e.getValue().value();
 
@@ -229,7 +226,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
     }
 
     @Override
-    public String[] getInfo() {
+    public String[] getInfo(long pos) {
         return new String[]{
             "Total Energy: ".concat(Long.toString(lastEnergy))
         };

@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 /**
  * Class provides the functionality of any set of nodes.
  */
-public class Graph<T, C extends IConnectable, N extends IConnectable> implements INode {
+public class Graph<T, C extends IConnectable, N> implements INode {
 
 	private final Int2ObjectMap<Group<T, C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
 	private final Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
@@ -64,7 +64,7 @@ public class Graph<T, C extends IConnectable, N extends IConnectable> implements
 	 */
 	public boolean addNode(long pos, Supplier<N> node, Controller<T, C, N> controller) {
 		if (!contains(pos)) {
-			Cache<N> cache = new Cache<>(node);
+			NodeCache<N> cache = new NodeCache<>(node);
 			Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, controller));
 			if (group != null) group.addNode(pos, cache, controller);
 			return true;
@@ -255,7 +255,7 @@ public class Graph<T, C extends IConnectable, N extends IConnectable> implements
 	/**
 	 * @apiNote Wrapper for merged groups.
 	 */
-	private static class Merged<T, C extends IConnectable, N extends IConnectable> {
+	private static class Merged<T, C extends IConnectable, N> {
 
 		final int bestId;
 		final Group<T, C, N> best;
