@@ -12,10 +12,7 @@ import net.minecraftforge.fluids.FluidStack;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
-import tesseract.graph.Cache;
-import tesseract.graph.Grid;
-import tesseract.graph.INode;
-import tesseract.graph.Path;
+import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
@@ -52,7 +49,7 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<Cache<N>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<NodeCache<N>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
             N producer = e.getValue().value();
 
@@ -109,11 +106,11 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
      */
     private void onCheck(List<FluidConsumer> consumers, Path<IFluidPipe> path, Dir dir, long pos) {
         N node = group.getNodes().get(pos).value();
-        if (node.canInput() & node.connects(dir)) consumers.add(new FluidConsumer(node, path, dir));
+        if (node.canInput()) consumers.add(new FluidConsumer(node, path, dir));
     }
 
     public int insert(Pos producerPos, Dir direction, FluidStack stack, boolean simulate) {
-        Cache<N> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
+        NodeCache<N> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
         if (node == null) return 0;
         Map<Dir, List<FluidConsumer>> map = this.data.get(node.value());
         if (map == null) return 0;
@@ -214,7 +211,7 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
     }
 
     @Override
-    public String[] getInfo() {
+    public String[] getInfo(long pos) {
         return new String[]{
             "Maximum Temperature: ".concat(Integer.toString(lastTemperature)),
             "Total Pressure: ".concat(Long.toString(lastPressure)),

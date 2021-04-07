@@ -43,7 +43,7 @@ class TestBench {
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, new Cache<>(new ExampleNode()), null)) {
+                    if (!graph.addNode(position, ExampleNode::new, null)) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }
@@ -90,7 +90,7 @@ class TestBench {
             for (Int2ObjectMap.Entry<Group<Integer,ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
                 System.out.println("  Group " + group.getIntKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
 
-                for (Long2ObjectMap.Entry<Cache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
+                for (Long2ObjectMap.Entry<NodeCache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
                     System.out.println("    Node at " +  new Pos(node.getLongKey()) + ": " + node.getValue().value());
                 }
 
@@ -104,7 +104,7 @@ class TestBench {
                     int linked = grid.countNodes();
                     if (linked != 0) {
                         System.out.println("      Grid contains " + linked + " linked nodes:");
-                        for (long pos : grid.getNodes().keySet()) {
+                        for (long pos : grid.getNodes()) {
                             System.out.println("          Node at " + new Pos(pos));
                         }
                     }

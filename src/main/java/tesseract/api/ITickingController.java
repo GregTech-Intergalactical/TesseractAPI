@@ -7,7 +7,7 @@ import tesseract.util.Pos;
 /**
  * Interface abstracting ticking behaviour for the groups in the graph.
  */
-public interface ITickingController<T, C extends IConnectable, N extends IConnectable> {
+public interface ITickingController<T, C extends IConnectable, N> {
 
     /**
      * Server tick handler.
@@ -29,7 +29,7 @@ public interface ITickingController<T, C extends IConnectable, N extends IConnec
     /**
      * @return To get simple things like a some information.
      */
-    String[] getInfo();
+    String[] getInfo(long pos);
 
     /**
      * Core method of tesseract. Inserts an object into this pipe.

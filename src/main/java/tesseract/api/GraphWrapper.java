@@ -13,7 +13,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class GraphWrapper<T, C extends IConnectable, N extends IConnectable> {
+public class GraphWrapper<T, C extends IConnectable, N> {
 
     protected final Object2ObjectMap<RegistryKey<World>, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
     //TODO: maybe do this better.
@@ -38,7 +38,7 @@ public class GraphWrapper<T, C extends IConnectable, N extends IConnectable> {
      * @param node The node object.
      */
     public void registerNode(RegistryKey<World> dim, long pos, Supplier<N> node) {
-        getGraph(dim).addNode(pos, new Cache<>(node), supplier.apply(worldSupplier,dim));
+        getGraph(dim).addNode(pos, node, supplier.apply(worldSupplier,dim));
     }
 
     public void refreshNode(RegistryKey<World> dim, long pos) {

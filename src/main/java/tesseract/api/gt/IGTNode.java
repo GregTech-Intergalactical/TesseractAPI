@@ -11,7 +11,7 @@ import tesseract.util.Dir;
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
  * </p>
  */
-public interface IGTNode extends IConnectable, IRefreshable {
+public interface IGTNode extends IRefreshable {
 
 	/**
 	 * Adds energy to the node. Returns quantity of energy that was accepted.

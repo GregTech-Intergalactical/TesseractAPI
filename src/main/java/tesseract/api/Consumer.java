@@ -10,7 +10,7 @@ import static java.lang.Integer.compare;
 /**
  * A class that acts as a wrapper for a node component.
  */
-abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
+abstract public class Consumer<C extends IConnectable, N> {
 
     protected final N node;
     protected final ConnectionType connection;

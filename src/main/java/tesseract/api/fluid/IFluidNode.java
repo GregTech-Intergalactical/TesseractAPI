@@ -14,7 +14,7 @@ import tesseract.util.Dir;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IFluidNode extends IFluidHandler, IConnectable, IRefreshable {
+public interface IFluidNode extends IFluidHandler, IRefreshable {
     /**
      * @param direction Direction to the proceed.
      * @return Returns the priority of this node as a number.
@@ -34,6 +34,11 @@ public interface IFluidNode extends IFluidHandler, IConnectable, IRefreshable {
     boolean canInput();
 
     /**
+     * Used to determine if this storage can receive fluid.
+     * @return If this is false, then any calls to receiveEnergy will return 0.
+     */
+    boolean canInput(Dir direction);
+    /**
      * Used to determine which sides can output fluid (if any).
      * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
@@ -46,7 +51,5 @@ public interface IFluidNode extends IFluidHandler, IConnectable, IRefreshable {
      * @param direction Direction to the input.
      * @return If the tank can input the fluid (EVER, not at the time of query).
      */
-    default boolean canInput(FluidStack fluid, Dir direction) {
-        return true;
-    }
+    boolean canInput(FluidStack fluid, Dir direction);
 }

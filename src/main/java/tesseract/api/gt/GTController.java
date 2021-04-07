@@ -2,6 +2,7 @@ package tesseract.api.gt;
 
 import it.unimi.dsi.fastutil.longs.Long2LongLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
 import net.minecraft.util.RegistryKey;
@@ -10,10 +11,7 @@ import net.minecraft.world.server.ServerWorld;
 import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
-import tesseract.graph.Cache;
-import tesseract.graph.Grid;
-import tesseract.graph.INode;
-import tesseract.graph.Path;
+import tesseract.graph.*;
 import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
@@ -28,6 +26,9 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
 
     private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
     private final Long2LongMap holders = new Long2LongLinkedOpenHashMap();
+    //Cable monitoring.
+    private Long2LongMap frameHolders = new Long2LongLinkedOpenHashMap();
+    private Long2LongMap previousFrameHolder = new Long2LongLinkedOpenHashMap();
     private final Object2IntMap<IGTNode> obtains = new Object2IntOpenHashMap<>();
     private final Object2ObjectMap<IGTNode, List<GTConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
 
@@ -57,7 +58,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     }
     private boolean changeInternal(){
         data.clear();
-        for (Long2ObjectMap.Entry<Cache<IGTNode>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<NodeCache<IGTNode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
             IGTNode producer = e.getValue().value();
 
@@ -135,7 +136,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
      * @param producerPos The position of the producer.
      */
     private boolean onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long producerPos, long consumerPos) {
-        Cache<IGTNode> nodee = group.getNodes().get(consumerPos);
+        NodeCache<IGTNode> nodee = group.getNodes().get(consumerPos);
         if (nodee == null) {
             System.out.println("Error in onCheck, null cache.");
             return false;
@@ -144,7 +145,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
         Pos pos = new Pos(consumerPos).sub(new Pos(producerPos));
         Dir dir = path != null ? path.target().getDirection()
                 : Dir.POS_TO_DIR.get(pos).getOpposite();
-        if (node.canInput(dir) && node.connects(dir)) {
+        if (node.canInput(dir)) {
             GTConsumer consumer = new GTConsumer(node, path);
             int voltage = producer.getOutputVoltage() - consumer.getLoss();
             if (voltage <= 0) {
@@ -171,13 +172,17 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     @Override
     public void tick() {
         super.tick();
+        holders.long2LongEntrySet().forEach(e -> frameHolders.compute(e.getLongKey(), (a,b) -> {
+            if (b == null) b = 0L;
+            return b + e.getLongValue();
+        }));
         holders.clear();
         obtains.clear();
     }
 
     @Override
     public int insert(Pos producerPos, Dir direction, Long stack, boolean simulate) {
-        Cache<IGTNode> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
+        NodeCache<IGTNode> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
         if (node == null) return 0;
         IGTNode producer = node.value();
         List<GTConsumer> list = this.data.get(node.value());
@@ -270,13 +275,17 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
         lastVoltage = totalVoltage;
         lastAmperage = totalAmperage;
         totalAmperage = totalVoltage = 0L;
+        previousFrameHolder = frameHolders;
+        frameHolders = new Long2LongOpenHashMap();
     }
 
     @Override
-    public String[] getInfo() {
+    public String[] getInfo(long pos) {
+        int amp = GTHolder.getAmperage(previousFrameHolder.get(pos));
         return new String[]{
-            "Total Voltage: ".concat(Long.toString(lastVoltage)),
-            "Total Amperage: ".concat(Long.toString(lastAmperage)),
+            "Total Voltage (per tick average): ".concat(Long.toString(lastVoltage/20)),
+            "Total Amperage (per tick average): ".concat(Long.toString(lastAmperage/20)),
+            "Cable amperage (last frame): ".concat(Integer.toString(amp))
         };
     }
 

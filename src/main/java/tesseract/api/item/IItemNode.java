@@ -14,7 +14,7 @@ import tesseract.util.Dir;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IItemNode extends IItemHandler, IConnectable, IRefreshable {
+public interface IItemNode extends IItemHandler, IRefreshable {
 
     /**
      * @param direction Direction to the proceed.
@@ -39,6 +39,12 @@ public interface IItemNode extends IItemHandler, IConnectable, IRefreshable {
      * @return If this is false, then any calls to receiveEnergy will return 0.
      */
     boolean canInput();
+
+    /**
+     * Used to determine if this storage can receive item.
+     * @return If this is false, then any calls to receiveEnergy will return 0.
+     */
+    boolean canInput(Dir direction);
 
     /**
      * Used to determine which sides can output item (if any).

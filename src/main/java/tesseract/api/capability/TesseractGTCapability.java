@@ -111,11 +111,6 @@ public class TesseractGTCapability implements IEnergyHandler {
             public boolean canOutput(Dir direction) {
                 return false;
             }
-
-            @Override
-            public boolean connects(Dir direction) {
-                return false;
-            }
         });
     }
     public final TileEntity tile;
@@ -124,11 +119,6 @@ public class TesseractGTCapability implements IEnergyHandler {
     public TesseractGTCapability(TileEntity tile, Direction dir) {
         this.tile = tile;
         this.side = dir;
-    }
-
-    @Override
-    public boolean connects(Dir direction) {
-        return true;
     }
 
     @Override
