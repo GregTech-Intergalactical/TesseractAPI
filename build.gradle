@@ -17,7 +17,7 @@ plugins {
 }
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: "com.github.johnrengelman.shadow"
-
+apply plugin: "eclipse"
 apply plugin: 'java'
 
 archivesBaseName = 'TesseractAPI'
