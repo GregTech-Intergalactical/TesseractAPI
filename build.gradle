@@ -93,14 +93,26 @@ minecraft {
     }
 }
 
+
+
+// Deobfuscated jar; development purposes.
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+shadowJar {
+    configurations = [project.configurations.shadow]
+    archiveClassifier.set('')
+    relocate 'org.apache.commons.collections4', 'tesseract.collections'
+}
 repositories {
     jcenter()
+}
+
+reobf {
+    shadowJar {}
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     shadow 'org.apache.commons:commons-collections4:4.4'
-    shadow 'it.unimi.dsi:fastutil:8.2.1'
 }
 
 afterEvaluate { project ->
@@ -111,11 +123,13 @@ afterEvaluate { project ->
     }
 }
 
+
+
 publishing {
     publications {
         forge(MavenPublication) {
             //artifactId = archivesBaseName
-            artifact jar
+            artifact shadowJar
         }
     }
     //repositories {
