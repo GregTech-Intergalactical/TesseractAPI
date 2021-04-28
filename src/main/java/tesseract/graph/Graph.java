@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
 import tesseract.util.CID;
@@ -77,7 +78,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
 	}
 
 	public void refreshNode(long pos) {
-		if (contains(pos)) {
+		if (contains(pos) && Tesseract.hadFirstTick()) {
 			getGroupAt(pos).getController().change();
 			//Cache<N> node = this.getGroupAt(pos).getNodes().get(pos);
 			//Cache<N> newNode = new Cache<N>(node.value());

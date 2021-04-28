@@ -122,10 +122,13 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
                 if (ampsSent+amps > handler.getInputAmperage()) {
                     return false;
                 }
+                if (!simulate) {
+                    ampsSent += amps;
+                    euSent += eu;
+                }
+                return true;
             }
-            ampsSent += amps;
-            euSent += eu;
-            return true;
+            return false;
         }
 
         public boolean receive(boolean simulate, int amps, long eu) {
@@ -136,10 +139,13 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
                 if (ampsReceived+amps > handler.getInputAmperage()) {
                     return false;
                 }
+                if (!simulate) {
+                    ampsReceived += amps;
+                    euReceived += eu;
+                }
+                return true;
             }
-            ampsReceived += amps;
-            euReceived += eu;
-            return true;
+            return false;
         }
     }
 }
