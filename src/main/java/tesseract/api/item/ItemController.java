@@ -146,7 +146,7 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
                 return stack.getCount();
             } else {
                 consumer.insert(stack, false);
-                transferred += amount;
+                transferred += stack.getCount() - amount;
                 return amount;
             }
         }
