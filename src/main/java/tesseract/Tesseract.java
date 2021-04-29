@@ -5,6 +5,7 @@ import net.minecraft.util.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.common.Mod;
@@ -35,10 +36,12 @@ public class Tesseract {
 	public static final String VERSION = "0.0.1";
 	public static final String DEPENDS = "";
 
-	public static GraphWrapper<Integer,IFECable, IFENode> FE_ENERGY;
-	public static GraphWrapper<Long,IGTCable, IGTNode> GT_ENERGY;
-	public static GraphWrapper<FluidStack,IFluidPipe, IFluidNode> FLUID;
-	public static GraphWrapper<ItemStack,IItemPipe, IItemNode> ITEM;
+	public static GraphWrapper<Integer,IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
+	public static GraphWrapper<Long,IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new);
+	public static GraphWrapper<FluidStack,IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new);
+	public static GraphWrapper<ItemStack,IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new);
+
+	private static boolean firstTick = false;
 
 	public Tesseract() {
 		MinecraftForge.EVENT_BUS.register(this);
@@ -49,28 +52,23 @@ public class Tesseract {
 		TesseractGTCapability.register();
 	}
 
-	private static boolean firstTick = false;
-
-	public static boolean hadFirstTick() {
-		return firstTick;
-	}
-
-	@SubscribeEvent
-	public void init(FMLServerAboutToStartEvent e) {
-		FE_ENERGY = new GraphWrapper<>(e.getServer()::getWorld,FEController::new);
-		GT_ENERGY = new GraphWrapper<>(e.getServer()::getWorld,Energy::new);
-		FLUID = new GraphWrapper<>(e.getServer()::getWorld,Fluid::new);
-		ITEM = new GraphWrapper<>(e.getServer()::getWorld,ItemController::new);
-	}
-
 	@SubscribeEvent
 	public void serverStoppedEvent(FMLServerStoppedEvent e) {
 		firstTick = false;
 	}
 
+	@SubscribeEvent
+	public void worldUnloadEvent(WorldEvent.Unload e) {
+		FE_ENERGY.removeWorld((World)e.getWorld());
+		GT_ENERGY.removeWorld((World)e.getWorld());
+		ITEM.removeWorld((World)e.getWorld());
+		FLUID.removeWorld((World)e.getWorld());
+	}
+
     @SubscribeEvent
     public void onServerTick(TickEvent.WorldTickEvent event) {
-		RegistryKey<World> dim = event.world.getDimensionKey();
+		if (event.side.isClient()) return;
+		World dim = event.world;
 		if (!hadFirstTick()) {
 			GT_ENERGY.onFirstTick(dim);
 			FE_ENERGY.onFirstTick(dim);
@@ -78,11 +76,15 @@ public class Tesseract {
 			ITEM.onFirstTick(dim);
 		}
 		firstTick = true;
-		if (event.side.isServer() && event.phase == TickEvent.Phase.START) {
+		if (event.phase == TickEvent.Phase.START) {
             GT_ENERGY.tick(dim);
             FE_ENERGY.tick(dim);
             FLUID.tick(dim);
             ITEM.tick(dim);
         }
     }
+
+	public static boolean hadFirstTick() {
+		return firstTick;
+	}
 }

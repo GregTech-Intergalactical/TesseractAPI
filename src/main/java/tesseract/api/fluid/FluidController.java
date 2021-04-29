@@ -41,8 +41,8 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
      *
      * @param dim The dimension id.
      */
-    public FluidController(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
-        super(supplier,dim);
+    public FluidController(World world) {
+        super(world);
     }
 
     @Override
@@ -221,6 +221,6 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
 
     @Override
     public ITickingController clone(INode group) {
-        return new FluidController<>(WORLD_SUPPLIER, dim).set(group);
+        return new FluidController<>(dim).set(group);
     }
 }

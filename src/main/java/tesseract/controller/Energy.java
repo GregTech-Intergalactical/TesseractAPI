@@ -17,22 +17,22 @@ public class Energy extends GTController {
      *
      * @param dim The dimension id.
      */
-    public Energy(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
-        super(supplier,dim);
+    public Energy(World dim) {
+        super(dim);
     }
 
     @Override
-    public void onNodeOverVoltage(ServerWorld w, long pos, int voltage) {
+    public void onNodeOverVoltage(World w, long pos, int voltage) {
         Utils.createExplosion(w, BlockPos.fromLong(pos), 4.0F, Explosion.Mode.BREAK);
     }
 
     @Override
-    public void onCableOverAmperage(ServerWorld w, long pos, int amperage) {
+    public void onCableOverAmperage(World w, long pos, int amperage) {
         Utils.createFireAround(w, BlockPos.fromLong(pos));
     }
 
     @Override
-    public void onCableOverVoltage(ServerWorld w, long pos, int voltage) {
+    public void onCableOverVoltage(World w, long pos, int voltage) {
         Utils.createFireAround(w, BlockPos.fromLong(pos));
     }
 }

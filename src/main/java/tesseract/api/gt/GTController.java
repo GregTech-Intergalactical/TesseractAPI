@@ -37,8 +37,8 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
 
      * @param dim The dimension id.
      */
-    public GTController(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
-        super(supplier,dim);
+    public GTController(World dim) {
+        super(dim);
     }
 
     /**
@@ -291,6 +291,6 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
 
     @Override
     public ITickingController clone(INode group) {
-        return new GTController(WORLD_SUPPLIER, dim).set(group);
+        return new GTController(dim).set(group);
     }
 }

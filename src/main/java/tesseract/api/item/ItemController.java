@@ -21,7 +21,7 @@ import tesseract.util.Pos;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+
 
 /**
  * Class acts as a controller in the group of an item components.
@@ -35,8 +35,8 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
      *
      * @param dim The dimension id.
      */
-    public ItemController(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
-        super(supplier, dim);
+    public ItemController(World dim) {
+        super(dim);
         holders.defaultReturnValue(-1);
     }
 
@@ -173,6 +173,6 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
 
     @Override
     public ITickingController<ItemStack, IItemPipe, N> clone(INode group) {
-        return new ItemController<N>(WORLD_SUPPLIER,dim).set(group);
+        return new ItemController<N>(dim).set(group);
     }
 }

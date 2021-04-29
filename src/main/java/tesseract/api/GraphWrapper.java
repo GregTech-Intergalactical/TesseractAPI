@@ -2,7 +2,6 @@ package tesseract.api;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.util.RegistryKey;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import tesseract.graph.Cache;
@@ -15,19 +14,17 @@ import java.util.function.Supplier;
 
 public class GraphWrapper<T, C extends IConnectable, N> {
 
-    protected final Object2ObjectMap<RegistryKey<World>, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
+    protected final Object2ObjectMap<World, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
     //TODO: maybe do this better.
-    protected final BiFunction<Function<RegistryKey<World>, ServerWorld>,RegistryKey<World>, Controller<T, C, N>> supplier;
-    protected final Function<RegistryKey<World>, ServerWorld> worldSupplier;
+    protected final Function<World, Controller<T, C, N>> supplier;
 
     /**
      * Creates a graph wrapper.
      *
      * @param supplier The default controller supplier.
      */
-    public GraphWrapper(Function<RegistryKey<World>, ServerWorld> worldSupplier, BiFunction<Function<RegistryKey<World>, ServerWorld>,RegistryKey<World>, Controller<T, C, N>> supplier) {
+    public GraphWrapper(Function<World, Controller<T, C, N>> supplier) {
         this.supplier = supplier;
-        this.worldSupplier = worldSupplier;
     }
 
     /**
@@ -37,11 +34,11 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public void registerNode(RegistryKey<World> dim, long pos, Supplier<N> node) {
-        getGraph(dim).addNode(pos, node, supplier.apply(worldSupplier,dim));
+    public void registerNode(World dim, long pos, Supplier<N> node) {
+        getGraph(dim).addNode(pos, node, supplier.apply(dim));
     }
 
-    public void refreshNode(RegistryKey<World> dim, long pos) {
+    public void refreshNode(World dim, long pos) {
         getGraph(dim).refreshNode(pos);
     }
 
@@ -52,8 +49,8 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param pos The position at which the node will be added.
      * @param connector The connector object.
      */
-    public void registerConnector(RegistryKey<World> dim, long pos, C connector) {
-        getGraph(dim).addConnector(pos, new Cache<>(connector), supplier.apply(worldSupplier, dim));
+    public void registerConnector(World dim, long pos, C connector) {
+        getGraph(dim).addConnector(pos, new Cache<>(connector), supplier.apply(dim));
     }
 
     /**
@@ -62,7 +59,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param dim The dimension id.
      * @return The graph instance for the world.
      */
-    public Graph<T, C, N> getGraph(RegistryKey<World> dim) {
+    public Graph<T, C, N> getGraph(World dim) {
         return graph.computeIfAbsent(dim, k -> new Graph<>());
     }
 
@@ -73,7 +70,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param pos The position at which the electric component is exist.
      * @return The controller object. (Can be null)
      */
-    public ITickingController<T, C, N> getController(RegistryKey<World> dim, long pos) {
+    public ITickingController<T, C, N> getController(World dim, long pos) {
         Group<?, ?, ?> group = getGraph(dim).getGroupAt(pos);
         return group != null ? group.getController() : null;
     }
@@ -84,17 +81,22 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param dim The dimension id where the electric component will be added.
      * @param pos The position at which the electric component will be added.
      */
-    public void remove(RegistryKey<World> dim, long pos) {
-        getGraph(dim).removeAt(pos);
+    public boolean remove(World dim, long pos) {
+        return getGraph(dim).removeAt(pos);
     }
 
-    public void tick(RegistryKey<World> dim) {
+    public void tick(World dim) {
         Graph<T, C, N> g = graph.get(dim);
         if (g != null)
             g.getGroups().forEach((pos, gr) -> gr.getController().tick());
     }
 
-    public void onFirstTick(RegistryKey<World> dim) {
+    public void onFirstTick(World dim) {
+        getGraph(dim).onFirstTick();
         getGraph(dim).getGroups().values().forEach(t -> t.getController().change());
+    }
+
+    public void removeWorld(World world) {
+        this.graph.remove(world);
     }
 }

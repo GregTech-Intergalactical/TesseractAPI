@@ -5,16 +5,20 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Explosion;
+import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 
 public class Utils {
 
-    public static void createExplosion(ServerWorld world, BlockPos pos, float explosionRadius, Explosion.Mode modeIn) {
-        world.createExplosion(null, pos.getX(), pos.getY() + 0.0625D, pos.getZ(), explosionRadius, true, modeIn);
-        world.spawnParticle(ParticleTypes.SMOKE, pos.getX(), pos.getY() + 0.5D, pos.getZ(), 1, 0, 0, 0, 0.0D);
+    public static void createExplosion(World world, BlockPos pos, float explosionRadius, Explosion.Mode modeIn) {
+        if (world instanceof ServerWorld) {
+            ServerWorld w = (ServerWorld) world;
+            w.createExplosion(null, pos.getX(), pos.getY() + 0.0625D, pos.getZ(), explosionRadius, true, modeIn);
+            w.spawnParticle(ParticleTypes.SMOKE, pos.getX(), pos.getY() + 0.5D, pos.getZ(), 1, 0, 0, 0, 0.0D);
+        }
     }
 
-    public static void createFireAround(ServerWorld world, BlockPos pos) {
+    public static void createFireAround(World world, BlockPos pos) {
         boolean fired = false;
         for (Direction side : Direction.values()) {
             BlockPos offset = pos.offset(side);

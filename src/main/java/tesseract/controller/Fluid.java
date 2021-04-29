@@ -22,27 +22,27 @@ public class Fluid extends FluidController<IFluidNode> {
      *
      * @param dim The dimension id.
      */
-    public Fluid(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
-        super(supplier,dim);
+    public Fluid(World dim) {
+        super(dim);
     }
 
     @Override
-    public void onPipeOverPressure(ServerWorld w, long pos, int pressure) {
+    public void onPipeOverPressure(World w, long pos, int pressure) {
         if (HARDCORE_PIPES) Utils.createExplosion(w, BlockPos.fromLong(pos), 4.0F, Explosion.Mode.BREAK);
     }
 
     @Override
-    public void onPipeOverCapacity(ServerWorld w, long pos, int capacity) {
+    public void onPipeOverCapacity(World w, long pos, int capacity) {
         Utils.createExplosion(w, BlockPos.fromLong(pos), 1.0F, Explosion.Mode.NONE);
     }
 
     @Override
-    public void onPipeOverTemp(ServerWorld w, long pos, int temperature) {
+    public void onPipeOverTemp(World w, long pos, int temperature) {
         w.setBlockState(BlockPos.fromLong(pos), temperature >= Fluids.LAVA.getAttributes().getTemperature() ? Blocks.LAVA.getDefaultState() : Blocks.FIRE.getDefaultState());
     }
 
     @Override
-    public FluidStack onPipeGasLeak(ServerWorld world, long pos, @Nonnull FluidStack fluid) {
+    public FluidStack onPipeGasLeak(World world, long pos, @Nonnull FluidStack fluid) {
         return super.onPipeGasLeak(world, pos, fluid);
         //return new FluidData<T>(fluid.getStack(), (int) Math.floor(fluid.getAmount() * PIPE_LEAK), fluid.getTemperature(), fluid.isGaseous());
     }

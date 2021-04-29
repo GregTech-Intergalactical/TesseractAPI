@@ -16,19 +16,16 @@ import java.util.function.Function;
 abstract public class Controller<T, C extends IConnectable, N> implements ITickingController<T, C, N> {
 
     protected int tick;
-    protected final RegistryKey<World> dim;
+    protected final World dim;
     protected Group<T, C, N> group;
-
-    protected final Function<RegistryKey<World>, ServerWorld> WORLD_SUPPLIER;
 
     /**
      * Creates instance of the controller.
      *
      * @param dim The dimension id.
      */
-    protected Controller(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
-        this.dim = dim;
-        this.WORLD_SUPPLIER = supplier;
+    protected Controller(World supplier) {
+        this.dim = supplier;
     }
 
     /**
@@ -57,7 +54,7 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
      */
     protected abstract void onFrame();
 
-    protected ServerWorld getWorld() {
-        return this.WORLD_SUPPLIER.apply(dim);
+    protected World getWorld() {
+        return this.dim;
     }
 }

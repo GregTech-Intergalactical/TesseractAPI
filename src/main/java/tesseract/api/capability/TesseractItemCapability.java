@@ -35,7 +35,7 @@ public class TesseractItemCapability implements IItemHandler {
     @Nonnull
     @Override
     public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
-        int inserted = Tesseract.ITEM.getController(tile.getWorld().getDimensionKey(), tile.getPos().toLong()).insert(new Pos(tile.getPos().toLong()), Dir.VALUES[side.getIndex()],stack, simulate);
+        int inserted = Tesseract.ITEM.getController(tile.getWorld(), tile.getPos().toLong()).insert(new Pos(tile.getPos().toLong()), Dir.VALUES[side.getIndex()],stack, simulate);
         ItemStack newStack = stack.copy();
         newStack.setCount(inserted);
         return newStack;

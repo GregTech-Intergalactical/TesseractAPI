@@ -33,8 +33,8 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
 
      * @param dim The dimension id.
      */
-    public FEController(Function<RegistryKey<World>, ServerWorld> supplier, RegistryKey<World> dim) {
-        super(supplier,dim);
+    public FEController(World world) {
+        super(world);
         holders.defaultReturnValue(-1L);
     }
 
@@ -234,6 +234,6 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
 
     @Override
     public ITickingController clone(INode group) {
-        return new FEController(WORLD_SUPPLIER, dim).set(group);
+        return new FEController(dim).set(group);
     }
 }

@@ -3,7 +3,10 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.Tuple;
 import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
@@ -21,6 +24,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
 
 	private final Int2ObjectMap<Group<T, C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
 	private final Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
+	private final Long2ObjectMap<Tuple<Controller<T,C,N>,Supplier<N>>> PENDING_NODES = new Long2ObjectOpenHashMap<>();
 
 	public Graph() {
 		positions.defaultReturnValue(CID.INVALID);
@@ -29,6 +33,11 @@ public class Graph<T, C extends IConnectable, N> implements INode {
 	@Override
 	public boolean contains(long pos) {
 		return positions.containsKey(pos);
+	}
+
+	public void onFirstTick() {
+		PENDING_NODES.forEach((k,v) -> addNode(k,v.getB(),v.getA()));
+		PENDING_NODES.clear();
 	}
 
 	@Override
@@ -65,10 +74,16 @@ public class Graph<T, C extends IConnectable, N> implements INode {
 	 */
 	public boolean addNode(long pos, Supplier<N> node, Controller<T, C, N> controller) {
 		if (!contains(pos)) {
-			NodeCache<N> cache = new NodeCache<>(node);
-			Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, controller));
-			if (group != null) group.addNode(pos, cache, controller);
-			return true;
+			if (Tesseract.hadFirstTick()) {
+				NodeCache<N> cache = new NodeCache<>(node);
+				if (cache.value() != null) {
+					Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, controller));
+					if (group != null) group.addNode(pos, cache, controller);
+					return true;
+				}
+			} else {
+				PENDING_NODES.put(pos, new Tuple<>(controller, node));
+			}
 		} else if (this.getGroupAt(pos).getNodes().containsKey(pos)) {
 			this.getGroupAt(pos).incrementNode(pos);
 			return true;
@@ -144,11 +159,11 @@ public class Graph<T, C extends IConnectable, N> implements INode {
 	 *
 	 * @param pos The position of the entry to remove.
 	 */
-	public void removeAt(long pos) {
+	public boolean removeAt(long pos) {
 		int id = positions.get(pos);
 
 		if (id == CID.INVALID) {
-			return;
+			return false;
 		}
 
 		Group<T, C, N> group = groups.get(id);
@@ -176,6 +191,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
 		if (group.countBlocks() == 0) {
 			groups.remove(id);
 		}
+		return ok;
 	}
 
 	/**

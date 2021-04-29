@@ -29,7 +29,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
     private final Int2ObjectMap<Grid<C>> grids = new Int2ObjectLinkedOpenHashMap<>();
     private final Long2IntMap connectors = new Long2IntLinkedOpenHashMap(); // connectors pairing
     private final BFDivider divider = new BFDivider(this);
-    private ITickingController controller = null;
+    private ITickingController<T,C,N> controller = null;
 
     // Prevent the creation of empty groups externally, a caller needs to use singleNode/singleConnector.
     private Group() {
