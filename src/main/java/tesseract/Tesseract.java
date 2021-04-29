@@ -70,12 +70,12 @@ public class Tesseract {
 		if (event.side.isClient()) return;
 		World dim = event.world;
 		if (!hadFirstTick()) {
+			firstTick = true;
 			GT_ENERGY.onFirstTick(dim);
 			FE_ENERGY.onFirstTick(dim);
 			FLUID.onFirstTick(dim);
 			ITEM.onFirstTick(dim);
 		}
-		firstTick = true;
 		if (event.phase == TickEvent.Phase.START) {
             GT_ENERGY.tick(dim);
             FE_ENERGY.tick(dim);
