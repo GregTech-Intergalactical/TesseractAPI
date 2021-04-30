@@ -3,7 +3,7 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.junit.Test;
 import tesseract.api.IConnectable;
-import tesseract.util.Dir;
+
 import tesseract.util.Node;
 import tesseract.util.Pos;
 

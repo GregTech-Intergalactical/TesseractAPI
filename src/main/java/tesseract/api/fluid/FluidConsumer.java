@@ -1,10 +1,11 @@
 package tesseract.api.fluid;
 
+import net.minecraft.util.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
-import tesseract.util.Dir;
+
 
 /**
  * A class that acts as a container for a fluid consumer.
@@ -20,7 +21,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
 
     private int minPressure = Integer.MAX_VALUE;
     private int minTemperature = Integer.MAX_VALUE;
-    private final Dir input;
+    private final Direction input;
 
     /**
      * Creates instance of the consumer.
@@ -29,7 +30,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param path The path information.
      * @param dir The added direction.
      */
-    protected FluidConsumer(IFluidNode consumer, Path<IFluidPipe> path, Dir dir) {
+    protected FluidConsumer(IFluidNode consumer, Path<IFluidPipe> path, Direction dir) {
         super(consumer, path);
         init();
         this.input = dir;

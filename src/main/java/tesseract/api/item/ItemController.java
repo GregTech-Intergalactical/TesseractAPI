@@ -7,14 +7,12 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.Direction;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.graph.*;
-import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
@@ -29,7 +27,7 @@ import java.util.Map;
 public class ItemController<N extends IItemNode> extends Controller<ItemStack, IItemPipe, N> {
     private int transferred;
     private final Long2IntMap holders = new Long2IntOpenHashMap();
-    private final Object2ObjectMap<N, Map<Dir, List<ItemConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectMap<N, Map<Direction, List<ItemConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
     /**
      * Creates instance of the controller.
      *
@@ -55,7 +53,7 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
-                for (Dir direction : Dir.VALUES) {
+                for (Direction direction : Graph.DIRECTIONS) {
                     if (producer.canOutput(direction)) {
                         List<ItemConsumer> consumers = new ObjectArrayList<>();
                         long side = position.offset(direction).asLong();
@@ -76,26 +74,26 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
                         }
 
                         if (!consumers.isEmpty()) {
-                            data.computeIfAbsent(producer, m -> new EnumMap<>(Dir.class)).put(direction, consumers);
+                            data.computeIfAbsent(producer, m -> new EnumMap<>(Direction.class)).put(direction, consumers);
                         }
                     }
                 }
             }
         }
 
-        for (Map<Dir, List<ItemConsumer>> map : data.values()) {
+        for (Map<Direction, List<ItemConsumer>> map : data.values()) {
             for (List<ItemConsumer> consumers : map.values()) {
                 consumers.sort(Consumer.COMPARATOR);
             }
         }
     }
 
-    public int insert(Pos producerPos, Dir direction, ItemStack stack, boolean simulate) {
-        NodeCache<N> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
+    public int insert(Pos producerPos, Direction Directionection, ItemStack stack, boolean simulate) {
+        NodeCache<N> node = this.group.getNodes().get(producerPos.offset(Directionection).asLong());
         if (node == null) return stack.getCount();
-        Map<Dir, List<ItemConsumer>> map = this.data.get(node.value());
+        Map<Direction, List<ItemConsumer>> map = this.data.get(node.value());
         if (map == null) return stack.getCount();
-        List<ItemConsumer> list = map.get(direction.getOpposite());
+        List<ItemConsumer> list = map.get(Directionection.getOpposite());
         if (list == null) return stack.getCount();
         for (ItemConsumer consumer : list) {
             if (!consumer.canAccept(stack)) {
@@ -158,12 +156,12 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
      *
      * @param consumers The consumer nodes.
      * @param path The paths to consumers.
-     * @param dir The added direction.
+     * @param Direction The added Directionection.
      * @param pos The position of the producer.
      */
-    private void onCheck(List<ItemConsumer> consumers, Path<IItemPipe> path, Dir dir, long pos) {
+    private void onCheck(List<ItemConsumer> consumers, Path<IItemPipe> path, Direction Direction, long pos) {
         N node = group.getNodes().get(pos).value();
-        if (node.canInput(dir)) consumers.add(new ItemConsumer(node, path, dir));
+        if (node.canInput(Direction)) consumers.add(new ItemConsumer(node, path, Direction));
     }
 
     @Override

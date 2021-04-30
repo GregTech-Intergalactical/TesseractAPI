@@ -1,14 +1,8 @@
 package tesseract.api;
 
-import net.minecraft.util.RegistryKey;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import tesseract.graph.Group;
 import tesseract.graph.INode;
-import tesseract.util.Dir;
-import tesseract.util.Pos;
-
-import java.util.function.Function;
 
 /**
  * Class acts as a controller in the group of some components.
@@ -22,7 +16,7 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     /**
      * Creates instance of the controller.
      *
-     * @param dim The dimension id.
+     * @param supplier The world.
      */
     protected Controller(World supplier) {
         this.dim = supplier;

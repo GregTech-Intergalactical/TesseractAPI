@@ -5,8 +5,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraftforge.items.IItemHandler;
 import tesseract.Tesseract;
-import tesseract.api.Controller;
-import tesseract.util.Dir;
+import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
@@ -35,7 +34,7 @@ public class TesseractItemCapability implements IItemHandler {
     @Nonnull
     @Override
     public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
-        int inserted = Tesseract.ITEM.getController(tile.getWorld(), tile.getPos().toLong()).insert(new Pos(tile.getPos().toLong()), Dir.VALUES[side.getIndex()],stack, simulate);
+        int inserted = Tesseract.ITEM.getController(tile.getWorld(), tile.getPos().toLong()).insert(new Pos(tile.getPos().toLong()), Graph.DIRECTIONS[side.getIndex()],stack, simulate);
         ItemStack newStack = stack.copy();
         newStack.setCount(inserted);
         return newStack;

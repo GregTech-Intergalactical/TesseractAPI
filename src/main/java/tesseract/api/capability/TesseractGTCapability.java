@@ -8,10 +8,9 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import tesseract.Tesseract;
-import tesseract.api.Controller;
 import tesseract.api.gt.GTConsumer;
 import tesseract.api.gt.IEnergyHandler;
-import tesseract.util.Dir;
+import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
 import javax.annotation.Nullable;
@@ -103,12 +102,12 @@ public class TesseractGTCapability implements IEnergyHandler {
             }
 
             @Override
-            public boolean canInput(Dir direction) {
+            public boolean canInput(Direction direction) {
                 return false;
             }
 
             @Override
-            public boolean canOutput(Dir direction) {
+            public boolean canOutput(Direction direction) {
                 return false;
             }
         });
@@ -123,7 +122,7 @@ public class TesseractGTCapability implements IEnergyHandler {
 
     @Override
     public long insert(long maxReceive, boolean simulate) {
-        return Tesseract.GT_ENERGY.getController(tile.getWorld(), tile.getPos().toLong()).insert(new Pos(tile.getPos().toLong()), Dir.VALUES[side.getIndex()],maxReceive, simulate);
+        return Tesseract.GT_ENERGY.getController(tile.getWorld(), tile.getPos().toLong()).insert(new Pos(tile.getPos().toLong()), Graph.DIRECTIONS[side.getIndex()],maxReceive, simulate);
     }
 
     @Override
@@ -172,12 +171,12 @@ public class TesseractGTCapability implements IEnergyHandler {
     }
 
     @Override
-    public boolean canInput(Dir direction) {
+    public boolean canInput(Direction direction) {
         return true;
     }
 
     @Override
-    public boolean canOutput(Dir direction) {
+    public boolean canOutput(Direction direction) {
         return false;
     }
 

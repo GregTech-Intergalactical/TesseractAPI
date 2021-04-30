@@ -6,12 +6,12 @@ import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.Direction;
 import net.minecraft.util.Tuple;
 import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
 import tesseract.util.CID;
-import tesseract.util.Dir;
 import tesseract.util.Pos;
 
 import java.util.List;
@@ -25,6 +25,8 @@ public class Graph<T, C extends IConnectable, N> implements INode {
 	private final Int2ObjectMap<Group<T, C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
 	private final Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
 	private final Long2ObjectMap<Tuple<Controller<T,C,N>,Supplier<N>>> PENDING_NODES = new Long2ObjectOpenHashMap<>();
+
+	public static final Direction[] DIRECTIONS = Direction.values();
 
 	public Graph() {
 		positions.defaultReturnValue(CID.INVALID);
@@ -41,12 +43,12 @@ public class Graph<T, C extends IConnectable, N> implements INode {
 	}
 
 	@Override
-	public boolean linked(long from, Dir towards, long to) {
+	public boolean linked(long from, Direction towards, long to) {
 		return positions.containsKey(from) && positions.containsKey(to) && positions.get(from) == positions.get(to);
 	}
 
 	@Override
-	public boolean connects(long pos, Dir towards) {
+	public boolean connects(long pos, Direction towards) {
 		return contains(pos);
 	}
 
@@ -257,7 +259,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
 		IntSet neighbors = new IntLinkedOpenHashSet(6);
 
 		Pos position = new Pos(pos);
-		for (Dir direction : Dir.VALUES) {
+		for (Direction direction : Graph.DIRECTIONS) {
 			long side = position.offset(direction).asLong();
 			int id = positions.get(side);
 

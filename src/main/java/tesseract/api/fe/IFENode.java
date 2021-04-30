@@ -1,7 +1,7 @@
 package tesseract.api.fe;
 
+import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
-import tesseract.util.Dir;
 
 /**
  * A flux node is the unit of interaction with flux inventories.
@@ -60,5 +60,5 @@ public interface IFENode extends IConnectable {
      * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */
-    boolean canOutput(Dir direction);
+    boolean canOutput(Direction direction);
 }

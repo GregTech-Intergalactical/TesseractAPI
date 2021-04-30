@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.Direction;
 import org.apache.commons.collections4.SetUtils;
 import tesseract.Tesseract;
 import tesseract.api.Controller;
@@ -12,7 +13,6 @@ import tesseract.api.IConnectable;
 import tesseract.api.ITickingController;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.CID;
-import tesseract.util.Dir;
 import tesseract.util.Pos;
 
 import java.util.Iterator;
@@ -69,12 +69,12 @@ public class Group<T, C extends IConnectable, N> implements INode {
     }
 
     @Override
-    public boolean linked(long from, Dir towards, long to) {
+    public boolean linked(long from, Direction towards, long to) {
         return contains(from) && contains(to);
     }
 
     @Override
-    public boolean connects(long pos, Dir towards) {
+    public boolean connects(long pos, Direction towards) {
         return contains(pos);
     }
 
@@ -141,7 +141,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
         nodes.put(pos, node);
 
         Pos position = new Pos(pos);
-        for (Dir direction : Dir.VALUES) {
+        for (Direction direction : Graph.DIRECTIONS) {
             int connector = connectors.get(position.offset(direction).asLong());
             if (connector == CID.INVALID) {
                 continue;
@@ -166,13 +166,13 @@ public class Group<T, C extends IConnectable, N> implements INode {
     public void addConnector(long pos, Cache<C> connector, Controller<T, C, N> controller) {
 
         Int2ObjectMap<Grid<C>> linked = new Int2ObjectLinkedOpenHashMap<>();
-        Long2ObjectMap<Dir> joined = new Long2ObjectLinkedOpenHashMap<>();
+        Long2ObjectMap<Direction> joined = new Long2ObjectLinkedOpenHashMap<>();
         Grid<C> bestGrid = null;
         int bestCount = 0;
         int bestId = CID.INVALID;
 
         Pos position = new Pos(pos);
-        for (Dir direction : Dir.VALUES) {
+        for (Direction direction : Graph.DIRECTIONS) {
             if (!connector.connects(direction)) {
                 continue;
             }
@@ -216,10 +216,9 @@ public class Group<T, C extends IConnectable, N> implements INode {
         }
 
         // Add neighbours nodes to the grid
-        for (Long2ObjectMap.Entry<Dir> e : joined.long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<Direction> e : joined.long2ObjectEntrySet()) {
             long move = e.getLongKey();
-            Dir direction = e.getValue();
-            NodeCache<N> node = nodes.get(move);
+            Direction direction = e.getValue();
             if (connector.connects(direction)) {
                 bestGrid.addNode(move);
             }
@@ -304,7 +303,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
                 removed -> removed.add(pos),
                 roots -> {
                     Pos position = new Pos(pos);
-                    for (Dir direction : Dir.VALUES) {
+                    for (Direction direction : Graph.DIRECTIONS) {
                         long side = position.offset(direction).asLong();
 
                         if (linked(pos, direction, side)) {
@@ -437,7 +436,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
 
         // Clear removing node from nearest grid
         Pos position = new Pos(pos);
-        for (Dir direction : Dir.VALUES) {
+        for (Direction direction : Graph.DIRECTIONS) {
             long side = position.offset(direction).asLong();
             int id = connectors.get(side);
 
@@ -469,7 +468,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
      * @param direction The direction we are looking to.
      * @return The grid map, guaranteed to not be null.
      */
-    public Grid<C> getGridAt(long pos, Dir direction) {
+    public Grid<C> getGridAt(long pos, Direction direction) {
         int id = connectors.get(pos);
 
         if (id != CID.INVALID) {
@@ -496,7 +495,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
 
         int neighbors = 0;
         Pos position = new Pos(pos);
-        for (Dir direction : Dir.VALUES) {
+        for (Direction direction : Graph.DIRECTIONS) {
             long side = position.offset(direction).asLong();
 
             if (contains(side)) {
@@ -528,7 +527,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
             Grid<C> currentGrid = grids.get(pairing);
 
             Pos position = new Pos(pos);
-            for (Dir direction : Dir.VALUES) {
+            for (Direction direction : Graph.DIRECTIONS) {
                 long side = position.offset(direction).asLong();
 
                 if (!currentGrid.connects(pos, direction)) {

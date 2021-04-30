@@ -1,10 +1,10 @@
 package tesseract.api.fluid;
 
+import net.minecraft.util.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import tesseract.api.IConnectable;
 import tesseract.api.IRefreshable;
-import tesseract.util.Dir;
+
 
 /**
  * An fluid node is the unit of interaction with fluid inventories.
@@ -19,7 +19,7 @@ public interface IFluidNode extends IFluidHandler, IRefreshable {
      * @param direction Direction to the proceed.
      * @return Returns the priority of this node as a number.
      */
-    int getPriority(Dir direction);
+    int getPriority(Direction direction);
 
     /**
      * Gets if this storage can have fluid extracted.
@@ -37,13 +37,13 @@ public interface IFluidNode extends IFluidHandler, IRefreshable {
      * Used to determine if this storage can receive fluid.
      * @return If this is false, then any calls to receiveEnergy will return 0.
      */
-    boolean canInput(Dir direction);
+    boolean canInput(Direction direction);
     /**
      * Used to determine which sides can output fluid (if any).
      * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */
-    boolean canOutput(Dir direction);
+    boolean canOutput(Direction direction);
 
     /**
      * Used to determine which fluids and at which direction can be consumed.
@@ -51,5 +51,5 @@ public interface IFluidNode extends IFluidHandler, IRefreshable {
      * @param direction Direction to the input.
      * @return If the tank can input the fluid (EVER, not at the time of query).
      */
-    boolean canInput(FluidStack fluid, Dir direction);
+    boolean canInput(FluidStack fluid, Direction direction);
 }

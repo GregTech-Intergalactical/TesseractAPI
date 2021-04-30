@@ -5,22 +5,19 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.Direction;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fluids.FluidStack;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.graph.*;
-import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Class acts as a controller in the group of a fluid components.
@@ -34,12 +31,12 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
     private int maxTemperature, lastTemperature;
     private boolean isLeaking, lastLeaking;
     private final Long2ObjectMap<FluidHolder<FluidStack>> holders = new Long2ObjectLinkedOpenHashMap<>();
-    private final Object2ObjectMap<N, Map<Dir, List<FluidConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Object2ObjectMap<N, Map<Direction, List<FluidConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
      *
-     * @param dim The dimension id.
+     * @param world the world.
      */
     public FluidController(World world) {
         super(world);
@@ -55,7 +52,7 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
-                for (Dir direction : Dir.VALUES) {
+                for (Direction direction : Graph.DIRECTIONS) {
                     if (producer.canOutput(direction)) {
                         List<FluidConsumer> consumers = new ObjectArrayList<>();
                         long side = position.offset(direction).asLong();
@@ -76,14 +73,14 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
                         }
 
                         if (!consumers.isEmpty()) {
-                            data.computeIfAbsent(producer, map -> new EnumMap<>(Dir.class)).put(direction, consumers);
+                            data.computeIfAbsent(producer, map -> new EnumMap<>(Direction.class)).put(direction, consumers);
                         }
                     }
                 }
             }
         }
 
-        for (Map<Dir, List<FluidConsumer>> map : data.values()) {
+        for (Map<Direction, List<FluidConsumer>> map : data.values()) {
             for (List<FluidConsumer> consumers : map.values()) {
                 consumers.sort(Consumer.COMPARATOR);
             }
@@ -104,15 +101,15 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
      * @param dir The added direction.
      * @param pos The position of the producer.
      */
-    private void onCheck(List<FluidConsumer> consumers, Path<IFluidPipe> path, Dir dir, long pos) {
+    private void onCheck(List<FluidConsumer> consumers, Path<IFluidPipe> path, Direction dir, long pos) {
         N node = group.getNodes().get(pos).value();
         if (node.canInput()) consumers.add(new FluidConsumer(node, path, dir));
     }
 
-    public int insert(Pos producerPos, Dir direction, FluidStack stack, boolean simulate) {
+    public int insert(Pos producerPos, Direction direction, FluidStack stack, boolean simulate) {
         NodeCache<N> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
         if (node == null) return 0;
-        Map<Dir, List<FluidConsumer>> map = this.data.get(node.value());
+        Map<Direction, List<FluidConsumer>> map = this.data.get(node.value());
         if (map == null) return 0;
         List<FluidConsumer> list = map.get(direction.getOpposite());
         if (list == null) return 0;

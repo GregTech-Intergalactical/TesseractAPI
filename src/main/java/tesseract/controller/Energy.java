@@ -1,13 +1,9 @@
 package tesseract.controller;
 
-import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import tesseract.api.gt.GTController;
-
-import java.util.function.Function;
 
 // TODO: Make explosions depend on voltage, amp
 public class Energy extends GTController {

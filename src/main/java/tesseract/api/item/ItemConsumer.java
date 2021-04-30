@@ -1,9 +1,10 @@
 package tesseract.api.item;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Direction;
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
-import tesseract.util.Dir;
+
 
 /**
  * A class that acts as a container for a item consumer.
@@ -11,7 +12,7 @@ import tesseract.util.Dir;
 public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
 
     private int minCapacity = Integer.MAX_VALUE;
-    private final Dir input;
+    private final Direction input;
 
     /**
      * Creates instance of the consumer.
@@ -20,7 +21,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      * @param path The path information.
      * @param dir The input direction.
      */
-    protected ItemConsumer(IItemNode consumer, Path<IItemPipe> path, Dir dir) {
+    protected ItemConsumer(IItemNode consumer, Path<IItemPipe> path, Direction dir) {
         super(consumer, path);
         init();
         input = dir;

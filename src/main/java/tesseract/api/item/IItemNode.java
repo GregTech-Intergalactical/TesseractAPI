@@ -1,10 +1,10 @@
 package tesseract.api.item;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Direction;
 import net.minecraftforge.items.IItemHandler;
-import tesseract.api.IConnectable;
 import tesseract.api.IRefreshable;
-import tesseract.util.Dir;
+
 
 /**
  * An item node is the unit of interaction with item inventories.
@@ -20,7 +20,7 @@ public interface IItemNode extends IItemHandler, IRefreshable {
      * @param direction Direction to the proceed.
      * @return Returns the priority of this node as a number.
      */
-    int getPriority(Dir direction);
+    int getPriority(Direction direction);
 
     /**
      * @param slot The slot index.
@@ -44,14 +44,14 @@ public interface IItemNode extends IItemHandler, IRefreshable {
      * Used to determine if this storage can receive item.
      * @return If this is false, then any calls to receiveEnergy will return 0.
      */
-    boolean canInput(Dir direction);
+    boolean canInput(Direction direction);
 
     /**
      * Used to determine which sides can output item (if any).
      * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */
-    boolean canOutput(Dir direction);
+    boolean canOutput(Direction direction);
 
     /**
      * Used to determine which items and at which direction can be consumed.
@@ -59,7 +59,7 @@ public interface IItemNode extends IItemHandler, IRefreshable {
      * @param direction Direction to the input.
      * @return If the storage can input the item (EVER, not at the time of query).
      */
-    default boolean canInput(ItemStack item, Dir direction) {
+    default boolean canInput(ItemStack item, Direction direction) {
         return true;
     }
 }

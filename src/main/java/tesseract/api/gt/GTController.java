@@ -5,19 +5,15 @@ import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.Direction;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.graph.*;
-import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * Class acts as a controller in the group of an electrical components.
@@ -64,7 +60,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
-                for (Dir direction : Dir.VALUES) {
+                for (Direction direction : Graph.DIRECTIONS) {
                     if (producer.canOutput(direction)) {
                         List<GTConsumer> consumers = new ObjectArrayList<>();
                         long side = position.offset(direction).asLong();
@@ -143,8 +139,8 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
         }
         IGTNode node = nodee.value();
         Pos pos = new Pos(consumerPos).sub(new Pos(producerPos));
-        Dir dir = path != null ? path.target().getDirection()
-                : Dir.POS_TO_DIR.get(pos).getOpposite();
+        Direction dir = path != null ? path.target().getDirection()
+                : Direction.getFacingFromVector(pos.getX(), pos.getY(), pos.getZ()).getOpposite();
         if (node.canInput(dir)) {
             GTConsumer consumer = new GTConsumer(node, path);
             int voltage = producer.getOutputVoltage() - consumer.getLoss();
@@ -181,7 +177,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     }
 
     @Override
-    public int insert(Pos producerPos, Dir direction, Long stack, boolean simulate) {
+    public int insert(Pos producerPos, Direction direction, Long stack, boolean simulate) {
         NodeCache<IGTNode> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
         if (node == null) return 0;
         IGTNode producer = node.value();

@@ -2,10 +2,10 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
-import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
@@ -45,7 +45,7 @@ public class Grid<C extends IConnectable> implements INode {
     }
 
     @Override
-    public boolean linked(long from, Dir towards, long to) {
+    public boolean linked(long from, Direction towards, long to) {
         assert towards != null;
 
         Cache<C> cacheFrom = connectors.get(from);
@@ -70,7 +70,7 @@ public class Grid<C extends IConnectable> implements INode {
     }
 
     @Override
-    public boolean connects(long pos, Dir towards) {
+    public boolean connects(long pos, Direction towards) {
         assert towards != null;
 
         Cache<C> cache = connectors.get(pos);
@@ -219,7 +219,7 @@ public class Grid<C extends IConnectable> implements INode {
             removed -> removed.add(pos),
             roots -> {
                 Pos position = new Pos(pos);
-                for (Dir direction : Dir.VALUES) {
+                for (Direction direction : Graph.DIRECTIONS) {
                     long side = position.offset(direction).asLong();
 
                     if (linked(pos, direction, side)) {
@@ -265,7 +265,7 @@ public class Grid<C extends IConnectable> implements INode {
         connectors.remove(pos);
 
         Pos position = new Pos(pos);
-        for (Dir direction : Dir.VALUES) {
+        for (Direction direction : Graph.DIRECTIONS) {
             long side = position.offset(direction).asLong();
 
             if (nodes.contains(side) && isExternal(side)) {
@@ -288,7 +288,7 @@ public class Grid<C extends IConnectable> implements INode {
 
         int neighbors = 0;
         Pos position = new Pos(pos);
-        for (Dir direction : Dir.VALUES) {
+        for (Direction direction : Graph.DIRECTIONS) {
             long side = position.offset(direction).asLong();
 
             if (!nodes.contains(side) && linked(pos, direction, side)) {

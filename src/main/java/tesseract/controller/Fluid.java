@@ -2,17 +2,14 @@ package tesseract.controller;
 
 import net.minecraft.block.Blocks;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fluids.FluidStack;
 import tesseract.api.fluid.FluidController;
 import tesseract.api.fluid.IFluidNode;
 
 import javax.annotation.Nonnull;
-import java.util.function.Function;
 
 // TODO: Make explosions depend on pressure, capacity, temperature
 public class Fluid extends FluidController<IFluidNode> {

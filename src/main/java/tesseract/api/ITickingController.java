@@ -1,7 +1,7 @@
 package tesseract.api;
 
+import net.minecraft.util.Direction;
 import tesseract.graph.INode;
-import tesseract.util.Dir;
 import tesseract.util.Pos;
 
 /**
@@ -39,5 +39,5 @@ public interface ITickingController<T, C extends IConnectable, N> {
      * @param simulate to simulate insertion.
      * @return controller-sensitive insertion information(amount inserted).
      */
-    int insert(Pos producerPos, Dir direction, T stack, boolean simulate);
+    int insert(Pos producerPos, Direction direction, T stack, boolean simulate);
 }

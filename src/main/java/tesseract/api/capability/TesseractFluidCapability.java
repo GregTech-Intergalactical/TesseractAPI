@@ -5,9 +5,7 @@ import net.minecraft.util.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import tesseract.Tesseract;
-import tesseract.api.ITickingController;
-import tesseract.api.fluid.FluidController;
-import tesseract.util.Dir;
+import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
@@ -43,7 +41,7 @@ public class TesseractFluidCapability implements IFluidHandler {
 
     @Override
     public int fill(FluidStack resource, FluidAction action) {
-        return Tesseract.FLUID.getController(tile.getWorld(), tile.getPos().toLong()).insert(new Pos(tile.getPos().toLong()), Dir.VALUES[side.getIndex()],resource, action.simulate());
+        return Tesseract.FLUID.getController(tile.getWorld(), tile.getPos().toLong()).insert(new Pos(tile.getPos().toLong()), Graph.DIRECTIONS[side.getIndex()],resource, action.simulate());
     }
 
     @Nonnull

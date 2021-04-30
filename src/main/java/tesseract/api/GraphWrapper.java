@@ -3,12 +3,10 @@ package tesseract.api;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import tesseract.graph.Cache;
 import tesseract.graph.Graph;
 import tesseract.graph.Group;
 
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 

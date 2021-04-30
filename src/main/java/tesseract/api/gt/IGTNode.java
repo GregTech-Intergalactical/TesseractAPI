@@ -1,8 +1,8 @@
 package tesseract.api.gt;
 
-import tesseract.api.IConnectable;
+import net.minecraft.util.Direction;
 import tesseract.api.IRefreshable;
-import tesseract.util.Dir;
+
 
 /**
  * An electric node is the unit of interaction with electric inventories.
@@ -76,14 +76,14 @@ public interface IGTNode extends IRefreshable {
 	 * @param direction the direction.
 	 * @return If this is false, then any calls to receiveEnergy will return 0.
 	 */
-	boolean canInput(Dir direction);
+	boolean canInput(Direction direction);
 
 	/**
 	 * Used to determine which sides can output energy (if any).
 	 * @param direction Direction to the output.
 	 * @return Returns true if the given direction is output side.
 	 */
-	boolean canOutput(Dir direction);
+	boolean canOutput(Direction direction);
 
 	GTConsumer.State getState();
 }

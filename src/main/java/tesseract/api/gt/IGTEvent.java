@@ -1,7 +1,6 @@
 package tesseract.api.gt;
 
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 
 /**
  * Interface for handling an electric events. (Controller will handle them)

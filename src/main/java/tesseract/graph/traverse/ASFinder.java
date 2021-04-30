@@ -1,8 +1,9 @@
 package tesseract.graph.traverse;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.util.Direction;
+import tesseract.graph.Graph;
 import tesseract.graph.INode;
-import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
@@ -127,7 +128,7 @@ public class ASFinder {
     public boolean retraceNode(Node current) {
         int connections = 0;
 
-        for (Dir direction : Dir.VALUES) {
+        for (Direction direction : Graph.DIRECTIONS) {
             long pos = current.offset(direction).asLong();
 
             if (container.connects(pos, direction)) {
@@ -163,7 +164,7 @@ public class ASFinder {
     public Node[] getNeighboringNodes(Node current) {
         Node[] neighbors = new Node[6]; int i = 0;
 
-        for (Dir direction : Dir.VALUES) {
+        for (Direction direction : Graph.DIRECTIONS) {
             Pos pos = current.offset(direction);
             long side = pos.asLong();
 

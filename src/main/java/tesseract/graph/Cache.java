@@ -1,10 +1,7 @@
 package tesseract.graph;
 
-import net.minecraft.util.LazyValue;
+import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
-import tesseract.util.Dir;
-
-import java.util.function.Supplier;
 
 /**
  * The Cache is a class that should work with connections.
@@ -26,7 +23,7 @@ public class Cache<T extends IConnectable> {
      * @param direction The direction index.
      * @return True when connect, false otherwise.
      */
-    public boolean connects(Dir direction) {
+    public boolean connects(Direction direction) {
         return Connectivity.has(connectivity, direction.getIndex());
     }
 
