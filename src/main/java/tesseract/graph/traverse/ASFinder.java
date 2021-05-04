@@ -66,7 +66,7 @@ public class ASFinder {
                 open.remove(current);
                 closed.add(current);
 
-                for (Node n : getNeighboringNodes(current)) {
+                for (Node n : getNeighboringNodes(current, target)) {
 
                     if (n == null) {
                         break;
@@ -159,16 +159,16 @@ public class ASFinder {
      * Lookups for a set of neighbors of a given node.
      *
      * @param current The given node.
+     * @param end the target node.
      * @return The list of nodes.
      */
-    public Node[] getNeighboringNodes(Node current) {
+    public Node[] getNeighboringNodes(Node current, long end) {
         Node[] neighbors = new Node[6]; int i = 0;
 
         for (Direction direction : Graph.DIRECTIONS) {
             Pos pos = current.offset(direction);
             long side = pos.asLong();
-
-            if (container.contains(side)) {
+            if (container.contains(side) && ((side == end) || container.connects(pos.asLong(), direction.getOpposite()))) {
                 neighbors[i++] = new Node(pos, direction.getOpposite());
             }
         }
