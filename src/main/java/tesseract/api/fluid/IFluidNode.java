@@ -52,4 +52,14 @@ public interface IFluidNode extends IFluidHandler, IRefreshable {
      * @return If the tank can input the fluid (EVER, not at the time of query).
      */
     boolean canInput(FluidStack fluid, Direction direction);
+
+    /**
+     * Drains from the input tanks rather than output tanks. Useful for recipes.
+     * @param stack stack to drain.
+     * @param action execute/simulate
+     * @return the drained stack
+     */
+    default FluidStack drainInput(FluidStack stack, IFluidHandler.FluidAction action) {
+        return drain(stack, action);
+    }
 }

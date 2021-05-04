@@ -1,13 +1,17 @@
 package tesseract.api.fluid;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
@@ -19,20 +23,24 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableList;
+import com.mojang.datafixers.util.Either;
+
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-public class FluidController<N extends IFluidNode> extends Controller<FluidStack, IFluidPipe, N> implements IFluidEvent {
+public class FluidController<N extends IFluidNode> extends Controller<FluidStack, IFluidPipe, N> implements IFluidEvent<FluidStack> {
 
     // TODO: assign the value from Antimatter config
-    public static boolean HARDCORE_PIPES = false;
-    public static double PIPE_LEAK = 0.9;
+    public final static boolean HARDCORE_PIPES = false;
+    public final static boolean SLOOSH = false;
+    public static double PIPE_LEAK = 0.8;
     private long totalPressure, lastPressure;
     private int maxTemperature, lastTemperature;
     private boolean isLeaking, lastLeaking;
-    private final Long2ObjectMap<FluidHolder<FluidStack>> holders = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<FluidHolder<Fluid>> holders = new Long2ObjectLinkedOpenHashMap<>();
     private final Object2ObjectMap<N, Map<Direction, List<FluidConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
-
+    private final List<Neighbour> neighbours = new ObjectArrayList<>();
     /**
      * Creates instance of the controller.
      *
@@ -44,45 +52,72 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
 
     @Override
     public void change() {
-        data.clear();
+        if (!SLOOSH) {
+            data.clear();
 
-        for (Long2ObjectMap.Entry<NodeCache<N>> e : group.getNodes().long2ObjectEntrySet()) {
-            long pos = e.getLongKey();
-            N producer = e.getValue().value();
-
-            if (producer.canOutput()) {
-                Pos position = new Pos(pos);
-                for (Direction direction : Graph.DIRECTIONS) {
-                    if (producer.canOutput(direction)) {
-                        List<FluidConsumer> consumers = new ObjectArrayList<>();
-                        long side = position.offset(direction).asLong();
-
-                        if (group.getNodes().containsKey(side)) {
-                            onCheck(consumers, null, direction.getOpposite(), side);
-                        } else {
-                            Grid<IFluidPipe> grid = group.getGridAt(side, direction);
-                            if (grid != null) {
-                                for (Path<IFluidPipe> path : grid.getPaths(pos)) {
-                                    if (!path.isEmpty()) {
-                                        Node target = path.target();
-                                        assert target != null;
-                                        onCheck(consumers, path, target.getDirection(), target.asLong());
+            for (Long2ObjectMap.Entry<NodeCache<N>> e : group.getNodes().long2ObjectEntrySet()) {
+                long pos = e.getLongKey();
+                N producer = e.getValue().value();
+    
+                if (producer.canOutput()) {
+                    Pos position = new Pos(pos);
+                    for (Direction direction : Graph.DIRECTIONS) {
+                        if (producer.canOutput(direction)) {
+                            List<FluidConsumer> consumers = new ObjectArrayList<>();
+                            long side = position.offset(direction).asLong();
+    
+                            if (group.getNodes().containsKey(side)) {
+                                onCheck(consumers, null, direction.getOpposite(), side);
+                            } else {
+                                Grid<IFluidPipe> grid = group.getGridAt(side, direction);
+                                if (grid != null) {
+                                    for (Path<IFluidPipe> path : grid.getPaths(pos)) {
+                                        if (!path.isEmpty()) {
+                                            Node target = path.target();
+                                            assert target != null;
+                                            onCheck(consumers, path, target.getDirection(), target.asLong());
+                                        }
                                     }
                                 }
                             }
-                        }
-
-                        if (!consumers.isEmpty()) {
-                            data.computeIfAbsent(producer, map -> new EnumMap<>(Direction.class)).put(direction, consumers);
+    
+                            if (!consumers.isEmpty()) {
+                                data.computeIfAbsent(producer, map -> new EnumMap<>(Direction.class)).put(direction, consumers);
+                            }
                         }
                     }
                 }
             }
-        }
-
-        for (Map<Direction, List<FluidConsumer>> map : data.values()) {
-            for (List<FluidConsumer> consumers : map.values()) {
-                consumers.sort(Consumer.COMPARATOR);
+    
+            for (Map<Direction, List<FluidConsumer>> map : data.values()) {
+                for (List<FluidConsumer> consumers : map.values()) {
+                    consumers.sort(Consumer.COMPARATOR);
+                }
+            }
+        } else {
+            neighbours.clear();
+            for (Int2ObjectMap.Entry<Grid<IFluidPipe>> entry : group.getGrids().int2ObjectEntrySet()) {
+                Grid<IFluidPipe> grid = entry.getValue();
+                for(Long2ObjectMap.Entry<Cache<IFluidPipe>> ent : grid.getConnectors().long2ObjectEntrySet()) {
+                    byte connectivity = ent.getValue().connectivity();
+                    long pos = ent.getLongKey();
+                    ImmutableList.Builder<Tuple<Direction,Either<IFluidPipe, IFluidNode>>> list = ImmutableList.builder();
+                    for (Direction dir : Graph.DIRECTIONS) {
+                        if (!Connectivity.has(connectivity, dir.getIndex())) continue;
+                        long newPos = new Pos(pos).offset(dir).asLong();
+                        if (grid.contains(newPos)) {
+                            Cache<IFluidPipe> newCache = grid.getConnectors().get(newPos);
+                            if (newCache != null) {
+                                list.add(new Tuple<>(dir, Either.left(newCache.value())));
+                            } else if (group.getNodes().containsKey(newPos)) {
+                                list.add(new Tuple<>(dir, Either.right(group.getNodes().get(newPos).value())));
+                            } else {
+                                throw new RuntimeException("Tesseract state broken, report this to mod authors");
+                            }
+                        }
+                    }
+                    neighbours.add(new Neighbour(ent.getValue().value(), pos, list.build()));
+                }
             }
         }
     }
@@ -90,7 +125,57 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
     @Override
     public void tick() {
         super.tick();
-        holders.clear();
+        if (SLOOSH) {
+            if (getWorld().getGameTime() % 10 != 0) return;
+            for (Neighbour neighbour : this.neighbours) {
+                IFluidNode source = neighbour.source.getNode();
+                List<Tuple<Direction,Either<IFluidPipe, IFluidNode>>> destination = neighbour.neighbours;
+                int tanksToMoveTo = destination.stream().mapToInt(t -> t.getB().map(pipe -> pipe.getNode().canInput(t.getA()), node -> node.canInput(t.getA())) ? 1 : 0).sum();
+                if (tanksToMoveTo < 1) continue;
+                for (int i = 0; i < source.getTanks(); i++) {
+                    FluidStack stack = source.getFluidInTank(i);
+                    if (stack.isEmpty()) continue;
+                    int toMove = (stack.getAmount() + tanksToMoveTo - 1)/(tanksToMoveTo);
+                    if (toMove == 0) {
+                        if (stack.getAmount() == 0) continue;
+                        toMove = 1;
+                    }
+                    int amount = stack.getAmount();
+                    FluidStack copy = stack.copy();
+                    copy.setAmount(toMove);
+                    for (int j = 0; j < destination.size() && amount > 0; j++) {
+                        Either<IFluidPipe, IFluidNode> dest = destination.get(j).getB();
+                        int moved = dest.map(pipe -> pipe.getNode().fill(copy, FluidAction.SIMULATE), node -> node.fill(copy, FluidAction.SIMULATE));
+                        FluidStatus status = dest.map(pipe -> {
+                            return pipe.getHandler(stack.getFluid().getAttributes().getTemperature(), moved, stack.getFluid().getAttributes().isGaseous());
+                        }, node -> FluidStatus.SUCCESS);
+                        int temperature = stack.getFluid().getAttributes().getTemperature();
+                        switch (status) {
+                            case FAIL_TEMP:
+                                onPipeOverTemp(getWorld(), new Pos(neighbour.pos).offset(destination.get(j).getA()).asLong(), temperature);
+                                return;
+                            case FAIL_PRESSURE:
+                                onPipeOverPressure(getWorld(), new Pos(neighbour.pos).offset(destination.get(j).getA()).asLong(), amount, stack);
+                                return;
+                            case FAIL_LEAK:
+                                onPipeGasLeak(getWorld(), new Pos(neighbour.pos).offset(destination.get(j).getA()).asLong(), copy);
+                                continue;
+                            case FAIL_CAPACITY:
+                                return;
+                            case SUCCESS:
+                                dest.map(pipe -> pipe.getNode().fill(copy, FluidAction.EXECUTE), node -> node.fill(copy, FluidAction.EXECUTE));
+                                break;
+                        }
+                        amount -= moved;
+                    }
+                    amount = Math.max(amount, 0);
+                    copy.setAmount(stack.getAmount()-amount);
+                    source.drainInput(copy, FluidAction.EXECUTE);
+                }
+            }
+        } else {
+            holders.clear();
+        }
     }
 
     /**
@@ -107,6 +192,7 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
     }
 
     public int insert(Pos producerPos, Direction direction, FluidStack stack, boolean simulate) {
+        if (SLOOSH) return 0;
         NodeCache<N> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
         if (node == null) return 0;
         Map<Direction, List<FluidConsumer>> map = this.data.get(node.value());
@@ -125,8 +211,9 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
                 continue;
             }
             FluidStack newStack = stack.copy();
-            if (!HARDCORE_PIPES && amount > consumer.getMinPressure())
+            if (!HARDCORE_PIPES && amount > consumer.getMinPressure()) {
                 amount = Math.min(amount,consumer.getMinPressure());
+            }
 
             newStack.setAmount(amount);
             int temperature = stack.getFluid().getAttributes().getTemperature();
@@ -135,6 +222,7 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
             //FluidStack drained = producer.extract(tank, amount, false);
 
             // If we are here, then path had some invalid pipes which not suits the limits of temp/pressure/gas
+            // only check if not simulate, otherwise it would never be called w/o simulate.
             if (!simulate && !consumer.canHandle(temperature, amount, isGaseous)) {
                 // Find corrupt pipe and return
                 for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull().long2ObjectEntrySet()) {
@@ -145,12 +233,11 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
                         case FAIL_TEMP:
                             onPipeOverTemp(getWorld(), pos, temperature);
                             return 0;
-                        case FAIL_PRESSURE:
-                            onPipeOverPressure(getWorld(), pos, amount);
-                            return 0;
                         case FAIL_LEAK:
                             newStack = onPipeGasLeak(getWorld(), pos, newStack);
                             isLeaking = true;
+                            break;
+                        default:
                             break;
                     }
                 }
@@ -162,7 +249,18 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
                     long pos = p.getLongKey();
                     IFluidPipe pipe = p.getValue();
 
-                    holders.computeIfAbsent(pos, h -> new FluidHolder<FluidStack>(pipe)).add(amount, stack);
+                    holders.computeIfAbsent(pos, h -> new FluidHolder<Fluid>(pipe)).add(amount, stack.getFluid());
+
+                    FluidHolder<Fluid> holder = holders.get(pos);
+                
+                    if (holder.isOverPressure()) {
+                        onPipeOverPressure(getWorld(), pos, holder.getPressure(), stack);
+                        return 0;
+                    }
+                    if (holder.isOverCapacity()) {
+                        onPipeOverCapacity(getWorld(), pos, holder.getCapacity(), stack);
+                        return 0;
+                    }
                 }
             }
 
@@ -177,21 +275,6 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
             outputAmount -= amount;
             if (outputAmount <= 0) {
                 break;
-            }
-        }
-        if (!simulate) {
-            for (Long2ObjectMap.Entry<FluidHolder<FluidStack>> e : holders.long2ObjectEntrySet()) {
-                long pos = e.getLongKey();
-                FluidHolder absorber = e.getValue();
-
-                // TODO: Find proper path to destroy
-
-                if (absorber.isOverPressure()) {
-                    onPipeOverPressure(getWorld(), pos, absorber.getPressure());
-                }
-                if (absorber.isOverCapacity()) {
-                    onPipeOverCapacity(getWorld(), pos, absorber.getCapacity());
-                }
             }
         }
         return stack.getAmount() - outputAmount;
@@ -219,5 +302,17 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
     @Override
     public ITickingController clone(INode group) {
         return new FluidController<>(dim).set(group);
+    }
+
+    protected static class Neighbour {
+        public final IFluidPipe source;
+        public final long pos;
+        public final List<Tuple<Direction,Either<IFluidPipe, IFluidNode>>> neighbours;
+
+        public Neighbour(IFluidPipe source, long pos, List<Tuple<Direction,Either<IFluidPipe, IFluidNode>>> neighbours) {
+            this.source = source;
+            this.pos = pos;
+            this.neighbours = neighbours;
+        }
     }
 }

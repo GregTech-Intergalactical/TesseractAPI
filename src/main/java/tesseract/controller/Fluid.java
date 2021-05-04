@@ -2,6 +2,9 @@ package tesseract.controller;
 
 import net.minecraft.block.Blocks;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvent;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
@@ -14,6 +17,9 @@ import javax.annotation.Nonnull;
 // TODO: Make explosions depend on pressure, capacity, temperature
 public class Fluid extends FluidController<IFluidNode> {
 
+    private long lastGasLeakSound = 0;
+    private static final int GAS_WAIT_TIME = 40;
+
     /**
      * Creates instance of the tesseract.controller.
      *
@@ -24,12 +30,17 @@ public class Fluid extends FluidController<IFluidNode> {
     }
 
     @Override
-    public void onPipeOverPressure(World w, long pos, int pressure) {
-        if (HARDCORE_PIPES) Utils.createExplosion(w, BlockPos.fromLong(pos), 4.0F, Explosion.Mode.BREAK);
+    public void onPipeOverPressure(World w, long pos, int pressure, FluidStack fluid) {
+        if (HARDCORE_PIPES) {
+            Utils.createExplosion(w, BlockPos.fromLong(pos), 4.0F, Explosion.Mode.BREAK);
+            if (pressure >= 1000) {
+                
+            }
+        }
     }
 
     @Override
-    public void onPipeOverCapacity(World w, long pos, int capacity) {
+    public void onPipeOverCapacity(World w, long pos, int capacity, FluidStack fluid) {
         Utils.createExplosion(w, BlockPos.fromLong(pos), 1.0F, Explosion.Mode.NONE);
     }
 
@@ -40,7 +51,12 @@ public class Fluid extends FluidController<IFluidNode> {
 
     @Override
     public FluidStack onPipeGasLeak(World world, long pos, @Nonnull FluidStack fluid) {
-        return super.onPipeGasLeak(world, pos, fluid);
-        //return new FluidData<T>(fluid.getStack(), (int) Math.floor(fluid.getAmount() * PIPE_LEAK), fluid.getTemperature(), fluid.isGaseous());
+        FluidStack stack = fluid.copy();
+        stack.setAmount((int)((double)stack.getAmount()*PIPE_LEAK));
+        if ((world.getGameTime() - lastGasLeakSound) > GAS_WAIT_TIME) {
+            world.playSound(null, BlockPos.fromLong(pos), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.3F, 0.9F + world.rand.nextFloat() * 0.2F);
+            lastGasLeakSound = world.getGameTime();
+        }
+        return stack;
     }
 }

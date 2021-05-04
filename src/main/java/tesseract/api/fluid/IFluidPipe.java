@@ -38,8 +38,9 @@ public interface IFluidPipe extends IConnectable {
      */
     default FluidStatus getHandler(int temperature, int pressure, boolean proof) {
         if (getTemperature() < temperature) return FluidStatus.FAIL_TEMP;
-        else if (!isGasProof() && !proof) return FluidStatus.FAIL_LEAK;
-        else if (getPressure() < pressure) return FluidStatus.FAIL_PRESSURE;
+        else if (!isGasProof() && proof) return FluidStatus.FAIL_LEAK;
         return FluidStatus.SUCCESS;
     }
+
+    IFluidNode getNode();
 }

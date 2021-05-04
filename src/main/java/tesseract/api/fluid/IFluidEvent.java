@@ -1,5 +1,6 @@
 package tesseract.api.fluid;
 
+import net.minecraft.fluid.Fluid;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -14,7 +15,7 @@ public interface IFluidEvent<T> {
      * @param pos The pipe position.
      * @param pressure The current pressure.
      */
-    default void onPipeOverPressure(World world, long pos, int pressure) {
+    default void onPipeOverPressure(World world, long pos, int pressure, FluidStack fluid) {
         //NOOP
     }
 
@@ -24,7 +25,7 @@ public interface IFluidEvent<T> {
      * @param pos The pipe position.
      * @param capacity The current capacity.
      */
-    default void onPipeOverCapacity(World world, long pos, int capacity) {
+    default void onPipeOverCapacity(World world, long pos, int capacity, FluidStack fluid) {
         //NOOP
     }
 
