@@ -11,6 +11,7 @@ import net.minecraft.util.Tuple;
 import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
+import tesseract.api.ITickingController;
 import tesseract.util.CID;
 import tesseract.util.Pos;
 
@@ -76,7 +77,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
 	 */
 	public boolean addNode(long pos, Supplier<N> node, Controller<T, C, N> controller) {
 		if (!contains(pos)) {
-			if (Tesseract.hadFirstTick()) {
+			if (Tesseract.hadFirstTick(controller.getWorld())) {
 				NodeCache<N> cache = new NodeCache<>(node);
 				if (cache.value() != null) {
 					Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, controller));
@@ -95,12 +96,9 @@ public class Graph<T, C extends IConnectable, N> implements INode {
 	}
 
 	public void refreshNode(long pos) {
-		if (contains(pos) && Tesseract.hadFirstTick()) {
-			getGroupAt(pos).getController().change();
-			//Cache<N> node = this.getGroupAt(pos).getNodes().get(pos);
-			//Cache<N> newNode = new Cache<N>(node.value());
-			//removeAt(pos);
-			//addNode(pos, newNode, controller);
+		if (contains(pos)) {
+			ITickingController<T,C,N> controller = getGroupAt(pos).getController();
+			if (Tesseract.hadFirstTick(controller.getWorld())) controller.change();
 		}
 	}
 

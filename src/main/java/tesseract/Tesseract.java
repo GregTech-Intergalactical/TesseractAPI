@@ -1,6 +1,8 @@
 package tesseract;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
@@ -25,6 +27,8 @@ import tesseract.api.item.ItemController;
 import tesseract.controller.Energy;
 import tesseract.controller.Fluid;
 
+import java.util.Set;
+
 @Mod(Tesseract.API_ID)
 //@Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
 public class Tesseract {
@@ -39,7 +43,7 @@ public class Tesseract {
 	public static GraphWrapper<FluidStack,IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new);
 	public static GraphWrapper<ItemStack,IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new);
 
-	private static boolean firstTick = false;
+	private final static Set<IWorld> firstTick = new ObjectOpenHashSet<>();
 
 	public Tesseract() {
 		MinecraftForge.EVENT_BUS.register(this);
@@ -52,23 +56,25 @@ public class Tesseract {
 
 	@SubscribeEvent
 	public void serverStoppedEvent(FMLServerStoppedEvent e) {
-		firstTick = false;
+		firstTick.clear();
 	}
 
 	@SubscribeEvent
 	public void worldUnloadEvent(WorldEvent.Unload e) {
+		if (!(e.getWorld() instanceof World)) return;
 		FE_ENERGY.removeWorld((World)e.getWorld());
 		GT_ENERGY.removeWorld((World)e.getWorld());
 		ITEM.removeWorld((World)e.getWorld());
 		FLUID.removeWorld((World)e.getWorld());
+		firstTick.remove(e.getWorld());
 	}
 
     @SubscribeEvent
     public void onServerTick(TickEvent.WorldTickEvent event) {
 		if (event.side.isClient()) return;
 		World dim = event.world;
-		if (!hadFirstTick()) {
-			firstTick = true;
+		if (!hadFirstTick(dim)) {
+			firstTick.add(event.world);
 			GT_ENERGY.onFirstTick(dim);
 			FE_ENERGY.onFirstTick(dim);
 			FLUID.onFirstTick(dim);
@@ -82,7 +88,7 @@ public class Tesseract {
         }
     }
 
-	public static boolean hadFirstTick() {
-		return firstTick;
+	public static boolean hadFirstTick(IWorld world) {
+		return firstTick.contains(world);
 	}
 }

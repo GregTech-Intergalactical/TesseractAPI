@@ -1,5 +1,7 @@
 package tesseract.api.fluid;
 
+import com.google.common.collect.ImmutableList;
+import com.mojang.datafixers.util.Either;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -22,9 +24,6 @@ import tesseract.util.Pos;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-
-import com.google.common.collect.ImmutableList;
-import com.mojang.datafixers.util.Either;
 
 /**
  * Class acts as a controller in the group of a fluid components.
@@ -211,8 +210,14 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
                 continue;
             }
             FluidStack newStack = stack.copy();
-            if (!HARDCORE_PIPES && amount > consumer.getMinPressure()) {
-                amount = Math.min(amount,consumer.getMinPressure());
+            if (!HARDCORE_PIPES) {
+                if (simulate) {
+                    amount = Math.min(amount, consumer.getMinPressure());
+                    for (Long2ObjectMap.Entry<IFluidPipe> entry : consumer.getFull().long2ObjectEntrySet()) {
+                        FluidHolder<Fluid> holder = holders.get(entry.getLongKey());
+                        amount = Math.min(amount, holder != null ? entry.getValue().getPressure() - holder.getPressure() : entry.getValue().getPressure());
+                    }
+                }
             }
 
             newStack.setAmount(amount);
@@ -249,7 +254,7 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
                     long pos = p.getLongKey();
                     IFluidPipe pipe = p.getValue();
 
-                    holders.computeIfAbsent(pos, h -> new FluidHolder<Fluid>(pipe)).add(amount, stack.getFluid());
+                    holders.computeIfAbsent(pos, h -> new FluidHolder<>(pipe)).add(amount, stack.getFluid());
 
                     FluidHolder<Fluid> holder = holders.get(pos);
                 

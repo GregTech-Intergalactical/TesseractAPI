@@ -48,7 +48,8 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
      */
     protected abstract void onFrame();
 
-    protected World getWorld() {
+    @Override
+    public World getWorld() {
         return this.dim;
     }
 }

@@ -69,7 +69,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @return The controller object. (Can be null)
      */
     public ITickingController<T, C, N> getController(World dim, long pos) {
-        Group<?, ?, ?> group = getGraph(dim).getGroupAt(pos);
+        Group<T, C, N> group = getGraph(dim).getGroupAt(pos);
         return group != null ? group.getController() : null;
     }
 

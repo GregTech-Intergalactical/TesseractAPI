@@ -91,7 +91,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
             ticking.set(this);
             controller = ticking;
         }
-        if (Tesseract.hadFirstTick())
+        if (Tesseract.hadFirstTick(controller.getWorld()))
             controller.change();
     }
 
@@ -126,7 +126,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
     /**
      * @return Returns group controller.
      */
-    public ITickingController getController() {
+    public ITickingController<T,C,N> getController() {
         return controller;
     }
 

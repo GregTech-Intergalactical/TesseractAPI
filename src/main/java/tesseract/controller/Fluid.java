@@ -3,7 +3,6 @@ package tesseract.controller;
 import net.minecraft.block.Blocks;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Explosion;
@@ -31,12 +30,7 @@ public class Fluid extends FluidController<IFluidNode> {
 
     @Override
     public void onPipeOverPressure(World w, long pos, int pressure, FluidStack fluid) {
-        if (HARDCORE_PIPES) {
-            Utils.createExplosion(w, BlockPos.fromLong(pos), 4.0F, Explosion.Mode.BREAK);
-            if (pressure >= 1000) {
-                
-            }
-        }
+        Utils.createExplosion(w, BlockPos.fromLong(pos), 4.0F, Explosion.Mode.BREAK);
     }
 
     @Override

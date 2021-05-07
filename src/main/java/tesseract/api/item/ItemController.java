@@ -35,7 +35,7 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
      */
     public ItemController(World dim) {
         super(dim);
-        holders.defaultReturnValue(-1);
+        holders.defaultReturnValue(0);
     }
 
     @Override
@@ -88,12 +88,18 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
         }
     }
 
-    public int insert(Pos producerPos, Direction Directionection, ItemStack stack, boolean simulate) {
-        NodeCache<N> node = this.group.getNodes().get(producerPos.offset(Directionection).asLong());
+    @Override
+    public void tick() {
+        super.tick();
+        holders.clear();
+    }
+
+    public int insert(Pos producerPos, Direction dir, ItemStack stack, boolean simulate) {
+        NodeCache<N> node = this.group.getNodes().get(producerPos.offset(dir).asLong());
         if (node == null) return stack.getCount();
         Map<Direction, List<ItemConsumer>> map = this.data.get(node.value());
         if (map == null) return stack.getCount();
-        List<ItemConsumer> list = map.get(Directionection.getOpposite());
+        List<ItemConsumer> list = map.get(dir.getOpposite());
         if (list == null) return stack.getCount();
         for (ItemConsumer consumer : list) {
             if (!consumer.canAccept(stack)) {
@@ -105,38 +111,23 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
                 continue;
             }
 
-            // Stores the pressure into holder for path only for variate connection
-            switch (consumer.getConnection()) {
-                case SINGLE:
-                    int min = consumer.getMinCapacity(); // Fast check by the lowest cost pipe
-                    if (min < amount) {
-                        amount = min;
-                    }
-                    break;
+            //Actual count inserted.
+            int actual = stack.getCount() - amount;
+            for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getFull().long2ObjectEntrySet()) {
+                long pos = p.getLongKey();
+                IItemPipe pipe = p.getValue();
 
-                case VARIATE:
-                    int limit = amount;
-                    for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
-                        long pos = p.getLongKey();
-                        IItemPipe pipe = p.getValue();
-
-                        int capacity = holders.get(pos);
-                        if (capacity == -1) {
-                            capacity = pipe.getCapacity();
-                            holders.put(pos, capacity);
-                        }
-                        limit = Math.min(limit, capacity);
-                    }
-
-                    if (!simulate && limit < stack.getCount()) {
-                        for (long pos : consumer.getFull().keySet()) {
-                            holders.put(pos, Math.max(holders.get(pos) - (stack.getCount()-limit), 0));
-                        }
-                    }
-
-                    amount = limit;
-                    break;
+                int capacity = holders.get(pos);
+                if (simulate) {
+                    actual = Math.min(actual, pipe.getCapacity()-capacity);
+                } else {
+                    capacity = capacity == -1 ? 0 : capacity;
+                    holders.put(pos, capacity+actual);
+                }
             }
+
+            amount = stack.getCount() - actual;
+
             if (simulate) {
                 return amount;
             }
