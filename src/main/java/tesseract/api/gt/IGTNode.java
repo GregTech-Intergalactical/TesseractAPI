@@ -85,5 +85,14 @@ public interface IGTNode extends IRefreshable {
 	 */
 	boolean canOutput(Direction direction);
 
+	/**
+	 * Returns the inner state for this node, representing received/sent eu.
+	 * @return state.
+	 */
 	GTConsumer.State getState();
+	
+	//Called by consumers that cannot tick themselves, such as FE wrappers.
+	default void tesseractTick() {
+		
+	}
 }

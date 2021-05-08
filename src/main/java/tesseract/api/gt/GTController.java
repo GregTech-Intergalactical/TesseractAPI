@@ -25,7 +25,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     //Cable monitoring.
     private Long2LongMap frameHolders = new Long2LongLinkedOpenHashMap();
     private Long2LongMap previousFrameHolder = new Long2LongLinkedOpenHashMap();
-    private final Object2IntMap<IGTNode> obtains = new Object2IntOpenHashMap<>();
+    //private final Object2IntMap<IGTNode> obtains = new Object2IntOpenHashMap<>();
     private final Object2ObjectMap<IGTNode, List<GTConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -130,6 +130,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
      * @param path The paths to consumers.
      * @param consumerPos The position of the consumer.
      * @param producerPos The position of the producer.
+     * @return whether or not an issue arose checking node.
      */
     private boolean onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long producerPos, long consumerPos) {
         NodeCache<IGTNode> nodee = group.getNodes().get(consumerPos);
@@ -173,7 +174,8 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             return b + e.getLongValue();
         }));
         holders.clear();
-        obtains.clear();
+        this.group.getNodes().values().forEach(t -> t.value().tesseractTick());
+        //obtains.clear();
     }
 
     @Override
@@ -213,10 +215,10 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
 
             // Remember amperes stored in this consumer
             amperage = Math.min(amperage_in, amperage);
-            int received = obtains.getInt(consumer.getNode());
+            int received = consumer.getNode().getState().ampsReceived;
             amperage = Math.min(amperage, consumer.getNode().getInputAmperage()-received);
             // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
-            if (amperage == 0)
+            if (amperage <= 0)
                 continue;
             if (!simulate && !consumer.canHandle(voltage_out)) {
                 // Find corrupt cables and return
@@ -255,10 +257,6 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
                 for (int i = 0; i < amp; i++) {
                     consumer.insert(voltage, false);
                 }
-                obtains.computeInt(consumer.getNode(), (n, v) -> {
-                    if (v == null) v = 0;
-                    return v + (int)amp;
-                });
                 return stack.intValue();
             }
             return (int) extracted;
