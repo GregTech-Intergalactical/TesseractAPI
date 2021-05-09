@@ -200,16 +200,16 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
         if (list == null) return 0;
 
         int outputAmount = stack.getAmount();//producer.getOutputAmount(direction);
+        FluidStack newStack = stack.copy();
         for (FluidConsumer consumer : list) {
-            if (!consumer.canHold(stack)) {
+            if (!consumer.canHold(newStack)) {
                 continue;
             }
 
-            int amount = consumer.insert(stack, true);
+            int amount = consumer.insert(newStack, true);
             if (amount <= 0) {
                 continue;
             }
-            FluidStack newStack = stack.copy();
             if (!HARDCORE_PIPES) {
                 if (simulate) {
                     amount = Math.min(amount, consumer.getMinPressure());
@@ -276,11 +276,15 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
 
             if (!simulate)
                 consumer.insert(newStack, false);
-
+            
             outputAmount -= amount;
+            if (amount > 0) {
+                break;
+            }
             if (outputAmount <= 0) {
                 break;
             }
+            newStack.setAmount(outputAmount);
         }
         return stack.getAmount() - outputAmount;
     }
