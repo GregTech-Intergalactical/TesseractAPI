@@ -45,6 +45,7 @@ public class Fluid extends FluidController<IFluidNode> {
 
     @Override
     public FluidStack onPipeGasLeak(World world, long pos, @Nonnull FluidStack fluid) {
+        if (fluid.isEmpty()) return fluid;
         FluidStack stack = fluid.copy();
         stack.setAmount((int)((double)stack.getAmount()*PIPE_LEAK));
         if ((world.getGameTime() - lastGasLeakSound) > GAS_WAIT_TIME) {

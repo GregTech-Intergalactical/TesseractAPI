@@ -42,7 +42,7 @@ public interface IFluidEvent<T> {
     /**
      * Executes when the pipe trying to transport gas that can leak.
      * Returns resulting fluid stack
-     * @param dim The dimension id.
+     * @param world The world.
      * @param pos The pipe position.
      * @param fluid FluidData holding the Fluid to be queried.
      */
