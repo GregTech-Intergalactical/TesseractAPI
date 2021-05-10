@@ -119,7 +119,7 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
                 if (simulate) {
                     return ampsSent+amps <= handler.getOutputAmperage();
                 }
-                if (ampsSent+amps > handler.getInputAmperage()) {
+                if (ampsSent+amps > handler.getOutputAmperage()) {
                     return false;
                 }
                 if (!simulate) {
