@@ -62,4 +62,11 @@ public class FluidHolder<T> {
     public boolean isOverCapacity() {
         return maxCapacity < fluids.size();
     }
+
+    public boolean allowFluid(T fluid) {
+        if (fluids.contains(fluid)) {
+            return true;
+        }
+        return maxCapacity > fluids.size();
+    }
 }

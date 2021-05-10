@@ -223,6 +223,10 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
                     amount = Math.min(amount, consumer.getMinPressure());
                     for (Long2ObjectMap.Entry<IFluidPipe> entry : consumer.getFull().long2ObjectEntrySet()) {
                         FluidHolder<Fluid> holder = holders.get(entry.getLongKey());
+                        if (holder != null && !holder.allowFluid(newStack.getFluid())) {
+                            amount = 0;
+                            break;
+                        }
                         long tempData = pressureData.get(entry.getLongKey());
                         amount = Math.min(amount, (holder != null || tempData > 0) ? entry.getValue().getPressure() - (holder != null ? holder.getPressure() : 0)- pressureData.get(entry.getLongKey()) : entry.getValue().getPressure());
                         if (amount == 0) continue loop;
@@ -257,10 +261,6 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
                     }
                     //Don't add more pressures if the stack is empty.
                     if (newStack.isEmpty()) break;
-
-                    if (HARDCORE_PIPES) {
-                        continue;
-                    }
 
                     holders.computeIfAbsent(pos, h -> new FluidHolder<>(pipe)).add(amount, stack.getFluid());
 
