@@ -12,6 +12,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import tesseract.api.GraphWrapper;
 import tesseract.api.capability.TesseractGTCapability;
 import tesseract.api.fe.FEController;
@@ -46,22 +47,26 @@ public class Tesseract {
 	private final static Set<IWorld> firstTick = new ObjectOpenHashSet<>();
 
 	public Tesseract() {
-		MinecraftForge.EVENT_BUS.register(this);
+		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetup);
+		MinecraftForge.EVENT_BUS.addListener(this::serverStoppedEvent);
+		MinecraftForge.EVENT_BUS.addListener(this::worldUnloadEvent);
+		MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
 	}
 
-	@SubscribeEvent
 	public void commonSetup(FMLCommonSetupEvent event) {
 		TesseractGTCapability.register();
 	}
 
-	@SubscribeEvent
 	public void serverStoppedEvent(FMLServerStoppedEvent e) {
 		firstTick.clear();
+		FE_ENERGY.clear();
+		GT_ENERGY.clear();
+		ITEM.clear();
+		FLUID.clear();
 	}
 
-	@SubscribeEvent
 	public void worldUnloadEvent(WorldEvent.Unload e) {
-		if (!(e.getWorld() instanceof World)) return;
+		if (!(e.getWorld() instanceof World) || ((World) e.getWorld()).isRemote) return;
 		FE_ENERGY.removeWorld((World)e.getWorld());
 		GT_ENERGY.removeWorld((World)e.getWorld());
 		ITEM.removeWorld((World)e.getWorld());
@@ -69,7 +74,6 @@ public class Tesseract {
 		firstTick.remove(e.getWorld());
 	}
 
-    @SubscribeEvent
     public void onServerTick(TickEvent.WorldTickEvent event) {
 		if (event.side.isClient()) return;
 		World dim = event.world;

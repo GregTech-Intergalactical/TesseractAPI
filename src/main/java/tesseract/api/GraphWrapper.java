@@ -97,4 +97,8 @@ public class GraphWrapper<T, C extends IConnectable, N> {
     public void removeWorld(World world) {
         this.graph.remove(world);
     }
+
+    public void clear() {
+        this.graph.clear();
+    }
 }
