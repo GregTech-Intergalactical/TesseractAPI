@@ -40,7 +40,7 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
 
     @Override
     protected void onFrame() {
-
+        holders.clear();
     }
 
     @Override
@@ -91,7 +91,6 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
     @Override
     public void tick() {
         super.tick();
-        holders.clear();
     }
 
     public int insert(Pos producerPos, Direction dir, ItemStack stack, boolean simulate) {
@@ -112,21 +111,23 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
             }
 
             //Actual count inserted.
-            int actual = stack.getCount() - amount;
+            boolean possible = true;
             for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getFull().long2ObjectEntrySet()) {
                 long pos = p.getLongKey();
                 IItemPipe pipe = p.getValue();
 
-                int capacity = holders.get(pos);
+                int stacksUsed = holders.get(pos);
                 if (simulate) {
-                    actual = Math.min(actual, pipe.getCapacity()-capacity);
+                    if (pipe.getCapacity() - stacksUsed <= 0) {
+                        possible = false;
+                        break;
+                    }
                 } else {
-                    capacity = capacity == -1 ? 0 : capacity;
-                    holders.put(pos, capacity+actual);
+                    holders.put(pos,stacksUsed + 1);
                 }
             }
 
-            amount = stack.getCount() - actual;
+            if (!possible) continue;
 
             if (simulate) {
                 return amount;
