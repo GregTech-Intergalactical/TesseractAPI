@@ -1,24 +1,25 @@
 package tesseract.api;
 
+import net.minecraft.world.World;
 import tesseract.graph.Group;
 import tesseract.graph.INode;
 
 /**
  * Class acts as a controller in the group of some components.
  */
-abstract public class Controller<C extends IConnectable, N extends IConnectable> implements ITickingController {
+abstract public class Controller<T, C extends IConnectable, N> implements ITickingController<T, C, N> {
 
     protected int tick;
-    protected final int dim;
-    protected Group<C, N> group;
+    protected final World dim;
+    protected Group<T, C, N> group;
 
     /**
      * Creates instance of the controller.
      *
-     * @param dim The dimension id.
+     * @param supplier The world.
      */
-    protected Controller(int dim) {
-        this.dim = dim;
+    protected Controller(World supplier) {
+        this.dim = supplier;
     }
 
     /**
@@ -26,9 +27,8 @@ abstract public class Controller<C extends IConnectable, N extends IConnectable>
      *
      * @param container The group this controller handles.
      */
-    @SuppressWarnings("unchecked")
-    public Controller<C, N> set(INode container) {
-        this.group = (Group<C, N>) container;
+    public Controller<T, C, N> set(INode container) {
+        this.group = (Group<T, C, N>) container;
         return this;
     }
 
@@ -47,4 +47,9 @@ abstract public class Controller<C extends IConnectable, N extends IConnectable>
      * Frame handler, which executes each second.
      */
     protected abstract void onFrame();
+
+    @Override
+    public World getWorld() {
+        return this.dim;
+    }
 }

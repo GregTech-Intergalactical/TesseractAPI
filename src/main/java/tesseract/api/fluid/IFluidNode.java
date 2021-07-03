@@ -1,7 +1,10 @@
 package tesseract.api.fluid;
 
-import tesseract.api.IConnectable;
-import tesseract.util.Dir;
+import net.minecraft.util.Direction;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import tesseract.api.IRefreshable;
+
 
 /**
  * An fluid node is the unit of interaction with fluid inventories.
@@ -11,42 +14,12 @@ import tesseract.util.Dir;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IFluidNode<T> extends IConnectable {
-
-    /**
-     * Adds fluid to the node. Returns amount of fluid that was filled.
-     * @param data FluidData attempting to fill the tank.
-     * @param simulate If true, the fill will only be simulated.
-     * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
-     */
-    int insert(FluidData<T> data, boolean simulate);
-
-    /**
-     * Removes fluid from the node. Returns amount of fluid that was drained.
-     * @param tank The tank to extract from.
-     * @param amount Maximum amount of fluid to be removed from the container.
-     * @param simulate If true, the drain will only be simulated.
-     * @return FluidData representing fluid that was removed (or would be, if simulated) from the tank.
-     */
-    FluidData<T> extract(int tank, int amount, boolean simulate);
-
-    /**
-     * @param direction Direction to the proceed.
-     * @return Gets any available tank. (-1 when wasn't found any)
-     **/
-    int getAvailableTank(Dir direction);
-
-    /**
-     * @param direction Direction to the proceed.
-     * @return Gets the initial amount of pressure that can be output.
-     */
-    int getOutputAmount(Dir direction);
-
+public interface IFluidNode extends IFluidHandler, IRefreshable {
     /**
      * @param direction Direction to the proceed.
      * @return Returns the priority of this node as a number.
      */
-    int getPriority(Dir direction);
+    int getPriority(Direction direction);
 
     /**
      * Gets if this storage can have fluid extracted.
@@ -61,11 +34,16 @@ public interface IFluidNode<T> extends IConnectable {
     boolean canInput();
 
     /**
+     * Used to determine if this storage can receive fluid.
+     * @return If this is false, then any calls to receiveEnergy will return 0.
+     */
+    boolean canInput(Direction direction);
+    /**
      * Used to determine which sides can output fluid (if any).
      * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */
-    boolean canOutput(Dir direction);
+    boolean canOutput(Direction direction);
 
     /**
      * Used to determine which fluids and at which direction can be consumed.
@@ -73,5 +51,15 @@ public interface IFluidNode<T> extends IConnectable {
      * @param direction Direction to the input.
      * @return If the tank can input the fluid (EVER, not at the time of query).
      */
-    boolean canInput(Object fluid, Dir direction);
+    boolean canInput(FluidStack fluid, Direction direction);
+
+    /**
+     * Drains from the input tanks rather than output tanks. Useful for recipes.
+     * @param stack stack to drain.
+     * @param action execute/simulate
+     * @return the drained stack
+     */
+    default FluidStack drainInput(FluidStack stack, IFluidHandler.FluidAction action) {
+        return drain(stack, action);
+    }
 }

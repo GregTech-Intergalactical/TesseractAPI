@@ -1,7 +1,7 @@
 package tesseract.graph;
 
+import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
-import tesseract.util.Dir;
 
 
 /**
@@ -18,7 +18,7 @@ public class Connectivity {
     public static byte of(IConnectable connectable) {
         byte connectivity = 0;
 
-        for (Dir direction : Dir.VALUES) {
+        for (Direction direction : Direction.values()) {
             if (connectable.connects(direction)) {
                 connectivity = Connectivity.set(connectivity, direction.getIndex());
             }

@@ -2,27 +2,30 @@ package tesseract.api.gt;
 
 import it.unimi.dsi.fastutil.longs.Long2LongLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
-import tesseract.api.ConnectionType;
+import net.minecraft.util.Direction;
+import net.minecraft.world.World;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.graph.*;
-import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import java.util.Comparator;
 import java.util.List;
 
 /**
  * Class acts as a controller in the group of an electrical components.
  */
-public class GTController extends Controller<IGTCable, IGTNode> implements IGTEvent {
+public class GTController extends Controller<Long, IGTCable, IGTNode> implements IGTEvent {
 
     private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
     private final Long2LongMap holders = new Long2LongLinkedOpenHashMap();
-    private final Object2IntMap<IGTNode> obtains = new Object2IntOpenHashMap<>();
+    //Cable monitoring.
+    private Long2LongMap frameHolders = new Long2LongLinkedOpenHashMap();
+    private Long2LongMap previousFrameHolder = new Long2LongLinkedOpenHashMap();
+    //private final Object2IntMap<IGTNode> obtains = new Object2IntOpenHashMap<>();
     private final Object2ObjectMap<IGTNode, List<GTConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -30,7 +33,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
 
      * @param dim The dimension id.
      */
-    public GTController(int dim) {
+    public GTController(World dim) {
         super(dim);
     }
 
@@ -46,21 +49,25 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
      */
     @Override
     public void change() {
+        //noinspection StatementWithEmptyBody
+        while(!changeInternal()); // not sure how many times we may break the network while changing it
+    }
+    private boolean changeInternal(){
         data.clear();
-
-        for (Long2ObjectMap.Entry<Cache<IGTNode>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<NodeCache<IGTNode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
             IGTNode producer = e.getValue().value();
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
-                for (Dir direction : Dir.VALUES) {
+                for (Direction direction : Graph.DIRECTIONS) {
                     if (producer.canOutput(direction)) {
                         List<GTConsumer> consumers = new ObjectArrayList<>();
                         long side = position.offset(direction).asLong();
 
                         if (group.getNodes().containsKey(side)) {
-                            onCheck(producer, consumers, null, side);
+                            if (!onCheck(producer, consumers, null, pos,side))
+                                return false;
                         } else {
                             Grid<IGTCable> grid = group.getGridAt(side, direction);
                             if (grid != null) {
@@ -68,7 +75,8 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
                                     if (!path.isEmpty()) {
                                         Node target = path.target();
                                         assert target != null;
-                                        onCheck(producer, consumers, path, target.asLong());
+                                        if (!onCheck(producer, consumers, path,pos, target.asLong()))
+                                            return false;
                                     }
                                 }
                             }
@@ -89,6 +97,7 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
         for (List<GTConsumer> consumers : data.values()) {
             consumers.sort(GTConsumer.COMPARATOR);
         }
+        return true;
     }
 
     /**
@@ -119,28 +128,30 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
      * @param producer The producer node.
      * @param consumers The consumer nodes.
      * @param path The paths to consumers.
-     * @param pos The position of the producer.
+     * @param consumerPos The position of the consumer.
+     * @param producerPos The position of the producer.
+     * @return whether or not an issue arose checking node.
      */
-    private void onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long pos) {
-        Cache<IGTNode> nodee = group.getNodes().get(pos);
+    private boolean onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long producerPos, long consumerPos) {
+        NodeCache<IGTNode> nodee = group.getNodes().get(consumerPos);
         if (nodee == null) {
             System.out.println("Error in onCheck, null cache.");
-            return;
+            return false;
         }
         IGTNode node = nodee.value();
-        if (node.canInput()) {
+        Pos pos = new Pos(consumerPos).sub(new Pos(producerPos));
+        Direction dir = path != null ? path.target().getDirection()
+                : Direction.getFacingFromVector(pos.getX(), pos.getY(), pos.getZ()).getOpposite();
+        if (node.canInput(dir)) {
             GTConsumer consumer = new GTConsumer(node, path);
             int voltage = producer.getOutputVoltage() - consumer.getLoss();
             if (voltage <= 0) {
-                return;
+                return true;
             }
-
-            if (voltage <= node.getInputVoltage()) {
-                consumers.add(consumer);
-            } else {
-                onNodeOverVoltage(dim, pos, voltage);
-            }
+            consumers.add(consumer);
+            return true;
         }
+        return true;
     }
 
     /**
@@ -158,101 +169,99 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
     @Override
     public void tick() {
         super.tick();
+        holders.long2LongEntrySet().forEach(e -> frameHolders.compute(e.getLongKey(), (a,b) -> {
+            if (b == null) b = 0L;
+            return b + e.getLongValue();
+        }));
         holders.clear();
-        obtains.clear();
+        this.group.getNodes().values().forEach(t -> t.value().tesseractTick());
+        //obtains.clear();
+    }
 
-        for (Object2ObjectMap.Entry<IGTNode, List<GTConsumer>> e : data.object2ObjectEntrySet()) {
-            IGTNode producer = e.getKey();
+    @Override
+    public int insert(Pos producerPos, Direction direction, Long stack, boolean simulate) {
+        NodeCache<IGTNode> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
+        if (node == null) return 0;
+        IGTNode producer = node.value();
+        List<GTConsumer> list = this.data.get(node.value());
+        if (list == null) return 0;
 
-            // Get the how many amps and energy producer can send
-            long energy = producer.getEnergy();
-            int voltage_out = producer.getOutputVoltage();
-            int amperage_in = producer.getOutputAmperage();
-            if (amperage_in <= 0) {
+        // Get the how many amps and energy producer can send
+        long energy = producer.getEnergy();
+        int voltage_out = producer.getOutputVoltage();
+        int amperage_in = producer.getOutputAmperage();
+        if (amperage_in <= 0) {
+            return 0;
+        }
+        amperage_in = (int) Math.min((energy / voltage_out), amperage_in);
+        if (amperage_in <= 0) { // just for sending the last piece of energy
+            voltage_out = (int) energy;
+            amperage_in = 1;
+        }
+
+        for (GTConsumer consumer : list) {
+            int voltage = voltage_out - consumer.getLoss();
+            if (voltage <= 0) {
                 continue;
             }
-            amperage_in = (int) Math.min((energy / voltage_out), amperage_in);
-            if (amperage_in <= 0) { // just for sending the last piece of energy
-                voltage_out = (int) energy;
-                amperage_in = 1;
+
+            int amperage = consumer.getRequiredAmperage(voltage);
+            // Look up how much it already got
+            //int obtained = obtains.getInt(consumer.getNode());
+           // amperage -= obtained;
+            if (amperage <= 0) { // if this consumer received all the energy from the other producers
+                continue;
             }
 
-            for (GTConsumer consumer : e.getValue()) {
-                int voltage = voltage_out - consumer.getLoss();
-                if (voltage <= 0) {
-                    continue;
-                }
+            // Remember amperes stored in this consumer
+            amperage = Math.min(amperage_in, amperage);
+            int received = consumer.getNode().getState().ampsReceived;
+            amperage = Math.min(amperage, consumer.getNode().getInputAmperage()-received);
+            // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
+            if (amperage <= 0)
+                continue;
+            if (!simulate && !consumer.canHandle(voltage_out)) {
+                // Find corrupt cables and return
+                for (Long2ObjectMap.Entry<IGTCable> c : consumer.getFull().long2ObjectEntrySet()) {
+                    long pos = c.getLongKey();
+                    IGTCable cable = c.getValue();
 
-                int amperage = consumer.getRequiredAmperage(voltage);
-
-                // Look up how much it already got
-                int obtained = obtains.getInt(consumer.getNode());
-                amperage -= obtained;
-                if (amperage <= 0) { // if this consumer received all the energy from the other producers
-                    continue;
-                }
-
-                // Remember amperes stored in this consumer
-                amperage = Math.min(amperage_in, amperage);
-                obtains.put(consumer.getNode(), amperage + obtained);
-
-                // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
-                if (consumer.getConnection() != ConnectionType.ADJACENT && !consumer.canHandle(voltage_out, amperage)) {
-                    // Find corrupt cables and return
-                    for (Long2ObjectMap.Entry<IGTCable> c : consumer.getFull().long2ObjectEntrySet()) {
-                        long pos = c.getLongKey();
-                        IGTCable cable = c.getValue();
-
-                        switch (cable.getHandler(voltage_out, amperage)) {
-                            case FAIL_VOLTAGE:
-                                onCableOverVoltage(dim, pos, voltage_out);
-                                break;
-                            case FAIL_AMPERAGE:
-                                onCableOverAmperage(dim, pos, amperage);
-                                break;
-                        }
-                    }
-                    return;
-                }
-
-                // Stores the amp into holder for path only for variate connection
-                if (consumer.getConnection() == ConnectionType.VARIATE) {
-                    for (Long2ObjectMap.Entry<IGTCable> c : consumer.getCross().long2ObjectEntrySet()) {
-                        long pos = c.getLongKey();
-                        IGTCable cable = c.getValue();
-
-                        long holder = holders.get(pos);
-                        holders.put(pos, (holder == 0L) ? GTHolder.create(cable, amperage) : GTHolder.add(holder, amperage));
+                    if (cable.getHandler(voltage_out, amperage) == GTStatus.FAIL_VOLTAGE) {
+                        onCableOverVoltage(getWorld(), pos, voltage_out);
                     }
                 }
+                return 0;
+            }
 
-                long amp = amperage; // cast here
-                long inserted = voltage * amp;
-                long extracted = voltage_out * amp;
+            // Stores the amp into holder for path only for variate connection
+            if (!simulate) {
+                for (Long2ObjectMap.Entry<IGTCable> c : consumer.getFull().long2ObjectEntrySet()) {
+                    long pos = c.getLongKey();
+                    IGTCable cable = c.getValue();
 
+                    long holder = holders.get(pos);
+                    holders.put(pos, (holder == 0L) ? GTHolder.create(cable, amperage) : GTHolder.add(holder, amperage));
+
+                    if (GTHolder.isOverAmperage(holders.get(pos))) {
+                        onCableOverAmperage(getWorld(), pos, GTHolder.getAmperage(holders.get(pos)));
+                        break;
+                    }
+                }
+            }
+
+            long amp = amperage; // cast here
+            long extracted = voltage_out * amp;
+            if (!simulate) {
                 totalVoltage += extracted;
                 totalAmperage += amp;
-
-                consumer.insert(inserted, false);
-                producer.extract(extracted, false);
-
-                amperage_in -= amperage;
-                if (amperage_in <= 0) {
-                    break;
+                for (int i = 0; i < amp; i++) {
+                    consumer.insert(voltage, false);
                 }
+                return stack.intValue();
             }
+            return (int) extracted;
         }
-
-        for (Long2LongMap.Entry e : holders.long2LongEntrySet()) {
-            long pos = e.getLongKey();
-            long holder = e.getLongValue();
-
-            // TODO: Find proper path to destroy
-
-            if (GTHolder.isOverAmperage(holder)) {
-                onCableOverAmperage(dim, pos, GTHolder.getAmperage(holder));
-            }
-        }
+        return 0;
     }
 
     @Override
@@ -260,13 +269,17 @@ public class GTController extends Controller<IGTCable, IGTNode> implements IGTEv
         lastVoltage = totalVoltage;
         lastAmperage = totalAmperage;
         totalAmperage = totalVoltage = 0L;
+        previousFrameHolder = frameHolders;
+        frameHolders = new Long2LongOpenHashMap();
     }
 
     @Override
-    public String[] getInfo() {
+    public String[] getInfo(long pos) {
+        int amp = GTHolder.getAmperage(previousFrameHolder.get(pos));
         return new String[]{
-            "Total Voltage: ".concat(Long.toString(lastVoltage)),
-            "Total Amperage: ".concat(Long.toString(lastAmperage)),
+            "Total Voltage (per tick average): ".concat(Long.toString(lastVoltage/20)),
+            "Total Amperage (per tick average): ".concat(Long.toString(lastAmperage/20)),
+            "Cable amperage (last frame): ".concat(Integer.toString(amp))
         };
     }
 

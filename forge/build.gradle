@@ -18,9 +18,14 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: "com.github.johnrengelman.shadow"
 
-archivesBaseName = 'tesseract-forge'
-version = rootProject.version
-group = rootProject.group
+
+apply plugin: 'java'
+
+archivesBaseName = 'tesseractforge'
+version = "0.0.1"
+group = "com.github.gregtech-intergalactical"
+
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
 minecraft {
     // The mappings can be changed at any time, and must be in the following format.
@@ -46,7 +51,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                tesseract {
+                tesseractforge {
                     source sourceSets.main
                 }
             }
@@ -62,7 +67,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                tesseract {
+                tesseractforge {
                     source sourceSets.main
                 }
             }
@@ -77,11 +82,11 @@ minecraft {
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
 
-            args '--mod', 'tesseract', '--all', '--output', '"' + rootProject.file('src/generated/resources/') + '"',
+            args '--mod', 'tesseractforge', '--all', '--output', '"' + rootProject.file('src/generated/resources/') + '"',
                     '--existing', '"' + sourceSets.main.resources.srcDirs[0] + '"'
 
             mods {
-                tesseract {
+                tesseractforge {
                     source sourceSets.main
                 }
             }
@@ -103,29 +108,33 @@ shadowJar {
 
 // Deobfuscated jar; development purposes.
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-task deobfJar(type: ShadowJar, dependsOn: 'classes') {
+task deobfJar(type: ShadowJar) {
     from sourceSets.main.output
     configurations = [project.configurations.embed]
-    classifier "dev"
+    classifier "deobf"
+    //dependsOn gradle.includedBuild("tesseract").task(":deobfJar")
 }
 
-// Sources jar; development purposes.
-task sourcesJar(type: Jar) {
+task sourcesJar(type: ShadowJar, dependsOn: classes) {
+    description = 'Creates a JAR containing the source code.'
+    classifier 'sources'
     from sourceSets.main.allSource
-    classifier "sources"
+}
+
+artifacts {
+    archives sourcesJar
+    archives deobfJar
 }
 
 repositories {
     jcenter()
 }
+
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    if (rootProject.name == "tesseract") {
-        embed project(path: ":")
-    } else {
-        embed project(path: ":tesseract")
-    }
+    embed project(':tesseract')//(group: 'com.github.gregtech-intergalactical', name: 'tesseract')
 }
+
 
 publishing {
     publications {
@@ -140,6 +149,6 @@ publishing {
     //}
 }
 
-artifacts {
-    deobf deobfJar
+jar {
+    zip64 true
 }

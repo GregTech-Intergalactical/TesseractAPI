@@ -6,13 +6,11 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.Direction;
+import net.minecraft.world.World;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
-import tesseract.graph.Cache;
-import tesseract.graph.Grid;
-import tesseract.graph.INode;
-import tesseract.graph.Path;
-import tesseract.util.Dir;
+import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
@@ -21,7 +19,7 @@ import java.util.List;
 /**
  * Class acts as a controller in the group of a energy components.
  */
-public class FEController extends Controller<IFECable, IFENode> {
+public class FEController extends Controller<Integer, IFECable, IFENode> {
 
     private long totalEnergy, lastEnergy;
     private final Long2LongMap holders = new Long2LongOpenHashMap();
@@ -30,10 +28,10 @@ public class FEController extends Controller<IFECable, IFENode> {
     /**
      * Creates instance of the controller.
 
-     * @param dim The dimension id.
+     * @param world The world.
      */
-    public FEController(int dim) {
-        super(dim);
+    public FEController(World world) {
+        super(world);
         holders.defaultReturnValue(-1L);
     }
 
@@ -51,13 +49,13 @@ public class FEController extends Controller<IFECable, IFENode> {
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<Cache<IFENode>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<NodeCache<IFENode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
             IFENode producer = e.getValue().value();
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
-                for (Dir direction : Dir.VALUES) {
+                for (Direction direction : Graph.DIRECTIONS) {
                     if (producer.canOutput(direction)) {
                         List<FEConsumer> consumers = new ObjectArrayList<>();
                         long side = position.offset(direction).asLong();
@@ -214,13 +212,18 @@ public class FEController extends Controller<IFECable, IFENode> {
     }
 
     @Override
+    public int insert(Pos producerPos, Direction direction, Integer stack, boolean simulate) {
+        return 0;
+    }
+
+    @Override
     protected void onFrame() {
         lastEnergy = totalEnergy;
         totalEnergy = 0L;
     }
 
     @Override
-    public String[] getInfo() {
+    public String[] getInfo(long pos) {
         return new String[]{
             "Total Energy: ".concat(Long.toString(lastEnergy))
         };

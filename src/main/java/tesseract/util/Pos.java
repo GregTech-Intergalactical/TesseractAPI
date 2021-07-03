@@ -1,5 +1,7 @@
 package tesseract.util;
 
+import net.minecraft.util.Direction;
+
 /**
  * Position in world.
  */
@@ -218,7 +220,7 @@ public class Pos {
      * @param dir The moving direction.
      * @return The new instance of object.
      */
-    public Pos offset(Dir dir) {
+    public Pos offset(Direction dir) {
         return new Pos(x + dir.getXOffset(), y + dir.getYOffset(), z + dir.getZOffset());
     }
 
@@ -229,7 +231,7 @@ public class Pos {
      * @param n The moving distance.
      * @return The new instance of object.
      */
-    public Pos offset(Dir dir, int n) {
+    public Pos offset(Direction dir, int n) {
         return n == 0 ? this : new Pos(x + dir.getXOffset() * n, y + dir.getYOffset() * n, z + dir.getZOffset() * n);
     }
 

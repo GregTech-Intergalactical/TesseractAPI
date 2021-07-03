@@ -1,6 +1,6 @@
 package tesseract.api;
 
-import tesseract.util.Dir;
+import net.minecraft.util.Direction;
 
 /**
  * A simple interface for representing connectable objects.
@@ -11,5 +11,5 @@ public interface IConnectable {
      * @param direction The direction vector.
      * @return True if connect to the direction, false otherwise.
      */
-    boolean connects(Dir direction);
+    boolean connects(Direction direction);
 }

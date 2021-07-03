@@ -1,7 +1,8 @@
 package tesseract.api.gt;
 
-import tesseract.api.IConnectable;
-import tesseract.util.Dir;
+import net.minecraft.util.Direction;
+import tesseract.api.IRefreshable;
+
 
 /**
  * An electric node is the unit of interaction with electric inventories.
@@ -10,7 +11,7 @@ import tesseract.util.Dir;
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
  * </p>
  */
-public interface IGTNode extends IConnectable {
+public interface IGTNode extends IRefreshable {
 
 	/**
 	 * Adds energy to the node. Returns quantity of energy that was accepted.
@@ -71,9 +72,27 @@ public interface IGTNode extends IConnectable {
 	boolean canInput();
 
 	/**
+	 * Used to determine if this storage can receive energy in the given direction.
+	 * @param direction the direction.
+	 * @return If this is false, then any calls to receiveEnergy will return 0.
+	 */
+	boolean canInput(Direction direction);
+
+	/**
 	 * Used to determine which sides can output energy (if any).
 	 * @param direction Direction to the output.
 	 * @return Returns true if the given direction is output side.
 	 */
-	boolean canOutput(Dir direction);
+	boolean canOutput(Direction direction);
+
+	/**
+	 * Returns the inner state for this node, representing received/sent eu.
+	 * @return state.
+	 */
+	GTConsumer.State getState();
+	
+	//Called by consumers that cannot tick themselves, such as FE wrappers.
+	default void tesseractTick() {
+		
+	}
 }

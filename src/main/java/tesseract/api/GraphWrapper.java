@@ -1,22 +1,27 @@
 package tesseract.api;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import tesseract.graph.*;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.world.World;
+import tesseract.graph.Cache;
+import tesseract.graph.Graph;
+import tesseract.graph.Group;
 
-import java.util.function.IntFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
+public class GraphWrapper<T, C extends IConnectable, N> {
 
-    protected final Int2ObjectMap<Graph<C, N>> graph = new Int2ObjectOpenHashMap<>();
-    protected final IntFunction<Controller<C, N>> supplier;
+    protected final Object2ObjectMap<World, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
+    //TODO: maybe do this better.
+    protected final Function<World, Controller<T, C, N>> supplier;
 
     /**
      * Creates a graph wrapper.
      *
      * @param supplier The default controller supplier.
      */
-    public GraphWrapper(IntFunction<Controller<C, N>> supplier) {
+    public GraphWrapper(Function<World, Controller<T, C, N>> supplier) {
         this.supplier = supplier;
     }
 
@@ -27,8 +32,12 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param pos The position at which the node will be added.
      * @param node The node object.
      */
-    public void registerNode(int dim, long pos, N node) {
-        getGraph(dim).addNode(pos, new Cache<>(node), supplier.apply(dim));
+    public void registerNode(World dim, long pos, Supplier<N> node) {
+        getGraph(dim).addNode(pos, node, supplier.apply(dim));
+    }
+
+    public void refreshNode(World dim, long pos) {
+        getGraph(dim).refreshNode(pos);
     }
 
     /**
@@ -38,7 +47,7 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param pos The position at which the node will be added.
      * @param connector The connector object.
      */
-    public void registerConnector(int dim, long pos, C connector) {
+    public void registerConnector(World dim, long pos, C connector) {
         getGraph(dim).addConnector(pos, new Cache<>(connector), supplier.apply(dim));
     }
 
@@ -48,7 +57,7 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param dim The dimension id.
      * @return The graph instance for the world.
      */
-    public Graph<C, N> getGraph(int dim) {
+    public Graph<T, C, N> getGraph(World dim) {
         return graph.computeIfAbsent(dim, k -> new Graph<>());
     }
 
@@ -59,8 +68,8 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param pos The position at which the electric component is exist.
      * @return The controller object. (Can be null)
      */
-    public ITickingController getController(int dim, long pos) {
-        Group<?, ?> group = getGraph(dim).getGroupAt(pos);
+    public ITickingController<T, C, N> getController(World dim, long pos) {
+        Group<T, C, N> group = getGraph(dim).getGroupAt(pos);
         return group != null ? group.getController() : null;
     }
 
@@ -70,7 +79,26 @@ public class GraphWrapper<C extends IConnectable, N extends IConnectable> {
      * @param dim The dimension id where the electric component will be added.
      * @param pos The position at which the electric component will be added.
      */
-    public void remove(int dim, long pos) {
-        getGraph(dim).removeAt(pos);
+    public boolean remove(World dim, long pos) {
+        return getGraph(dim).removeAt(pos);
+    }
+
+    public void tick(World dim) {
+        Graph<T, C, N> g = graph.get(dim);
+        if (g != null)
+            g.getGroups().forEach((pos, gr) -> gr.getController().tick());
+    }
+
+    public void onFirstTick(World dim) {
+        getGraph(dim).onFirstTick();
+        getGraph(dim).getGroups().values().forEach(t -> t.getController().change());
+    }
+
+    public void removeWorld(World world) {
+        this.graph.remove(world);
+    }
+
+    public void clear() {
+        this.graph.clear();
     }
 }

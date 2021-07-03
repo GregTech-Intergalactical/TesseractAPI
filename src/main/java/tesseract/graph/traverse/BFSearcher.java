@@ -4,8 +4,9 @@ import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import net.minecraft.util.Direction;
+import tesseract.graph.Graph;
 import tesseract.graph.INode;
-import tesseract.util.Dir;
 import tesseract.util.Pos;
 
 import java.util.ConcurrentModificationException;
@@ -79,7 +80,7 @@ public class BFSearcher {
 
                 Pos position = new Pos(current);
                 // Discover new nodes
-                for (Dir direction : Dir.VALUES) {
+                for (Direction direction : Graph.DIRECTIONS) {
                     long pos = position.offset(direction).asLong();
 
                     if (closed.contains(pos)) {

@@ -1,12 +1,14 @@
 package tesseract.util;
 
+import net.minecraft.util.Direction;
+
 /**
  * The Node is a pretty straightforward class resembling regular nodes.
  */
 public class Node extends Pos {
 
     private Node parent;
-    private Dir direction;
+    private Direction direction;
     private int cost, heuristic, function;
     private boolean valid;
     private boolean crossroad;
@@ -17,7 +19,7 @@ public class Node extends Pos {
      * @param pos The position to duplicate.
      * @param direction The direction to the parent.
      */
-    public Node(Pos pos, Dir direction) {
+    public Node(Pos pos, Direction direction) {
         super(pos);
         setDirection(direction);
     }
@@ -28,7 +30,7 @@ public class Node extends Pos {
      * @param value The compressed position.
      * @param direction The direction to the parent.
      */
-    public Node(long value, Dir direction) {
+    public Node(long value, Direction direction) {
         super(value);
         setDirection(direction);
     }
@@ -107,7 +109,7 @@ public class Node extends Pos {
     /**
      * @return Gets the direction to the parent node.
      */
-    public Dir getDirection() {
+    public Direction getDirection() {
         return direction;
     }
 
@@ -115,7 +117,7 @@ public class Node extends Pos {
      * Sets the direction to the parent node.
      * @param direction The direction.
      */
-    public void setDirection(Dir direction) {
+    public void setDirection(Direction direction) {
         this.direction = direction;
     }
 
