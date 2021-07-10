@@ -27,4 +27,8 @@ public class NodeCache<T> {
     public T value() {
         return value.getValue();
     }
+
+    public byte count() {
+        return refCount;
+    }
 }

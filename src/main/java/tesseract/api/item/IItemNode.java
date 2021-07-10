@@ -3,7 +3,6 @@ package tesseract.api.item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraftforge.items.IItemHandler;
-import tesseract.api.IRefreshable;
 
 
 /**
@@ -14,7 +13,7 @@ import tesseract.api.IRefreshable;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IItemNode extends IItemHandler, IRefreshable {
+public interface IItemNode extends IItemHandler {
 
     /**
      * @param direction Direction to the proceed.

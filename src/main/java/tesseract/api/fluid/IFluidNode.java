@@ -3,7 +3,6 @@ package tesseract.api.fluid;
 import net.minecraft.util.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import tesseract.api.IRefreshable;
 
 
 /**
@@ -14,7 +13,7 @@ import tesseract.api.IRefreshable;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IFluidNode extends IFluidHandler, IRefreshable {
+public interface IFluidNode extends IFluidHandler {
     /**
      * @param direction Direction to the proceed.
      * @return Returns the priority of this node as a number.

@@ -194,9 +194,4 @@ public class TesseractGTCapability implements IEnergyHandler {
     public GTConsumer.State getState() {
         return null;
     }
-
-    @Override
-    public void refreshNet() {
-
-    }
 }

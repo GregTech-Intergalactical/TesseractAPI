@@ -28,12 +28,12 @@ public class GraphWrapper<T, C extends IConnectable, N> {
     /**
      * Creates an instance of a class for a given node.
      *
-     * @param dim The dimension id where the node will be added.
-     * @param pos The position at which the node will be added.
+     * @param dim  The dimension id where the node will be added.
+     * @param pos  The position at which the node will be added.
      * @param node The node object.
      */
     public void registerNode(World dim, long pos, Supplier<N> node) {
-        getGraph(dim).addNode(pos, node, supplier.apply(dim));
+        getGraph(dim).addNode(pos, node, dim, () -> supplier.apply(dim));
     }
 
     public void refreshNode(World dim, long pos) {
@@ -43,8 +43,8 @@ public class GraphWrapper<T, C extends IConnectable, N> {
     /**
      * Creates an instance of a class for a given connector.
      *
-     * @param dim The dimension id where the node will be added.
-     * @param pos The position at which the node will be added.
+     * @param dim       The dimension id where the node will be added.
+     * @param pos       The position at which the node will be added.
      * @param connector The connector object.
      */
     public void registerConnector(World dim, long pos, C connector) {
@@ -100,5 +100,9 @@ public class GraphWrapper<T, C extends IConnectable, N> {
 
     public void clear() {
         this.graph.clear();
+    }
+
+    public void healthCheck() {
+        this.graph.values().forEach(v -> v.getGroups().values().forEach(Group::healthCheck));
     }
 }

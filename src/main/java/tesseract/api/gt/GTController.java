@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.*;
 import net.minecraft.util.Direction;
 import net.minecraft.world.World;
+import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.graph.*;
@@ -50,7 +51,9 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     @Override
     public void change() {
         //noinspection StatementWithEmptyBody
-        while(!changeInternal()); // not sure how many times we may break the network while changing it
+        if (!changeInternal()) {
+            Tesseract.LOGGER.warn("Error during GTController::change.");
+        }
     }
     private boolean changeInternal(){
         data.clear();
@@ -135,7 +138,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     private boolean onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long producerPos, long consumerPos) {
         NodeCache<IGTNode> nodee = group.getNodes().get(consumerPos);
         if (nodee == null) {
-            System.out.println("Error in onCheck, null cache.");
+            Tesseract.LOGGER.warn("Error in onCheck, null cache.");
             return false;
         }
         IGTNode node = nodee.value();

@@ -43,7 +43,7 @@ class TestBench {
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, ExampleNode::new, null)) {
+                    if (!graph.addNode(position, ExampleNode::new, null, null)) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }

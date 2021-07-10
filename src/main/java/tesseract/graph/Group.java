@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
 import org.apache.commons.collections4.SetUtils;
 import tesseract.Tesseract;
 import tesseract.api.Controller;
@@ -29,7 +30,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
     private final Int2ObjectMap<Grid<C>> grids = new Int2ObjectLinkedOpenHashMap<>();
     private final Long2IntMap connectors = new Long2IntLinkedOpenHashMap(); // connectors pairing
     private final BFDivider divider = new BFDivider(this);
-    private ITickingController<T,C,N> controller = null;
+    private ITickingController<T, C, N> controller = null;
 
     // Prevent the creation of empty groups externally, a caller needs to use singleNode/singleConnector.
     private Group() {
@@ -37,8 +38,8 @@ public class Group<T, C extends IConnectable, N> implements INode {
     }
 
     /**
-     * @param pos The position of the node.
-     * @param node The given node.
+     * @param pos        The position of the node.
+     * @param node       The given node.
      * @param controller The given controller.
      * @return Create a instance of a class for a given position and node.
      */
@@ -49,8 +50,8 @@ public class Group<T, C extends IConnectable, N> implements INode {
     }
 
     /**
-     * @param pos The position of the connector.
-     * @param connector The given connector.
+     * @param pos        The position of the connector.
+     * @param connector  The given connector.
      * @param controller The given controller.
      * @return Create a instance of a class for a given position and connector.
      */
@@ -126,15 +127,15 @@ public class Group<T, C extends IConnectable, N> implements INode {
     /**
      * @return Returns group controller.
      */
-    public ITickingController<T,C,N> getController() {
+    public ITickingController<T, C, N> getController() {
         return controller;
     }
 
     /**
      * Adds a new node to the group.
      *
-     * @param pos The given position.
-     * @param node The given node.
+     * @param pos        The given position.
+     * @param node       The given node.
      * @param controller The controller to use.
      */
     public void addNode(long pos, NodeCache<N> node, Controller<T, C, N> controller) {
@@ -159,8 +160,9 @@ public class Group<T, C extends IConnectable, N> implements INode {
 
     /**
      * Adds a new connector to the group.
-     * @param pos The given position.
-     * @param connector The given connector.
+     *
+     * @param pos        The given position.
+     * @param connector  The given connector.
      * @param controller The controller to use.
      */
     public void addConnector(long pos, Cache<C> connector, Controller<T, C, N> controller) {
@@ -396,9 +398,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
                     newGroup.controller = controller.clone(newGroup);
                 }
                 split.accept(newGroup);
-            }
-            else
-            if (controller != null)
+            } else if (controller != null)
                 controller.change();
         }
     }
@@ -408,7 +408,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
      * that this group contains the specified position; the function may misbehave if the group does not actually contain
      * the specified position.
      *
-     * @param pos The position of the entry to remove.
+     * @param pos   The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
     public boolean removeAt(long pos, Consumer<Group<T, C, N>> split) {
@@ -450,7 +450,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
     /**
      * Adds a new grid to the group.
      *
-     * @param id The group id.
+     * @param id   The group id.
      * @param grid The grid object.
      */
     private void addGrid(int id, Grid<C> grid) {
@@ -464,7 +464,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
     /**
      * Gets near grid by a given position and direction value.
      *
-     * @param pos The position of the grid.
+     * @param pos       The position of the grid.
      * @param direction The direction we are looking to.
      * @return The grid map, guaranteed to not be null.
      */
@@ -508,8 +508,9 @@ public class Group<T, C extends IConnectable, N> implements INode {
 
     /**
      * Merges one group to the another.
+     *
      * @param other The another group.
-     * @param pos The given position.
+     * @param pos   The given position.
      */
     public void mergeWith(Group<T, C, N> other, long pos) {
         nodes.putAll(other.nodes);
@@ -557,6 +558,51 @@ public class Group<T, C extends IConnectable, N> implements INode {
         }
 
         grids.putAll(other.grids);
+    }
+
+    /**
+     * Checks the health of this group, if there is any issue present.
+     */
+    public void healthCheck() {
+        Long2IntMap count = new Long2IntOpenHashMap();
+
+        for (Int2ObjectMap.Entry<Grid<C>> grids : this.grids.int2ObjectEntrySet()) {
+            Long2ObjectMap<Cache<C>> grid = grids.getValue().getConnectors();
+            for (Long2ObjectMap.Entry<Cache<C>> connectors : grid.long2ObjectEntrySet()) {
+                BlockPos pos = BlockPos.fromLong(connectors.getLongKey());
+                Cache<C> cache = connectors.getValue();
+                C value = cache.value();
+
+                byte cachedConn = cache.connectivity();
+                for (int i = 0; i < Graph.DIRECTIONS.length; i++) {
+                    boolean connects = value.connects(Graph.DIRECTIONS[i]);
+                    boolean connectsCache = Connectivity.has(cachedConn, i);
+                    boolean interact = cache.value().interacts(Graph.DIRECTIONS[i]);
+                    if (connects != connectsCache) {
+                        warn(pos);
+                    }
+                    if (connectsCache) {
+                        if (interact) {
+                            count.compute(pos.offset(Graph.DIRECTIONS[i]).toLong(), (k, v) ->
+                                    v == null ? 1 : v + 1
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        for (Long2ObjectMap.Entry<NodeCache<N>> node : this.nodes.long2ObjectEntrySet()) {
+            NodeCache<N> cache = node.getValue();
+            if (cache.count() != count.get(node.getLongKey())) {
+                warn(BlockPos.fromLong(node.getLongKey()));
+                Tesseract.LOGGER.error("Expected " + cache.count() + " connections but only got " + count.get(node.getLongKey()));
+                Tesseract.LOGGER.error("This is a bug, report to mod authors");
+            }
+        }
+    }
+
+    private void warn(BlockPos pos) {
+        Tesseract.LOGGER.error("Caught invalid position in Tesseract at position: " + pos);
     }
 
     public void incrementNode(long pos) {

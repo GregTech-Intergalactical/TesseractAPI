@@ -12,4 +12,8 @@ public interface IConnectable {
      * @return True if connect to the direction, false otherwise.
      */
     boolean connects(Direction direction);
+
+    default boolean interacts(Direction direction) {
+        return connects(direction);
+    }
 }
