@@ -235,7 +235,8 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
                 }
                 return 0;
             }
-
+            //TODO: For now just limit to 1 amp per insertion.
+            amperage = 1;
             // Stores the amp into holder for path only for variate connection
             if (!simulate) {
                 for (Long2ObjectMap.Entry<IGTCable> c : consumer.getFull().long2ObjectEntrySet()) {
