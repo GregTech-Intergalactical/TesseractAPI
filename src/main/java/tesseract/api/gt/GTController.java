@@ -21,7 +21,7 @@ import java.util.List;
  */
 public class GTController extends Controller<Long, IGTCable, IGTNode> implements IGTEvent {
 
-    private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
+    private long totalVoltage, totalAmperage, lastVoltage, lastAmperage, totalLoss, lastLoss;
     private final Long2LongMap holders = new Long2LongLinkedOpenHashMap();
     //Cable monitoring.
     private Long2LongMap frameHolders = new Long2LongLinkedOpenHashMap();
@@ -257,6 +257,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             long extracted = voltage_out * amp;
             if (!simulate) {
                 totalVoltage += extracted;
+                totalLoss += (extracted-voltage);
                 totalAmperage += amp;
                 for (int i = 0; i < amp; i++) {
                     consumer.insert(voltage, false);
@@ -272,7 +273,8 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     protected void onFrame() {
         lastVoltage = totalVoltage;
         lastAmperage = totalAmperage;
-        totalAmperage = totalVoltage = 0L;
+        lastLoss = totalLoss;
+        totalAmperage = totalVoltage = totalLoss = 0L;
         previousFrameHolder = frameHolders;
         frameHolders = new Long2LongOpenHashMap();
     }
@@ -286,17 +288,22 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             "Cable amperage (last frame): ".concat(Integer.toString(amp))
         };
     }
+
     /** GUI SYNC METHODS **/
-    public double voltageAverage() {
-        return (double) lastVoltage / 20;
+    public long getTotalVoltage() {
+        return lastVoltage;
     }
 
-    public double ampAverage() {
-        return (double) lastAmperage / 20;
+    public long totalAmps() {
+        return lastAmperage;
     }
 
     public int cableFrameAverage(long pos) {
         return GTHolder.getAmperage(previousFrameHolder.get(pos));
+    }
+
+    public long totalLoss() {
+        return lastLoss;
     }
     /** END GUI SYNC METHODS **/
 
