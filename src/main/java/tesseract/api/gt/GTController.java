@@ -286,6 +286,19 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             "Cable amperage (last frame): ".concat(Integer.toString(amp))
         };
     }
+    /** GUI SYNC METHODS **/
+    public double voltageAverage() {
+        return (double) lastVoltage / 20;
+    }
+
+    public double ampAverage() {
+        return (double) lastAmperage / 20;
+    }
+
+    public int cableFrameAverage(long pos) {
+        return GTHolder.getAmperage(previousFrameHolder.get(pos));
+    }
+    /** END GUI SYNC METHODS **/
 
     @Override
     public ITickingController clone(INode group) {

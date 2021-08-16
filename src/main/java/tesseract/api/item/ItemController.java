@@ -161,6 +161,14 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
         return new String[]{"Total Transferred: ".concat(Integer.toString(transferred))};
     }
 
+    public int getTransferred() {
+        return transferred;
+    }
+
+    public int getCableTransferred(long pos) {
+        return holders.get(pos);
+    }
+
     @Override
     public ITickingController<ItemStack, IItemPipe, N> clone(INode group) {
         return new ItemController<N>(dim).set(group);
