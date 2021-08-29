@@ -96,7 +96,7 @@ minecraft {
 
 
 // Deobfuscated jar; development purposes.
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+//import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 shadowJar {
     configurations = [project.configurations.shadow]
     archiveClassifier.set('')
@@ -113,6 +113,14 @@ reobf {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     shadow 'org.apache.commons:commons-collections4:4.4'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+    def targetVersion = 8
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.release = targetVersion
+    }
 }
 
 afterEvaluate { project ->
