@@ -99,7 +99,7 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
                     ImmutableList.Builder<Tuple<Direction,Either<IFluidPipe, IFluidNode>>> list = ImmutableList.builder();
                     for (Direction dir : Graph.DIRECTIONS) {
                         if (!Connectivity.has(connectivity, dir.getIndex())) continue;
-                        long newPos = new Pos(pos).offset(dir).asLong();
+                        long newPos = Pos.offset(pos,dir);
                         if (grid.contains(newPos)) {
                             Cache<IFluidPipe> newCache = grid.getConnectors().get(newPos);
                             if (newCache != null) {
@@ -254,9 +254,8 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
                     //Don't add more pressures if the stack is empty.
                     if (newStack.isEmpty()) break;
 
-                    holders.computeIfAbsent(pos, h -> new FluidHolder(pipe)).add(amount, stack.getFluid());
-
-                    FluidHolder holder = holders.get(pos);
+                    FluidHolder holder = holders.computeIfAbsent(pos, h -> new FluidHolder(pipe));
+                    holder.add(amount, stack.getFluid());
 
                     if (holder.isOverPressure()) {
                         onPipeOverPressure(getWorld(), pos, holder.getPressure(), stack);
