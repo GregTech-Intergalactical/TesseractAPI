@@ -77,7 +77,8 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
                                 }
                             }
                         }
-                        data.computeIfAbsent(pos, m -> new EnumMap<>(Direction.class)).put(getMapDirection(pos, direction.getOpposite()), consumers);
+                        if (!consumers.isEmpty())
+                            data.computeIfAbsent(pos, m -> new EnumMap<>(Direction.class)).put(getMapDirection(pos, direction.getOpposite()), consumers);
 
                         /*if (!consumers.isEmpty()) {
                             if (data.containsKey(pos)) {
@@ -138,9 +139,9 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             return false;
         }
         IGTNode node = nodee.value();
-        Pos pos = new Pos(consumerPos).sub(new Pos(producerPos));
+        long pos = Pos.sub(consumerPos, producerPos);
         Direction dir = path != null ? path.target().getDirection()
-                : Direction.getFacingFromVector(pos.getX(), pos.getY(), pos.getZ()).getOpposite();
+                : Direction.getFacingFromVector(Pos.unpackX(pos), Pos.unpackY(pos), Pos.unpackZ(pos)).getOpposite();
         if (node.canInput(dir)) {
             GTConsumer consumer = new GTConsumer(node, path);
             int voltage = producer.getOutputVoltage() - consumer.getLoss();
@@ -181,7 +182,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     public int insert(long producerPos, long pipePos, Long stack, boolean simulate) {
         NodeCache<IGTNode> node = this.group.getNodes().get(producerPos);
         if (node == null) return 0;
-        long key = producerPos == pipePos ? pipePos : Pos.sub(pipePos, producerPos);
+        long key = producerPos == pipePos ? pipePos : Pos.sub(producerPos, pipePos);
         Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.byLong(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
         Map<Direction, List<GTConsumer>> map = this.data.get(producerPos);
         if (map == null) return 0;
