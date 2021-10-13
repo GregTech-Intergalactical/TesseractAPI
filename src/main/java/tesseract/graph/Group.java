@@ -1,11 +1,13 @@
 package tesseract.graph;
 
+import com.google.common.collect.Iterators;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
 import org.apache.commons.collections4.SetUtils;
 import tesseract.Tesseract;
@@ -250,7 +252,9 @@ public class Group<T, C extends IConnectable, N> implements INode {
                 }
             }
         }
-
+        if (connector.registerAsNode()) {
+            nodes.putIfAbsent(pos, new NodeCache<>(() -> controller.wrapPipe(connector.value())).setIsPipe());
+        }
         updateController(controller);
     }
 
@@ -326,6 +330,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
 
             for (long move : centerGrid.getConnectors().keySet()) {
                 connectors.remove(move);
+                nodes.remove(move);
                 excluded.add(move);
             }
 
@@ -369,6 +374,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
 
                     for (long moved : grid.getConnectors().keySet()) {
                         connectors.remove(moved);
+                        nodes.remove(moved);
                         newGroup.connectors.put(moved, id);
                     }
                 }
@@ -430,7 +436,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
      */
     private boolean removeNode(long pos) {
         NodeCache<N> node = nodes.remove(pos);
-        if (node == null) {
+        if (node == null || node.isPipe()) {
             return false;
         }
 
@@ -475,6 +481,11 @@ public class Group<T, C extends IConnectable, N> implements INode {
             Grid<C> grid = grids.get(id);
             if (grid.connects(pos, direction.getOpposite())) {
                 return grid;
+            }
+        } else {
+            id = connectors.get(Pos.offset(pos, direction));
+            if (id != CID.INVALID) {
+                return grids.get(id);
             }
         }
 
@@ -593,6 +604,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
         }
         for (Long2ObjectMap.Entry<NodeCache<N>> node : this.nodes.long2ObjectEntrySet()) {
             NodeCache<N> cache = node.getValue();
+            if (cache.isPipe()) continue;
             if (cache.count() != count.get(node.getLongKey())) {
                 warn(BlockPos.fromLong(node.getLongKey()));
                 Tesseract.LOGGER.error("Expected " + cache.count() + " connections but only got " + count.get(node.getLongKey()));

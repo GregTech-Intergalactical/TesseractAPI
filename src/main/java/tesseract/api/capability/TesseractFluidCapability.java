@@ -41,7 +41,8 @@ public class TesseractFluidCapability implements IFluidHandler {
 
     @Override
     public int fill(FluidStack resource, FluidAction action) {
-        return Tesseract.FLUID.getController(tile.getWorld(), tile.getPos().toLong()).insert(new Pos(tile.getPos().toLong()), Graph.DIRECTIONS[side.getIndex()],resource, action.simulate());
+        long pos = tile.getPos().toLong();
+        return Tesseract.FLUID.getController(tile.getWorld(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.getIndex()]), pos, resource, action.simulate());
     }
 
     @Nonnull

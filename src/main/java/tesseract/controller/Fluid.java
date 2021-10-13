@@ -9,12 +9,11 @@ import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidStack;
 import tesseract.api.fluid.FluidController;
-import tesseract.api.fluid.IFluidNode;
 
 import javax.annotation.Nonnull;
 
 // TODO: Make explosions depend on pressure, capacity, temperature
-public class Fluid extends FluidController<IFluidNode> {
+public class Fluid extends FluidController {
 
     private long lastGasLeakSound = 0;
     private static final int GAS_WAIT_TIME = 40;

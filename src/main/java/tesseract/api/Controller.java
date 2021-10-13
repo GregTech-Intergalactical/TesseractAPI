@@ -1,8 +1,12 @@
 package tesseract.api;
 
+import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 import tesseract.graph.Group;
 import tesseract.graph.INode;
+
+import java.util.function.Function;
+
 
 /**
  * Class acts as a controller in the group of some components.
@@ -12,14 +16,15 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     protected int tick;
     protected final World dim;
     protected Group<T, C, N> group;
-
+    public final Function<C, N> wrapper;
     /**
      * Creates instance of the controller.
-     *
+     * @param wrapper the function to wrap pipes in a node.
      * @param supplier The world.
      */
-    protected Controller(World supplier) {
+    protected Controller(final Function<C, N> wrapper, World supplier) {
         this.dim = supplier;
+        this.wrapper = wrapper;
     }
 
     /**
@@ -30,6 +35,10 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     public Controller<T, C, N> set(INode container) {
         this.group = (Group<T, C, N>) container;
         return this;
+    }
+
+    protected Direction getMapDirection(long pos, Direction def) {
+        return group.getNodes().get(pos).isPipe() ? Direction.NORTH : def;
     }
 
     /**
@@ -51,5 +60,10 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     @Override
     public World getWorld() {
         return this.dim;
+    }
+
+    @Override
+    public N wrapPipe(C pipe) {
+        return this.wrapper.apply(pipe);
     }
 }

@@ -1,6 +1,5 @@
 package tesseract.api.fluid;
 
-import net.minecraft.fluid.Fluid;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -11,7 +10,7 @@ public interface IFluidEvent<T> {
 
     /**
      * Executes when the cable trying to transport higher amount of pressure than can.
-     * @param dim The dimension id.
+     * @param world The world.
      * @param pos The pipe position.
      * @param pressure The current pressure.
      */
@@ -21,7 +20,7 @@ public interface IFluidEvent<T> {
 
     /**
      * Executes when the cable trying to transport higher amount of liquids than can.
-     * @param dim The dimension id.
+     * @param world The world.
      * @param pos The pipe position.
      * @param capacity The current capacity.
      */
@@ -31,7 +30,7 @@ public interface IFluidEvent<T> {
 
     /**
      * Executes when the cable trying to transport higher amount of temperature than can.
-     * @param dim The dimension id.
+     * @param world The world.
      * @param pos The pipe position.
      * @param temperature The current temperature.
      */

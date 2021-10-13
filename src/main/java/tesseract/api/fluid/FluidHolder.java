@@ -2,17 +2,18 @@ package tesseract.api.fluid;
 
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.fluid.Fluid;
 
 import java.util.Set;
 
 /**
  * A class that acts as holder of the fluid that has passed thought pipes.
  */
-public class FluidHolder<T> {
+public class FluidHolder {
 
     private int pressure;
     private final int maxPressure, maxCapacity;
-    private final Set<T> fluids = new ObjectOpenHashSet<>();
+    private final Set<Fluid> fluids = new ObjectOpenHashSet<>();
 
     /**
      * Creates instance of the holder.
@@ -30,7 +31,7 @@ public class FluidHolder<T> {
      * @param pressure The added pressure.
      * @param fluid The fluid type.
      */
-    public void add(int pressure, T fluid) {
+    public void add(int pressure, Fluid fluid) {
         this.pressure += pressure;
         fluids.add(fluid);
     }
@@ -63,7 +64,7 @@ public class FluidHolder<T> {
         return maxCapacity < fluids.size();
     }
 
-    public boolean allowFluid(T fluid) {
+    public boolean allowFluid(Fluid fluid) {
         if (fluids.contains(fluid)) {
             return true;
         }

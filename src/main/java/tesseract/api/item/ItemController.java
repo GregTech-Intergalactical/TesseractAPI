@@ -2,9 +2,8 @@ package tesseract.api.item;
 
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
@@ -24,17 +23,17 @@ import java.util.Map;
 /**
  * Class acts as a controller in the group of an item components.
  */
-public class ItemController<N extends IItemNode> extends Controller<ItemStack, IItemPipe, N> {
+public class ItemController extends Controller<ItemStack, IItemPipe, IItemNode> {
     private int transferred;
     private final Long2IntMap holders = new Long2IntOpenHashMap();
-    private final Object2ObjectMap<N, Map<Direction, List<ItemConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<Map<Direction, List<ItemConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
     /**
      * Creates instance of the controller.
      *
      * @param dim The dimension id.
      */
     public ItemController(World dim) {
-        super(dim);
+        super(IItemNode::fromPipe, dim);
         holders.defaultReturnValue(0);
     }
 
@@ -47,34 +46,30 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<NodeCache<N>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<NodeCache<IItemNode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
-            N producer = e.getValue().value();
+            IItemNode producer = e.getValue().value();
+            if (data.containsKey(pos)) continue;
 
             if (producer.canOutput()) {
-                Pos position = new Pos(pos);
                 for (Direction direction : Graph.DIRECTIONS) {
                     if (producer.canOutput(direction)) {
                         List<ItemConsumer> consumers = new ObjectArrayList<>();
-                        long side = position.offset(direction).asLong();
-
-                        if (group.getNodes().containsKey(side)) {
-                            onCheck(consumers, null, direction.getOpposite(), side);
-                        } else {
-                            Grid<IItemPipe> grid = group.getGridAt(side, direction);
-                            if (grid != null) {
-                                for (Path<IItemPipe> path : grid.getPaths(pos)) {
-                                    if (!path.isEmpty()) {
-                                        Node target = path.target();
-                                        assert target != null;
-                                        onCheck(consumers, path, target.getDirection(), target.asLong());
-                                    }
+                        long side = Pos.offset(pos, direction);// position.offset(direction).asLong();
+                        Grid<IItemPipe> grid = group.getGridAt(side, direction);
+                        if (grid != null) {
+                            for (Path<IItemPipe> path : grid.getPaths(pos)) {
+                                if (!path.isEmpty()) {
+                                    Node target = path.target();
+                                    assert target != null;
+                                    onCheck(consumers, path, target.getDirection(), target.asLong());
                                 }
                             }
                         }
 
+
                         if (!consumers.isEmpty()) {
-                            data.computeIfAbsent(producer, m -> new EnumMap<>(Direction.class)).put(direction, consumers);
+                            data.computeIfAbsent(pos, m -> new EnumMap<>(Direction.class)).put(getMapDirection(pos, direction.getOpposite()), consumers);
                         }
                     }
                 }
@@ -93,12 +88,12 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
         super.tick();
     }
 
-    public int insert(Pos producerPos, Direction dir, ItemStack stack, boolean simulate) {
-        NodeCache<N> node = this.group.getNodes().get(producerPos.offset(dir).asLong());
-        if (node == null) return stack.getCount();
-        Map<Direction, List<ItemConsumer>> map = this.data.get(node.value());
+    public int insert(long producerPos, long pipePos, ItemStack stack, boolean simulate) {
+        long key = producerPos == pipePos ? pipePos : Pos.sub(producerPos, pipePos);
+        Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.byLong(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
+        Map<Direction, List<ItemConsumer>> map = this.data.get(producerPos);
         if (map == null) return stack.getCount();
-        List<ItemConsumer> list = map.get(dir.getOpposite());
+        List<ItemConsumer> list = map.get(dir);
         if (list == null) return stack.getCount();
         for (ItemConsumer consumer : list) {
             if (!consumer.canAccept(stack)) {
@@ -152,7 +147,7 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
      * @param pos The position of the producer.
      */
     private void onCheck(List<ItemConsumer> consumers, Path<IItemPipe> path, Direction Direction, long pos) {
-        N node = group.getNodes().get(pos).value();
+        IItemNode node = group.getNodes().get(pos).value();
         if (node.canInput(Direction)) consumers.add(new ItemConsumer(node, path, Direction));
     }
 
@@ -170,7 +165,7 @@ public class ItemController<N extends IItemNode> extends Controller<ItemStack, I
     }
 
     @Override
-    public ITickingController<ItemStack, IItemPipe, N> clone(INode group) {
-        return new ItemController<N>(dim).set(group);
+    public ITickingController<ItemStack, IItemPipe,IItemNode> clone(INode group) {
+        return new ItemController(dim).set(group);
     }
 }

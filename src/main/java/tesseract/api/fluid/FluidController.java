@@ -7,8 +7,6 @@ import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.util.Direction;
@@ -30,7 +28,7 @@ import java.util.Map;
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-public class FluidController<N extends IFluidNode> extends Controller<FluidStack, IFluidPipe, N> implements IFluidEvent<FluidStack> {
+public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNode> implements IFluidEvent<FluidStack> {
 
     // TODO: assign the value from Antimatter config
     public final static boolean HARDCORE_PIPES = false;
@@ -39,8 +37,8 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
     private long totalPressure, lastPressure;
     private int maxTemperature, lastTemperature;
     private boolean isLeaking, lastLeaking;
-    private final Long2ObjectMap<FluidHolder<Fluid>> holders = new Long2ObjectLinkedOpenHashMap<>();
-    private final Object2ObjectMap<N, Map<Direction, List<FluidConsumer>>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<FluidHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<Map<Direction, List<FluidConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
     private final List<Neighbour> neighbours = new ObjectArrayList<>();
     private final Long2IntMap pressureData = new Long2IntOpenHashMap(10);
     /**
@@ -49,42 +47,37 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
      * @param world the world.
      */
     public FluidController(World world) {
-        super(world);
+        super(IFluidNode::fromPipe, world);
     }
 
     @Override
     public void change() {
         if (!SLOOSH) {
             data.clear();
-
-            for (Long2ObjectMap.Entry<NodeCache<N>> e : group.getNodes().long2ObjectEntrySet()) {
+            for (Long2ObjectMap.Entry<NodeCache<IFluidNode>> e : group.getNodes().long2ObjectEntrySet()) {
                 long pos = e.getLongKey();
-                N producer = e.getValue().value();
+                if (data.containsKey(pos)) continue;
+                IFluidNode producer = e.getValue().value();
     
                 if (producer.canOutput()) {
-                    Pos position = new Pos(pos);
                     for (Direction direction : Graph.DIRECTIONS) {
                         if (producer.canOutput(direction)) {
                             List<FluidConsumer> consumers = new ObjectArrayList<>();
-                            long side = position.offset(direction).asLong();
-    
-                            if (group.getNodes().containsKey(side)) {
-                                onCheck(consumers, null, direction.getOpposite(), side);
-                            } else {
-                                Grid<IFluidPipe> grid = group.getGridAt(side, direction);
-                                if (grid != null) {
-                                    for (Path<IFluidPipe> path : grid.getPaths(pos)) {
-                                        if (!path.isEmpty()) {
-                                            Node target = path.target();
-                                            assert target != null;
-                                            onCheck(consumers, path, target.getDirection(), target.asLong());
-                                        }
+                            long side = Pos.offset(pos, direction);// position.offset(direction).asLong();
+
+                            Grid<IFluidPipe> grid = group.getGridAt(side, direction);
+                            if (grid != null) {
+                                for (Path<IFluidPipe> path : grid.getPaths(pos)) {
+                                    if (!path.isEmpty()) {
+                                        Node target = path.target();
+                                        assert target != null;
+                                        onCheck(consumers, path, target.getDirection(), target.asLong());
                                     }
                                 }
                             }
     
                             if (!consumers.isEmpty()) {
-                                data.computeIfAbsent(producer, map -> new EnumMap<>(Direction.class)).put(direction, consumers);
+                                data.computeIfAbsent(pos, map -> new EnumMap<>(Direction.class)).put(getMapDirection(pos, direction.getOpposite()), consumers);
                             }
                         }
                     }
@@ -189,19 +182,18 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
      * @param pos The position of the producer.
      */
     private void onCheck(List<FluidConsumer> consumers, Path<IFluidPipe> path, Direction dir, long pos) {
-        N node = group.getNodes().get(pos).value();
+        IFluidNode node = group.getNodes().get(pos).value();
         if (node.canInput()) consumers.add(new FluidConsumer(node, path, dir));
     }
-
-    public int insert(Pos producerPos, Direction direction, FluidStack stack, boolean simulate) {
+    @Override
+    public int insert(long producerPos, long pipePos, FluidStack stack, boolean simulate) {
         if (SLOOSH) return 0;
         if (stack.isEmpty()) return 0;
-        //Make sure all values are present.
-        NodeCache<N> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
-        if (node == null) return 0;
-        Map<Direction, List<FluidConsumer>> map = this.data.get(node.value());
+        long key = producerPos == pipePos ? pipePos : Pos.sub(producerPos, pipePos);
+        Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.byLong(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
+        Map<Direction, List<FluidConsumer>> map = this.data.get(producerPos);
         if (map == null) return 0;
-        List<FluidConsumer> list = map.get(direction.getOpposite());
+        List<FluidConsumer> list = map.get(dir);
         if (list == null) return 0;
 
         FluidStack newStack = stack.copy();
@@ -222,7 +214,7 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
                 if (simulate) {
                     amount = Math.min(amount, consumer.getMinPressure());
                     for (Long2ObjectMap.Entry<IFluidPipe> entry : consumer.getFull().long2ObjectEntrySet()) {
-                        FluidHolder<Fluid> holder = holders.get(entry.getLongKey());
+                        FluidHolder holder = holders.get(entry.getLongKey());
                         if (holder != null && !holder.allowFluid(newStack.getFluid())) {
                             amount = 0;
                             break;
@@ -262,9 +254,9 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
                     //Don't add more pressures if the stack is empty.
                     if (newStack.isEmpty()) break;
 
-                    holders.computeIfAbsent(pos, h -> new FluidHolder<>(pipe)).add(amount, stack.getFluid());
+                    holders.computeIfAbsent(pos, h -> new FluidHolder(pipe)).add(amount, stack.getFluid());
 
-                    FluidHolder<Fluid> holder = holders.get(pos);
+                    FluidHolder holder = holders.get(pos);
 
                     if (holder.isOverPressure()) {
                         onPipeOverPressure(getWorld(), pos, holder.getPressure(), stack);
@@ -323,7 +315,7 @@ public class FluidController<N extends IFluidNode> extends Controller<FluidStack
 
     @Override
     public ITickingController clone(INode group) {
-        return new FluidController<>(dim).set(group);
+        return new FluidController(dim).set(group);
     }
 
     protected static class Neighbour {

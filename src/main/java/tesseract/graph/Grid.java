@@ -262,8 +262,9 @@ public class Grid<C extends IConnectable> implements INode {
      * @param pos The given position.
      */
     private void removeFinal(long pos) {
-        connectors.remove(pos);
-
+        Cache<C> con = connectors.remove(pos);
+        if (con.registerAsNode())
+            nodes.remove(pos);
         Pos position = new Pos(pos);
         for (Direction direction : Graph.DIRECTIONS) {
             long side = position.offset(direction).asLong();

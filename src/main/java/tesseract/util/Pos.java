@@ -48,6 +48,26 @@ public class Pos {
     }
 
     /**
+     * Allows you to offset a long directly without any wrappers.
+     * @param value long position.
+     * @param dir direction.
+     * @return a new long pos.
+     */
+    public static long offset(long value, Direction dir) {
+        int x = unpackX(value) + dir.getXOffset();
+        int y = unpackY(value) + dir.getYOffset();
+        int z = unpackZ(value) + dir.getZOffset();
+        return packAll(x, y, z);
+    }
+
+    public static long sub(long value, long other) {
+        int x = unpackX(value) - unpackX(other);
+        int y = unpackY(value) - unpackY(other);
+        int z = unpackZ(value) - unpackZ(other);
+        return packAll(x, y, z);
+    }
+
+    /**
      * Efficiently calculates the floor of the base-2 log of an integer value.  This is effectively the index of the
      * highest bit that is set.  For example, if the number in binary is 0...100101, this will return 5.
      */

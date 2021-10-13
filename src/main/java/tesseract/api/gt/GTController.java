@@ -1,10 +1,7 @@
 package tesseract.api.gt;
 
-import it.unimi.dsi.fastutil.longs.Long2LongLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2LongMap;
-import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.longs.*;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 import tesseract.Tesseract;
@@ -14,7 +11,9 @@ import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class acts as a controller in the group of an electrical components.
@@ -27,7 +26,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     private Long2LongMap frameHolders = new Long2LongLinkedOpenHashMap();
     private Long2LongMap previousFrameHolder = new Long2LongLinkedOpenHashMap();
     //private final Object2IntMap<IGTNode> obtains = new Object2IntOpenHashMap<>();
-    private final Object2ObjectMap<IGTNode, List<GTConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<Map<Direction, List<GTConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
@@ -35,7 +34,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
      * @param dim The dimension id.
      */
     public GTController(World dim) {
-        super(dim);
+        super(IGTNode::fromPipe, dim);
     }
 
     /**
@@ -50,7 +49,6 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
      */
     @Override
     public void change() {
-        //noinspection StatementWithEmptyBody
         if (!changeInternal()) {
             Tesseract.LOGGER.warn("Error during GTController::change.");
         }
@@ -59,46 +57,44 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
         data.clear();
         for (Long2ObjectMap.Entry<NodeCache<IGTNode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
+            if (data.containsKey(pos)) continue;
             IGTNode producer = e.getValue().value();
 
             if (producer.canOutput()) {
-                Pos position = new Pos(pos);
                 for (Direction direction : Graph.DIRECTIONS) {
                     if (producer.canOutput(direction)) {
+                        long side = Pos.offset(pos, direction);// position.offset(direction).asLong();
                         List<GTConsumer> consumers = new ObjectArrayList<>();
-                        long side = position.offset(direction).asLong();
 
-                        if (group.getNodes().containsKey(side)) {
-                            if (!onCheck(producer, consumers, null, pos,side))
-                                return false;
-                        } else {
-                            Grid<IGTCable> grid = group.getGridAt(side, direction);
-                            if (grid != null) {
-                                for (Path<IGTCable> path : grid.getPaths(pos)) {
-                                    if (!path.isEmpty()) {
-                                        Node target = path.target();
-                                        assert target != null;
-                                        if (!onCheck(producer, consumers, path,pos, target.asLong()))
-                                            return false;
-                                    }
+                        Grid<IGTCable> grid = group.getGridAt(side, direction);
+                        if (grid != null) {
+                            for (Path<IGTCable> path : grid.getPaths(pos)) {
+                                if (!path.isEmpty()) {
+                                    Node target = path.target();
+                                    assert target != null;
+                                    if (!onCheck(producer, consumers, path,pos, target.asLong()))
+                                        return false;
                                 }
                             }
                         }
+                        data.computeIfAbsent(pos, m -> new EnumMap<>(Direction.class)).put(getMapDirection(pos, direction.getOpposite()), consumers);
 
-                        if (!consumers.isEmpty()) {
-                            if (data.containsKey(producer)) {
+                        /*if (!consumers.isEmpty()) {
+                            if (data.containsKey(pos)) {
                                 onMerge(producer, consumers);
                             } else {
                                 data.put(producer, consumers);
                             }
-                        }
+                        }*/
                     }
                 }
             }
         }
 
-        for (List<GTConsumer> consumers : data.values()) {
-            consumers.sort(GTConsumer.COMPARATOR);
+        for (Map<Direction, List<GTConsumer>> map : data.values()) {
+            for (List<GTConsumer> consumers : map.values()) {
+                consumers.sort(GTConsumer.COMPARATOR);
+            }
         }
         return true;
     }
@@ -110,7 +106,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
      * @param consumers The consumer nodes.
      */
     private void onMerge(IGTNode producer, List<GTConsumer> consumers) {
-        List<GTConsumer> existingConsumers = data.get(producer);
+        /*List<GTConsumer> existingConsumers = data.get(producer);
         for (GTConsumer c : consumers) {
             boolean found = false;
             for (GTConsumer ec : existingConsumers) {
@@ -122,7 +118,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
                 }
                 if (!found) existingConsumers.add(c);
             }
-        }
+        }*/
     }
 
     /**
@@ -182,12 +178,17 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     }
 
     @Override
-    public int insert(Pos producerPos, Direction direction, Long stack, boolean simulate) {
-        NodeCache<IGTNode> node = this.group.getNodes().get(producerPos.offset(direction).asLong());
+    public int insert(long producerPos, long pipePos, Long stack, boolean simulate) {
+        NodeCache<IGTNode> node = this.group.getNodes().get(producerPos);
         if (node == null) return 0;
-        IGTNode producer = node.value();
-        List<GTConsumer> list = this.data.get(node.value());
+        long key = producerPos == pipePos ? pipePos : Pos.sub(pipePos, producerPos);
+        Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.byLong(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
+        Map<Direction, List<GTConsumer>> map = this.data.get(producerPos);
+        if (map == null) return 0;
+        List<GTConsumer> list = map.get(dir);
         if (list == null) return 0;
+
+        IGTNode producer = node.value();
 
         // Get the how many amps and energy producer can send
         long energy = producer.getEnergy();

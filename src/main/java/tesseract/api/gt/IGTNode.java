@@ -89,6 +89,75 @@ public interface IGTNode {
 	 * @return state.
 	 */
 	GTConsumer.State getState();
+
+	static IGTNode fromPipe(IGTCable cable) {
+		return new IGTNode() {
+			@Override
+			public long insert(long maxReceive, boolean simulate) {
+				return 0;
+			}
+
+			@Override
+			public long extract(long maxExtract, boolean simulate) {
+				return 0;
+			}
+
+			@Override
+			public long getEnergy() {
+				return 0;
+			}
+
+			@Override
+			public long getCapacity() {
+				return 0;
+			}
+
+			@Override
+			public int getOutputAmperage() {
+				return 0;
+			}
+
+			@Override
+			public int getOutputVoltage() {
+				return cable.getVoltage();
+			}
+
+			@Override
+			public int getInputAmperage() {
+				return 0;
+			}
+
+			@Override
+			public int getInputVoltage() {
+				return 0;
+			}
+
+			@Override
+			public boolean canOutput() {
+				return true;
+			}
+
+			@Override
+			public boolean canInput() {
+				return false;
+			}
+
+			@Override
+			public boolean canInput(Direction direction) {
+				return false;
+			}
+
+			@Override
+			public boolean canOutput(Direction direction) {
+				return cable.connects(direction);
+			}
+
+			@Override
+			public GTConsumer.State getState() {
+				return null;
+			}
+		};
+	}
 	
 	//Called by consumers that cannot tick themselves, such as FE wrappers.
 	default void tesseractTick() {

@@ -31,7 +31,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
      * @param world The world.
      */
     public FEController(World world) {
-        super(world);
+        super(null, world);
         holders.defaultReturnValue(-1L);
     }
 
@@ -212,7 +212,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
     }
 
     @Override
-    public int insert(Pos producerPos, Direction direction, Integer stack, boolean simulate) {
+    public int insert(long producerPos, long direction, Integer stack, boolean simulate) {
         return 0;
     }
 

@@ -4,6 +4,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraftforge.items.IItemHandler;
 
+import javax.annotation.Nonnull;
+
 
 /**
  * An item node is the unit of interaction with item inventories.
@@ -60,5 +62,72 @@ public interface IItemNode extends IItemHandler {
      */
     default boolean canInput(ItemStack item, Direction direction) {
         return true;
+    }
+
+    static IItemNode fromPipe(IItemPipe pipe) {
+        return new IItemNode() {
+            @Override
+            public int getPriority(Direction direction) {
+                return 0;
+            }
+
+            @Override
+            public boolean isEmpty(int slot) {
+                return false;
+            }
+
+            @Override
+            public boolean canOutput() {
+                return true;
+            }
+
+            @Override
+            public boolean canInput() {
+                return false;
+            }
+
+            @Override
+            public boolean canInput(Direction direction) {
+                return false;
+            }
+
+            @Override
+            public boolean canOutput(Direction direction) {
+                return pipe.connects(direction);
+            }
+
+            @Override
+            public int getSlots() {
+                return 0;
+            }
+
+            @Nonnull
+            @Override
+            public ItemStack getStackInSlot(int slot) {
+                return ItemStack.EMPTY;
+            }
+
+            @Nonnull
+            @Override
+            public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+                return stack;
+            }
+
+            @Nonnull
+            @Override
+            public ItemStack extractItem(int slot, int amount, boolean simulate) {
+                return ItemStack.EMPTY;
+            }
+
+            @Override
+            public int getSlotLimit(int slot) {
+                return 0;
+            }
+
+            @Override
+            public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+                return false;
+            }
+        };
     }
 }
