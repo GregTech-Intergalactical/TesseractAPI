@@ -2,6 +2,7 @@ package tesseract.api;
 
 import net.minecraft.util.Direction;
 import net.minecraft.world.World;
+import tesseract.graph.Cache;
 import tesseract.graph.Group;
 import tesseract.graph.INode;
 
@@ -37,8 +38,16 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
         return this;
     }
 
+    protected N getPipeNode(long pos) {
+        Cache<C> connector = this.group.getConnector(pos);
+        if (connector != null) {
+            return wrapPipe(connector.value());
+        }
+        return null;
+    }
+
     protected Direction getMapDirection(long pos, Direction def) {
-        return group.getNodes().get(pos).isPipe() ? Direction.NORTH : def;
+        return group.getNodes().containsKey(pos) ? def : Direction.NORTH;
     }
 
     /**

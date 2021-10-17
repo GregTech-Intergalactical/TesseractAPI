@@ -1,44 +1,45 @@
 package tesseract.graph;
 
-import net.minecraft.util.LazyValue;
-
-import java.util.function.Supplier;
+import net.minecraft.util.Direction;
 
 public class NodeCache<T> {
-    private byte refCount;
-    private final LazyValue<T> value;
-    private boolean isPipe;
+    private byte bitMap;
+    private final T value;
     /**
      * Creates a cache instance.
      */
-    public NodeCache(Supplier<T> value) {
-        this.value = new LazyValue<>(value);
-        this.refCount = 1;
-        this.isPipe = false;
+    public NodeCache(T value, Direction side) {
+        this.value = value;
+        this.bitMap = 0;
+        setSide(side);
     }
-    public NodeCache<T> setIsPipe() {
-        isPipe = true;
-        return this;
+
+    public NodeCache(T value) {
+        this.value = value;
+        this.bitMap = 0;
+        bitMap |= 1 << 7;
+    }
+
+    public boolean setSide(Direction side) {
+        byte old = bitMap;
+        this.bitMap |= 1 << side.getIndex();
+        return old != bitMap;
+    }
+
+    public boolean clearSide(Direction side) {
+        this.bitMap &= ~(1 << (side.getIndex()));
+        return bitMap != 0;
     }
 
     public boolean isPipe() {
-        return isPipe;
-    }
-
-    public void increaseCount() {
-        this.refCount++;
-    }
-
-    public boolean decreaseCount() {
-        this.refCount--;
-        return refCount == 0;
+        return (bitMap & (1 << 7)) != 0;
     }
 
     public T value() {
-        return value.getValue();
+        return value;
     }
 
-    public byte count() {
-        return refCount;
+    public int count() {
+        return Integer.bitCount(bitMap);
     }
 }

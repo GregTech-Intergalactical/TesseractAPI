@@ -42,38 +42,44 @@ public class ItemController extends Controller<ItemStack, IItemPipe, IItemNode> 
         holders.clear();
     }
 
+    protected void handleInput(long pos, IItemNode producer) {
+        if (data.containsKey(pos)) return;
+
+        if (producer.canOutput()) {
+            for (Direction direction : Graph.DIRECTIONS) {
+                if (producer.canOutput(direction)) {
+                    List<ItemConsumer> consumers = new ObjectArrayList<>();
+                    long side = Pos.offset(pos, direction);// position.offset(direction).asLong();
+                    Grid<IItemPipe> grid = group.getGridAt(side, direction);
+                    if (grid != null) {
+                        for (Path<IItemPipe> path : grid.getPaths(pos, direction)) {
+                            if (!path.isEmpty()) {
+                                Node target = path.target();
+                                assert target != null;
+                                onCheck(consumers, path, target.getDirection(), target.asLong());
+                            }
+                        }
+                    }
+
+
+                    if (!consumers.isEmpty()) {
+                        data.computeIfAbsent(pos, m -> new EnumMap<>(Direction.class)).put(getMapDirection(pos, direction.getOpposite()), consumers);
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void change() {
         data.clear();
 
         for (Long2ObjectMap.Entry<NodeCache<IItemNode>> e : group.getNodes().long2ObjectEntrySet()) {
-            long pos = e.getLongKey();
-            IItemNode producer = e.getValue().value();
-            if (data.containsKey(pos)) continue;
+            handleInput(e.getLongKey(), e.getValue().value());
+        }
 
-            if (producer.canOutput()) {
-                for (Direction direction : Graph.DIRECTIONS) {
-                    if (producer.canOutput(direction)) {
-                        List<ItemConsumer> consumers = new ObjectArrayList<>();
-                        long side = Pos.offset(pos, direction);// position.offset(direction).asLong();
-                        Grid<IItemPipe> grid = group.getGridAt(side, direction);
-                        if (grid != null) {
-                            for (Path<IItemPipe> path : grid.getPaths(pos)) {
-                                if (!path.isEmpty()) {
-                                    Node target = path.target();
-                                    assert target != null;
-                                    onCheck(consumers, path, target.getDirection(), target.asLong());
-                                }
-                            }
-                        }
-
-
-                        if (!consumers.isEmpty()) {
-                            data.computeIfAbsent(pos, m -> new EnumMap<>(Direction.class)).put(getMapDirection(pos, direction.getOpposite()), consumers);
-                        }
-                    }
-                }
-            }
+        for (Long2ObjectMap.Entry<Cache<IItemPipe>> entry : group.getPipes()) {
+            handleInput(entry.getLongKey(), wrapPipe(entry.getValue().value()));
         }
 
         for (Map<Direction, List<ItemConsumer>> map : data.values()) {
@@ -84,6 +90,7 @@ public class ItemController extends Controller<ItemStack, IItemPipe, IItemNode> 
     }
 
     @Override
+
     public void tick() {
         super.tick();
     }

@@ -1,6 +1,7 @@
 package tesseract.util;
 
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
 
 /**
  * Position in world.
@@ -65,6 +66,16 @@ public class Pos {
         int y = unpackY(value) - unpackY(other);
         int z = unpackZ(value) - unpackZ(other);
         return packAll(x, y, z);
+    }
+
+
+    public static Direction subToDir(long value, long other) {
+        long direction = sub(value, other);
+        return Direction.byLong(unpackX(direction), unpackY(direction), unpackZ(direction));
+    }
+
+    public static Direction blockPosToDir(BlockPos value, BlockPos other) {
+        return Direction.byLong(value.getX() - other.getX(), value.getY() - other.getY(), value.getZ() - other.getZ());
     }
 
     /**

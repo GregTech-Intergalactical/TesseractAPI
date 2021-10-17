@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.fluid.Fluid;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.World;
@@ -50,40 +49,44 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
         super(IFluidNode::fromPipe, world);
     }
 
+    private void handleInput(long pos, IFluidNode producer) {
+        if (data.containsKey(pos)) return;
+
+        if (producer.canOutput()) {
+            for (Direction direction : Graph.DIRECTIONS) {
+                if (producer.canOutput(direction)) {
+                    List<FluidConsumer> consumers = new ObjectArrayList<>();
+                    long side = Pos.offset(pos, direction);// position.offset(direction).asLong();
+
+                    Grid<IFluidPipe> grid = group.getGridAt(side, direction);
+                    if (grid != null) {
+                        for (Path<IFluidPipe> path : grid.getPaths(pos, direction)) {
+                            if (!path.isEmpty()) {
+                                Node target = path.target();
+                                assert target != null;
+                                onCheck(consumers, path, target.getDirection(), target.asLong());
+                            }
+                        }
+                    }
+
+                    if (!consumers.isEmpty()) {
+                        data.computeIfAbsent(pos, map -> new EnumMap<>(Direction.class)).put(getMapDirection(pos, direction.getOpposite()), consumers);
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void change() {
         if (!SLOOSH) {
             data.clear();
             for (Long2ObjectMap.Entry<NodeCache<IFluidNode>> e : group.getNodes().long2ObjectEntrySet()) {
-                long pos = e.getLongKey();
-                if (data.containsKey(pos)) continue;
-                IFluidNode producer = e.getValue().value();
-    
-                if (producer.canOutput()) {
-                    for (Direction direction : Graph.DIRECTIONS) {
-                        if (producer.canOutput(direction)) {
-                            List<FluidConsumer> consumers = new ObjectArrayList<>();
-                            long side = Pos.offset(pos, direction);// position.offset(direction).asLong();
-
-                            Grid<IFluidPipe> grid = group.getGridAt(side, direction);
-                            if (grid != null) {
-                                for (Path<IFluidPipe> path : grid.getPaths(pos)) {
-                                    if (!path.isEmpty()) {
-                                        Node target = path.target();
-                                        assert target != null;
-                                        onCheck(consumers, path, target.getDirection(), target.asLong());
-                                    }
-                                }
-                            }
-    
-                            if (!consumers.isEmpty()) {
-                                data.computeIfAbsent(pos, map -> new EnumMap<>(Direction.class)).put(getMapDirection(pos, direction.getOpposite()), consumers);
-                            }
-                        }
-                    }
-                }
+                handleInput(e.getLongKey(), e.getValue().value());
             }
-    
+            for (Long2ObjectMap.Entry<Cache<IFluidPipe>> e : group.getPipes()) {
+                handleInput(e.getLongKey(), wrapPipe(e.getValue().value()));
+            }
             for (Map<Direction, List<FluidConsumer>> map : data.values()) {
                 for (List<FluidConsumer> consumers : map.values()) {
                     consumers.sort(Consumer.COMPARATOR);

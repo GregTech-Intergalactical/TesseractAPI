@@ -65,7 +65,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
                         } else {
                             Grid<IFECable> grid = group.getGridAt(side, direction);
                             if (grid != null) {
-                                for (Path<IFECable> path : grid.getPaths(pos)) {
+                                for (Path<IFECable> path : grid.getPaths(pos, direction)) {
                                     if (!path.isEmpty()) {
                                         Node target = path.target();
                                         assert target != null;

@@ -13,11 +13,9 @@ public interface IConnectable {
      */
     boolean connects(Direction direction);
 
-    default boolean interacts(Direction direction) {
-        return connects(direction);
-    }
-
     default boolean registerAsNode() {
         return false;
     }
+
+    boolean validate(Direction dir);
 }

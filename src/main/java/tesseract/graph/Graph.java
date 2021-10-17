@@ -15,7 +15,10 @@ import tesseract.api.ITickingController;
 import tesseract.util.CID;
 import tesseract.util.Pos;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.LongFunction;
 import java.util.function.Supplier;
 
 /**
@@ -26,7 +29,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     public static final Direction[] DIRECTIONS = Direction.values();
     private final Int2ObjectMap<Group<T, C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
     private final Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
-    private final Long2ObjectMap<Pending> PENDING_NODES = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<EnumMap<Direction, Pending>> PENDING_NODES = new Long2ObjectOpenHashMap<>();
 
     public Graph() {
         positions.defaultReturnValue(CID.INVALID);
@@ -38,11 +41,13 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     }
 
     public void onFirstTick() {
-        PENDING_NODES.forEach((k, v) -> {
-            for (int i = 0; i < v.count; i++) {
-                addNode(k, v.nodeSupplier, v.world, v.controllerSupplier);
+        for (Long2ObjectMap.Entry<EnumMap<Direction, Pending>> m : PENDING_NODES.long2ObjectEntrySet()) {
+            for (Map.Entry<Direction, Pending> entry : m.getValue().entrySet()) {
+                Direction dir = entry.getKey();
+                Pending v = entry.getValue();
+                addNode(v.connector, m.getLongKey(), v.fun, dir, v.world, v.controllerSupplier);
             }
-        });
+        }
         PENDING_NODES.clear();
     }
 
@@ -78,10 +83,11 @@ public class Graph<T, C extends IConnectable, N> implements INode {
      * @param controller The controller to use.
      * @return True on success or false otherwise.
      */
-    public boolean addNode(long pos, Supplier<N> node, World world, Supplier<Controller<T, C, N>> controller) {
+    public boolean addNode(C connector, long pos, LongFunction<N> node, Direction side, World world, Supplier<Controller<T, C, N>> controller) {
         if (!contains(pos)) {
             if (Tesseract.hadFirstTick(world)) {
-                NodeCache<N> cache = new NodeCache<>(node);
+                if (!connector.validate(side.getOpposite())) return false;
+                NodeCache<N> cache = new NodeCache<>(node.apply(pos), side);
                 if (cache.value() != null) {
                     Controller<T, C, N> control = controller.get();
                     Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, control));
@@ -89,11 +95,14 @@ public class Graph<T, C extends IConnectable, N> implements INode {
                     return true;
                 }
             } else {
-                PENDING_NODES.computeIfAbsent(pos, v -> new Pending(world, controller, node)).increase();
+                PENDING_NODES.computeIfAbsent(pos, f -> new EnumMap<>(Direction.class)).put(side, new Pending(world, controller, node, connector));
                 return true;
             }
         } else if (this.getGroupAt(pos).getNodes().containsKey(pos)) {
-            this.getGroupAt(pos).incrementNode(pos);
+            if (!connector.validate(side.getOpposite())) return false;
+            if (this.getGroupAt(pos).addSide(pos, side)) {
+                this.refreshNode(pos);
+            }
             return true;
         }
 
@@ -106,6 +115,8 @@ public class Graph<T, C extends IConnectable, N> implements INode {
             if (Tesseract.hadFirstTick(controller.getWorld())) controller.change();
         }
     }
+
+
 
     /**
      * Adds a connector to the graph at the specified position.
@@ -299,23 +310,15 @@ public class Graph<T, C extends IConnectable, N> implements INode {
      */
     private class Pending {
         public final Supplier<Controller<T, C, N>> controllerSupplier;
-        public final Supplier<N> nodeSupplier;
         public final World world;
-        private int count;
+        public final LongFunction<N> fun;
+        public final C connector;
 
-        public Pending(World world, Supplier<Controller<T, C, N>> controllerSupplier, Supplier<N> nodeSupplier) {
+        public Pending(World world, Supplier<Controller<T, C, N>> controllerSupplier, LongFunction<N> fun, C connector) {
             this.controllerSupplier = controllerSupplier;
-            this.nodeSupplier = nodeSupplier;
             this.world = world;
-            this.count = 0;
-        }
-
-        public void increase() {
-            this.count++;
-        }
-
-        public int count() {
-            return count;
+            this.connector = connector;
+            this.fun = fun;
         }
     }
 }

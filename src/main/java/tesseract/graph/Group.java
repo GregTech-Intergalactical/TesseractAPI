@@ -1,13 +1,11 @@
 package tesseract.graph;
 
-import com.google.common.collect.Iterators;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Direction;
-import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
 import org.apache.commons.collections4.SetUtils;
 import tesseract.Tesseract;
@@ -119,6 +117,10 @@ public class Group<T, C extends IConnectable, N> implements INode {
         return Long2ObjectMaps.unmodifiable(nodes);
     }
 
+    public Iterable<Long2ObjectMap.Entry<Cache<C>>> getPipes() {
+        return () -> this.grids.values().stream().flatMap(t -> t.getConnectors().long2ObjectEntrySet().stream().filter(p -> p.getValue().registerAsNode())).iterator();
+    }
+
     /**
      * @return Returns grids set.
      */
@@ -173,6 +175,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
         Long2ObjectMap<Direction> joined = new Long2ObjectLinkedOpenHashMap<>();
         Grid<C> bestGrid = null;
         int bestCount = 0;
+
         int bestId = CID.INVALID;
 
         Pos position = new Pos(pos);
@@ -211,6 +214,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
             bestGrid = Grid.singleConnector(pos, connector);
 
             connectors.put(pos, bestId);
+
             grids.put(bestId, bestGrid);
             bestCount = -1; // For exit
         }
@@ -251,9 +255,6 @@ public class Group<T, C extends IConnectable, N> implements INode {
                     grids.remove(id);
                 }
             }
-        }
-        if (connector.registerAsNode()) {
-            nodes.putIfAbsent(pos, new NodeCache<>(() -> controller.wrapPipe(connector.value())).setIsPipe());
         }
         updateController(controller);
     }
@@ -330,7 +331,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
 
             for (long move : centerGrid.getConnectors().keySet()) {
                 connectors.remove(move);
-                nodes.remove(move);
+                //nodes.remove(move);
                 excluded.add(move);
             }
 
@@ -420,12 +421,32 @@ public class Group<T, C extends IConnectable, N> implements INode {
     public boolean removeAt(long pos, Consumer<Group<T, C, N>> split) {
         NodeCache<N> node = nodes.get(pos);
         if (node != null) {
-            if (!node.decreaseCount()) {
+            if (updateNode(pos, node)) {
                 return false;
             }
         }
         internalRemove(pos, split);
         return true;
+    }
+
+    private boolean updateNode(long pos, NodeCache<N> node) {
+        if (node.isPipe()) return false;
+        boolean ret = true;
+        for (int i = 0; i < Graph.DIRECTIONS.length; i++) {
+            Direction dir = Graph.DIRECTIONS[i];
+            long offset = Pos.offset(pos, dir);
+            Grid<C> grid = this.getGridAt(offset, dir);
+            if (grid != null) {
+                Cache<C> connector = grid.getConnectors().get(offset);
+                if (connector != null) {
+                    boolean ok = connector.value().validate(dir);
+                    if (!ok) {
+                        ret &= node.clearSide(dir);
+                    }
+                }
+            }
+        }
+        return ret;
     }
 
     /**
@@ -436,7 +457,10 @@ public class Group<T, C extends IConnectable, N> implements INode {
      */
     private boolean removeNode(long pos) {
         NodeCache<N> node = nodes.remove(pos);
-        if (node == null || node.isPipe()) {
+        if (node == null) {
+            if (node != null) {
+                throw new RuntimeException("Node isPipe on removeNode!");
+            }
             return false;
         }
 
@@ -462,8 +486,8 @@ public class Group<T, C extends IConnectable, N> implements INode {
     private void addGrid(int id, Grid<C> grid) {
         grids.put(id, grid);
 
-        for (long moved : grid.getConnectors().keySet()) {
-            connectors.put(moved, id);
+        for (Long2ObjectMap.Entry<Cache<C>> moved : grid.getConnectors().long2ObjectEntrySet()) {
+            connectors.put(moved.getLongKey(), id);
         }
     }
 
@@ -483,12 +507,20 @@ public class Group<T, C extends IConnectable, N> implements INode {
                 return grid;
             }
         } else {
-            id = connectors.get(Pos.offset(pos, direction));
+            id = connectors.get(Pos.offset(pos, direction.getOpposite()));
             if (id != CID.INVALID) {
                 return grids.get(id);
             }
         }
 
+        return null;
+    }
+
+    public Cache<C> getConnector(long pos) {
+        int id = this.connectors.get(pos);
+        if (id != CID.INVALID) {
+            return this.grids.get(id).getConnectors().get(pos);
+        }
         return null;
     }
 
@@ -575,7 +607,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
      * Checks the health of this group, if there is any issue present.
      */
     public void healthCheck() {
-        Long2IntMap count = new Long2IntOpenHashMap();
+        /*Long2IntMap count = new Long2IntOpenHashMap();
 
         for (Int2ObjectMap.Entry<Grid<C>> grids : this.grids.int2ObjectEntrySet()) {
             Long2ObjectMap<Cache<C>> grid = grids.getValue().getConnectors();
@@ -588,16 +620,14 @@ public class Group<T, C extends IConnectable, N> implements INode {
                 for (int i = 0; i < Graph.DIRECTIONS.length; i++) {
                     boolean connects = value.connects(Graph.DIRECTIONS[i]);
                     boolean connectsCache = Connectivity.has(cachedConn, i);
-                    boolean interact = cache.value().interacts(Graph.DIRECTIONS[i]);
                     if (connects != connectsCache) {
                         warn(pos);
                     }
                     if (connectsCache) {
-                        if (interact) {
-                            count.compute(pos.offset(Graph.DIRECTIONS[i]).toLong(), (k, v) ->
-                                    v == null ? 1 : v + 1
-                            );
-                        }
+                        count.compute(pos.offset(Graph.DIRECTIONS[i]).toLong(), (k, v) ->
+                                v == null ? 1 : v + 1
+                        );
+
                     }
                 }
             }
@@ -610,14 +640,18 @@ public class Group<T, C extends IConnectable, N> implements INode {
                 Tesseract.LOGGER.error("Expected " + cache.count() + " connections but only got " + count.get(node.getLongKey()));
                 Tesseract.LOGGER.error("This is a bug, report to mod authors");
             }
+        }*/
+    }
+
+    public boolean addSide(long pos, Direction side) {
+        NodeCache<N> cache = this.nodes.get(pos);
+        if (cache != null) {
+            return cache.setSide(side);
         }
+        return false;
     }
 
     private void warn(BlockPos pos) {
         Tesseract.LOGGER.error("Caught invalid position in Tesseract at position: " + pos);
-    }
-
-    public void incrementNode(long pos) {
-        this.nodes.get(pos).increaseCount();
     }
 }

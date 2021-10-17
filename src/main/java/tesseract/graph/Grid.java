@@ -121,9 +121,11 @@ public class Grid<C extends IConnectable> implements INode {
      * @param from The position of the linked node.
      * @return Returns paths from the linked node.
      */
-    public List<Path<C>> getPaths(long from) {
+    public List<Path<C>> getPaths(long from, Direction side) {
         List<Path<C>> data = new ObjectArrayList<>();
-
+        if (this.connectors.containsKey(from)) {
+            from = Pos.offset(from, side);
+        }
         for (long to : nodes) {
             if (from != to) {
                 data.add(new Path<>(connectors, finder.traverse(from, to)));

@@ -53,32 +53,29 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             Tesseract.LOGGER.warn("Error during GTController::change.");
         }
     }
-    private boolean changeInternal(){
-        data.clear();
-        for (Long2ObjectMap.Entry<NodeCache<IGTNode>> e : group.getNodes().long2ObjectEntrySet()) {
-            long pos = e.getLongKey();
-            if (data.containsKey(pos)) continue;
-            IGTNode producer = e.getValue().value();
 
-            if (producer.canOutput()) {
-                for (Direction direction : Graph.DIRECTIONS) {
-                    if (producer.canOutput(direction)) {
-                        long side = Pos.offset(pos, direction);// position.offset(direction).asLong();
-                        List<GTConsumer> consumers = new ObjectArrayList<>();
+    boolean handleInput(long pos, IGTNode producer) {
+        if (data.containsKey(pos)) return true;
 
-                        Grid<IGTCable> grid = group.getGridAt(side, direction);
-                        if (grid != null) {
-                            for (Path<IGTCable> path : grid.getPaths(pos)) {
-                                if (!path.isEmpty()) {
-                                    Node target = path.target();
-                                    assert target != null;
-                                    if (!onCheck(producer, consumers, path,pos, target.asLong()))
-                                        return false;
-                                }
+        if (producer.canOutput()) {
+            for (Direction direction : Graph.DIRECTIONS) {
+                if (producer.canOutput(direction)) {
+                    long side = Pos.offset(pos, direction);// position.offset(direction).asLong();
+                    List<GTConsumer> consumers = new ObjectArrayList<>();
+
+                    Grid<IGTCable> grid = group.getGridAt(side, direction);
+                    if (grid != null) {
+                        for (Path<IGTCable> path : grid.getPaths(pos, direction)) {
+                            if (!path.isEmpty()) {
+                                Node target = path.target();
+                                assert target != null;
+                                if (!onCheck(producer, consumers, path,pos, target.asLong()))
+                                    return false;
                             }
                         }
-                        if (!consumers.isEmpty())
-                            data.computeIfAbsent(pos, m -> new EnumMap<>(Direction.class)).put(getMapDirection(pos, direction.getOpposite()), consumers);
+                    }
+                    if (!consumers.isEmpty())
+                        data.computeIfAbsent(pos, m -> new EnumMap<>(Direction.class)).put(getMapDirection(pos, direction.getOpposite()), consumers);
 
                         /*if (!consumers.isEmpty()) {
                             if (data.containsKey(pos)) {
@@ -87,9 +84,20 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
                                 data.put(producer, consumers);
                             }
                         }*/
-                    }
                 }
             }
+        }
+        return true;
+    }
+
+    private boolean changeInternal(){
+        data.clear();
+        for (Long2ObjectMap.Entry<NodeCache<IGTNode>> e : group.getNodes().long2ObjectEntrySet()) {
+            handleInput(e.getLongKey(), e.getValue().value());
+        }
+
+        for (Long2ObjectMap.Entry<Cache<IGTCable>> entry : group.getPipes()) {
+            handleInput(entry.getLongKey(), wrapPipe(entry.getValue().value()));
         }
 
         for (Map<Direction, List<GTConsumer>> map : data.values()) {
@@ -181,15 +189,22 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     @Override
     public int insert(long producerPos, long pipePos, Long stack, boolean simulate) {
         NodeCache<IGTNode> node = this.group.getNodes().get(producerPos);
-        if (node == null) return 0;
+        IGTNode producer;
+        if (node == null) {
+            //Fallback to a fake node from a pipe.
+            producer = getPipeNode(pipePos);
+            if (producer == null) {
+                return 0;
+            }
+        } else {
+            producer = node.value();
+        }
         long key = producerPos == pipePos ? pipePos : Pos.sub(producerPos, pipePos);
         Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.byLong(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
         Map<Direction, List<GTConsumer>> map = this.data.get(producerPos);
         if (map == null) return 0;
         List<GTConsumer> list = map.get(dir);
         if (list == null) return 0;
-
-        IGTNode producer = node.value();
 
         // Get the how many amps and energy producer can send
         long energy = producer.getEnergy();
@@ -233,6 +248,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
 
                     if (cable.getHandler(voltage_out, amperage) == GTStatus.FAIL_VOLTAGE) {
                         onCableOverVoltage(getWorld(), pos, voltage_out);
+                        return 0;
                     }
                 }
                 return 0;
@@ -250,7 +266,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
 
                     if (GTHolder.isOverAmperage(holders.get(pos))) {
                         onCableOverAmperage(getWorld(), pos, GTHolder.getAmperage(holders.get(pos)));
-                        break;
+                        return 0;
                     }
                 }
             }
@@ -266,7 +282,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
                 }
                 return stack.intValue();
             }
-            return (int) extracted;
+            return (int) voltage;
         }
         return 0;
     }

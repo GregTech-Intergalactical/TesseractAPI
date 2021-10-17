@@ -43,7 +43,7 @@ class TestBench {
                         continue;
                     }
                 } else {
-                    if (!graph.addNode(position, ExampleNode::new, null, null)) {
+                    if (!graph.addNode(null, position, s -> new ExampleNode(), Direction.NORTH, null, null)) {
                         System.out.println("Error: node at" + pos + " already exists in the graph");
                         continue;
                     }
@@ -126,18 +126,18 @@ class TestBench {
         public boolean connects(Direction direction) {
             return true;
         }
+
+        @Override
+        public boolean validate(Direction dir) {
+            return true;
+        }
     }
 
-    private static class ExampleNode implements IConnectable {
+    private static class ExampleNode {
 
         @Override
         public String toString() {
             return "ExampleNode";
-        }
-
-        @Override
-        public boolean connects(Direction direction) {
-            return true;
         }
     }
 }
