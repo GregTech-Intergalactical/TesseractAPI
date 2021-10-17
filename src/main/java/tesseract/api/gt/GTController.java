@@ -280,9 +280,9 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
                 for (int i = 0; i < amp; i++) {
                     consumer.insert(voltage, false);
                 }
-                return stack.intValue();
+                return voltage*amperage; //TODO: Make tesseract use longs.
             }
-            return (int) voltage;
+            return (int) voltage*amperage;
         }
         return 0;
     }
