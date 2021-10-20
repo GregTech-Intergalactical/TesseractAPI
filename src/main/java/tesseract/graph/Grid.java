@@ -51,18 +51,22 @@ public class Grid<C extends IConnectable> implements INode {
         Cache<C> cacheFrom = connectors.get(from);
         Cache<C> cacheTo = connectors.get(to);
 
-        byte connectivityFrom = Byte.MAX_VALUE;
-        byte connectivityTo = Byte.MAX_VALUE;
+        byte connectivityFrom;
+        byte connectivityTo;
 
         if (cacheFrom != null) {
             connectivityFrom = cacheFrom.connectivity();
+        } else {
+            connectivityFrom = 0;
         }
 
         if (cacheTo != null) {
             connectivityTo = cacheTo.connectivity();
+        } else {
+            connectivityTo = nodes.containsKey(to) ? Byte.MAX_VALUE : 0;
         }
 
-        if (cacheFrom == null && cacheTo == null) {
+        if (connectivityFrom == 0 && connectivityTo == 0) {
             return false;
         }
 
