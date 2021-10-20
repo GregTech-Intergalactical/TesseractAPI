@@ -62,7 +62,7 @@ public class Grid<C extends IConnectable> implements INode {
             connectivityTo = cacheTo.connectivity();
         }
 
-        if (connectivityFrom == Byte.MAX_VALUE || connectivityTo == Byte.MAX_VALUE) {
+        if (cacheFrom == null && cacheTo == null) {
             return false;
         }
 
@@ -242,7 +242,7 @@ public class Grid<C extends IConnectable> implements INode {
             LongSet found = colored.get(i);
 
             for (long reached : found) {
-                if (!nodes.containsKey(reached)) {
+                if (nodes.containsKey(reached)) {
                     check.add(reached);
                     newGrid.nodes.put(reached, this.nodes.get(reached));
                 } else {
