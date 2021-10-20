@@ -156,7 +156,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
                 continue;
             }
 
-            grid.addNode(pos);
+            grid.addNode(pos, node);
         }
 
         updateController(controller);
@@ -228,7 +228,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
             long move = e.getLongKey();
             Direction direction = e.getValue();
             if (connector.connects(direction)) {
-                bestGrid.addNode(move);
+                bestGrid.addNode(move, nodes.get(move));
             }
         }
 

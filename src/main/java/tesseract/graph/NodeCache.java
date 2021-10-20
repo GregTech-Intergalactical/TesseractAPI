@@ -20,6 +20,10 @@ public class NodeCache<T> {
         bitMap |= 1 << 7;
     }
 
+    public boolean connects(Direction side) {
+        return ((bitMap & (1 << side.getIndex())) > 0);
+    }
+
     public boolean setSide(Direction side) {
         byte old = bitMap;
         this.bitMap |= 1 << side.getIndex();
@@ -38,6 +42,7 @@ public class NodeCache<T> {
     public T value() {
         return value;
     }
+
 
     public int count() {
         return Integer.bitCount(bitMap);

@@ -104,9 +104,9 @@ class TestBench {
                     int linked = grid.countNodes();
                     if (linked != 0) {
                         System.out.println("      Grid contains " + linked + " linked nodes:");
-                        for (long pos : grid.getNodes()) {
-                            System.out.println("          Node at " + new Pos(pos));
-                        }
+                       // for (long pos : grid.getNodes()) {
+                       //     System.out.println("          Node at " + new Pos(pos));
+                      //  }
                     }
                 }
             }
