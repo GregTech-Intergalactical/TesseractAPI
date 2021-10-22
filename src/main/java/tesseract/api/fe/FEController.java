@@ -27,7 +27,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
 
     /**
      * Creates instance of the controller.
-
+     *
      * @param world The world.
      */
     public FEController(World world) {
@@ -43,6 +43,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
      * Finally, it will pre-build consumer objects which are available for the producers. So each producer has a list of possible
      * consumers with unique information about paths, loss, ect.
      * </p>
+     *
      * @see tesseract.graph.Grid (Cache)
      */
     @Override
@@ -95,7 +96,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
     /**
      * Merge the existing consumers with new ones.
      *
-     * @param producer The producer node.
+     * @param producer  The producer node.
      * @param consumers The consumer nodes.
      */
     private void onMerge(IFENode producer, List<FEConsumer> consumers) {
@@ -115,8 +116,8 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
      * Adds available consumers to the list.
      *
      * @param consumers The consumer nodes.
-     * @param path The paths to consumers.
-     * @param pos The position of the producer.
+     * @param path      The paths to consumers.
+     * @param pos       The position of the producer.
      */
     private void onCheck(List<FEConsumer> consumers, Path<IFECable> path, long pos) {
         IFENode node = group.getNodes().get(pos).value();
@@ -225,7 +226,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
     @Override
     public String[] getInfo(long pos) {
         return new String[]{
-            "Total Energy: ".concat(Long.toString(lastEnergy))
+                "Total Energy: ".concat(Long.toString(lastEnergy))
         };
     }
 

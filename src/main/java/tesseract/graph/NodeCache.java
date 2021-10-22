@@ -5,6 +5,7 @@ import net.minecraft.util.Direction;
 public class NodeCache<T> {
     private byte bitMap;
     private final T value;
+
     /**
      * Creates a cache instance.
      */

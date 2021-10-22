@@ -30,7 +30,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
 
     /**
      * Creates instance of the controller.
-
+     *
      * @param dim The dimension id.
      */
     public GTController(World dim) {
@@ -45,6 +45,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
      * Finally, it will pre-build consumer objects which are available for the producers. So each producer has a list of possible
      * consumers with unique information about paths, loss, ect.
      * </p>
+     *
      * @see tesseract.graph.Grid (Cache)
      */
     @Override
@@ -69,7 +70,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
                             if (!path.isEmpty()) {
                                 Node target = path.target();
                                 assert target != null;
-                                if (!onCheck(producer, consumers, path,pos, target.asLong()))
+                                if (!onCheck(producer, consumers, path, pos, target.asLong()))
                                     return false;
                             }
                         }
@@ -90,7 +91,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
         return true;
     }
 
-    private boolean changeInternal(){
+    private boolean changeInternal() {
         data.clear();
         for (Long2ObjectMap.Entry<NodeCache<IGTNode>> e : group.getNodes().long2ObjectEntrySet()) {
             handleInput(e.getLongKey(), e.getValue().value());
@@ -111,7 +112,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     /**
      * Merge the existing consumers with new ones.
      *
-     * @param producer The producer node.
+     * @param producer  The producer node.
      * @param consumers The consumer nodes.
      */
     private void onMerge(IGTNode producer, List<GTConsumer> consumers) {
@@ -133,9 +134,9 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     /**
      * Adds available consumers to the list.
      *
-     * @param producer The producer node.
-     * @param consumers The consumer nodes.
-     * @param path The paths to consumers.
+     * @param producer    The producer node.
+     * @param consumers   The consumer nodes.
+     * @param path        The paths to consumers.
      * @param consumerPos The position of the consumer.
      * @param producerPos The position of the producer.
      * @return whether or not an issue arose checking node.
@@ -177,7 +178,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     @Override
     public void tick() {
         super.tick();
-        holders.long2LongEntrySet().forEach(e -> frameHolders.compute(e.getLongKey(), (a,b) -> {
+        holders.long2LongEntrySet().forEach(e -> frameHolders.compute(e.getLongKey(), (a, b) -> {
             if (b == null) b = 0L;
             return b + e.getLongValue();
         }));
@@ -228,7 +229,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             int amperage = consumer.getRequiredAmperage(voltage);
             // Look up how much it already got
             //int obtained = obtains.getInt(consumer.getNode());
-           // amperage -= obtained;
+            // amperage -= obtained;
             if (amperage <= 0) { // if this consumer received all the energy from the other producers
                 continue;
             }
@@ -236,7 +237,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             // Remember amperes stored in this consumer
             amperage = Math.min(amperage_in, amperage);
             int received = consumer.getNode().getState().ampsReceived;
-            amperage = Math.min(amperage, consumer.getNode().getInputAmperage()-received);
+            amperage = Math.min(amperage, consumer.getNode().getInputAmperage() - received);
             // If we are here, then path had some invalid cables which not suits the limits of amps/voltage
             if (amperage <= 0)
                 continue;
@@ -275,14 +276,14 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             long extracted = voltage_out * amp;
             if (!simulate) {
                 totalVoltage += extracted;
-                totalLoss += (extracted-voltage);
+                totalLoss += (extracted - voltage);
                 totalAmperage += amp;
                 for (int i = 0; i < amp; i++) {
                     consumer.insert(voltage, false);
                 }
-                return voltage*amperage; //TODO: Make tesseract use longs.
+                return voltage * amperage; //TODO: Make tesseract use longs.
             }
-            return (int) voltage*amperage;
+            return (int) voltage * amperage;
         }
         return 0;
     }
@@ -301,13 +302,15 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     public String[] getInfo(long pos) {
         int amp = GTHolder.getAmperage(previousFrameHolder.get(pos));
         return new String[]{
-            "Total Voltage (per tick average): ".concat(Long.toString(lastVoltage/20)),
-            "Total Amperage (per tick average): ".concat(Long.toString(lastAmperage/20)),
-            "Cable amperage (last frame): ".concat(Integer.toString(amp))
+                "Total Voltage (per tick average): ".concat(Long.toString(lastVoltage / 20)),
+                "Total Amperage (per tick average): ".concat(Long.toString(lastAmperage / 20)),
+                "Cable amperage (last frame): ".concat(Integer.toString(amp))
         };
     }
 
-    /** GUI SYNC METHODS **/
+    /**
+     * GUI SYNC METHODS
+     **/
     public long getTotalVoltage() {
         return lastVoltage;
     }
@@ -323,7 +326,10 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     public long totalLoss() {
         return lastLoss;
     }
-    /** END GUI SYNC METHODS **/
+
+    /**
+     * END GUI SYNC METHODS
+     **/
 
     @Override
     public ITickingController clone(INode group) {

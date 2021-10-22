@@ -113,6 +113,7 @@ reobf {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     shadow 'org.apache.commons:commons-collections4:4.4'
+    testImplementation('junit:junit:4.11')
 }
 
 tasks.withType(JavaCompile) {

@@ -40,6 +40,7 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
     private final Long2ObjectMap<Map<Direction, List<FluidConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
     private final List<Neighbour> neighbours = new ObjectArrayList<>();
     private final Long2IntMap pressureData = new Long2IntOpenHashMap(10);
+
     /**
      * Creates instance of the controller.
      *
@@ -96,13 +97,13 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
             neighbours.clear();
             for (Int2ObjectMap.Entry<Grid<IFluidPipe>> entry : group.getGrids().int2ObjectEntrySet()) {
                 Grid<IFluidPipe> grid = entry.getValue();
-                for(Long2ObjectMap.Entry<Cache<IFluidPipe>> ent : grid.getConnectors().long2ObjectEntrySet()) {
+                for (Long2ObjectMap.Entry<Cache<IFluidPipe>> ent : grid.getConnectors().long2ObjectEntrySet()) {
                     byte connectivity = ent.getValue().connectivity();
                     long pos = ent.getLongKey();
-                    ImmutableList.Builder<Tuple<Direction,Either<IFluidPipe, IFluidNode>>> list = ImmutableList.builder();
+                    ImmutableList.Builder<Tuple<Direction, Either<IFluidPipe, IFluidNode>>> list = ImmutableList.builder();
                     for (Direction dir : Graph.DIRECTIONS) {
                         if (!Connectivity.has(connectivity, dir.getIndex())) continue;
-                        long newPos = Pos.offset(pos,dir);
+                        long newPos = Pos.offset(pos, dir);
                         if (grid.contains(newPos)) {
                             Cache<IFluidPipe> newCache = grid.getConnectors().get(newPos);
                             if (newCache != null) {
@@ -127,13 +128,13 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
             if (getWorld().getGameTime() % 10 != 0) return;
             for (Neighbour neighbour : this.neighbours) {
                 IFluidNode source = neighbour.source.getNode();
-                List<Tuple<Direction,Either<IFluidPipe, IFluidNode>>> destination = neighbour.neighbours;
+                List<Tuple<Direction, Either<IFluidPipe, IFluidNode>>> destination = neighbour.neighbours;
                 int tanksToMoveTo = destination.stream().mapToInt(t -> t.getB().map(pipe -> pipe.getNode().canInput(t.getA()), node -> node.canInput(t.getA())) ? 1 : 0).sum();
                 if (tanksToMoveTo < 1) continue;
                 for (int i = 0; i < source.getTanks(); i++) {
                     FluidStack stack = source.getFluidInTank(i);
                     if (stack.isEmpty()) continue;
-                    int toMove = (stack.getAmount() + tanksToMoveTo - 1)/(tanksToMoveTo);
+                    int toMove = (stack.getAmount() + tanksToMoveTo - 1) / (tanksToMoveTo);
                     if (toMove == 0) {
                         if (stack.getAmount() == 0) continue;
                         toMove = 1;
@@ -167,7 +168,7 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
                         amount -= moved;
                     }
                     amount = Math.max(amount, 0);
-                    copy.setAmount(stack.getAmount()-amount);
+                    copy.setAmount(stack.getAmount() - amount);
                     source.drainInput(copy, FluidAction.EXECUTE);
                 }
             }
@@ -180,14 +181,15 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
      * Adds available consumers to the list.
      *
      * @param consumers The consumer nodes.
-     * @param path The paths to consumers.
-     * @param dir The added direction.
-     * @param pos The position of the producer.
+     * @param path      The paths to consumers.
+     * @param dir       The added direction.
+     * @param pos       The position of the producer.
      */
     private void onCheck(List<FluidConsumer> consumers, Path<IFluidPipe> path, Direction dir, long pos) {
         IFluidNode node = group.getNodes().get(pos).value();
         if (node.canInput()) consumers.add(new FluidConsumer(node, path, dir));
     }
+
     @Override
     public int insert(long producerPos, long pipePos, FluidStack stack, boolean simulate) {
         if (SLOOSH) return 0;
@@ -203,7 +205,8 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
         pressureData.clear();
 
         int outputAmount = stack.getAmount();
-        loop: for (FluidConsumer consumer : list) {
+        loop:
+        for (FluidConsumer consumer : list) {
             newStack.setAmount(outputAmount);
             if (!consumer.canHold(newStack)) {
                 continue;
@@ -223,7 +226,7 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
                             break;
                         }
                         long tempData = pressureData.get(entry.getLongKey());
-                        amount = Math.min(amount, (holder != null || tempData > 0) ? entry.getValue().getPressure() - (holder != null ? holder.getPressure() : 0)- pressureData.get(entry.getLongKey()) : entry.getValue().getPressure());
+                        amount = Math.min(amount, (holder != null || tempData > 0) ? entry.getValue().getPressure() - (holder != null ? holder.getPressure() : 0) - pressureData.get(entry.getLongKey()) : entry.getValue().getPressure());
                         if (amount == 0) continue loop;
                     }
                 }
@@ -286,7 +289,7 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
 
             if (!simulate && !newStack.isEmpty())
                 consumer.insert(newStack, false);
-            
+
             outputAmount -= amount;
             if (outputAmount <= 0) {
                 break;
@@ -308,10 +311,10 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
     @Override
     public String[] getInfo(long pos) {
         return new String[]{
-            "Maximum Temperature: ".concat(Integer.toString(lastTemperature)),
-            "Total Pressure: ".concat(Long.toString(lastPressure)),
-            "Average pressure/tick: ".concat(Long.toString(lastPressure/20)),
-            "Any Leaks: ".concat(lastLeaking ? "Yes" : "No"),
+                "Maximum Temperature: ".concat(Integer.toString(lastTemperature)),
+                "Total Pressure: ".concat(Long.toString(lastPressure)),
+                "Average pressure/tick: ".concat(Long.toString(lastPressure / 20)),
+                "Any Leaks: ".concat(lastLeaking ? "Yes" : "No"),
         };
     }
 
@@ -323,9 +326,9 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
     protected static class Neighbour {
         public final IFluidPipe source;
         public final long pos;
-        public final List<Tuple<Direction,Either<IFluidPipe, IFluidNode>>> neighbours;
+        public final List<Tuple<Direction, Either<IFluidPipe, IFluidNode>>> neighbours;
 
-        public Neighbour(IFluidPipe source, long pos, List<Tuple<Direction,Either<IFluidPipe, IFluidNode>>> neighbours) {
+        public Neighbour(IFluidPipe source, long pos, List<Tuple<Direction, Either<IFluidPipe, IFluidNode>>> neighbours) {
             this.source = source;
             this.pos = pos;
             this.neighbours = neighbours;

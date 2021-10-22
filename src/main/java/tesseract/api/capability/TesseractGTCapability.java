@@ -22,6 +22,7 @@ public class TesseractGTCapability implements IEnergyHandler {
     static {
         ENERGY_HANDLER_CAPABILITY = null;
     }
+
     public static void register() {
 
         CapabilityManager.INSTANCE.register(IEnergyHandler.class, new Capability.IStorage<IEnergyHandler>() {
@@ -112,6 +113,7 @@ public class TesseractGTCapability implements IEnergyHandler {
             }
         });
     }
+
     public final TileEntity tile;
     public final Direction side;
 
@@ -123,7 +125,7 @@ public class TesseractGTCapability implements IEnergyHandler {
     @Override
     public long insert(long maxReceive, boolean simulate) {
         long pos = tile.getPos().toLong();
-        return Tesseract.GT_ENERGY.getController(tile.getWorld(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.getIndex()]),pos, maxReceive, simulate);
+        return Tesseract.GT_ENERGY.getController(tile.getWorld(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.getIndex()]), pos, maxReceive, simulate);
     }
 
     @Override

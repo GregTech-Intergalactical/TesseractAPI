@@ -29,7 +29,7 @@ public class Grid<C extends IConnectable> implements INode {
     }
 
     /**
-     * @param pos The position of the connector.
+     * @param pos       The position of the connector.
      * @param connector The given connector.
      * @return Create a instance of a class for a given position and connector.
      */
@@ -173,7 +173,7 @@ public class Grid<C extends IConnectable> implements INode {
     /**
      * Adds a new connector to the grid.
      *
-     * @param pos The given position.
+     * @param pos       The given position.
      * @param connector The given connector.
      */
     public void addConnector(long pos, Cache<C> connector) {
@@ -203,7 +203,7 @@ public class Grid<C extends IConnectable> implements INode {
      * that this group contains the specified position; the function may misbehave if the group does not actually contain
      * the specified position.
      *
-     * @param pos The position of the entry to remove.
+     * @param pos   The position of the entry to remove.
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
     public void removeAt(long pos, Consumer<Grid<C>> split) {
@@ -220,18 +220,18 @@ public class Grid<C extends IConnectable> implements INode {
         List<LongSet> colored = new ObjectArrayList<>();
 
         int bestColor = divider.divide(
-            removed -> removed.add(pos),
-            roots -> {
-                Pos position = new Pos(pos);
-                for (Direction direction : Graph.DIRECTIONS) {
-                    long side = position.offset(direction).asLong();
+                removed -> removed.add(pos),
+                roots -> {
+                    Pos position = new Pos(pos);
+                    for (Direction direction : Graph.DIRECTIONS) {
+                        long side = position.offset(direction).asLong();
 
-                    if (linked(pos, direction, side)) {
-                        roots.add(side);
+                        if (linked(pos, direction, side)) {
+                            roots.add(side);
+                        }
                     }
-                }
-            },
-            colored::add
+                },
+                colored::add
         );
 
         LongSet check = new LongLinkedOpenHashSet();

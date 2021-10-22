@@ -27,8 +27,8 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * Creates instance of the consumer.
      *
      * @param consumer The consumer node.
-     * @param path The path information.
-     * @param dir The added direction.
+     * @param path     The path information.
+     * @param dir      The added direction.
      */
     protected FluidConsumer(IFluidNode consumer, Path<IFluidPipe> path, Direction dir) {
         super(consumer, path);
@@ -39,7 +39,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
     /**
      * Adds fluid to the node. Returns amount of fluid that was filled.
      *
-     * @param data FluidData attempting to fill the tank.
+     * @param data     FluidData attempting to fill the tank.
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
@@ -64,8 +64,8 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
 
     /**
      * @param temperature The current temperature.
-     * @param pressure The current pressure.
-     * @param proof True if current liquid is in a gas state.
+     * @param pressure    The current pressure.
+     * @param proof       True if current liquid is in a gas state.
      * @return Checks that the consumer is able to receive fluid.
      */
     public boolean canHandle(int temperature, int pressure, boolean proof) {

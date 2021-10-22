@@ -30,9 +30,13 @@ public interface IPipe extends IConnectable {
     IPipe getValidPipe(Direction side);
 
     void clearConnection(Direction side);
+
     void setConnection(Direction side);
+
     void removeNode(Direction side);
+
     void addNode(Direction side);
+
     void refresh(Direction side);
 
     default void toggleConnection(Direction side) {
@@ -42,6 +46,7 @@ public interface IPipe extends IConnectable {
             setConnection(side);
         }
     }
+
     interface IPipeBlock {
         default IPipe getPipe(IWorldReader world, BlockPos pos) {
             TileEntity tile = world.getTileEntity(pos);

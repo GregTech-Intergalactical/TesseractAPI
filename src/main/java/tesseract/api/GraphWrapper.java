@@ -3,7 +3,9 @@ package tesseract.api;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.util.Direction;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
+import tesseract.Tesseract;
 import tesseract.graph.Cache;
 import tesseract.graph.Graph;
 import tesseract.graph.Group;
@@ -13,8 +15,8 @@ import java.util.function.LongFunction;
 
 public class GraphWrapper<T, C extends IConnectable, N> {
 
-    protected final Object2ObjectMap<World, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
-    //TODO: maybe do this better.
+    protected final Object2ObjectMap<IWorld, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
+    // TODO: maybe do this better.
     protected final Function<World, Controller<T, C, N>> supplier;
 
     /**
@@ -33,16 +35,18 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param pos  The position at which the node will be added.
      * @param node The node object.
      */
-    public void registerNode(C connector, World dim, long pos, Direction side, LongFunction<N> node) {
-        if (dim.isRemote) return;
-        getGraph(dim).addNode(connector, pos, node, side, dim, () -> supplier.apply(dim));
+    public void registerNode(IWorld dim, long pos, Direction side, LongFunction<N> node) {
+        if (dim.isRemote())
+            return;
+        getGraph(dim).addNode(pos, node, side, () -> supplier.apply(dim instanceof World ? ((World) dim) : null),
+                Tesseract.hadFirstTick(dim));
     }
 
     public void refreshNode(World dim, long pos) {
-        if (dim.isRemote) return;
+        if (dim.isRemote())
+            return;
         getGraph(dim).refreshNode(pos);
     }
-
 
     /**
      * Creates an instance of a class for a given connector.
@@ -52,18 +56,20 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param connector The connector object.
      */
     public void registerConnector(World dim, long pos, C connector) {
-        if (dim.isRemote) return;
+        if (dim.isRemote())
+            return;
         getGraph(dim).addConnector(pos, new Cache<>(connector), supplier.apply(dim));
     }
 
     /**
-     * Gets the graph for the type and dimension and will be instantiated if it does not already exist.
+     * Gets the graph for the type and dimension and will be instantiated if it does
+     * not already exist.
      *
      * @param dim The dimension id.
      * @return The graph instance for the world.
      */
-    public Graph<T, C, N> getGraph(World dim) {
-        assert !dim.isRemote;
+    public Graph<T, C, N> getGraph(IWorld dim) {
+        assert !dim.isRemote();
         return graph.computeIfAbsent(dim, k -> new Graph<>());
     }
 
@@ -75,7 +81,8 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @return The controller object. (Can be null)
      */
     public ITickingController<T, C, N> getController(World dim, long pos) {
-        if (dim.isRemote) return null;
+        if (dim.isRemote())
+            return null;
         Group<T, C, N> group = getGraph(dim).getGroupAt(pos);
         return group != null ? group.getController() : null;
     }
@@ -87,7 +94,8 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param pos The position at which the electric component will be added.
      */
     public boolean remove(World dim, long pos) {
-        if (dim.isRemote) return false;
+        if (dim.isRemote())
+            return false;
         return getGraph(dim).removeAt(pos);
     }
 

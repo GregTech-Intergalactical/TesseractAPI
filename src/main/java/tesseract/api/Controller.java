@@ -18,9 +18,11 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     protected final World dim;
     protected Group<T, C, N> group;
     public final Function<C, N> wrapper;
+
     /**
      * Creates instance of the controller.
-     * @param wrapper the function to wrap pipes in a node.
+     *
+     * @param wrapper  the function to wrap pipes in a node.
      * @param supplier The world.
      */
     protected Controller(final Function<C, N> wrapper, World supplier) {

@@ -16,7 +16,7 @@ public class Node extends Pos {
     /**
      * Creates a node instance.
      *
-     * @param pos The position to duplicate.
+     * @param pos       The position to duplicate.
      * @param direction The direction to the parent.
      */
     public Node(Pos pos, Direction direction) {
@@ -27,7 +27,7 @@ public class Node extends Pos {
     /**
      * Creates a node instance.
      *
-     * @param value The compressed position.
+     * @param value     The compressed position.
      * @param direction The direction to the parent.
      */
     public Node(long value, Direction direction) {
@@ -55,6 +55,7 @@ public class Node extends Pos {
 
     /**
      * Sets the cost.
+     *
      * @param cost The cost value.
      */
     public void setCost(int cost) {
@@ -70,6 +71,7 @@ public class Node extends Pos {
 
     /**
      * Sets the heuristic.
+     *
      * @param heuristic The heuristic value.
      */
     public void setHeuristic(int heuristic) {
@@ -85,6 +87,7 @@ public class Node extends Pos {
 
     /**
      * Sets the function.
+     *
      * @param function The function value.
      */
     public void setFunction(int function) {
@@ -100,6 +103,7 @@ public class Node extends Pos {
 
     /**
      * Sets the parent node.
+     *
      * @param parent The parent node.
      */
     public void setParent(Node parent) {
@@ -115,6 +119,7 @@ public class Node extends Pos {
 
     /**
      * Sets the direction to the parent node.
+     *
      * @param direction The direction.
      */
     public void setDirection(Direction direction) {
@@ -130,6 +135,7 @@ public class Node extends Pos {
 
     /**
      * Sets the valid state.
+     *
      * @param valid True or false.
      */
     public void setValid(boolean valid) {
@@ -145,6 +151,7 @@ public class Node extends Pos {
 
     /**
      * Sets the cross state.
+     *
      * @param crossroad True or false.
      */
     public void setCrossroad(boolean crossroad) {

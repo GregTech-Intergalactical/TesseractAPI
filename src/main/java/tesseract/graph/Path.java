@@ -23,7 +23,7 @@ public class Path<C extends IConnectable> {
      * Creates a path instance.
      *
      * @param connectors The connectors array.
-     * @param path The path queue.
+     * @param path       The path queue.
      */
     protected Path(Long2ObjectMap<Cache<C>> connectors, Deque<Node> path) {
         origin = path.pollLast();

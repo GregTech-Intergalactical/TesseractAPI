@@ -46,7 +46,7 @@ public class Fluid extends FluidController {
     public FluidStack onPipeGasLeak(World world, long pos, @Nonnull FluidStack fluid) {
         if (fluid.isEmpty()) return fluid;
         FluidStack stack = fluid.copy();
-        stack.setAmount((int)((double)stack.getAmount()*PIPE_LEAK));
+        stack.setAmount((int) ((double) stack.getAmount() * PIPE_LEAK));
         if ((world.getGameTime() - lastGasLeakSound) > GAS_WAIT_TIME) {
             world.playSound(null, BlockPos.fromLong(pos), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.3F, 0.9F + world.rand.nextFloat() * 0.2F);
             lastGasLeakSound = world.getGameTime();

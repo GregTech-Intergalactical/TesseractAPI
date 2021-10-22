@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Direction;
-import net.minecraft.world.World;
 import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
@@ -45,7 +44,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
             for (Map.Entry<Direction, Pending> entry : m.getValue().entrySet()) {
                 Direction dir = entry.getKey();
                 Pending v = entry.getValue();
-                addNode(v.connector, m.getLongKey(), v.fun, dir, v.world, v.controllerSupplier);
+                addNode(m.getLongKey(), v.fun, dir, v.controllerSupplier, true);
             }
         }
         PENDING_NODES.clear();
@@ -79,30 +78,52 @@ public class Graph<T, C extends IConnectable, N> implements INode {
      * Adds a node to the graph at the specified position.
      *
      * @param pos        The position at which the node will be added.
-     * @param node       The node to add.
-     * @param controller The controller to use.
+     * @param node       The node to add, present as a LongFunction.
+     * @param side       the side which the connector exists on. (Facing away from
+     *                   node)
+     * @param controller the controller supplier.
      * @return True on success or false otherwise.
      */
-    public boolean addNode(C connector, long pos, LongFunction<N> node, Direction side, World world, Supplier<Controller<T, C, N>> controller) {
+    public boolean addNode(long pos, LongFunction<N> node, Direction side, Supplier<Controller<T, C, N>> controller,
+                           boolean hadFirstTick) {
         if (!contains(pos)) {
-            if (Tesseract.hadFirstTick(world)) {
-                if (!connector.validate(side.getOpposite())) return false;
-                NodeCache<N> cache = new NodeCache<>(node.apply(pos), side);
-                if (cache.value() != null) {
-                    Controller<T, C, N> control = controller.get();
-                    Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, control));
-                    if (group != null) group.addNode(pos, cache, control);
-                    return true;
+            if (hadFirstTick) {
+                long connectorPos = Pos.offset(pos, side);
+                Group<T, C, N> tGroup = getGroupAt(connectorPos);
+                if (tGroup == null) {
+                    return false;
                 }
+                // Sanity checks.
+                Cache<C> connector = tGroup.getConnector(connectorPos);
+                if (connector == null)
+                    return false;
+                if (!connector.value().validate(side.getOpposite()))
+                    return false;
+                NodeCache<N> cache = new NodeCache<>(node.apply(pos), side);
+                Controller<T, C, N> control = controller.get();
+                Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, control));
+                if (group != null)
+                    group.addNode(pos, cache, control);
+                return true;
             } else {
-                PENDING_NODES.computeIfAbsent(pos, f -> new EnumMap<>(Direction.class)).put(side, new Pending(world, controller, node, connector));
+                PENDING_NODES.computeIfAbsent(pos, f -> new EnumMap<>(Direction.class)).put(side,
+                        new Pending(controller, node));
                 return true;
             }
         } else if (this.getGroupAt(pos).getNodes().containsKey(pos)) {
-            if (!connector.validate(side.getOpposite())) return false;
-            if (this.getGroupAt(pos).addSide(pos, side)) {
-                this.refreshNode(pos);
+            Group<T, C, N> group = this.getGroupAt(pos);
+            if (group.getNodes().containsKey(pos)) {
+                long connectorPos = Pos.offset(pos, side);
+                // Make sure the relevant connector is valid.
+                Cache<C> connector = group.getConnector(connectorPos);
+                if (connector == null || !connector.value().validate(side.getOpposite()))
+                    return false;
+                if (this.getGroupAt(pos).addSide(pos, side)) {
+                    // If a new side into this node was added, refresh.
+                    this.refreshNode(pos);
+                }
             }
+
             return true;
         }
 
@@ -112,11 +133,10 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     public void refreshNode(long pos) {
         if (contains(pos)) {
             ITickingController<T, C, N> controller = getGroupAt(pos).getController();
-            if (Tesseract.hadFirstTick(controller.getWorld())) controller.change();
+            if (Tesseract.hadFirstTick(controller.getWorld()))
+                controller.change();
         }
     }
-
-
 
     /**
      * Adds a connector to the graph at the specified position.
@@ -129,7 +149,8 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     public boolean addConnector(long pos, Cache<C> connector, Controller<T, C, N> controller) {
         if (!contains(pos)) {
             Group<T, C, N> group = add(pos, () -> Group.singleConnector(pos, connector, controller));
-            if (group != null) group.addConnector(pos, connector, controller);
+            if (group != null)
+                group.addConnector(pos, connector, controller);
             return true;
         }
 
@@ -140,7 +161,8 @@ public class Graph<T, C extends IConnectable, N> implements INode {
      * Adds an item to the Graph, in a manner generic across nodes and connectors.
      *
      * @param pos    The position at which the item will be added.
-     * @param single A group containing a single entry, if the position is not touching any existing positions.
+     * @param single A group containing a single entry, if the position is not
+     *               touching any existing positions.
      * @return An existing group, that the caller should add the entry to.
      */
     private Group<T, C, N> add(long pos, Supplier<Group<T, C, N>> single) {
@@ -169,9 +191,10 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     }
 
     /**
-     * Removes an entry from the Group, potentially splitting it if needed. By calling this function, the caller asserts
-     * that this group contains the specified position; the function may misbehave if the group does not actually contain
-     * the specified position.
+     * Removes an entry from the Group, potentially splitting it if needed. By
+     * calling this function, the caller asserts that this group contains the
+     * specified position; the function may misbehave if the group does not actually
+     * contain the specified position.
      *
      * @param pos The position of the entry to remove.
      */
@@ -305,19 +328,15 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     }
 
     /**
-     * Represents a pending node. This is used since you cannot access neighbours in a world until
-     * first tick.
+     * Represents a pending node. This is used since you cannot access neighbours in
+     * a world until first tick.
      */
     private class Pending {
         public final Supplier<Controller<T, C, N>> controllerSupplier;
-        public final World world;
         public final LongFunction<N> fun;
-        public final C connector;
 
-        public Pending(World world, Supplier<Controller<T, C, N>> controllerSupplier, LongFunction<N> fun, C connector) {
+        public Pending(Supplier<Controller<T, C, N>> controllerSupplier, LongFunction<N> fun) {
             this.controllerSupplier = controllerSupplier;
-            this.world = world;
-            this.connector = connector;
             this.fun = fun;
         }
     }

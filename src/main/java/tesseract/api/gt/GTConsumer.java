@@ -23,7 +23,7 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
      * Creates instance of the consumer.
      *
      * @param consumer The consumer node.
-     * @param path The path information.
+     * @param path     The path information.
      */
     protected GTConsumer(IGTNode consumer, Path<IGTCable> path) {
         super(consumer, path);
@@ -34,7 +34,7 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
      * Adds energy to the node. Returns quantity of energy that was accepted.
      *
      * @param maxReceive Amount of energy to be inserted.
-     * @param simulate If true, the insertion will only be simulated.
+     * @param simulate   If true, the insertion will only be simulated.
      */
     public void insert(long maxReceive, boolean simulate) {
         node.insert(maxReceive, simulate);
@@ -63,7 +63,6 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
 
     /**
      * @param voltage The current voltage.
-     *
      * @return Checks that the consumer is able to receive energy.
      */
     public boolean canHandle(int voltage) {
@@ -117,9 +116,9 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
         public boolean extract(boolean simulate, int amps, long eu) {
             if (handler.canOutput()) {
                 if (simulate) {
-                    return ampsSent+amps <= handler.getOutputAmperage();
+                    return ampsSent + amps <= handler.getOutputAmperage();
                 }
-                if (ampsSent+amps > handler.getOutputAmperage()) {
+                if (ampsSent + amps > handler.getOutputAmperage()) {
                     return false;
                 }
                 if (!simulate) {
@@ -134,9 +133,9 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
         public boolean receive(boolean simulate, int amps, long eu) {
             if (handler.canInput()) {
                 if (simulate) {
-                    return ampsReceived+amps <= handler.getInputAmperage();
+                    return ampsReceived + amps <= handler.getInputAmperage();
                 }
-                if (ampsReceived+amps > handler.getInputAmperage()) {
+                if (ampsReceived + amps > handler.getInputAmperage()) {
                     return false;
                 }
                 if (!simulate) {

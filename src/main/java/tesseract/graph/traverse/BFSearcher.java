@@ -42,8 +42,8 @@ public class BFSearcher {
      * to the provided consumer. As a result of the algorithm, each reported position is guaranteed to be connected to
      * an existing position, or in the case of the first reported position, it will be identical to from.
      *
-     * @param from The start position of the search operation. This will be the first position reported to the consumer.
-     * @param reached The receiver of the discovered positions
+     * @param from     The start position of the search operation. This will be the first position reported to the consumer.
+     * @param reached  The receiver of the discovered positions
      * @param excluder A function that can add values to the closed set prior to the search operation.
      *                 They will not be reported or traversed; null is interpreted to mean no exclusions.
      */

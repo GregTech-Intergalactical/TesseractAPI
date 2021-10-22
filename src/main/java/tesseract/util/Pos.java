@@ -12,14 +12,16 @@ public class Pos {
     protected int x, y, z;
 
     /**
-     * Though it looks like an array, this is really more like a mapping. Key (index of this array) is the upper 5 bits
-     * of the result of multiplying a 32-bit unsigned integer by the B(2, 5) De Bruijn sequence 0x077CB531. Value (value
+     * Though it looks like an array, this is really more like a mapping. Key (index
+     * of this array) is the upper 5 bits of the result of multiplying a 32-bit
+     * unsigned integer by the B(2, 5) De Bruijn sequence 0x077CB531. Value (value
      * stored in the array) is the unique index (from the right) of the leftmo
      */
-    private static final int[] MULTIPLY_DE_BRUIJN_BIT_POSITION = new int[]{0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9};
+    private static final int[] MULTIPLY_DE_BRUIJN_BIT_POSITION = new int[]{0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15,
+            25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9};
 
     /**
-     * Is the given value a power of two?  (1, 2, 4, 8, 16, ...)
+     * Is the given value a power of two? (1, 2, 4, 8, 16, ...)
      */
     private static boolean isPowerOfTwo(int value) {
         return value != 0 && (value & value - 1) == 0;
@@ -39,19 +41,21 @@ public class Pos {
     }
 
     /**
-     * Uses a B(2, 5) De Bruijn sequence and a lookup table to efficiently calculate the log-base-two of the given value.
-     * Optimized for cases where the input value is a power-of-two. If the input value is not a power-of-two, then
+     * Uses a B(2, 5) De Bruijn sequence and a lookup table to efficiently calculate
+     * the log-base-two of the given value. Optimized for cases where the input
+     * value is a power-of-two. If the input value is not a power-of-two, then
      * subtract 1 from the return value.
      */
     private static int log2DeBruijn(int value) {
         value = isPowerOfTwo(value) ? value : smallestEncompassingPowerOfTwo(value);
-        return MULTIPLY_DE_BRUIJN_BIT_POSITION[(int)((long)value * 125613361L >> 27) & 31];
+        return MULTIPLY_DE_BRUIJN_BIT_POSITION[(int) ((long) value * 125613361L >> 27) & 31];
     }
 
     /**
      * Allows you to offset a long directly without any wrappers.
+     *
      * @param value long position.
-     * @param dir direction.
+     * @param dir   direction.
      * @return a new long pos.
      */
     public static long offset(long value, Direction dir) {
@@ -68,7 +72,7 @@ public class Pos {
         return packAll(x, y, z);
     }
 
-
+    // Returns a direction from value -> other.
     public static Direction subToDir(long value, long other) {
         long direction = sub(value, other);
         return Direction.byLong(unpackX(direction), unpackY(direction), unpackZ(direction));
@@ -79,8 +83,9 @@ public class Pos {
     }
 
     /**
-     * Efficiently calculates the floor of the base-2 log of an integer value.  This is effectively the index of the
-     * highest bit that is set.  For example, if the number in binary is 0...100101, this will return 5.
+     * Efficiently calculates the floor of the base-2 log of an integer value. This
+     * is effectively the index of the highest bit that is set. For example, if the
+     * number in binary is 0...100101, this will return 5.
      */
     private static int log2(int value) {
         return log2DeBruijn(value) - (isPowerOfTwo(value) ? 0 : 1);
@@ -259,7 +264,7 @@ public class Pos {
      * Moves the position in the provided direction.
      *
      * @param dir The moving direction.
-     * @param n The moving distance.
+     * @param n   The moving distance.
      * @return The new instance of object.
      */
     public Pos offset(Direction dir, int n) {
@@ -273,7 +278,7 @@ public class Pos {
      * @return x coordinate.
      */
     public static int unpackX(long value) {
-        return (int)(value << 64 - X_FIELD - NUM_X_BITS >> 64 - NUM_X_BITS);
+        return (int) (value << 64 - X_FIELD - NUM_X_BITS >> 64 - NUM_X_BITS);
     }
 
     /**
@@ -283,7 +288,7 @@ public class Pos {
      * @return y coordinate.
      */
     public static int unpackY(long value) {
-        return (int)(value << 64 - NUM_Y_BITS >> 64 - NUM_Y_BITS);
+        return (int) (value << 64 - NUM_Y_BITS >> 64 - NUM_Y_BITS);
     }
 
     /**
@@ -293,7 +298,7 @@ public class Pos {
      * @return z coordinate.
      */
     public static int unpackZ(long value) {
-        return (int)(value << 64 - Z_FIELD - NUM_Z_BITS >> 64 - NUM_Z_BITS);
+        return (int) (value << 64 - Z_FIELD - NUM_Z_BITS >> 64 - NUM_Z_BITS);
     }
 
     /**
@@ -324,7 +329,7 @@ public class Pos {
 
     @Override
     public int hashCode() {
-        return (int)(value ^ value >>> 32);
+        return (int) (value ^ value >>> 32);
     }
 
     @Override

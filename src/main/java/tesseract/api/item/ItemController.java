@@ -27,6 +27,7 @@ public class ItemController extends Controller<ItemStack, IItemPipe, IItemNode> 
     private int transferred;
     private final Long2IntMap holders = new Long2IntOpenHashMap();
     private final Long2ObjectMap<Map<Direction, List<ItemConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
+
     /**
      * Creates instance of the controller.
      *
@@ -125,7 +126,7 @@ public class ItemController extends Controller<ItemStack, IItemPipe, IItemNode> 
                         break;
                     }
                 } else {
-                    holders.put(pos,stacksUsed + 1);
+                    holders.put(pos, stacksUsed + 1);
                 }
             }
 
@@ -149,9 +150,9 @@ public class ItemController extends Controller<ItemStack, IItemPipe, IItemNode> 
      * Adds available consumers to the list.
      *
      * @param consumers The consumer nodes.
-     * @param path The paths to consumers.
+     * @param path      The paths to consumers.
      * @param Direction The added Directionection.
-     * @param pos The position of the producer.
+     * @param pos       The position of the producer.
      */
     private void onCheck(List<ItemConsumer> consumers, Path<IItemPipe> path, Direction Direction, long pos) {
         IItemNode node = group.getNodes().get(pos).value();
@@ -172,7 +173,7 @@ public class ItemController extends Controller<ItemStack, IItemPipe, IItemNode> 
     }
 
     @Override
-    public ITickingController<ItemStack, IItemPipe,IItemNode> clone(INode group) {
+    public ITickingController<ItemStack, IItemPipe, IItemNode> clone(INode group) {
         return new ItemController(dim).set(group);
     }
 }

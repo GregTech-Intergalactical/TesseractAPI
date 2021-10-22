@@ -18,8 +18,8 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      * Creates instance of the consumer.
      *
      * @param consumer The consumer node.
-     * @param path The path information.
-     * @param dir The input direction.
+     * @param path     The path information.
+     * @param dir      The input direction.
      */
     protected ItemConsumer(IItemNode consumer, Path<IItemPipe> path, Direction dir) {
         super(consumer, path);
@@ -29,11 +29,12 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
 
     /**
      * Inserts an item into an available slot and return the remainder.
-     * @param stack ItemData to insert. This must not be modified by the item handler.
+     *
+     * @param stack    ItemData to insert. This must not be modified by the item handler.
      * @param simulate If true, the insertion is only simulated
      * @return The remaining ItemStack that was not inserted (if the entire stack is accepted, then return an empty ItemStack).
-     *         May be the same as the input ItemStack if unchanged, otherwise a new ItemStack.
-     *         The returned ItemStack can be safely modified after.
+     * May be the same as the input ItemStack if unchanged, otherwise a new ItemStack.
+     * The returned ItemStack can be safely modified after.
      **/
     public int insert(ItemStack stack, boolean simulate) {
         int count = stack.getCount();

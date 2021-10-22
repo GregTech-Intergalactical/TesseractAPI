@@ -45,6 +45,7 @@ public class Cache<T extends IConnectable> {
 
     /**
      * If this connector allows self-input.
+     *
      * @return
      */
     public boolean registerAsNode() {
