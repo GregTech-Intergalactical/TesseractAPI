@@ -172,8 +172,6 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
                     source.drainInput(copy, FluidAction.EXECUTE);
                 }
             }
-        } else {
-            holders.clear();
         }
     }
 
@@ -306,6 +304,7 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
         totalPressure = 0L;
         maxTemperature = 0;
         isLeaking = false;
+        holders.clear();
     }
 
     @Override
