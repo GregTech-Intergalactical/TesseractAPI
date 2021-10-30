@@ -50,7 +50,7 @@ class TestBench {
                             continue;
                         Cache<ExampleConnector> val = group.getConnector(posC);
                         if (val != null) {
-                            if (!graph.addNode(position, at -> new ExampleNode(), Pos.subToDir(posC, position), () -> null, true)) {
+                            if (!graph.addNode(position, (a,b) -> new ExampleNode(), Pos.subToDir(posC, position), () -> null, true)) {
                                 System.out.println("error");
                             }
                         }

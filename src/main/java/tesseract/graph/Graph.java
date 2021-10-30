@@ -17,6 +17,7 @@ import tesseract.util.Pos;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 
@@ -84,7 +85,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
      * @param controller the controller supplier.
      * @return True on success or false otherwise.
      */
-    public boolean addNode(long pos, LongFunction<N> node, Direction side, Supplier<Controller<T, C, N>> controller,
+    public boolean addNode(long pos, BiFunction<Long, Direction, N> node, Direction side, Supplier<Controller<T, C, N>> controller,
                            boolean hadFirstTick) {
         if (!contains(pos)) {
             if (hadFirstTick) {
@@ -99,7 +100,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
                     return false;
                 if (!connector.value().validate(side.getOpposite()))
                     return false;
-                NodeCache<N> cache = new NodeCache<>(node.apply(pos), side);
+                NodeCache<N> cache = new NodeCache<>(node.apply(pos, side), side);
                 Controller<T, C, N> control = controller.get();
                 Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, control));
                 if (group != null)
@@ -333,9 +334,9 @@ public class Graph<T, C extends IConnectable, N> implements INode {
      */
     private class Pending {
         public final Supplier<Controller<T, C, N>> controllerSupplier;
-        public final LongFunction<N> fun;
+        public final BiFunction<Long, Direction, N> fun;
 
-        public Pending(Supplier<Controller<T, C, N>> controllerSupplier, LongFunction<N> fun) {
+        public Pending(Supplier<Controller<T, C, N>> controllerSupplier, BiFunction<Long, Direction, N> fun) {
             this.controllerSupplier = controllerSupplier;
             this.fun = fun;
         }

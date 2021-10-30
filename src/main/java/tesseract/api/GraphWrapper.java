@@ -10,6 +10,7 @@ import tesseract.graph.Cache;
 import tesseract.graph.Graph;
 import tesseract.graph.Group;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 
@@ -35,7 +36,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param pos  The position at which the node will be added.
      * @param node The node object.
      */
-    public void registerNode(IWorld dim, long pos, Direction side, LongFunction<N> node) {
+    public void registerNode(IWorld dim, long pos, Direction side, BiFunction<Long, Direction, N> node) {
         if (dim.isRemote())
             return;
         getGraph(dim).addNode(pos, node, side, () -> supplier.apply(dim instanceof World ? ((World) dim) : null),
