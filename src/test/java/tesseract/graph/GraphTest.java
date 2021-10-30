@@ -73,7 +73,7 @@ public class GraphTest {
     assertFalse(graph.contains(posC));
     graph.addConnector(posC, new Cache<>(new TestConnector()), null);
     assertTrue(graph.contains(posC));
-    graph.addNode(pos, p -> new TestNode(), Pos.subToDir(posC, pos), () -> null, true);
+    graph.addNode(pos, (a,p) -> new TestNode(), Pos.subToDir(posC, pos), () -> null, true);
     assertTrue(graph.contains(pos));
   }
 
@@ -83,7 +83,7 @@ public class GraphTest {
     long pos1 = packAll(0, 0, 0);
     long pos2 = packAll(0, 1, 0);
     graph.addConnector(pos1, new Cache<>(new TestConnector()), null);
-    graph.addNode(pos2, p -> new TestNode(), Pos.subToDir(pos1, pos2), () -> null, true);
+    graph.addNode(pos2, (a,p)-> new TestNode(), Pos.subToDir(pos1, pos2), () -> null, true);
     assertTrue(graph.linked(pos1, null, pos2));
   }
 
