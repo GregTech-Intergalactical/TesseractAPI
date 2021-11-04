@@ -20,6 +20,7 @@ import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import javax.annotation.Nonnull;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -308,6 +309,11 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
     }
 
     @Override
+    public void getInfo(long pos, @Nonnull List<String> list) {
+        this.group.getGroupInfo(pos, list);
+        list.add(String.format("Fluid Data size: %d", this.data.size()));
+    }
+/*    @Override
     public String[] getInfo(long pos) {
         return new String[]{
                 "Maximum Temperature: ".concat(Integer.toString(lastTemperature)),
@@ -315,7 +321,7 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
                 "Average pressure/tick: ".concat(Long.toString(lastPressure / 20)),
                 "Any Leaks: ".concat(lastLeaking ? "Yes" : "No"),
         };
-    }
+    }*/
 
     @Override
     public ITickingController clone(INode group) {

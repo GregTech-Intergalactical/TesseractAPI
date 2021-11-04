@@ -14,6 +14,7 @@ import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
@@ -224,12 +225,10 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
     }
 
     @Override
-    public String[] getInfo(long pos) {
-        return new String[]{
-                "Total Energy: ".concat(Long.toString(lastEnergy))
-        };
+    public void getInfo(long pos, @Nonnull List<String> list) {
+        this.group.getGroupInfo(pos, list);
+        list.add(String.format("FE Data size: %d", this.data.size()));
     }
-
     @Override
     public ITickingController clone(INode group) {
         return new FEController(dim).set(group);

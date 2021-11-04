@@ -516,6 +516,15 @@ public class Group<T, C extends IConnectable, N> implements INode {
         return null;
     }
 
+    public void getGroupInfo(long pos, List<String> list) {
+        Grid<C> grid = this.grids.get(connectors.get(pos));
+        if (grid == null) return;
+        list.add(String.format("Connector count (grid): %d", grid.countConnectors()));
+        list.add(String.format("Node count (grid): %d", grid.countNodes()));
+        list.add(String.format("Connector count (group): %d", connectors.size()));
+        list.add(String.format("Node count (group): %d", nodes.size()));
+    }
+
     public Cache<C> getConnector(long pos) {
         int id = this.connectors.get(pos);
         if (id != CID.INVALID) {

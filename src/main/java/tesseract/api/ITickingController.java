@@ -3,6 +3,9 @@ package tesseract.api;
 import net.minecraft.world.World;
 import tesseract.graph.INode;
 
+import javax.annotation.Nonnull;
+import java.util.List;
+
 /**
  * Interface abstracting ticking behaviour for the groups in the graph.
  */
@@ -29,7 +32,7 @@ public interface ITickingController<T, C extends IConnectable, N> {
     /**
      * @return To get simple things like a some information.
      */
-    String[] getInfo(long pos);
+    void getInfo(long pos, @Nonnull List<String> list);
 
     /**
      * Core method of tesseract. Inserts an object into this pipe.

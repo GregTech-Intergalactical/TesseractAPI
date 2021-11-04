@@ -11,6 +11,7 @@ import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import javax.annotation.Nonnull;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -299,13 +300,16 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
     }
 
     @Override
-    public String[] getInfo(long pos) {
-        int amp = GTHolder.getAmperage(previousFrameHolder.get(pos));
+    public void getInfo(long pos, @Nonnull List<String> list) {
+        this.group.getGroupInfo(pos, list);
+        list.add(String.format("GT Data size: %d", this.data.size()));
+        /*int amp = GTHolder.getAmperage(previousFrameHolder.get(pos));
         return new String[]{
                 "Total Voltage (per tick average): ".concat(Long.toString(lastVoltage / 20)),
                 "Total Amperage (per tick average): ".concat(Long.toString(lastAmperage / 20)),
                 "Cable amperage (last frame): ".concat(Integer.toString(amp))
-        };
+        };*/
+
     }
 
     /**
