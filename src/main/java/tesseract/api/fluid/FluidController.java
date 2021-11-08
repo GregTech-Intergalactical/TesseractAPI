@@ -21,6 +21,7 @@ import tesseract.util.Node;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -306,6 +307,11 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
         maxTemperature = 0;
         isLeaking = false;
         holders.clear();
+    }
+
+    @Nullable
+    public FluidHolder getCableHolder(long pos) {
+        return holders.get(pos);
     }
 
     @Override

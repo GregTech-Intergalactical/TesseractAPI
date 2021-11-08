@@ -70,4 +70,8 @@ public class FluidHolder {
         }
         return maxCapacity > fluids.size();
     }
+
+    public Set<Fluid> getFluids() {
+        return fluids;
+    }
 }
