@@ -422,6 +422,9 @@ public class Group<T, C extends IConnectable, N> implements INode {
         NodeCache<N> node = nodes.get(pos);
         if (node != null) {
             if (updateNode(pos, node)) {
+                if (this.getController() != null) {
+                    this.getController().change();
+                }
                 return false;
             }
         }
@@ -439,7 +442,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
             if (grid != null) {
                 Cache<C> connector = grid.getConnectors().get(offset);
                 if (connector != null) {
-                    boolean ok = connector.value().validate(dir);
+                    boolean ok = connector.value().validate(dir.getOpposite());
                     if (!ok) {
                         ret &= node.clearSide(dir);
                     }
@@ -458,9 +461,6 @@ public class Group<T, C extends IConnectable, N> implements INode {
     private boolean removeNode(long pos) {
         NodeCache<N> node = nodes.remove(pos);
         if (node == null) {
-            if (node != null) {
-                throw new RuntimeException("Node isPipe on removeNode!");
-            }
             return false;
         }
 
