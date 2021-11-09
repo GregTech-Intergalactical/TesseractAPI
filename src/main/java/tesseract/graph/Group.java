@@ -420,15 +420,15 @@ public class Group<T, C extends IConnectable, N> implements INode {
      */
     public boolean removeAt(long pos, Consumer<Group<T, C, N>> split) {
         NodeCache<N> node = nodes.get(pos);
+        boolean flag = false;
         if (node != null) {
-            if (updateNode(pos, node)) {
-                if (this.getController() != null) {
-                    this.getController().change();
-                }
-                return false;
-            }
+            flag = updateNode(pos, node);
         }
         internalRemove(pos, split);
+        //Readd the node if it should not be removed completely.
+        if (flag) {
+            addNode(pos, node, (Controller<T, C, N>) getController());
+        }
         return true;
     }
 

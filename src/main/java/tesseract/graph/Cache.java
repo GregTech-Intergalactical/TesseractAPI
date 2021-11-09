@@ -18,7 +18,7 @@ public class Cache<T extends IConnectable> {
     public Cache(T value) {
         this.value = value;
         this.connectivity = Connectivity.of(value);
-        this.addAsNode = value().registerAsNode();
+        this.addAsNode = value().needsPath();
     }
 
     /**

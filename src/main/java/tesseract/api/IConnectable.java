@@ -13,7 +13,7 @@ public interface IConnectable {
      */
     boolean connects(Direction direction);
 
-    default boolean registerAsNode() {
+    default boolean needsPath() {
         return false;
     }
 

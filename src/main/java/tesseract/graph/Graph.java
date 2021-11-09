@@ -87,8 +87,8 @@ public class Graph<T, C extends IConnectable, N> implements INode {
      */
     public boolean addNode(long pos, BiFunction<Long, Direction, N> node, Direction side, Supplier<Controller<T, C, N>> controller,
                            boolean hadFirstTick) {
-        if (!contains(pos)) {
-            if (hadFirstTick) {
+        if (hadFirstTick) {
+            if (!contains(pos)) {
                 long connectorPos = Pos.offset(pos, side);
                 Group<T, C, N> tGroup = getGroupAt(connectorPos);
                 if (tGroup == null) {
@@ -100,35 +100,35 @@ public class Graph<T, C extends IConnectable, N> implements INode {
                     return false;
                 if (!connector.value().validate(side.getOpposite()))
                     return false;
-                NodeCache<N> cache = new NodeCache<>(node.apply(pos, side), side);
-                Controller<T, C, N> control = controller.get();
-                Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, control));
-                if (group != null)
-                    group.addNode(pos, cache, control);
+                addNode(pos, controller.get(), new NodeCache<>(node.apply(pos, side), side));
                 return true;
-            } else {
-                PENDING_NODES.computeIfAbsent(pos, f -> new EnumMap<>(Direction.class)).put(side,
-                        new Pending(controller, node));
-                return true;
-            }
-        } else if (this.getGroupAt(pos).getNodes().containsKey(pos)) {
-            Group<T, C, N> group = this.getGroupAt(pos);
-            if (group.getNodes().containsKey(pos)) {
-                long connectorPos = Pos.offset(pos, side);
-                // Make sure the relevant connector is valid.
-                Cache<C> connector = group.getConnector(connectorPos);
-                if (connector == null || !connector.value().validate(side.getOpposite()))
-                    return false;
-                if (this.getGroupAt(pos).addSide(pos, side)) {
-                    // If a new side into this node was added, refresh.
-                    this.refreshNode(pos);
+            } else if (this.getGroupAt(pos).getNodes().containsKey(pos)) {
+                Group<T, C, N> group = this.getGroupAt(pos);
+                if (group.getNodes().containsKey(pos)) {
+                    long connectorPos = Pos.offset(pos, side);
+                    // Make sure the relevant connector is valid.
+                    Cache<C> connector = group.getConnector(connectorPos);
+                    if (connector == null || !connector.value().validate(side.getOpposite()))
+                        return false;
+                    if (this.getGroupAt(pos).addSide(pos, side)) {
+                        this.refreshNode(pos);
+                    }
                 }
-            }
 
+                return true;
+            }
+        } else {
+            PENDING_NODES.computeIfAbsent(pos, f -> new EnumMap<>(Direction.class)).put(side,
+                    new Pending(controller, node));
             return true;
         }
-
         return false;
+    }
+
+    private void addNode(long pos, Controller<T,C,N> control, NodeCache<N> cache) {
+        Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, control));
+        if (group != null)
+            group.addNode(pos, cache, control);
     }
 
     public void refreshNode(long pos) {
