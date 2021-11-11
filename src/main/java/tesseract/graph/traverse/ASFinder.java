@@ -131,7 +131,7 @@ public class ASFinder {
         for (Direction direction : Graph.DIRECTIONS) {
             long pos = current.offset(direction).asLong();
 
-            if (container.connects(pos, direction)) {
+            if (container.connects(pos, direction.getOpposite())) {
                 connections++;
             }
         }

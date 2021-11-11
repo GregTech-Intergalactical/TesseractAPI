@@ -76,19 +76,16 @@ public class Grid<C extends IConnectable> implements INode {
     @Override
     public boolean connects(long pos, Direction towards) {
         assert towards != null;
-
         Cache<C> cache = connectors.get(pos);
-        byte connectivity = Byte.MAX_VALUE;//nodes.get(pos).get();
-
         if (cache != null) {
-            connectivity = cache.connectivity();
+            byte connectivity = cache.connectivity();
+            return Connectivity.has(connectivity, towards.getIndex());
+        } else if (nodes.containsKey(pos)) {
+            long connPos = Pos.offset(pos, towards);
+            cache = connectors.get(connPos);
+            return cache != null && cache.connects(towards.getOpposite());
         }
-
-        if (connectivity == Byte.MAX_VALUE) {
-            return false;
-        }
-
-        return Connectivity.has(connectivity, towards.getIndex());
+        return false;
     }
 
     /**
