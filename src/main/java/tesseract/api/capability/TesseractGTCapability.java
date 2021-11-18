@@ -124,8 +124,8 @@ public class TesseractGTCapability implements IEnergyHandler {
 
     @Override
     public long insert(long maxReceive, boolean simulate) {
-        long pos = tile.getPos().toLong();
-        return Tesseract.GT_ENERGY.getController(tile.getWorld(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.getIndex()]), pos, maxReceive, simulate);
+        long pos = tile.getBlockPos().asLong();
+        return Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.get3DDataValue()]), pos, maxReceive, simulate);
     }
 
     @Override

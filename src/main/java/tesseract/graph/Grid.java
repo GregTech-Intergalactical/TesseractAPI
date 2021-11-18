@@ -70,7 +70,7 @@ public class Grid<C extends IConnectable> implements INode {
             return false;
         }
 
-        return Connectivity.has(connectivityFrom, towards.getIndex()) && Connectivity.has(connectivityTo, towards.getOpposite().getIndex());
+        return Connectivity.has(connectivityFrom, towards.get3DDataValue()) && Connectivity.has(connectivityTo, towards.getOpposite().get3DDataValue());
     }
 
     @Override
@@ -79,7 +79,7 @@ public class Grid<C extends IConnectable> implements INode {
         Cache<C> cache = connectors.get(pos);
         if (cache != null) {
             byte connectivity = cache.connectivity();
-            return Connectivity.has(connectivity, towards.getIndex());
+            return Connectivity.has(connectivity, towards.get3DDataValue());
         } else if (nodes.containsKey(pos)) {
             long connPos = Pos.offset(pos, towards);
             cache = connectors.get(connPos);

@@ -99,7 +99,7 @@ public class ItemController extends Controller<ItemStack, IItemPipe, IItemNode> 
 
     public int insert(long producerPos, long pipePos, ItemStack stack, boolean simulate) {
         long key = producerPos == pipePos ? pipePos : Pos.sub(producerPos, pipePos);
-        Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.byLong(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
+        Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.fromNormal(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
         Map<Direction, List<ItemConsumer>> map = this.data.get(producerPos);
         if (map == null) return stack.getCount();
         List<ItemConsumer> list = map.get(dir);

@@ -151,7 +151,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
         IGTNode node = nodee.value();
         long pos = Pos.sub(consumerPos, producerPos);
         Direction dir = path != null ? path.target().getDirection()
-                : Direction.getFacingFromVector(Pos.unpackX(pos), Pos.unpackY(pos), Pos.unpackZ(pos)).getOpposite();
+                : Direction.getNearest(Pos.unpackX(pos), Pos.unpackY(pos), Pos.unpackZ(pos)).getOpposite();
         if (node.canInput(dir)) {
             GTConsumer consumer = new GTConsumer(node, path);
             int voltage = producer.getOutputVoltage() - consumer.getLoss();
@@ -202,7 +202,7 @@ public class GTController extends Controller<Long, IGTCable, IGTNode> implements
             producer = node.value();
         }
         long key = producerPos == pipePos ? pipePos : Pos.sub(producerPos, pipePos);
-        Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.byLong(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
+        Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.fromNormal(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
         Map<Direction, List<GTConsumer>> map = this.data.get(producerPos);
         if (map == null) return 0;
         List<GTConsumer> list = map.get(dir);

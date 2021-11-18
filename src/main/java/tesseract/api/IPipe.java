@@ -49,7 +49,7 @@ public interface IPipe extends IConnectable {
 
     interface IPipeBlock {
         default IPipe getPipe(IWorldReader world, BlockPos pos) {
-            TileEntity tile = world.getTileEntity(pos);
+            TileEntity tile = world.getBlockEntity(pos);
             return tile instanceof IPipe ? (IPipe) tile : null;
         }
 

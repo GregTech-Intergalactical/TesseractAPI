@@ -26,7 +26,7 @@ public class Cache<T extends IConnectable> {
      * @return True when connect, false otherwise.
      */
     public boolean connects(Direction direction) {
-        return Connectivity.has(connectivity, direction.getIndex());
+        return Connectivity.has(connectivity, direction.get3DDataValue());
     }
 
     /**

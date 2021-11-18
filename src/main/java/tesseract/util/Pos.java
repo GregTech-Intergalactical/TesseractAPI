@@ -59,9 +59,9 @@ public class Pos {
      * @return a new long pos.
      */
     public static long offset(long value, Direction dir) {
-        int x = unpackX(value) + dir.getXOffset();
-        int y = unpackY(value) + dir.getYOffset();
-        int z = unpackZ(value) + dir.getZOffset();
+        int x = unpackX(value) + dir.getStepX();
+        int y = unpackY(value) + dir.getStepY();
+        int z = unpackZ(value) + dir.getStepZ();
         return packAll(x, y, z);
     }
 
@@ -75,11 +75,11 @@ public class Pos {
     // Returns a direction from value -> other.
     public static Direction subToDir(long value, long other) {
         long direction = sub(value, other);
-        return Direction.byLong(unpackX(direction), unpackY(direction), unpackZ(direction));
+        return Direction.fromNormal(unpackX(direction), unpackY(direction), unpackZ(direction));
     }
 
     public static Direction blockPosToDir(BlockPos value, BlockPos other) {
-        return Direction.byLong(value.getX() - other.getX(), value.getY() - other.getY(), value.getZ() - other.getZ());
+        return Direction.fromNormal(value.getX() - other.getX(), value.getY() - other.getY(), value.getZ() - other.getZ());
     }
 
     /**
@@ -257,7 +257,7 @@ public class Pos {
      * @return The new instance of object.
      */
     public Pos offset(Direction dir) {
-        return new Pos(x + dir.getXOffset(), y + dir.getYOffset(), z + dir.getZOffset());
+        return new Pos(x + dir.getStepX(), y + dir.getStepY(), z + dir.getStepZ());
     }
 
     /**
@@ -268,7 +268,7 @@ public class Pos {
      * @return The new instance of object.
      */
     public Pos offset(Direction dir, int n) {
-        return n == 0 ? this : new Pos(x + dir.getXOffset() * n, y + dir.getYOffset() * n, z + dir.getZOffset() * n);
+        return n == 0 ? this : new Pos(x + dir.getStepX() * n, y + dir.getStepY() * n, z + dir.getStepZ() * n);
     }
 
     /**

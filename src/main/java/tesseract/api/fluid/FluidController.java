@@ -104,7 +104,7 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
                     long pos = ent.getLongKey();
                     ImmutableList.Builder<Tuple<Direction, Either<IFluidPipe, IFluidNode>>> list = ImmutableList.builder();
                     for (Direction dir : Graph.DIRECTIONS) {
-                        if (!Connectivity.has(connectivity, dir.getIndex())) continue;
+                        if (!Connectivity.has(connectivity, dir.get3DDataValue())) continue;
                         long newPos = Pos.offset(pos, dir);
                         if (grid.contains(newPos)) {
                             Cache<IFluidPipe> newCache = grid.getConnectors().get(newPos);
@@ -195,7 +195,7 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
         if (SLOOSH) return 0;
         if (stack.isEmpty()) return 0;
         long key = producerPos == pipePos ? pipePos : Pos.sub(producerPos, pipePos);
-        Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.byLong(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
+        Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.fromNormal(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
         Map<Direction, List<FluidConsumer>> map = this.data.get(producerPos);
         if (map == null) return 0;
         List<FluidConsumer> list = map.get(dir);

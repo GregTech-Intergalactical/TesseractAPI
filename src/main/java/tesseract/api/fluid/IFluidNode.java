@@ -7,6 +7,8 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import javax.annotation.Nonnull;
 
 
+import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
+
 /**
  * An fluid node is the unit of interaction with fluid inventories.
  * <p>

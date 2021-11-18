@@ -22,17 +22,17 @@ public class NodeCache<T> {
     }
 
     public boolean connects(Direction side) {
-        return ((bitMap & (1 << side.getIndex())) > 0);
+        return ((bitMap & (1 << side.get3DDataValue())) > 0);
     }
 
     public boolean setSide(Direction side) {
         byte old = bitMap;
-        this.bitMap |= 1 << side.getIndex();
+        this.bitMap |= 1 << side.get3DDataValue();
         return old != bitMap;
     }
 
     public boolean clearSide(Direction side) {
-        this.bitMap &= ~(1 << (side.getIndex()));
+        this.bitMap &= ~(1 << (side.get3DDataValue()));
         return bitMap != 0;
     }
 

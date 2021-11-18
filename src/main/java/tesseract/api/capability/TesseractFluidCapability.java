@@ -10,6 +10,8 @@ import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 
+import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
+
 public class TesseractFluidCapability implements IFluidHandler {
     public final TileEntity tile;
     public final Direction side;
@@ -42,8 +44,8 @@ public class TesseractFluidCapability implements IFluidHandler {
 
     @Override
     public int fill(FluidStack resource, FluidAction action) {
-        long pos = tile.getPos().toLong();
-        return Tesseract.FLUID.getController(tile.getWorld(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.getIndex()]), pos, resource, action.simulate());
+        long pos = tile.getBlockPos().asLong();
+        return Tesseract.FLUID.getController(tile.getLevel(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.get3DDataValue()]), pos, resource, action.simulate());
     }
 
     @Nonnull

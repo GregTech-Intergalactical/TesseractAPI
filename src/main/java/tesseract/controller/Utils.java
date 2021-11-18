@@ -13,20 +13,20 @@ public class Utils {
     public static void createExplosion(World world, BlockPos pos, float explosionRadius, Explosion.Mode modeIn) {
         if (world instanceof ServerWorld) {
             ServerWorld w = (ServerWorld) world;
-            w.createExplosion(null, pos.getX(), pos.getY() + 0.0625D, pos.getZ(), explosionRadius, true, modeIn);
-            w.spawnParticle(ParticleTypes.SMOKE, pos.getX(), pos.getY() + 0.5D, pos.getZ(), 1, 0, 0, 0, 0.0D);
+            w.explode(null, pos.getX(), pos.getY() + 0.0625D, pos.getZ(), explosionRadius, true, modeIn);
+            w.sendParticles(ParticleTypes.SMOKE, pos.getX(), pos.getY() + 0.5D, pos.getZ(), 1, 0, 0, 0, 0.0D);
         }
     }
 
     public static void createFireAround(World world, BlockPos pos) {
         boolean fired = false;
         for (Direction side : Direction.values()) {
-            BlockPos offset = pos.offset(side);
-            if (world.getBlockState(offset) == Blocks.AIR.getDefaultState()) {
-                world.setBlockState(offset, Blocks.FIRE.getDefaultState());
+            BlockPos offset = pos.relative(side);
+            if (world.getBlockState(offset) == Blocks.AIR.defaultBlockState()) {
+                world.setBlockAndUpdate(offset, Blocks.FIRE.defaultBlockState());
                 fired = true;
             }
         }
-        if (!fired) world.setBlockState(pos, Blocks.FIRE.getDefaultState());
+        if (!fired) world.setBlockAndUpdate(pos, Blocks.FIRE.defaultBlockState());
     }
 }

@@ -7,7 +7,7 @@ buildscript {
 
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1+', changing: true
         classpath "com.github.jengelman.gradle.plugins:shadow:5.2.0"
     }
 }
@@ -24,7 +24,6 @@ archivesBaseName = 'TesseractAPI'
 version = "${minecraft_version}-${mod_version}"
 group = "com.github.gregtech-intergalactical"
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
 minecraft {
     // The mappings can be changed at any time, and must be in the following format.
@@ -32,7 +31,7 @@ minecraft {
     // stable_#            Stables are built at the discretion of the MCP team.
     // Use non-default mappings at your own risk. they may not always work.
     // Simply re-run your setup task after changing the mappings to update your workspace.
-    mappings channel: 'snapshot', version: "${mappings_version}"
+    mappings channel: 'official', version: '1.16.5'
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 
     // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
@@ -114,14 +113,6 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     shadow 'org.apache.commons:commons-collections4:4.4'
     testImplementation('junit:junit:4.11')
-}
-
-tasks.withType(JavaCompile) {
-    options.encoding = "UTF-8"
-    def targetVersion = 8
-    if (JavaVersion.current().isJava9Compatible()) {
-        options.release = targetVersion
-    }
 }
 
 afterEvaluate { project ->

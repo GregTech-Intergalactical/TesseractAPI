@@ -20,7 +20,7 @@ public class Connectivity {
 
         for (Direction direction : Direction.values()) {
             if (connectable.connects(direction)) {
-                connectivity = Connectivity.set(connectivity, direction.getIndex());
+                connectivity = Connectivity.set(connectivity, direction.get3DDataValue());
             }
         }
 

@@ -74,7 +74,7 @@ public class Tesseract {
     }
 
     public void worldUnloadEvent(WorldEvent.Unload e) {
-        if (!(e.getWorld() instanceof World) || ((World) e.getWorld()).isRemote) return;
+        if (!(e.getWorld() instanceof World) || ((World) e.getWorld()).isClientSide) return;
         FE_ENERGY.removeWorld((World) e.getWorld());
         GT_ENERGY.removeWorld((World) e.getWorld());
         ITEM.removeWorld((World) e.getWorld());
