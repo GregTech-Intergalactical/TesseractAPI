@@ -42,8 +42,9 @@ public class FluidHolder {
      */
     public void use(int pressure, Fluid fluid, long currentTime) {
         this.pressureAvailable -= pressure;
-        fluids.remove(fluid.getRegistryName());
-        fluids.add(new SetHolder(fluid, currentTime));
+        SetHolder holder = new SetHolder(fluid, currentTime);
+        fluids.remove(holder);
+        fluids.add(holder);
     }
 
     /**
@@ -75,7 +76,8 @@ public class FluidHolder {
     }
 
     public boolean allowFluid(Fluid fluid) {
-        if (fluids.contains(fluid.getRegistryName())) {
+        SetHolder holder = new SetHolder(fluid, 0);
+        if (fluids.contains(holder)) {
             return true;
         }
         return maxCapacity > fluids.size();
