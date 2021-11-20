@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 public abstract class Transaction<T> {
     private final ObjectArrayList<Consumer<T>> onCommit;
     private final ObjectArrayList<T> transmitted;
-    public final Consumer<T> consumer;
+    private final Consumer<T> consumer;
     private boolean cancelled;
 
     public Transaction(final Consumer<T> consumed) {

@@ -129,6 +129,15 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
             }
         }
 
+        @Override
+        public String toString() {
+            if (transaction.mode == Mode.INTERNAL) {
+                return "Internal: " + this.eu;
+            } else {
+                return "Transmit amps: " + this.totalAmperage + "  voltage: " + this.voltage + " loss: " + this.loss;
+            }
+        }
+
         public long getVoltage() {
             return voltage;
         }
