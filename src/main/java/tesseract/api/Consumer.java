@@ -1,9 +1,13 @@
 package tesseract.api;
 
+import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import tesseract.graph.Path;
 
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.Set;
 
 import static java.lang.Integer.compare;
 
@@ -15,8 +19,9 @@ abstract public class Consumer<C extends IConnectable, N> {
     protected final N node;
     protected final ConnectionType connection;
 
-    protected Long2ObjectMap<C> full;
-    protected Long2ObjectMap<C> cross;
+    protected Long2ObjectMap<Path.PathHolder<C>> full = Long2ObjectMaps.emptyMap();
+    protected Long2ObjectMap<Path.PathHolder<C>> cross = Long2ObjectMaps.emptyMap();
+    protected Set<Path.PathHolder<C>> covers;
     protected int distance;
 
     // Way of the sorting by the priority level and the distance to the node
@@ -36,11 +41,20 @@ abstract public class Consumer<C extends IConnectable, N> {
             cross = path.getCross();
         }
 
-        if (cross == null || cross.size() == 0) {
-            connection = /*(full == null) ? ConnectionType.ADJACENT :*/ ConnectionType.SINGLE;
+        if (cross.size() == 0) {
+            connection = (full.size() == 0) ? ConnectionType.ADJACENT : ConnectionType.SINGLE;
         } else {
             connection = ConnectionType.VARIATE;
         }
+        ImmutableSet.Builder<Path.PathHolder<C>> builder = ImmutableSet.builder();
+        if (full != null) {
+            for (Path.PathHolder<C> value : full.values()) {
+                if (value.connector instanceof ITransactionModifier && ((ITransactionModifier) value.connector).canModify(value.from, value.to)) {
+                    builder.add(value);
+                }
+            }
+        }
+        this.covers = builder.build();
     }
 
     /**
@@ -49,8 +63,8 @@ abstract public class Consumer<C extends IConnectable, N> {
     public void init() {
         if (full != null) {
             distance = full.size();
-            for (C connector : full.values()) {
-                onConnectorCatch(connector);
+            for (Path.PathHolder<C> connector : full.values()) {
+                onConnectorCatch(connector.connector);
             }
         }
     }
@@ -80,14 +94,18 @@ abstract public class Consumer<C extends IConnectable, N> {
     /**
      * @return Gets the cross path of connectors.
      */
-    public Long2ObjectMap<C> getCross() {
+    public Long2ObjectMap<Path.PathHolder<C>> getCross() {
         return cross;
+    }
+
+    public Collection<Path.PathHolder<C>> getModifiers() {
+        return covers;
     }
 
     /**
      * @return Gets the full path of connectors.
      */
-    public Long2ObjectMap<C> getFull() {
+    public Long2ObjectMap<Path.PathHolder<C>> getFull() {
         return full;
     }
 

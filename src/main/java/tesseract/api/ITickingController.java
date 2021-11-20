@@ -38,11 +38,9 @@ public interface ITickingController<T, C extends IConnectable, N> {
      * Core method of tesseract. Inserts an object into this pipe.
      *
      * @param producerPos position of node (can be pipe.)
-     * @param stack       the object inserted.
-     * @param simulate    to simulate insertion.
      * @return controller-sensitive insertion information(amount inserted).
      */
-    int insert(long producerPos, long pipePos, T stack, boolean simulate);
+    void insert(long producerPos, long pipePos, T transaction);
 
     /**
      * Returns the active world for this ticking controller.

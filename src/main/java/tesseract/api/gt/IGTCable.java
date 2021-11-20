@@ -33,7 +33,7 @@ public interface IGTCable extends IConnectable {
      * @param amperage The current amperage.
      * @return Checks that the cable is able to handle single packet.
      */
-    default GTStatus getHandler(int voltage, int amperage) {
+    default GTStatus getHandler(long voltage, long amperage) {
         if (getVoltage() < voltage) return GTStatus.FAIL_VOLTAGE;
         else if (getAmps() < amperage) return GTStatus.FAIL_AMPERAGE;
         return GTStatus.SUCCESS;

@@ -9,6 +9,7 @@ import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import tesseract.Tesseract;
 import tesseract.api.gt.GTConsumer;
+import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
@@ -53,13 +54,24 @@ public class TesseractGTCapability implements IEnergyHandler {
             }
 
             @Override
-            public long insert(long maxReceive, boolean simulate) {
-                return 0;
+            public boolean insert(GTTransaction transaction) {
+                return false;
             }
 
             @Override
-            public long extract(long maxExtract, boolean simulate) {
-                return 0;
+            public boolean extractEnergy(GTTransaction.TransferData data) {
+                return false;
+            }
+
+            @Override
+            public boolean addEnergy(GTTransaction.TransferData data) {
+                return false;
+            }
+
+            @Override
+            public GTTransaction extract(GTTransaction.Mode mode) {
+                return new GTTransaction(0, 0, a -> {
+                });
             }
 
             @Override
@@ -73,22 +85,22 @@ public class TesseractGTCapability implements IEnergyHandler {
             }
 
             @Override
-            public int getOutputAmperage() {
+            public long getOutputAmperage() {
                 return 0;
             }
 
             @Override
-            public int getOutputVoltage() {
+            public long getOutputVoltage() {
                 return 0;
             }
 
             @Override
-            public int getInputAmperage() {
+            public long getInputAmperage() {
                 return 0;
             }
 
             @Override
-            public int getInputVoltage() {
+            public long getInputVoltage() {
                 return 0;
             }
 
@@ -123,14 +135,26 @@ public class TesseractGTCapability implements IEnergyHandler {
     }
 
     @Override
-    public long insert(long maxReceive, boolean simulate) {
+    public boolean insert(GTTransaction transaction) {
         long pos = tile.getBlockPos().asLong();
-        return Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.get3DDataValue()]), pos, maxReceive, simulate);
+        Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.get3DDataValue()]), pos, transaction);
+        return transaction.isValid();
     }
 
     @Override
-    public long extract(long maxExtract, boolean simulate) {
-        return 0;
+    public boolean extractEnergy(GTTransaction.TransferData data) {
+        return false;
+    }
+
+    @Override
+    public boolean addEnergy(GTTransaction.TransferData data) {
+        return false;
+    }
+
+    @Override
+    public GTTransaction extract(GTTransaction.Mode mode) {
+        return new GTTransaction(0, 0, a -> {
+        });
     }
 
     @Override
@@ -144,22 +168,22 @@ public class TesseractGTCapability implements IEnergyHandler {
     }
 
     @Override
-    public int getOutputAmperage() {
+    public long getOutputAmperage() {
         return 0;
     }
 
     @Override
-    public int getOutputVoltage() {
+    public long getOutputVoltage() {
         return 0;
     }
 
     @Override
-    public int getInputAmperage() {
+    public long getInputAmperage() {
         return 0;
     }
 
     @Override
-    public int getInputVoltage() {
+    public long getInputVoltage() {
         return 0;
     }
 

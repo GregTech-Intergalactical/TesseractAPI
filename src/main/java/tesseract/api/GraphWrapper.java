@@ -12,7 +12,6 @@ import tesseract.graph.Group;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.LongFunction;
 
 public class GraphWrapper<T, C extends IConnectable, N> {
 
@@ -108,7 +107,13 @@ public class GraphWrapper<T, C extends IConnectable, N> {
 
     public void onFirstTick(World dim) {
         getGraph(dim).onFirstTick();
-        getGraph(dim).getGroups().values().forEach(t -> t.getController().change());
+        getGraph(dim).getGroups().values().forEach(t -> {
+            try {
+                t.getController().change();
+            } catch (Exception ex) {
+                Tesseract.LOGGER.warn("Error updating controller : " + ex);
+            }
+        });
     }
 
     public void removeWorld(World world) {

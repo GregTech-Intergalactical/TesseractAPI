@@ -92,8 +92,13 @@ public class Group<T, C extends IConnectable, N> implements INode {
             ticking.set(this);
             controller = ticking;
         }
-        if (Tesseract.hadFirstTick(controller.getWorld()))
-            controller.change();
+        if (Tesseract.hadFirstTick(controller.getWorld())) {
+            try {
+                controller.change();
+            } catch (Exception ex) {
+                Tesseract.LOGGER.warn("Error updating controller : " + ex);
+            }
+        }
     }
 
     /**
@@ -269,8 +274,13 @@ public class Group<T, C extends IConnectable, N> implements INode {
         // If removing the entry would not cause a group split, then it is safe to remove the entry directly.
         if (isExternal(pos)) {
             if (removeNode(pos)) {
-                if (controller != null)
-                    controller.change();
+                if (controller != null) {
+                    try {
+                        controller.change();
+                    } catch (Exception ex) {
+                        Tesseract.LOGGER.warn("Error updating controller : " + ex);
+                    }
+                }
                 return;
             }
 
@@ -405,8 +415,13 @@ public class Group<T, C extends IConnectable, N> implements INode {
                     newGroup.controller = controller.clone(newGroup);
                 }
                 split.accept(newGroup);
-            } else if (controller != null)
-                controller.change();
+            } else if (controller != null) {
+                try {
+                    controller.change();
+                } catch (Exception ex) {
+                    Tesseract.LOGGER.warn("Error updating controller : " + ex);
+                }
+            }
         }
     }
 

@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.world.World;
+import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
@@ -24,7 +25,7 @@ import java.util.Map;
 /**
  * Class acts as a controller in the group of an item components.
  */
-public class ItemController extends Controller<ItemStack, IItemPipe, IItemNode> {
+public class ItemController extends Controller<ItemTransaction, IItemPipe, IItemNode> {
     private int transferred;
     private final Long2IntMap holders = new Long2IntOpenHashMap();
     private final Long2ObjectMap<Map<Direction, List<ItemConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
@@ -97,54 +98,82 @@ public class ItemController extends Controller<ItemStack, IItemPipe, IItemNode> 
         super.tick();
     }
 
-    public int insert(long producerPos, long pipePos, ItemStack stack, boolean simulate) {
+    public void insert(long producerPos, long pipePos, ItemTransaction transaction) {
         long key = producerPos == pipePos ? pipePos : Pos.sub(producerPos, pipePos);
         Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.fromNormal(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
         Map<Direction, List<ItemConsumer>> map = this.data.get(producerPos);
-        if (map == null) return stack.getCount();
+        ItemStack stack = transaction.stack;
+        if (map == null) return;
         List<ItemConsumer> list = map.get(dir);
-        if (list == null) return stack.getCount();
+        if (list == null) return;
+
+        //Here the verification starts.
+        Long2IntMap tempHolders = new Long2IntOpenHashMap();
         for (ItemConsumer consumer : list) {
             if (!consumer.canAccept(stack)) {
                 continue;
             }
-
             int amount = consumer.insert(stack, true);
             if (amount == stack.getCount()) {
                 continue;
             }
+            int actual = stack.getCount() - amount;
 
-            //Actual count inserted.
-            boolean possible = true;
-            for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getFull().long2ObjectEntrySet()) {
-                long pos = p.getLongKey();
-                IItemPipe pipe = p.getValue();
-
-                int stacksUsed = holders.get(pos);
-                if (simulate) {
-                    if (pipe.getCapacity() - stacksUsed <= 0) {
-                        possible = false;
+            if (consumer.getConnection() == ConnectionType.SINGLE) {
+                actual = Math.min(actual, consumer.getMinCapacity());
+            } else {
+                //Verify cross chain.
+                for (Long2ObjectMap.Entry<Path.PathHolder<IItemPipe>> p : consumer.getCross().long2ObjectEntrySet()) {
+                    long pos = p.getLongKey();
+                    IItemPipe pipe = p.getValue().connector;
+                    int stacksUsed = holders.get(pos) + tempHolders.get(pos);
+                    if (pipe.getCapacity() == stacksUsed) {
+                        actual = 0;
                         break;
                     }
-                } else {
-                    holders.put(pos, stacksUsed + 1);
+                }
+                //Insert temporary capacities
+                if (actual > 0) {
+                    for (Long2ObjectMap.Entry<Path.PathHolder<IItemPipe>> p : consumer.getCross().long2ObjectEntrySet()) {
+                        tempHolders.compute(p.getLongKey(), (a, b) -> {
+                            if (b == null) {
+                                return 1;
+                            }
+                            return b + 1;
+                        });
+                    }
                 }
             }
 
-            if (!possible) continue;
-
-            if (simulate) {
-                return amount;
+            if (actual == 0) continue;
+            //Insert the count into the transaction.
+            ItemStack insert = stack.copy();
+            insert.setCount(actual);
+            for (Path.PathHolder<IItemPipe> modifier : consumer.getModifiers()) {
+                modifier.connector.modify(modifier.from, modifier.to, insert, true);
             }
-            if (amount == stack.getCount()) {
-                return stack.getCount();
-            } else {
-                consumer.insert(stack, false);
-                transferred += stack.getCount() - amount;
-                return amount;
+            actual = insert.getCount();
+            final int act = actual;
+            transaction.addData(insert, t -> dataCommit(consumer, t, act));
+            stack.setCount(stack.getCount() - actual);
+            return;
+        }
+    }
+
+    protected void dataCommit(ItemConsumer consumer, ItemStack stack, int transferred) {
+        for (Path.PathHolder<IItemPipe> modifier : consumer.getModifiers()) {
+            modifier.connector.modify(modifier.from, modifier.to, stack, false);
+        }
+        consumer.insert(stack, false);
+        this.transferred += transferred;
+        if (consumer.getConnection() == ConnectionType.VARIATE) {
+            for (Long2ObjectMap.Entry<Path.PathHolder<IItemPipe>> entry : consumer.getCross().long2ObjectEntrySet()) {
+                this.holders.compute(entry.getLongKey(), (a, b) -> {
+                    if (b == null) return 1;
+                    return b + 1;
+                });
             }
         }
-        return stack.getCount();
     }
 
     /**
@@ -175,7 +204,7 @@ public class ItemController extends Controller<ItemStack, IItemPipe, IItemNode> 
     }
 
     @Override
-    public ITickingController<ItemStack, IItemPipe, IItemNode> clone(INode group) {
+    public ITickingController<ItemTransaction, IItemPipe, IItemNode> clone(INode group) {
         return new ItemController(dim).set(group);
     }
 }

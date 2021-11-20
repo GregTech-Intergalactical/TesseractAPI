@@ -3,6 +3,7 @@ package tesseract.api.fluid;
 import net.minecraft.util.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
 
@@ -22,6 +23,8 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
     private int minPressure = Integer.MAX_VALUE;
     private int minTemperature = Integer.MAX_VALUE;
     private final Direction input;
+
+    public long lowestPipePosition;
 
     /**
      * Creates instance of the consumer.
@@ -68,8 +71,8 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param proof       True if current liquid is in a gas state.
      * @return Checks that the consumer is able to receive fluid.
      */
-    public boolean canHandle(int temperature, int pressure, boolean proof) {
-        return minTemperature >= temperature && minPressure >= pressure && isProof == (proof ? 1 : 0);
+    public boolean canHandle(int temperature, boolean proof) {
+        return minTemperature >= temperature /*&& minPressure >= pressure */ && isProof == (proof ? 1 : 0);
     }
 
     @Override
@@ -77,6 +80,9 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
         isProof = Math.min(isProof, pipe.isGasProof() ? 1 : 0);
         minTemperature = Math.min(minTemperature, pipe.getTemperature());
         minCapacity = Math.min(minCapacity, pipe.getCapacity());
+        if (pipe.getPressure() < minPressure && connection == ConnectionType.SINGLE) {
+            lowestPipePosition = this.getFull().long2ObjectEntrySet().stream().filter(t -> t.getValue().connector == pipe).findFirst().get().getLongKey();
+        }
         minPressure = Math.min(minPressure, pipe.getPressure());
     }
 }

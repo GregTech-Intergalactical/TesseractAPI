@@ -1,8 +1,5 @@
 package tesseract.api.fluid;
 
-import com.google.common.collect.ImmutableList;
-import com.mojang.datafixers.util.Either;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
@@ -12,7 +9,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
+import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
@@ -22,14 +19,16 @@ import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNode> implements IFluidEvent<FluidStack> {
+public class FluidController extends Controller<FluidTransaction, IFluidPipe, IFluidNode> implements IFluidEvent<FluidStack> {
 
     // TODO: assign the value from Antimatter config
     public final static boolean HARDCORE_PIPES = false;
@@ -40,7 +39,7 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
     private boolean isLeaking, lastLeaking;
     private final Long2ObjectMap<FluidHolder> holders = new Long2ObjectLinkedOpenHashMap<>();
     private final Long2ObjectMap<Map<Direction, List<FluidConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
-    private final List<Neighbour> neighbours = new ObjectArrayList<>();
+
     private final Long2IntMap pressureData = new Long2IntOpenHashMap(10);
 
     /**
@@ -84,6 +83,7 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
     public void change() {
         if (!SLOOSH) {
             data.clear();
+            holders.clear();
             for (Long2ObjectMap.Entry<NodeCache<IFluidNode>> e : group.getNodes().long2ObjectEntrySet()) {
                 handleInput(e.getLongKey(), e.getValue().value());
             }
@@ -95,85 +95,15 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
                     consumers.sort(Consumer.COMPARATOR);
                 }
             }
-        } else {
-            neighbours.clear();
-            for (Int2ObjectMap.Entry<Grid<IFluidPipe>> entry : group.getGrids().int2ObjectEntrySet()) {
-                Grid<IFluidPipe> grid = entry.getValue();
-                for (Long2ObjectMap.Entry<Cache<IFluidPipe>> ent : grid.getConnectors().long2ObjectEntrySet()) {
-                    byte connectivity = ent.getValue().connectivity();
-                    long pos = ent.getLongKey();
-                    ImmutableList.Builder<Tuple<Direction, Either<IFluidPipe, IFluidNode>>> list = ImmutableList.builder();
-                    for (Direction dir : Graph.DIRECTIONS) {
-                        if (!Connectivity.has(connectivity, dir.get3DDataValue())) continue;
-                        long newPos = Pos.offset(pos, dir);
-                        if (grid.contains(newPos)) {
-                            Cache<IFluidPipe> newCache = grid.getConnectors().get(newPos);
-                            if (newCache != null) {
-                                list.add(new Tuple<>(dir, Either.left(newCache.value())));
-                            } else if (group.getNodes().containsKey(newPos)) {
-                                list.add(new Tuple<>(dir, Either.right(group.getNodes().get(newPos).value())));
-                            } else {
-                                throw new RuntimeException("Tesseract state broken, report this to mod authors");
-                            }
-                        }
-                    }
-                    neighbours.add(new Neighbour(ent.getValue().value(), pos, list.build()));
+            this.data.values().stream().flatMap(t -> t.values().stream().flatMap(Collection::stream)).flatMap(t -> {
+                if (t.getConnection() == ConnectionType.VARIATE) {
+                    return t.getCross().long2ObjectEntrySet().stream().map(i -> new Tuple<>(i.getLongKey(), i.getValue().connector));
+                } else if (t.getConnection() == ConnectionType.SINGLE) {
+                    Cache<IFluidPipe> conn = this.group.getConnector(t.lowestPipePosition); //Conn can be null if there is a
+                    return conn == null ? Stream.empty() : Stream.of(new Tuple<>(t.lowestPipePosition, conn.value()));
                 }
-            }
-        }
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
-        if (SLOOSH) {
-            if (getWorld().getGameTime() % 10 != 0) return;
-            for (Neighbour neighbour : this.neighbours) {
-                IFluidNode source = neighbour.source.getNode();
-                List<Tuple<Direction, Either<IFluidPipe, IFluidNode>>> destination = neighbour.neighbours;
-                int tanksToMoveTo = destination.stream().mapToInt(t -> t.getB().map(pipe -> pipe.getNode().canInput(t.getA()), node -> node.canInput(t.getA())) ? 1 : 0).sum();
-                if (tanksToMoveTo < 1) continue;
-                for (int i = 0; i < source.getTanks(); i++) {
-                    FluidStack stack = source.getFluidInTank(i);
-                    if (stack.isEmpty()) continue;
-                    int toMove = (stack.getAmount() + tanksToMoveTo - 1) / (tanksToMoveTo);
-                    if (toMove == 0) {
-                        if (stack.getAmount() == 0) continue;
-                        toMove = 1;
-                    }
-                    int amount = stack.getAmount();
-                    FluidStack copy = stack.copy();
-                    copy.setAmount(toMove);
-                    for (int j = 0; j < destination.size() && amount > 0; j++) {
-                        Either<IFluidPipe, IFluidNode> dest = destination.get(j).getB();
-                        int moved = dest.map(pipe -> pipe.getNode().fill(copy, FluidAction.SIMULATE), node -> node.fill(copy, FluidAction.SIMULATE));
-                        FluidStatus status = dest.map(pipe -> {
-                            return pipe.getHandler(stack.getFluid().getAttributes().getTemperature(), moved, stack.getFluid().getAttributes().isGaseous());
-                        }, node -> FluidStatus.SUCCESS);
-                        int temperature = stack.getFluid().getAttributes().getTemperature();
-                        switch (status) {
-                            case FAIL_TEMP:
-                                onPipeOverTemp(getWorld(), new Pos(neighbour.pos).offset(destination.get(j).getA()).asLong(), temperature);
-                                return;
-                            case FAIL_PRESSURE:
-                                onPipeOverPressure(getWorld(), new Pos(neighbour.pos).offset(destination.get(j).getA()).asLong(), amount, stack);
-                                return;
-                            case FAIL_LEAK:
-                                onPipeGasLeak(getWorld(), new Pos(neighbour.pos).offset(destination.get(j).getA()).asLong(), copy);
-                                continue;
-                            case FAIL_CAPACITY:
-                                return;
-                            case SUCCESS:
-                                dest.map(pipe -> pipe.getNode().fill(copy, FluidAction.EXECUTE), node -> node.fill(copy, FluidAction.EXECUTE));
-                                break;
-                        }
-                        amount -= moved;
-                    }
-                    amount = Math.max(amount, 0);
-                    copy.setAmount(stack.getAmount() - amount);
-                    source.drainInput(copy, FluidAction.EXECUTE);
-                }
-            }
+                return Stream.empty();
+            }).forEach(a -> this.holders.putIfAbsent(a.getA(), new FluidHolder(a.getB())));
         }
     }
 
@@ -191,111 +121,123 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
     }
 
     @Override
-    public int insert(long producerPos, long pipePos, FluidStack stack, boolean simulate) {
-        if (SLOOSH) return 0;
-        if (stack.isEmpty()) return 0;
+    public void insert(long producerPos, long pipePos, FluidTransaction transaction) {
+        if (SLOOSH) return;
+        if (!transaction.isValid()) return;
         long key = producerPos == pipePos ? pipePos : Pos.sub(producerPos, pipePos);
         Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.fromNormal(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
         Map<Direction, List<FluidConsumer>> map = this.data.get(producerPos);
-        if (map == null) return 0;
+        if (map == null) return;
         List<FluidConsumer> list = map.get(dir);
-        if (list == null) return 0;
+        if (list == null) return;
 
-        FluidStack newStack = stack.copy();
         pressureData.clear();
 
-        int outputAmount = stack.getAmount();
         loop:
         for (FluidConsumer consumer : list) {
-            newStack.setAmount(outputAmount);
-            if (!consumer.canHold(newStack)) {
+            FluidStack data = transaction.stack.copy();
+            if (!consumer.canHold(data)) {
                 continue;
             }
 
-            int amount = consumer.insert(newStack, true);
+            int amount = consumer.insert(data, true);
             if (amount <= 0) {
                 continue;
             }
             if (!HARDCORE_PIPES) {
-                if (simulate) {
-                    amount = Math.min(amount, consumer.getMinPressure());
-                    for (Long2ObjectMap.Entry<IFluidPipe> entry : consumer.getFull().long2ObjectEntrySet()) {
+                if (consumer.getConnection() == ConnectionType.SINGLE) {
+                    amount = Math.min(amount, consumer.getMinPressure() * 20);
+                } else {
+                    for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> entry : consumer.getCross().long2ObjectEntrySet()) {
                         FluidHolder holder = holders.get(entry.getLongKey());
-                        if (holder != null && !holder.allowFluid(newStack.getFluid())) {
+                        if (!holder.allowFluid(data.getFluid())) {
                             amount = 0;
                             break;
                         }
-                        long tempData = pressureData.get(entry.getLongKey());
-                        amount = Math.min(amount, (holder != null || tempData > 0) ? entry.getValue().getPressure() - (holder != null ? holder.getPressure() : 0) - pressureData.get(entry.getLongKey()) : entry.getValue().getPressure());
+                        int tempData = pressureData.get(entry.getLongKey());
+                        amount = Math.min(amount, holder.getPressureAvailable() - tempData);
                         if (amount == 0) continue loop;
                     }
                 }
             }
-            newStack.setAmount(amount);
-            if (newStack.isEmpty()) continue;
-
-
-            int temperature = stack.getFluid().getAttributes().getTemperature();
-            boolean isGaseous = stack.getFluid().getAttributes().isGaseous();
-
-            // Stores the pressure into holder for path only for variate connection
-            if (!simulate) {
-                boolean cantHandle = !consumer.canHandle(temperature, amount, isGaseous);
-                for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull().long2ObjectEntrySet()) {
-                    long pos = p.getLongKey();
-                    IFluidPipe pipe = p.getValue();
-                    if (!cantHandle) {
-                        switch (pipe.getHandler(temperature, amount, isGaseous)) {
-                            case FAIL_TEMP:
-                                onPipeOverTemp(getWorld(), pos, temperature);
-                                return 0;
-                            case FAIL_LEAK:
-                                newStack = onPipeGasLeak(getWorld(), pos, newStack);
-                                isLeaking = true;
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    //Don't add more pressures if the stack is empty.
-                    if (newStack.isEmpty()) break;
-
-                    FluidHolder holder = holders.computeIfAbsent(pos, h -> new FluidHolder(pipe));
-                    holder.add(amount, stack.getFluid());
-
-                    if (holder.isOverPressure()) {
-                        onPipeOverPressure(getWorld(), pos, holder.getPressure(), stack);
-                        return 0;
-                    }
-                    if (holder.isOverCapacity()) {
-                        onPipeOverCapacity(getWorld(), pos, holder.getCapacity(), stack);
-                        return 0;
-                    }
-                }
-            }
-
-            if (simulate) {
-                //Insert temporary pressures.
-                for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull().long2ObjectEntrySet()) {
+            data.setAmount(amount);
+            if (data.isEmpty()) continue;
+            if (consumer.getConnection() == ConnectionType.VARIATE) {
+                for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> p : consumer.getCross().long2ObjectEntrySet()) {
                     final int finalAmount = amount;
                     pressureData.compute(p.getLongKey(), (k, v) -> v == null ? finalAmount : v + finalAmount);
                 }
             }
-
-            if (!simulate) {
-                maxTemperature = Math.max(temperature, maxTemperature);
-                totalPressure += amount;
+            for (Path.PathHolder<IFluidPipe> modifier : consumer.getModifiers()) {
+                modifier.connector.modify(modifier.from, modifier.to, data, true);
             }
+            transaction.addData(data.copy(), a -> dataCommit(consumer, a));
 
-            if (!simulate && !newStack.isEmpty())
-                consumer.insert(newStack, false);
+            if (transaction.stack.isEmpty()) break;
+        }
+    }
 
-            outputAmount -= amount;
-            if (outputAmount <= 0) {
-                break;
+    protected void dataCommit(FluidConsumer consumer, FluidStack stack) {
+        int temperature = stack.getFluid().getAttributes().getTemperature();
+        int amount = stack.getAmount();
+        boolean isGaseous = stack.getFluid().getAttributes().isGaseous();
+        boolean cantHandle = !consumer.canHandle(temperature, isGaseous);
+        if (!cantHandle) {
+            for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> p : consumer.getFull().long2ObjectEntrySet()) {
+                long pos = p.getLongKey();
+                IFluidPipe pipe = p.getValue().connector;
+                switch (pipe.getHandler(temperature, isGaseous)) {
+                    case FAIL_TEMP:
+                        onPipeOverTemp(getWorld(), pos, temperature);
+                        return;
+                    case FAIL_LEAK:
+                        stack = onPipeGasLeak(getWorld(), pos, stack);
+                        isLeaking = true;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
-        return stack.getAmount() - outputAmount;
+        if (consumer.getConnection() == ConnectionType.SINGLE) {
+            FluidHolder holder = holders.get(consumer.lowestPipePosition);
+            holder.use(stack.getAmount(), stack.getFluid(), getWorld().getGameTime());
+            if (holder.isOverPressure()) {
+                onPipeOverPressure(getWorld(), consumer.lowestPipePosition, amount, stack);
+                return;
+            }
+            if (holder.isOverCapacity()) {
+                onPipeOverCapacity(getWorld(), consumer.lowestPipePosition, amount, stack);
+                return;
+            }
+        } else if (consumer.getConnection() == ConnectionType.VARIATE) {
+            for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> pathHolderEntry : consumer.getCross().long2ObjectEntrySet()) {
+                FluidHolder holder = holders.get(pathHolderEntry.getLongKey());
+                holder.use(stack.getAmount(), stack.getFluid(), getWorld().getGameTime());
+                if (holder.isOverPressure()) {
+                    onPipeOverPressure(getWorld(), pathHolderEntry.getLongKey(), amount, stack);
+                    return;
+                }
+                if (holder.isOverCapacity()) {
+                    onPipeOverCapacity(getWorld(), pathHolderEntry.getLongKey(), amount, stack);
+                    return;
+                }
+            }
+        }
+        for (Path.PathHolder<IFluidPipe> modifier : consumer.getModifiers()) {
+            modifier.connector.modify(modifier.from, modifier.to, stack, false);
+        }
+        maxTemperature = Math.max(temperature, maxTemperature);
+        totalPressure += amount;
+        consumer.insert(stack, false);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        for (FluidHolder pipe : this.holders.values()) {
+            pipe.tick(getWorld().getGameTime());
+        }
     }
 
     @Override
@@ -306,7 +248,6 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
         totalPressure = 0L;
         maxTemperature = 0;
         isLeaking = false;
-        holders.clear();
     }
 
     @Nullable
@@ -319,30 +260,10 @@ public class FluidController extends Controller<FluidStack, IFluidPipe, IFluidNo
         this.group.getGroupInfo(pos, list);
         list.add(String.format("Fluid Data size: %d", this.data.size()));
     }
-/*    @Override
-    public String[] getInfo(long pos) {
-        return new String[]{
-                "Maximum Temperature: ".concat(Integer.toString(lastTemperature)),
-                "Total Pressure: ".concat(Long.toString(lastPressure)),
-                "Average pressure/tick: ".concat(Long.toString(lastPressure / 20)),
-                "Any Leaks: ".concat(lastLeaking ? "Yes" : "No"),
-        };
-    }*/
 
     @Override
     public ITickingController clone(INode group) {
         return new FluidController(dim).set(group);
     }
 
-    protected static class Neighbour {
-        public final IFluidPipe source;
-        public final long pos;
-        public final List<Tuple<Direction, Either<IFluidPipe, IFluidNode>>> neighbours;
-
-        public Neighbour(IFluidPipe source, long pos, List<Tuple<Direction, Either<IFluidPipe, IFluidNode>>> neighbours) {
-            this.source = source;
-            this.pos = pos;
-            this.neighbours = neighbours;
-        }
-    }
 }

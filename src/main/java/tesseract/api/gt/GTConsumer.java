@@ -32,19 +32,16 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
 
     /**
      * Adds energy to the node. Returns quantity of energy that was accepted.
-     *
-     * @param maxReceive Amount of energy to be inserted.
-     * @param simulate   If true, the insertion will only be simulated.
      */
-    public void insert(long maxReceive, boolean simulate) {
-        node.insert(maxReceive, simulate);
+    public void insert(GTTransaction transaction) {
+        node.insert(transaction);
     }
 
     /**
      * @return Gets the amperage required for the consumer.
      */
-    public int getRequiredAmperage(int voltage) {
-        return (int) Math.min(((node.getCapacity() - node.getEnergy())) / voltage, node.getInputAmperage());
+    public long getRequiredAmperage(long voltage) {
+        return node.availableAmpsInput();//Math.min(((node.getCapacity() - node.getEnergy())) / voltage, node.getInputAmperage());
     }
 
     /**
@@ -65,11 +62,11 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
      * @param voltage The current voltage.
      * @return Checks that the consumer is able to receive energy.
      */
-    public boolean canHandle(int voltage) {
+    public boolean canHandle(long voltage) {
         return minVoltage >= voltage;
     }
 
-    public boolean canHandleAmp(int minAmperage) {
+    public boolean canHandleAmp(long minAmperage) {
         return this.minAmperage >= minAmperage;
     }
 
@@ -94,8 +91,8 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
     }
 
     public static class State {
-        int ampsReceived;
-        int ampsSent;
+        long ampsReceived;
+        long ampsSent;
         long euReceived;
         long euSent;
         public final IGTNode handler;
@@ -113,38 +110,36 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
             euSent = 0;
         }
 
-        public boolean extract(boolean simulate, int amps, long eu) {
+        public long extract(boolean simulate, long amps) {
             if (handler.canOutput()) {
                 if (simulate) {
-                    return ampsSent + amps <= handler.getOutputAmperage();
+                    return Math.min(amps, handler.getOutputAmperage() - (ampsSent));
                 }
                 if (ampsSent + amps > handler.getOutputAmperage()) {
-                    return false;
+                    return 0;
                 }
                 if (!simulate) {
                     ampsSent += amps;
-                    euSent += eu;
                 }
-                return true;
+                return amps;
             }
-            return false;
+            return 0;
         }
 
-        public boolean receive(boolean simulate, int amps, long eu) {
+        public long receive(boolean simulate, long amps) {
             if (handler.canInput()) {
                 if (simulate) {
-                    return ampsReceived + amps <= handler.getInputAmperage();
+                    return Math.min(amps, handler.getInputAmperage() - (ampsReceived));
                 }
                 if (ampsReceived + amps > handler.getInputAmperage()) {
-                    return false;
+                    return 0;
                 }
                 if (!simulate) {
                     ampsReceived += amps;
-                    euReceived += eu;
                 }
-                return true;
+                return amps;
             }
-            return false;
+            return 0;
         }
     }
 }

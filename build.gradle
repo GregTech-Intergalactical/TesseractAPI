@@ -24,6 +24,7 @@ archivesBaseName = 'TesseractAPI'
 version = "${minecraft_version}-${mod_version}"
 group = "com.github.gregtech-intergalactical"
 
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
 minecraft {
     // The mappings can be changed at any time, and must be in the following format.

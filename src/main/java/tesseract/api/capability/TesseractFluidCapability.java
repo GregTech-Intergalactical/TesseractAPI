@@ -5,16 +5,17 @@ import net.minecraft.util.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import tesseract.Tesseract;
+import tesseract.api.fluid.FluidTransaction;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
-
 public class TesseractFluidCapability implements IFluidHandler {
     public final TileEntity tile;
     public final Direction side;
+
+    private FluidTransaction old;
 
     public TesseractFluidCapability(TileEntity tile, Direction dir) {
         this.tile = tile;
@@ -44,8 +45,16 @@ public class TesseractFluidCapability implements IFluidHandler {
 
     @Override
     public int fill(FluidStack resource, FluidAction action) {
-        long pos = tile.getBlockPos().asLong();
-        return Tesseract.FLUID.getController(tile.getLevel(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.get3DDataValue()]), pos, resource, action.simulate());
+        if (action.execute()) {
+            old.commit();
+        } else {
+            long pos = tile.getBlockPos().asLong();
+            FluidTransaction transaction = new FluidTransaction(resource.copy(), a -> {
+            });
+            Tesseract.FLUID.getController(tile.getLevel(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.get3DDataValue()]), pos, transaction);
+            this.old = transaction;
+        }
+        return resource.getAmount() - this.old.stack.getAmount();
     }
 
     @Nonnull

@@ -18,17 +18,17 @@ public class Energy extends GTController {
     }
 
     @Override
-    public void onNodeOverVoltage(World w, long pos, int voltage) {
+    public void onNodeOverVoltage(World w, long pos, long voltage) {
         Utils.createExplosion(w, BlockPos.of(pos), 4.0F, Explosion.Mode.BREAK);
     }
 
     @Override
-    public void onCableOverAmperage(World w, long pos, int amperage) {
+    public void onCableOverAmperage(World w, long pos, long amperage) {
         Utils.createFireAround(w, BlockPos.of(pos));
     }
 
     @Override
-    public void onCableOverVoltage(World w, long pos, int voltage) {
+    public void onCableOverVoltage(World w, long pos, long voltage) {
         Utils.createFireAround(w, BlockPos.of(pos));
     }
 }

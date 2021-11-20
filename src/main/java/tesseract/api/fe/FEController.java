@@ -173,9 +173,9 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
 
                     case VARIATE:
                         long limit = inserted;
-                        for (Long2ObjectMap.Entry<IFECable> p : consumer.getCross().long2ObjectEntrySet()) {
+                        for (Long2ObjectMap.Entry<Path.PathHolder<IFECable>> p : consumer.getCross().long2ObjectEntrySet()) {
                             long pos = p.getLongKey();
-                            IFECable cable = p.getValue();
+                            IFECable cable = p.getValue().connector;
 
                             long capacity = holders.get(pos);
                             if (capacity == -1L) {
@@ -213,10 +213,10 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
         }
     }
 
-    @Override
-    public int insert(long producerPos, long direction, Integer stack, boolean simulate) {
-        return 0;
-    }
+    // @Override
+    // public int insert(long producerPos, long direction, Integer stack, boolean simulate) {
+    //    return 0;
+    // }
 
     @Override
     protected void onFrame() {
@@ -229,6 +229,12 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
         this.group.getGroupInfo(pos, list);
         list.add(String.format("FE Data size: %d", this.data.size()));
     }
+
+    @Override
+    public void insert(long producerPos, long pipePos, Integer transaction) {
+
+    }
+
     @Override
     public ITickingController clone(INode group) {
         return new FEController(dim).set(group);

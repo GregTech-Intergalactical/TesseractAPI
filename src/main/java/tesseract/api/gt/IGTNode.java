@@ -1,6 +1,7 @@
 package tesseract.api.gt;
 
 import net.minecraft.util.Direction;
+import tesseract.api.ITransactionModifier;
 
 
 /**
@@ -10,25 +11,37 @@ import net.minecraft.util.Direction;
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
  * </p>
  */
-public interface IGTNode {
+public interface IGTNode extends ITransactionModifier {
 
     /**
      * Adds energy to the node. Returns quantity of energy that was accepted.
-     *
-     * @param maxReceive Maximum amount of energy to be inserted.
-     * @param simulate   If true, the insertion will only be simulated.
-     * @return Amount of energy that was (or would have been, if simulated) accepted by the storage.
      */
-    long insert(long maxReceive, boolean simulate);
+    default boolean insert(GTTransaction transaction) {
+        if (transaction.mode == GTTransaction.Mode.TRANSMIT) {
+            if (!canInput()) return false;
+            return transaction.addData(Math.min(transaction.getAvailableAmps(), availableAmpsInput()), 0, this::addEnergy, null).getAmps(true) > 0;
+        } else {
+            return transaction.addData(this.getCapacity() - this.getEnergy(), this::addEnergy).getEu() > 0;
+        }
+    }
+
+    boolean extractEnergy(GTTransaction.TransferData data);
+
+    boolean addEnergy(GTTransaction.TransferData data);
 
     /**
      * Removes energy from the node. Returns quantity of energy that was removed.
      *
-     * @param maxExtract Maximum amount of energy to be extracted.
-     * @param simulate   If true, the extraction will only be simulated.
      * @return Amount of energy that was (or would have been, if simulated) extracted from the storage.
      */
-    long extract(long maxExtract, boolean simulate);
+    default GTTransaction extract(GTTransaction.Mode mode) {
+        if (mode == GTTransaction.Mode.TRANSMIT) {
+            return new GTTransaction(availableAmpsOutput(), this.getOutputVoltage(), this::extractEnergy);
+        } else if (mode == GTTransaction.Mode.INTERNAL) {
+            return new GTTransaction(this.getEnergy(), this::extractEnergy);
+        }
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * @return Gets the amount of energy currently stored.
@@ -43,22 +56,22 @@ public interface IGTNode {
     /**
      * @return Gets the maximum amount of amperage that can be output.
      */
-    int getOutputAmperage();
+    long getOutputAmperage();
 
     /**
      * @return Gets the maximum amount of voltage that can be output.
      */
-    int getOutputVoltage();
+    long getOutputVoltage();
 
     /**
      * @return Gets the maximum amount of amperage that can be input.
      */
-    int getInputAmperage();
+    long getInputAmperage();
 
     /**
      * @return Gets the maximum amount of voltage that can be input.
      */
-    int getInputVoltage();
+    long getInputVoltage();
 
     /**
      * Gets if this storage can have energy extracted.
@@ -90,6 +103,22 @@ public interface IGTNode {
      */
     boolean canOutput(Direction direction);
 
+    default long availableAmpsOutput() {
+        if (!canOutput()) return 0;
+        long out = Math.min(getOutputAmperage(), (getEnergy() / getOutputVoltage()));
+        if (out == -1) out = getOutputAmperage();
+        out = Math.min(out, getState().extract(true, out));
+        return out;
+    }
+
+    default long availableAmpsInput() {
+        if (!canInput()) return 0;
+        long out = Math.min(getInputAmperage(), (int) (getCapacity() - getEnergy()) / getInputVoltage());
+        if (out == -1) out = getInputAmperage();
+        out = Math.min(out, getState().receive(true, out));
+        return out;
+    }
+
     /**
      * Returns the inner state for this node, representing received/sent eu.
      *
@@ -99,14 +128,26 @@ public interface IGTNode {
 
     static IGTNode fromPipe(IGTCable cable) {
         return new IGTNode() {
+
             @Override
-            public long insert(long maxReceive, boolean simulate) {
-                return 0;
+            public boolean insert(GTTransaction transaction) {
+                return false;
             }
 
             @Override
-            public long extract(long maxExtract, boolean simulate) {
-                return 0;
+            public boolean extractEnergy(GTTransaction.TransferData data) {
+                return false;
+            }
+
+            @Override
+            public boolean addEnergy(GTTransaction.TransferData data) {
+                return false;
+            }
+
+            @Override
+            public GTTransaction extract(GTTransaction.Mode mode) {
+                return new GTTransaction(0, 0, a -> {
+                });
             }
 
             @Override
@@ -120,22 +161,22 @@ public interface IGTNode {
             }
 
             @Override
-            public int getOutputAmperage() {
+            public long getOutputAmperage() {
                 return 0;
             }
 
             @Override
-            public int getOutputVoltage() {
+            public long getOutputVoltage() {
                 return cable.getVoltage();
             }
 
             @Override
-            public int getInputAmperage() {
+            public long getInputAmperage() {
                 return 0;
             }
 
             @Override
-            public int getInputVoltage() {
+            public long getInputVoltage() {
                 return 0;
             }
 
@@ -162,6 +203,11 @@ public interface IGTNode {
             @Override
             public GTConsumer.State getState() {
                 return null;
+            }
+
+            @Override
+            public void tesseractTick() {
+
             }
         };
     }

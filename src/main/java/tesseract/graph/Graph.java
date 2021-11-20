@@ -18,7 +18,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.LongFunction;
 import java.util.function.Supplier;
 
 /**
@@ -134,8 +133,13 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     public void refreshNode(long pos) {
         if (contains(pos)) {
             ITickingController<T, C, N> controller = getGroupAt(pos).getController();
-            if (Tesseract.hadFirstTick(controller.getWorld()))
-                controller.change();
+            if (Tesseract.hadFirstTick(controller.getWorld())) {
+                try {
+                    controller.change();
+                } catch (Exception ex) {
+                    Tesseract.LOGGER.warn("Error updating controller : " + ex);
+                }
+            }
         }
     }
 

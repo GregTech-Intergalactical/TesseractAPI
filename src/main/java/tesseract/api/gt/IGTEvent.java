@@ -14,7 +14,7 @@ public interface IGTEvent {
      * @param pos     The node position.
      * @param voltage The current voltage.
      */
-    default void onNodeOverVoltage(World world, long pos, int voltage) {
+    default void onNodeOverVoltage(World world, long pos, long voltage) {
         //NOOP
     }
 
@@ -25,7 +25,7 @@ public interface IGTEvent {
      * @param pos     The cable position.
      * @param voltage The current voltage.
      */
-    default void onCableOverVoltage(World world, long pos, int voltage) {
+    default void onCableOverVoltage(World world, long pos, long voltage) {
         //NOOP
     }
 
@@ -36,7 +36,7 @@ public interface IGTEvent {
      * @param pos      The cable position.
      * @param amperage The current amperage.
      */
-    default void onCableOverAmperage(World world, long pos, int amperage) {
+    default void onCableOverAmperage(World world, long pos, long amperage) {
         //NOOP
     }
 }

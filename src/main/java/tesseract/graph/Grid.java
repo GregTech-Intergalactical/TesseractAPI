@@ -124,9 +124,10 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public List<Path<C>> getPaths(long from, Direction side) {
         List<Path<C>> data = new ObjectArrayList<>();
-        if (this.connectors.containsKey(from)) {
-            from = Pos.offset(from, side);
-        }
+        //if (this.connectors.containsKey(from)) {
+        //from = Pos.offset(from, side);
+        //     side = side.getOpposite();
+        // }
         for (long to : nodes.keySet()) {
             if (from != to) {
                 data.add(new Path<>(connectors, finder.traverse(from, to)));

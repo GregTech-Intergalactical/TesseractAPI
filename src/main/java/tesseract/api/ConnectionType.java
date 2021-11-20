@@ -5,7 +5,7 @@ package tesseract.api;
  */
 public enum ConnectionType {
     INVALID,
-    //ADJACENT,
+    ADJACENT,
     SINGLE,
     VARIATE,
 }
