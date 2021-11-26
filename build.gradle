@@ -10,8 +10,8 @@ buildscript {
         }
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1+', changing: true
         classpath "com.github.jengelman.gradle.plugins:shadow:5.2.0"
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1+', changing: true
         classpath 'org.parchmentmc:librarian:1.+'
     }
 }
@@ -20,8 +20,8 @@ plugins {
     id 'maven-publish'
 }
 apply plugin: 'net.minecraftforge.gradle'
-apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "eclipse"
+apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: 'java'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
 archivesBaseName = 'TesseractAPI'
@@ -29,7 +29,9 @@ version = "${minecraft_version}-${mod_version}"
 group = "com.github.gregtech-intergalactical"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
-
+configurations {
+    shadow
+}
 minecraft {
     // The mappings can be changed at any time, and must be in the following format.
     // snapshot_YYYYMMDD   Snapshot are built nightly.
@@ -101,19 +103,30 @@ minecraft {
 
 // Deobfuscated jar; development purposes.
 //import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+repositories {
+    jcenter()
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    archiveBaseName.set(project.archivesBaseName)
+    archiveVersion.set("${project.version}")
+    archiveClassifier.set('sources')
+}
+
+/*task javadocJar(type: Jar, dependsOn: javadoc) {
+    from javadoc.destinationDir
+    archiveClassifier.set('javadoc')
+}*/
 shadowJar {
     configurations = [project.configurations.shadow]
     archiveClassifier.set('')
     relocate 'org.apache.commons.collections4', 'tesseract.collections'
 }
-repositories {
-    jcenter()
-}
-
 reobf {
     shadowJar {}
 }
-
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     shadow 'org.apache.commons:commons-collections4:4.4'
@@ -126,25 +139,6 @@ afterEvaluate { project ->
             return rootProject.name == "${modid}"
         }
     }
-}
-
-
-
-publishing {
-    publications {
-        forge(MavenPublication) {
-            //artifactId = archivesBaseName
-            artifact shadowJar
-        }
-    }
-    repositories {
-        maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
-        }
-    }
-    //repositories {
-    //    rootProject.configurePublishingRepositories(delegate)
-    //}
 }
 
 jar {
@@ -161,3 +155,25 @@ jar {
         ])
     }
 }
+
+artifacts {
+    archives jar, shadowJar, sourcesJar//, javadocJar
+}
+publishing {
+    tasks.publish.dependsOn 'build', 'reobfJar'
+    publications {
+        mavenJava(MavenPublication) {
+            //artifactId = archivesBaseName
+            artifact shadowJar
+        }
+    }
+    repositories {
+        maven {
+            url "file:///${project.projectDir}/mcmodsrepo"
+        }
+    }
+    //repositories {
+    //    rootProject.configurePublishingRepositories(delegate)
+    //}
+}
+
