@@ -166,14 +166,14 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
             }
             data.setAmount(amount);
             if (data.isEmpty()) continue;
+            for (Path.PathHolder<IFluidPipe> modifier : consumer.getModifiers()) {
+                modifier.connector.modify(modifier.from, modifier.to, data, true);
+            }
             if (consumer.getConnection() == ConnectionType.VARIATE) {
                 for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> p : consumer.getCross().long2ObjectEntrySet()) {
                     final int finalAmount = amount;
                     pressureData.compute(p.getLongKey(), (k, v) -> v == null ? finalAmount : v + finalAmount);
                 }
-            }
-            for (Path.PathHolder<IFluidPipe> modifier : consumer.getModifiers()) {
-                modifier.connector.modify(modifier.from, modifier.to, data, true);
             }
             transaction.addData(data.copy(), a -> dataCommit(consumer, a));
 

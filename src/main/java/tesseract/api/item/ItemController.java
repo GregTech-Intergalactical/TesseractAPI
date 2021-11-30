@@ -132,17 +132,6 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
                         break;
                     }
                 }
-                //Insert temporary capacities
-                if (actual > 0) {
-                    for (Long2ObjectMap.Entry<Path.PathHolder<IItemPipe>> p : consumer.getCross().long2ObjectEntrySet()) {
-                        tempHolders.compute(p.getLongKey(), (a, b) -> {
-                            if (b == null) {
-                                return 1;
-                            }
-                            return b + 1;
-                        });
-                    }
-                }
             }
 
             if (actual == 0) continue;
@@ -154,9 +143,18 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             }
             actual = insert.getCount();
             final int act = actual;
+            if (act == 0) continue;
+            for (Long2ObjectMap.Entry<Path.PathHolder<IItemPipe>> p : consumer.getCross().long2ObjectEntrySet()) {
+                tempHolders.compute(p.getLongKey(), (a, b) -> {
+                    if (b == null) {
+                        return 1;
+                    }
+                    return b + 1;
+                });
+            }
             transaction.addData(insert, t -> dataCommit(consumer, t, act));
             stack.setCount(stack.getCount() - actual);
-            return;
+            if (transaction.stack.getCount() == 0) return;
         }
     }
 
