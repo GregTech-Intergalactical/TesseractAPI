@@ -124,10 +124,6 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public List<Path<C>> getPaths(long from, Direction side) {
         List<Path<C>> data = new ObjectArrayList<>();
-        //if (this.connectors.containsKey(from)) {
-        //from = Pos.offset(from, side);
-        //     side = side.getOpposite();
-        // }
         for (long to : nodes.keySet()) {
             if (from != to) {
                 data.add(new Path<>(connectors, finder.traverse(from, to)));
@@ -270,9 +266,8 @@ public class Grid<C extends IConnectable> implements INode {
      */
     private void removeFinal(long pos) {
         connectors.remove(pos);
-        Pos position = new Pos(pos);
         for (Direction direction : Graph.DIRECTIONS) {
-            long side = position.offset(direction).asLong();
+            long side = Pos.offset(pos, direction);
 
             if (nodes.containsKey(side) && isExternal(side) && this.nodes.get(side).connects(direction.getOpposite())) {
                 nodes.remove(side);
@@ -293,9 +288,8 @@ public class Grid<C extends IConnectable> implements INode {
         }
 
         int neighbors = 0;
-        Pos position = new Pos(pos);
         for (Direction direction : Graph.DIRECTIONS) {
-            long side = position.offset(direction).asLong();
+            long side = Pos.offset(pos, direction);
 
             if (!nodes.containsKey(side) && linked(pos, direction, side)) {
                 neighbors++;

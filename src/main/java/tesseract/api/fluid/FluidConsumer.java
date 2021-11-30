@@ -24,7 +24,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
     private int minTemperature = Integer.MAX_VALUE;
     private final Direction input;
 
-    public long lowestPipePosition;
+    public long lowestPipePosition = -1;
 
     /**
      * Creates instance of the consumer.

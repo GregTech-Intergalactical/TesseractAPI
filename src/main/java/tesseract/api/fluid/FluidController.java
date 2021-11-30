@@ -58,7 +58,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
             for (Direction direction : Graph.DIRECTIONS) {
                 if (producer.canOutput(direction)) {
                     List<FluidConsumer> consumers = new ObjectArrayList<>();
-                    long side = Pos.offset(pos, direction);// position.offset(direction).asLong();
+                    long side = Pos.offset(pos, direction);
 
                     Grid<IFluidPipe> grid = group.getGridAt(side, direction);
                     if (grid != null) {
@@ -146,7 +146,11 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
             }
             if (!HARDCORE_PIPES) {
                 if (consumer.getConnection() == ConnectionType.SINGLE) {
-                    amount = Math.min(amount, consumer.getMinPressure() * 20);
+                    if (consumer.lowestPipePosition == -1) {
+                        amount = Math.min(amount, consumer.getMinPressure()*20);
+                    } else {
+                        amount = Math.min(amount, this.holders.get(consumer.lowestPipePosition).getPressureAvailable());
+                    }
                 } else {
                     for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> entry : consumer.getCross().long2ObjectEntrySet()) {
                         FluidHolder holder = holders.get(entry.getLongKey());
