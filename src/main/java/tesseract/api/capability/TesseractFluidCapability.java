@@ -14,12 +14,14 @@ import javax.annotation.Nonnull;
 public class TesseractFluidCapability implements IFluidHandler {
     public final TileEntity tile;
     public final Direction side;
+    public final boolean isNode;
 
     private FluidTransaction old;
 
-    public TesseractFluidCapability(TileEntity tile, Direction dir) {
+    public TesseractFluidCapability(TileEntity tile, Direction dir, boolean isNode) {
         this.tile = tile;
         this.side = dir;
+        this.isNode = isNode;
     }
 
     @Override
@@ -51,7 +53,7 @@ public class TesseractFluidCapability implements IFluidHandler {
             long pos = tile.getBlockPos().asLong();
             FluidTransaction transaction = new FluidTransaction(resource.copy(), a -> {
             });
-            Tesseract.FLUID.getController(tile.getLevel(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.get3DDataValue()]), pos, transaction);
+            Tesseract.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction);
             this.old = transaction;
         }
         return resource.getAmount() - this.old.stack.getAmount();

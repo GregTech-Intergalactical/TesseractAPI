@@ -28,7 +28,8 @@ import java.util.stream.Stream;
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-public class FluidController extends Controller<FluidTransaction, IFluidPipe, IFluidNode> implements IFluidEvent<FluidStack> {
+public class FluidController extends Controller<FluidTransaction, IFluidPipe, IFluidNode>
+        implements IFluidEvent<FluidStack> {
 
     // TODO: assign the value from Antimatter config
     public final static boolean HARDCORE_PIPES = false;
@@ -48,32 +49,33 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
      * @param world the world.
      */
     public FluidController(World world) {
-        super(IFluidNode::fromPipe, world);
+        super(world);
     }
 
-    private void handleInput(long pos, IFluidNode producer) {
-        if (data.containsKey(pos)) return;
+    private void handleInput(long pos, NodeCache<IFluidNode> producers) {
+        if (data.containsKey(pos))
+            return;
+        for (Map.Entry<Direction, IFluidNode> tup : producers.values()) {
+            IFluidNode producer = tup.getValue();
+            Direction direction = tup.getKey();
+            if (producer.canOutput(direction)) {
+                List<FluidConsumer> consumers = new ObjectArrayList<>();
+                long side = Pos.offset(pos, direction);
 
-        if (producer.canOutput()) {
-            for (Direction direction : Graph.DIRECTIONS) {
-                if (producer.canOutput(direction)) {
-                    List<FluidConsumer> consumers = new ObjectArrayList<>();
-                    long side = Pos.offset(pos, direction);
-
-                    Grid<IFluidPipe> grid = group.getGridAt(side, direction);
-                    if (grid != null) {
-                        for (Path<IFluidPipe> path : grid.getPaths(pos, direction)) {
-                            if (!path.isEmpty()) {
-                                Node target = path.target();
-                                assert target != null;
-                                onCheck(consumers, path, target.getDirection(), target.asLong());
-                            }
+                Grid<IFluidPipe> grid = group.getGridAt(side, direction);
+                if (grid != null) {
+                    for (Path<IFluidPipe> path : grid.getPaths(pos, direction)) {
+                        if (!path.isEmpty()) {
+                            Node target = path.target();
+                            assert target != null;
+                            onCheck(consumers, path, target.getDirection(), target.asLong());
                         }
                     }
+                }
 
-                    if (!consumers.isEmpty()) {
-                        data.computeIfAbsent(pos, map -> new EnumMap<>(Direction.class)).put(getMapDirection(pos, direction.getOpposite()), consumers);
-                    }
+                if (!consumers.isEmpty()) {
+                    data.computeIfAbsent(pos, map -> new EnumMap<>(Direction.class))
+                            .put(direction.getOpposite(), consumers);
                 }
             }
         }
@@ -85,11 +87,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
             data.clear();
             holders.clear();
             for (Long2ObjectMap.Entry<NodeCache<IFluidNode>> e : group.getNodes().long2ObjectEntrySet()) {
-                handleInput(e.getLongKey(), e.getValue().value());
+                handleInput(e.getLongKey(), e.getValue());
             }
-            for (Long2ObjectMap.Entry<Cache<IFluidPipe>> e : group.getPipes()) {
-                handleInput(e.getLongKey(), wrapPipe(e.getValue().value()));
-            }
+
             for (Map<Direction, List<FluidConsumer>> map : data.values()) {
                 for (List<FluidConsumer> consumers : map.values()) {
                     consumers.sort(Consumer.COMPARATOR);
@@ -97,9 +97,11 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
             }
             this.data.values().stream().flatMap(t -> t.values().stream().flatMap(Collection::stream)).flatMap(t -> {
                 if (t.getConnection() == ConnectionType.VARIATE) {
-                    return t.getCross().long2ObjectEntrySet().stream().map(i -> new Tuple<>(i.getLongKey(), i.getValue().connector));
+                    return t.getCross().long2ObjectEntrySet().stream()
+                            .map(i -> new Tuple<>(i.getLongKey(), i.getValue().connector));
                 } else if (t.getConnection() == ConnectionType.SINGLE) {
-                    Cache<IFluidPipe> conn = this.group.getConnector(t.lowestPipePosition); //Conn can be null if there is a
+                    Cache<IFluidPipe> conn = this.group.getConnector(t.lowestPipePosition); // Conn can be null if there
+                                                                                            // is a
                     return conn == null ? Stream.empty() : Stream.of(new Tuple<>(t.lowestPipePosition, conn.value()));
                 }
                 return Stream.empty();
@@ -116,25 +118,27 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
      * @param pos       The position of the producer.
      */
     private void onCheck(List<FluidConsumer> consumers, Path<IFluidPipe> path, Direction dir, long pos) {
-        IFluidNode node = group.getNodes().get(pos).value();
-        if (node.canInput()) consumers.add(new FluidConsumer(node, path, dir));
+        IFluidNode node = group.getNodes().get(pos).value(dir);
+        if (node.canInput())
+            consumers.add(new FluidConsumer(node, path, dir));
     }
 
     @Override
-    public void insert(long producerPos, long pipePos, FluidTransaction transaction) {
-        if (SLOOSH) return;
-        if (!transaction.isValid()) return;
-        long key = producerPos == pipePos ? pipePos : Pos.sub(producerPos, pipePos);
-        Direction dir = producerPos == pipePos ? Direction.NORTH : Direction.fromNormal(Pos.unpackX(key), Pos.unpackY(key), Pos.unpackZ(key));
+    public void insert(long producerPos, Direction side, FluidTransaction transaction) {
+        if (SLOOSH)
+            return;
+        if (!transaction.isValid())
+            return;
         Map<Direction, List<FluidConsumer>> map = this.data.get(producerPos);
-        if (map == null) return;
-        List<FluidConsumer> list = map.get(dir);
-        if (list == null) return;
+        if (map == null)
+            return;
+        List<FluidConsumer> list = map.get(side);
+        if (list == null)
+            return;
 
         pressureData.clear();
 
-        loop:
-        for (FluidConsumer consumer : list) {
+        loop: for (FluidConsumer consumer : list) {
             FluidStack data = transaction.stack.copy();
             if (!consumer.canHold(data)) {
                 continue;
@@ -147,12 +151,13 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
             if (!HARDCORE_PIPES) {
                 if (consumer.getConnection() == ConnectionType.SINGLE) {
                     if (consumer.lowestPipePosition == -1) {
-                        amount = Math.min(amount, consumer.getMinPressure()*20);
+                        amount = Math.min(amount, consumer.getMinPressure() * 20);
                     } else {
                         amount = Math.min(amount, this.holders.get(consumer.lowestPipePosition).getPressureAvailable());
                     }
                 } else {
-                    for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> entry : consumer.getCross().long2ObjectEntrySet()) {
+                    for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> entry : consumer.getCross()
+                            .long2ObjectEntrySet()) {
                         FluidHolder holder = holders.get(entry.getLongKey());
                         if (!holder.allowFluid(data.getFluid())) {
                             amount = 0;
@@ -160,15 +165,15 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                         }
                         int tempData = pressureData.get(entry.getLongKey());
                         amount = Math.min(amount, holder.getPressureAvailable() - tempData);
-                        if (amount == 0) continue loop;
+                        if (amount == 0)
+                            continue loop;
                     }
                 }
             }
             data.setAmount(amount);
-            if (data.isEmpty()) continue;
-            for (Path.PathHolder<IFluidPipe> modifier : consumer.getModifiers()) {
-                modifier.connector.modify(modifier.from, modifier.to, data, true);
-            }
+            if (data.isEmpty())
+                continue;
+
             if (consumer.getConnection() == ConnectionType.VARIATE) {
                 for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> p : consumer.getCross().long2ObjectEntrySet()) {
                     final int finalAmount = amount;
@@ -177,7 +182,8 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
             }
             transaction.addData(data.copy(), a -> dataCommit(consumer, a));
 
-            if (transaction.stack.isEmpty()) break;
+            if (transaction.stack.isEmpty())
+                break;
         }
     }
 
@@ -215,7 +221,8 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 return;
             }
         } else if (consumer.getConnection() == ConnectionType.VARIATE) {
-            for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> pathHolderEntry : consumer.getCross().long2ObjectEntrySet()) {
+            for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> pathHolderEntry : consumer.getCross()
+                    .long2ObjectEntrySet()) {
                 FluidHolder holder = holders.get(pathHolderEntry.getLongKey());
                 holder.use(stack.getAmount(), stack.getFluid(), getWorld().getGameTime());
                 if (holder.isOverPressure()) {
@@ -228,9 +235,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 }
             }
         }
-        for (Path.PathHolder<IFluidPipe> modifier : consumer.getModifiers()) {
-            modifier.connector.modify(modifier.from, modifier.to, stack, false);
-        }
+
         maxTemperature = Math.max(temperature, maxTemperature);
         totalPressure += amount;
         consumer.insert(stack, false);

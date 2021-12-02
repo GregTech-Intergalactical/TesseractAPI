@@ -32,7 +32,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
      * @param world The world.
      */
     public FEController(World world) {
-        super(null, world);
+        super(world);
         holders.defaultReturnValue(-1L);
     }
 
@@ -53,7 +53,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
 
         for (Long2ObjectMap.Entry<NodeCache<IFENode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
-            IFENode producer = e.getValue().value();
+            IFENode producer = null;//e.getValue().value();
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
@@ -121,7 +121,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
      * @param pos       The position of the producer.
      */
     private void onCheck(List<FEConsumer> consumers, Path<IFECable> path, long pos) {
-        IFENode node = group.getNodes().get(pos).value();
+        IFENode node = null;//group.getNodes().get(pos).value();
         if (node.canInput()) consumers.add(new FEConsumer(node, path));
     }
 
@@ -230,13 +230,19 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
         list.add(String.format("FE Data size: %d", this.data.size()));
     }
 
-    @Override
+    /*@Override
     public void insert(long producerPos, long pipePos, Integer transaction) {
 
-    }
+    }*/
 
     @Override
     public ITickingController clone(INode group) {
         return new FEController(dim).set(group);
+    }
+
+    @Override
+    public void insert(long producerPos, Direction side, Integer transaction) {
+        // TODO Auto-generated method stub
+        
     }
 }

@@ -13,9 +13,5 @@ public interface IConnectable {
      */
     boolean connects(Direction direction);
 
-    default boolean needsPath() {
-        return false;
-    }
-
     boolean validate(Direction dir);
 }

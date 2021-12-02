@@ -128,16 +128,17 @@ public class TesseractGTCapability implements IEnergyHandler {
 
     public final TileEntity tile;
     public final Direction side;
-
-    public TesseractGTCapability(TileEntity tile, Direction dir) {
+    public final boolean isNode;
+    public TesseractGTCapability(TileEntity tile, Direction dir, boolean isNode) {
         this.tile = tile;
         this.side = dir;
+        this.isNode = isNode;
     }
 
     @Override
     public boolean insert(GTTransaction transaction) {
         long pos = tile.getBlockPos().asLong();
-        Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(side == null ? pos : Pos.offset(pos, Graph.DIRECTIONS[side.get3DDataValue()]), pos, transaction);
+        Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction);
         return transaction.isValid();
     }
 

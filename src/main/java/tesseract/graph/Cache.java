@@ -9,7 +9,6 @@ import tesseract.api.IConnectable;
 public class Cache<T extends IConnectable> {
 
     private final byte connectivity;
-    private final boolean addAsNode;
     private final T value;
 
     /**
@@ -18,7 +17,6 @@ public class Cache<T extends IConnectable> {
     public Cache(T value) {
         this.value = value;
         this.connectivity = Connectivity.of(value);
-        this.addAsNode = value().needsPath();
     }
 
     /**
@@ -41,14 +39,5 @@ public class Cache<T extends IConnectable> {
      */
     public T value() {
         return value;
-    }
-
-    /**
-     * If this connector allows self-input.
-     *
-     * @return
-     */
-    public boolean registerAsNode() {
-        return addAsNode;
     }
 }

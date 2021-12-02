@@ -5,11 +5,15 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.util.Direction;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.LazyOptional;
 import tesseract.Tesseract;
 import tesseract.graph.Cache;
 import tesseract.graph.Graph;
 import tesseract.graph.Group;
+import tesseract.graph.Graph.INodeGetter;
+import tesseract.util.Pos;
 
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -35,12 +39,12 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param pos  The position at which the node will be added.
      * @param node The node object.
      */
-    public void registerNode(IWorld dim, long pos, Direction side, BiFunction<Long, Direction, N> node) {
+    /*public void registerNode(IWorld dim, long pos, Direction side, BiFunction<Long, Direction, N> node) {
         if (dim.isClientSide())
             return;
         getGraph(dim).addNode(pos, node, side, () -> supplier.apply(dim instanceof World ? ((World) dim) : null),
                 Tesseract.hadFirstTick(dim));
-    }
+    }*/
 
     public void refreshNode(World dim, long pos) {
         if (dim.isClientSide())
@@ -55,10 +59,15 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param pos       The position at which the node will be added.
      * @param connector The connector object.
      */
-    public void registerConnector(World dim, long pos, C connector) {
+    public void registerConnector(World dim, long pos, C connector, INodeGetter<N> applier) {
         if (dim.isClientSide())
             return;
-        getGraph(dim).addConnector(pos, new Cache<>(connector), supplier.apply(dim));
+        getGraph(dim).addConnector(pos, new Cache<>(connector), () -> supplier.apply(dim), applier, Tesseract.hadFirstTick(dim));
+    }
+
+    public void blockUpdate(World dim, long connector, long node, INodeGetter<N> applier) {
+        if (dim.isClientSide()) return;
+        getGraph(dim).onUpdate(connector, node, applier, () -> supplier.apply(dim));
     }
 
     /**
@@ -96,7 +105,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
     public boolean remove(World dim, long pos) {
         if (dim.isClientSide())
             return false;
-        return getGraph(dim).removeAt(pos);
+        return getGraph(dim).removeAt(pos, () -> supplier.apply(dim));
     }
 
     public void tick(World dim) {

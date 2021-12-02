@@ -48,11 +48,8 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
         return amps;
     }
 
-    public TransferData addData(long amps, long loss, Consumer<TransferData> data, @Nullable Consumer<TransferData> modifier) {
+    public TransferData addData(long amps, long loss, Consumer<TransferData> data) {
         TransferData td = new TransferData(this, Math.min(amps, availableAmps - usedAmps), this.voltageOut).setLoss(loss);
-        if (modifier != null) {
-            modifier.accept(td);
-        }
         this.addData(td);
         this.usedAmps += amps;
         this.onCommit(data);

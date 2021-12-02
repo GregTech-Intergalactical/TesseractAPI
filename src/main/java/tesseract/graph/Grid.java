@@ -57,13 +57,15 @@ public class Grid<C extends IConnectable> implements INode {
         if (cacheFrom != null) {
             connectivityFrom = cacheFrom.connectivity();
         } else {
-            connectivityFrom = 0;
+            NodeCache<?> cache = nodes.get(from);
+            connectivityFrom = cache == null ? 0 : Connectivity.of(cache);
         }
 
         if (cacheTo != null) {
             connectivityTo = cacheTo.connectivity();
         } else {
-            connectivityTo = nodes.containsKey(to) ? Byte.MAX_VALUE : 0;
+            NodeCache<?> cache = nodes.get(from);
+            connectivityTo = cache == null ? 0 : Connectivity.of(cache);
         }
 
         if (connectivityFrom == 0 && connectivityTo == 0) {
@@ -79,11 +81,14 @@ public class Grid<C extends IConnectable> implements INode {
         Cache<C> cache = connectors.get(pos);
         if (cache != null) {
             byte connectivity = cache.connectivity();
-            return Connectivity.has(connectivity, towards.get3DDataValue());
+            long off = Pos.offset(pos, towards);
+            NodeCache<?> cach = this.nodes.get(off);
+            return Connectivity.has(connectivity, towards.get3DDataValue()) && (cach == null || cach.connects(towards.getOpposite()));
         } else if (nodes.containsKey(pos)) {
+            NodeCache<?> c = nodes.get(pos);
             long connPos = Pos.offset(pos, towards);
             cache = connectors.get(connPos);
-            return cache != null && cache.connects(towards.getOpposite());
+            return cache != null && cache.connects(towards.getOpposite()) && c.connects(towards);
         }
         return false;
     }

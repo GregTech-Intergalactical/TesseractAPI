@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
@@ -120,10 +121,6 @@ public class Group<T, C extends IConnectable, N> implements INode {
      */
     public Long2ObjectMap<NodeCache<N>> getNodes() {
         return Long2ObjectMaps.unmodifiable(nodes);
-    }
-
-    public Iterable<Long2ObjectMap.Entry<Cache<C>>> getPipes() {
-        return () -> this.grids.values().stream().flatMap(t -> t.getConnectors().long2ObjectEntrySet().stream().filter(p -> p.getValue().registerAsNode())).iterator();
     }
 
     /**
@@ -436,35 +433,13 @@ public class Group<T, C extends IConnectable, N> implements INode {
     public boolean removeAt(long pos, Consumer<Group<T, C, N>> split) {
         NodeCache<N> node = nodes.get(pos);
         boolean flag = false;
-        if (node != null) {
-            flag = updateNode(pos, node);
-        }
+        
         internalRemove(pos, split);
         //Readd the node if it should not be removed completely.
         if (flag) {
             addNode(pos, node, (Controller<T, C, N>) getController());
         }
         return true;
-    }
-
-    private boolean updateNode(long pos, NodeCache<N> node) {
-        if (node.isPipe()) return false;
-        boolean ret = true;
-        for (int i = 0; i < Graph.DIRECTIONS.length; i++) {
-            Direction dir = Graph.DIRECTIONS[i];
-            long offset = Pos.offset(pos, dir);
-            Grid<C> grid = this.getGridAt(offset, dir);
-            if (grid != null) {
-                Cache<C> connector = grid.getConnectors().get(offset);
-                if (connector != null) {
-                    boolean ok = connector.value().validate(dir.getOpposite());
-                    if (!ok) {
-                        ret &= node.clearSide(dir);
-                    }
-                }
-            }
-        }
-        return ret;
     }
 
     /**

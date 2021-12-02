@@ -1,5 +1,6 @@
 package tesseract.api;
 
+import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 import tesseract.graph.INode;
 
@@ -40,7 +41,7 @@ public interface ITickingController<T, C extends IConnectable, N> {
      * @param producerPos position of node (can be pipe.)
      * @return controller-sensitive insertion information(amount inserted).
      */
-    void insert(long producerPos, long pipePos, T transaction);
+    void insert(long producerPos, Direction side, T transaction);
 
     /**
      * Returns the active world for this ticking controller.
@@ -48,12 +49,4 @@ public interface ITickingController<T, C extends IConnectable, N> {
      * @return the world object.
      */
     World getWorld();
-
-    /**
-     * Creates a node object from a pipe.
-     *
-     * @param pipe
-     * @return
-     */
-    N wrapPipe(final C pipe);
 }

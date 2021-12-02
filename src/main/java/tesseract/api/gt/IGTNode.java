@@ -1,7 +1,6 @@
 package tesseract.api.gt;
 
 import net.minecraft.util.Direction;
-import tesseract.api.ITransactionModifier;
 
 
 /**
@@ -9,9 +8,10 @@ import tesseract.api.ITransactionModifier;
  * <p>
  * Derived from the Redstone Flux power system designed by King Lemming and originally utilized in Thermal Expansion and related mods.
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
+ * Note: no longer derived from RF.
  * </p>
  */
-public interface IGTNode extends ITransactionModifier {
+public interface IGTNode {
 
     /**
      * Adds energy to the node. Returns quantity of energy that was accepted.
@@ -19,7 +19,7 @@ public interface IGTNode extends ITransactionModifier {
     default boolean insert(GTTransaction transaction) {
         if (transaction.mode == GTTransaction.Mode.TRANSMIT) {
             if (!canInput()) return false;
-            return transaction.addData(Math.min(transaction.getAvailableAmps(), availableAmpsInput()), 0, this::addEnergy, null).getAmps(true) > 0;
+            return transaction.addData(Math.min(transaction.getAvailableAmps(), availableAmpsInput()), 0, this::addEnergy).getAmps(true) > 0;
         } else {
             return transaction.addData(this.getCapacity() - this.getEnergy(), this::addEnergy).getEu() > 0;
         }
@@ -125,92 +125,6 @@ public interface IGTNode extends ITransactionModifier {
      * @return state.
      */
     GTConsumer.State getState();
-
-    static IGTNode fromPipe(IGTCable cable) {
-        return new IGTNode() {
-
-            @Override
-            public boolean insert(GTTransaction transaction) {
-                return false;
-            }
-
-            @Override
-            public boolean extractEnergy(GTTransaction.TransferData data) {
-                return false;
-            }
-
-            @Override
-            public boolean addEnergy(GTTransaction.TransferData data) {
-                return false;
-            }
-
-            @Override
-            public GTTransaction extract(GTTransaction.Mode mode) {
-                return new GTTransaction(0, 0, a -> {
-                });
-            }
-
-            @Override
-            public long getEnergy() {
-                return 0;
-            }
-
-            @Override
-            public long getCapacity() {
-                return 0;
-            }
-
-            @Override
-            public long getOutputAmperage() {
-                return 0;
-            }
-
-            @Override
-            public long getOutputVoltage() {
-                return cable.getVoltage();
-            }
-
-            @Override
-            public long getInputAmperage() {
-                return 0;
-            }
-
-            @Override
-            public long getInputVoltage() {
-                return 0;
-            }
-
-            @Override
-            public boolean canOutput() {
-                return true;
-            }
-
-            @Override
-            public boolean canInput() {
-                return false;
-            }
-
-            @Override
-            public boolean canInput(Direction direction) {
-                return false;
-            }
-
-            @Override
-            public boolean canOutput(Direction direction) {
-                return cable.connects(direction);
-            }
-
-            @Override
-            public GTConsumer.State getState() {
-                return null;
-            }
-
-            @Override
-            public void tesseractTick() {
-
-            }
-        };
-    }
 
     //Called by consumers that cannot tick themselves, such as FE wrappers.
     default void tesseractTick() {

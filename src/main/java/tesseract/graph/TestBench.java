@@ -38,10 +38,10 @@ class TestBench {
                 long position = pos.asLong();
 
                 if (points.length == 5 && points[4].startsWith("c")) {
-                    if (!graph.addConnector(position, new Cache<>(new ExampleConnector()), null)) {
+                    /*if (!graph.addConnector(position, new Cache<>(new ExampleConnector()), null)) {
                         System.out.println("Error: connector at" + pos + " already exists in the graph");
                         continue;
-                    }
+                    }*/
                 } else {
                     for (Direction d : Graph.DIRECTIONS) {
                         long posC = Pos.offset(position, d);
@@ -50,9 +50,9 @@ class TestBench {
                             continue;
                         Cache<ExampleConnector> val = group.getConnector(posC);
                         if (val != null) {
-                            if (!graph.addNode(position, (a,b) -> new ExampleNode(), Pos.subToDir(posC, position), () -> null, true)) {
+                            /*if (!graph.addNode(position, (a,b) -> new ExampleNode(), Pos.subToDir(posC, position), () -> null, true)) {
                                 System.out.println("error");
-                            }
+                            }*/
                         }
 
                     }
@@ -68,7 +68,7 @@ class TestBench {
 
                 Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
 
-                graph.removeAt(pos.asLong());
+                //graph.removeAt(pos.asLong());
 
                 System.out.println("Removed " + pos + " from the graph");
 
@@ -103,7 +103,7 @@ class TestBench {
                         .println("  Group " + group.getIntKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
 
                 for (Long2ObjectMap.Entry<NodeCache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
-                    System.out.println("    Node at " + new Pos(node.getLongKey()) + ": " + node.getValue().value());
+                    //System.out.println("    Node at " + new Pos(node.getLongKey()) + ": " + node.getValue().value());
                 }
 
                 for (Grid<ExampleConnector> grid : group.getValue().getGrids().values()) {

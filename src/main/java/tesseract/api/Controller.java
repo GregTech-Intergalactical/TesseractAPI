@@ -17,7 +17,6 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     protected int tick;
     protected final World dim;
     protected Group<T, C, N> group;
-    public final Function<C, N> wrapper;
 
     /**
      * Creates instance of the controller.
@@ -25,9 +24,8 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
      * @param wrapper  the function to wrap pipes in a node.
      * @param supplier The world.
      */
-    protected Controller(final Function<C, N> wrapper, World supplier) {
+    protected Controller(World supplier) {
         this.dim = supplier;
-        this.wrapper = wrapper;
     }
 
     /**
@@ -38,18 +36,6 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     public Controller<T, C, N> set(INode container) {
         this.group = (Group<T, C, N>) container;
         return this;
-    }
-
-    protected N getPipeNode(long pos) {
-        Cache<C> connector = this.group.getConnector(pos);
-        if (connector != null) {
-            return wrapPipe(connector.value());
-        }
-        return null;
-    }
-
-    protected Direction getMapDirection(long pos, Direction def) {
-        return group.getNodes().containsKey(pos) ? def : Direction.NORTH;
     }
 
     /**
@@ -71,10 +57,5 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     @Override
     public World getWorld() {
         return this.dim;
-    }
-
-    @Override
-    public N wrapPipe(C pipe) {
-        return this.wrapper.apply(pipe);
     }
 }

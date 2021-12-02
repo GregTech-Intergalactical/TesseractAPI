@@ -21,7 +21,6 @@ abstract public class Consumer<C extends IConnectable, N> {
 
     protected Long2ObjectMap<Path.PathHolder<C>> full = Long2ObjectMaps.emptyMap();
     protected Long2ObjectMap<Path.PathHolder<C>> cross = Long2ObjectMaps.emptyMap();
-    protected Set<Path.PathHolder<C>> covers;
     protected int distance;
 
     // Way of the sorting by the priority level and the distance to the node
@@ -46,15 +45,6 @@ abstract public class Consumer<C extends IConnectable, N> {
         } else {
             connection = ConnectionType.VARIATE;
         }
-        ImmutableSet.Builder<Path.PathHolder<C>> builder = ImmutableSet.builder();
-        if (full != null) {
-            for (Path.PathHolder<C> value : full.values()) {
-                if (value.connector instanceof ITransactionModifier && ((ITransactionModifier) value.connector).canModify(value.from, value.to)) {
-                    builder.add(value);
-                }
-            }
-        }
-        this.covers = builder.build();
     }
 
     /**
@@ -97,11 +87,6 @@ abstract public class Consumer<C extends IConnectable, N> {
     public Long2ObjectMap<Path.PathHolder<C>> getCross() {
         return cross;
     }
-
-    public Collection<Path.PathHolder<C>> getModifiers() {
-        return covers;
-    }
-
     /**
      * @return Gets the full path of connectors.
      */

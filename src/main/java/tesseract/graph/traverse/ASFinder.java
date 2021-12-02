@@ -39,6 +39,9 @@ public class ASFinder {
      * @return An set of the points calculated by the A Star algorithm.
      */
     public Deque<Node> traverse(long origin, long target) {
+        return traverse(origin, target, Long.MIN_VALUE);
+    }
+    public Deque<Node> traverse(long origin, long target, long skip) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same ASFinder instance");
         }
@@ -67,11 +70,10 @@ public class ASFinder {
                 closed.add(current);
 
                 for (Node n : getNeighboringNodes(current, origin, target)) {
-
                     if (n == null) {
                         break;
                     }
-
+                    if (n.asLong() == skip) continue;
                     if (closed.contains(n)) {
                         continue;
                     }
@@ -167,10 +169,9 @@ public class ASFinder {
         int i = 0;
 
         for (Direction direction : Graph.DIRECTIONS) {
-            Pos pos = current.offset(direction);
-            long side = pos.asLong();
-            if (container.contains(side) && ((side == end && current.asLong() != start) || container.connects(pos.asLong(), direction.getOpposite()))) {
-                neighbors[i++] = new Node(pos, direction.getOpposite());
+            long side = Pos.offset(current.asLong(), direction);
+            if (container.contains(side) && container.connects(side, direction.getOpposite())) {
+                neighbors[i++] = new Node(side, direction.getOpposite());
             }
         }
 

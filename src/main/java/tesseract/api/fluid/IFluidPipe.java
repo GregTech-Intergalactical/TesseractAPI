@@ -1,12 +1,11 @@
 package tesseract.api.fluid;
 
 import tesseract.api.IConnectable;
-import tesseract.api.ITransactionModifier;
 
 /**
  * A fluid pipe is the unit of interaction with fluid inventories.
  */
-public interface IFluidPipe extends IConnectable, ITransactionModifier {
+public interface IFluidPipe extends IConnectable {
 
     /**
      * Returns the maximum amount of packets that this fluid component will permit to pass through or be received in a single tick.
@@ -45,6 +44,4 @@ public interface IFluidPipe extends IConnectable, ITransactionModifier {
         else if (!isGasProof() && proof) return FluidStatus.FAIL_LEAK;
         return FluidStatus.SUCCESS;
     }
-
-    IFluidNode getNode();
 }

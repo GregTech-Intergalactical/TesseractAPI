@@ -1,12 +1,10 @@
 package tesseract.api.item;
 
 import tesseract.api.IConnectable;
-import tesseract.api.ITransactionModifier;
-
 /**
  * A item pipe is the unit of interaction with item inventories.
  */
-public interface IItemPipe extends IConnectable, ITransactionModifier {
+public interface IItemPipe extends IConnectable {
 
     /**
      * Returns the maximum amount of items that this item component will permit to pass through or be received in a single tick.
