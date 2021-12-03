@@ -54,7 +54,11 @@ public class Grid<C extends IConnectable> implements INode {
         byte connectivityFrom;
         byte connectivityTo;
 
+        boolean validLink = false;
+
+
         if (cacheFrom != null) {
+            validLink = true;
             connectivityFrom = cacheFrom.connectivity();
         } else {
             NodeCache<?> cache = nodes.get(from);
@@ -62,9 +66,10 @@ public class Grid<C extends IConnectable> implements INode {
         }
 
         if (cacheTo != null) {
+            validLink = true;
             connectivityTo = cacheTo.connectivity();
         } else {
-            NodeCache<?> cache = nodes.get(from);
+            NodeCache<?> cache = nodes.get(to);
             connectivityTo = cache == null ? 0 : Connectivity.of(cache);
         }
 
@@ -72,25 +77,23 @@ public class Grid<C extends IConnectable> implements INode {
             return false;
         }
 
-        return Connectivity.has(connectivityFrom, towards.get3DDataValue()) && Connectivity.has(connectivityTo, towards.getOpposite().get3DDataValue());
+        return validLink && Connectivity.has(connectivityFrom, towards.get3DDataValue()) && Connectivity.has(connectivityTo, towards.getOpposite().get3DDataValue());
     }
 
     @Override
     public boolean connects(long pos, Direction towards) {
         assert towards != null;
         Cache<C> cache = connectors.get(pos);
+
         if (cache != null) {
             byte connectivity = cache.connectivity();
-            long off = Pos.offset(pos, towards);
-            NodeCache<?> cach = this.nodes.get(off);
-            return Connectivity.has(connectivity, towards.get3DDataValue()) && (cach == null || cach.connects(towards.getOpposite()));
-        } else if (nodes.containsKey(pos)) {
+           // long off = Pos.offset(pos, towards);
+            //NodeCache<?> cach = this.nodes.get(off);
+            return Connectivity.has(connectivity, towards.get3DDataValue()); //&& (cach == null || cach.connects(towards.getOpposite()));
+        } else {
             NodeCache<?> c = nodes.get(pos);
-            long connPos = Pos.offset(pos, towards);
-            cache = connectors.get(connPos);
-            return cache != null && cache.connects(towards.getOpposite()) && c.connects(towards);
+            return c != null && c.connects(towards);
         }
-        return false;
     }
 
     /**

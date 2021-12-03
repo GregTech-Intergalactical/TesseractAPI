@@ -24,6 +24,11 @@ public abstract class Transaction<T> {
         this.transmitted.add(t);
         return t;
     }
+    
+    public T getLast() {
+        if (transmitted.size() == 0) throw new IllegalStateException("call to Transaction::getLast without data");
+        return transmitted.get(transmitted.size()-1);
+    }
 
     public List<T> getData() {
         return cancelled ? Collections.emptyList() : transmitted;
@@ -33,6 +38,14 @@ public abstract class Transaction<T> {
         if (cancelled) return;
         this.onCommit.ensureCapacity(transmitted.size());
         this.onCommit.add(transmitted.size() - 1, consumer);
+    }
+
+    public void pushCallback(Consumer<T> consumer) {
+        if (cancelled || this.onCommit.size() == 0) return;
+        Consumer<T> current = this.onCommit.get(this.onCommit.size()-1);
+        if (current != null) {
+            this.onCommit.add(this.onCommit.size()-1, current.andThen(consumer));
+        }
     }
 
     public void cancel() {

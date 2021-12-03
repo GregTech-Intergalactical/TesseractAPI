@@ -382,7 +382,6 @@ public class Group<T, C extends IConnectable, N> implements INode {
 
                     for (long moved : grid.getConnectors().keySet()) {
                         connectors.remove(moved);
-                        nodes.remove(moved);
                         newGroup.connectors.put(moved, id);
                     }
                 }

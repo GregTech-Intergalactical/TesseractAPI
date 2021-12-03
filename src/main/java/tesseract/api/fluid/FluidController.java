@@ -119,7 +119,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
      */
     private void onCheck(List<FluidConsumer> consumers, Path<IFluidPipe> path, Direction dir, long pos) {
         IFluidNode node = group.getNodes().get(pos).value(dir);
-        if (node.canInput())
+        if (node != null && node.canInput())
             consumers.add(new FluidConsumer(node, path, dir));
     }
 
@@ -129,7 +129,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
             return;
         if (!transaction.isValid())
             return;
-        Map<Direction, List<FluidConsumer>> map = this.data.get(producerPos);
+        Map<Direction, List<FluidConsumer>> map = this.data.get(Pos.offset(producerPos, side));
         if (map == null)
             return;
         List<FluidConsumer> list = map.get(side);

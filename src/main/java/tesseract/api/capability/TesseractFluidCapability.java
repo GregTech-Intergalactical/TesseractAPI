@@ -2,8 +2,12 @@ package tesseract.api.capability;
 
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.items.IItemHandler;
 import tesseract.Tesseract;
 import tesseract.api.fluid.FluidTransaction;
 import tesseract.graph.Graph;
@@ -11,17 +15,12 @@ import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 
-public class TesseractFluidCapability implements IFluidHandler {
-    public final TileEntity tile;
-    public final Direction side;
-    public final boolean isNode;
+public class TesseractFluidCapability extends TesseractBaseCapability implements IFluidHandler {
 
     private FluidTransaction old;
 
-    public TesseractFluidCapability(TileEntity tile, Direction dir, boolean isNode) {
-        this.tile = tile;
-        this.side = dir;
-        this.isNode = isNode;
+    public TesseractFluidCapability(TileEntity tile, Direction dir, boolean isNode, ITransactionModifier callback) {
+        super(tile, dir, isNode, callback);
     }
 
     @Override
@@ -47,15 +46,50 @@ public class TesseractFluidCapability implements IFluidHandler {
 
     @Override
     public int fill(FluidStack resource, FluidAction action) {
+        if (this.isSending) return 0;
+        this.isSending = true;
         if (action.execute()) {
+            if (this.isNode) {
+                for (FluidStack stac : this.old.getData()) {
+                    callback.modify(stac, this.side, modifyDirs.pop(), false);
+                }
+            }
             old.commit();
         } else {
             long pos = tile.getBlockPos().asLong();
             FluidTransaction transaction = new FluidTransaction(resource.copy(), a -> {
             });
-            Tesseract.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction);
+            if (!this.isNode) {
+                Tesseract.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction);
+            } else {
+                modifyDirs.clear();
+                FluidStack current = resource.copy();
+                for (Direction dir : Graph.DIRECTIONS) {
+                    if (dir == this.side)
+                        continue;
+                    TileEntity tile = this.tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
+                    if (tile == null)
+                        continue;
+                    LazyOptional<IFluidHandler> cap = tile
+                            .getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, dir.getOpposite());
+                    IFluidHandler handle = cap.orElse(null);
+                    if (handle == null)
+                        continue;
+                    int inserted = handle.fill(current, action);
+                    if (inserted > 0) {
+                        // Amount actually inserted
+                        FluidStack copy = current.copy();
+                        copy.setAmount(inserted);
+                        callback.modify(copy, this.side, dir, true);
+                        current.setAmount(current.getAmount() - copy.getAmount());
+                        modifyDirs.add(dir);
+                        transaction.addData(copy, a -> handle.fill(a, FluidAction.EXECUTE));
+                    }
+                }
+            }
             this.old = transaction;
         }
+        this.isSending = false;
         return resource.getAmount() - this.old.stack.getAmount();
     }
 

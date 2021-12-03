@@ -24,7 +24,7 @@ import tesseract.util.Node;
 import tesseract.util.Pos;
 
 public class GraphTest {
-  @Test
+  /*@Test
   public void system() {
     Long2ObjectMap<TestNode> map = new Long2ObjectOpenHashMap<>();
     INodeGetter<TestNode> tester = getter(map);
@@ -204,5 +204,5 @@ public class GraphTest {
     public String toString() {
       return "TestNode";
     }
-  }
+  }*/
 }

@@ -2,6 +2,7 @@ package tesseract.graph;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
@@ -25,7 +26,7 @@ public class NodeCache<T> implements IConnectable {
         this.bitMap = 0;
         for (Direction d : Graph.DIRECTIONS) {
             if (!graph.validate(d, pos)) continue;
-            T t = getter.get(pos, d, () -> graph.onCapabilityInvalidate(d, pos));
+            T t = getter.get(pos, d, () -> graph.onCapabilityInvalidate(pos));
             if (t != null) {
                 value.put(d, t);
                 if (t != null) setSide(d);
@@ -41,7 +42,7 @@ public class NodeCache<T> implements IConnectable {
         byte old = bitMap;
         if (!graph.validate(side, pos)) return old != bitMap;
         this.bitMap |= 1 << side.get3DDataValue();
-        this.value.put(side, getter.get(pos, side, () -> graph.onCapabilityInvalidate(side, pos)));
+        this.value.put(side, getter.get(pos, side, () -> graph.onCapabilityInvalidate(pos)));
         return old != bitMap;
     }
 

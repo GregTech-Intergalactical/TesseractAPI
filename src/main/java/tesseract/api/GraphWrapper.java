@@ -62,12 +62,12 @@ public class GraphWrapper<T, C extends IConnectable, N> {
     public void registerConnector(World dim, long pos, C connector, INodeGetter<N> applier) {
         if (dim.isClientSide())
             return;
-        getGraph(dim).addConnector(pos, new Cache<>(connector), () -> supplier.apply(dim), applier, Tesseract.hadFirstTick(dim));
+        getGraph(dim).addConnector(pos, new Cache<>(connector), applier, Tesseract.hadFirstTick(dim));
     }
 
     public void blockUpdate(World dim, long connector, long node, INodeGetter<N> applier) {
         if (dim.isClientSide()) return;
-        getGraph(dim).onUpdate(connector, node, applier, () -> supplier.apply(dim));
+        getGraph(dim).onUpdate(connector, node, applier);
     }
 
     /**
@@ -79,7 +79,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      */
     public Graph<T, C, N> getGraph(IWorld dim) {
         assert !dim.isClientSide();
-        return graph.computeIfAbsent(dim, k -> new Graph<>());
+        return graph.computeIfAbsent(dim, k -> new Graph<>(() -> supplier.apply((World) dim)));
     }
 
     /**

@@ -3,7 +3,6 @@ package tesseract.api.gt;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Direction;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.World;
 import tesseract.Tesseract;
 import tesseract.api.ConnectionType;
@@ -76,7 +75,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
                         if (!path.isEmpty()) {
                             Node target = path.target();
                             assert target != null;
-                            if (!onCheck(producer, consumers, path, pos, target.asLong()))
+                            if (!onCheck(producer, consumers, path, target.asLong(), target.getDirection()))
                                 return false;
                         }
                     }
@@ -113,20 +112,12 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
      * @param producerPos The position of the producer.
      * @return whether or not an issue arose checking node.
      */
-    private boolean onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long producerPos,
-            long consumerPos) {
+    private boolean onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long consumerPos, Direction dir) {
         NodeCache<IGTNode> nodee = group.getNodes().get(consumerPos);
-        if (nodee == null) {
-            Tesseract.LOGGER.warn("Error in onCheck, null cache.");
-            return false;
-        }
-        long pos = Pos.sub(consumerPos, producerPos);
 
-        Direction dir = path != null ? path.target().getDirection()
-                : Direction.getNearest(Pos.unpackX(pos), Pos.unpackY(pos), Pos.unpackZ(pos)).getOpposite();
         IGTNode node = nodee.value(dir);
 
-        if (node.canInput(dir)) {
+        if (node != null && node.canInput(dir)) {
             GTConsumer consumer = new GTConsumer(node, path);
             long voltage = producer.getOutputVoltage() - consumer.getLoss();
             if (voltage <= 0) {
@@ -176,6 +167,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
     @Override
     public void insert(long pipePos, Direction side, GTTransaction stack) {
         NodeCache<IGTNode> node = this.group.getNodes().get(Pos.offset(pipePos, side));
+        if (node == null) return;
         IGTNode producer = node.value(side.getOpposite());
         Map<Direction, List<GTConsumer>> map = this.data.get(Pos.offset(pipePos, side));
         if (map == null)

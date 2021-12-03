@@ -12,28 +12,20 @@ import tesseract.api.item.ItemTransaction;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-public class TesseractItemCapability implements IItemHandler {
-    //The pipe.
-    public final TileEntity tile;
-    public final Direction side;
-    public final boolean isNode;
-    public final ITransactionModifier callback;
+public class TesseractItemCapability extends TesseractBaseCapability implements IItemHandler {
     
     private ItemTransaction old;
-    private final List<Direction> modifyDirs = new ObjectArrayList<>(3);
-
+    
     public TesseractItemCapability(TileEntity tile, Direction dir, boolean isNode, ITransactionModifier onTransaction) {
-        this.tile = tile;
-        this.side = dir;
-        this.isNode = isNode;
-        this.callback = onTransaction;
+        super(tile, dir, isNode, onTransaction);
     }
 
     @Override
@@ -51,9 +43,15 @@ public class TesseractItemCapability implements IItemHandler {
     @Override
     public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
         if (!simulate) {
-            callback.modify(old.stack, this.side, null, false);
+            if (this.isNode) {
+                for (ItemStack stac : this.old.getData()) {
+                    callback.modify(stac, this.side, modifyDirs.pop(), false);
+                }
+            }
             old.commit();
         } else {
+            if (this.isSending) return stack;
+            this.isSending = true;
             modifyDirs.clear();
             ItemTransaction transaction = new ItemTransaction(stack, a -> {
             });
@@ -80,6 +78,7 @@ public class TesseractItemCapability implements IItemHandler {
                             count = current.getCount() - inserted.getCount();
                             current.setCount(count);
                             final int ii = i;
+                            modifyDirs.add(dir);
                             transaction.addData(inserted, a -> handle.insertItem(ii, a, false));
                         }
                     }
@@ -87,6 +86,7 @@ public class TesseractItemCapability implements IItemHandler {
             }
             this.old = transaction;
         }
+        this.isSending = false;
         return old.stack.copy();
     }
 
