@@ -32,7 +32,9 @@ public class Path<C extends IConnectable> {
         pathNode.setParent(origin);
         Node target = new Node(Pos.offset(pos, to), to.getOpposite());
         target.setParent(pathNode);
-        return new Path<>(Long2ObjectMaps.singleton(pos, new Cache<>(c)), new ArrayDeque<>(Arrays.asList(target, pathNode, origin)));
+        Path<C> path = new Path<>(Long2ObjectMaps.singleton(pos, new Cache<>(c)), new ArrayDeque<>(Arrays.asList(target, pathNode, origin)));
+        path.cross.put(pos, path.full.get(pos));
+        return path;
     }
 
 

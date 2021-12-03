@@ -254,8 +254,10 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
 
     @Override
     public void getInfo(long pos, @Nonnull List<String> list) {
-        this.group.getGroupInfo(pos, list);
-        list.add(String.format("Fluid Data size: %d", this.data.size()));
+        if (this.group != null) {
+            this.group.getGroupInfo(pos, list);
+            list.add(String.format("Fluid Data size: %d", this.data.size()));
+        }
     }
 
     @Override

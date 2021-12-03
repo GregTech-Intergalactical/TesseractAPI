@@ -148,11 +148,6 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
     @Override
     public void tick() {
         super.tick();
-        /*holders.long2LongEntrySet().forEach(e -> frameHolders.compute(e.getLongKey(), (a, b) -> {
-            if (b == null)
-                b = 0L;
-            return b + e.getLongValue();
-        }));*/
         this.group.connectors().forEach(t -> t.value().setHolder(GTHolder.create(t.value(), 0)));
         this.group.getNodes().values().forEach(t -> {
             for (Map.Entry<Direction, IGTNode> n : t.values()) {
@@ -260,8 +255,10 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
 
     @Override
     public void getInfo(long pos, @Nonnull List<String> list) {
-        this.group.getGroupInfo(pos, list);
-        list.add(String.format("GT Data size: %d", this.data.size()));
+        if (this.group != null) {
+            this.group.getGroupInfo(pos, list);
+            list.add(String.format("GT Data size: %d", this.data.size()));
+        }
         /*
          * int amp = GTHolder.getAmperage(previousFrameHolder.get(pos));
          * return new String[]{

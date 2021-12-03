@@ -101,7 +101,7 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
         }
 
         public TransferData setLoss(long loss) {
-            this.loss = loss;
+            this.loss = Math.min(this.voltage, loss);
             return this;
         }
 

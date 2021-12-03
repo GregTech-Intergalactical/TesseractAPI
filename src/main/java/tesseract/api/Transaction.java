@@ -3,6 +3,7 @@ package tesseract.api;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -30,6 +31,16 @@ public abstract class Transaction<T> {
         return transmitted.get(transmitted.size()-1);
     }
 
+    public Iterable<T> getOffset(int j) {
+        return () ->{
+            Iterator<T> t = this.transmitted.iterator();
+            for (int i = 0; i < j; i++) {
+                t.next();
+            }
+            return t;
+        };
+    }
+
     public List<T> getData() {
         return cancelled ? Collections.emptyList() : transmitted;
     }
@@ -47,6 +58,15 @@ public abstract class Transaction<T> {
             this.onCommit.add(this.onCommit.size()-1, current.andThen(consumer));
         }
     }
+
+    public void pushCallback(Consumer<T> consumer, int j) {
+        if (cancelled || this.onCommit.size() == 0) return;
+        Consumer<T> current = this.onCommit.get(j);
+        if (current != null) {
+            this.onCommit.add(j, current.andThen(consumer));
+        }
+    }
+
 
     public void cancel() {
         this.cancelled = true;

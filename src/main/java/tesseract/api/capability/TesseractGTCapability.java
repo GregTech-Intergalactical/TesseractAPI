@@ -1,5 +1,7 @@
 package tesseract.api.capability;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.tileentity.TileEntity;
@@ -10,15 +12,14 @@ import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.util.LazyOptional;
 import tesseract.Tesseract;
-import tesseract.api.fluid.FluidConsumer;
-import tesseract.api.fluid.FluidController;
-import tesseract.api.fluid.IFluidNode;
-import tesseract.api.gt.*;
+import tesseract.api.gt.GTConsumer;
+import tesseract.api.gt.GTController;
+import tesseract.api.gt.GTTransaction;
+import tesseract.api.gt.IEnergyHandler;
+import tesseract.api.gt.IGTCable;
 import tesseract.graph.Graph;
 import tesseract.graph.Path;
 import tesseract.util.Pos;
-
-import javax.annotation.Nullable;
 
 public class TesseractGTCapability<T extends TileEntity & IGTCable> extends TesseractBaseCapability<T> implements IEnergyHandler {
     @CapabilityInject(IEnergyHandler.class)
@@ -130,12 +131,10 @@ public class TesseractGTCapability<T extends TileEntity & IGTCable> extends Tess
     }
 
     private final IGTCable cable;
-    private long holder;
 
     public TesseractGTCapability(T tile, Direction dir, boolean isNode, ITransactionModifier modifier) {
         super(tile, dir, isNode, modifier);
         this.cable = (IGTCable) tile;
-        holder = GTHolder.create(cable, 0);
     }
 
     @Override
@@ -149,6 +148,7 @@ public class TesseractGTCapability<T extends TileEntity & IGTCable> extends Tess
             Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction);
             flag = transaction.getAvailableAmps() < old;
         } else {
+            if (true) throw new IllegalStateException("For now, covers on GT Cables are disallowed");
             modifyDirs.clear();
             for (Direction dir : Graph.DIRECTIONS) {
                 if (dir == this.side)
@@ -162,15 +162,19 @@ public class TesseractGTCapability<T extends TileEntity & IGTCable> extends Tess
                 IEnergyHandler handle = cap.orElse(null);
                 if (handle == null)
                     continue;
+                int i = transaction.getData().size();
                 if (handle.insert(transaction)) {
                     flag = true;
-                    this.callback.modify(transaction.getLast(), this.side, dir, true);
-                    GTController c = ((GTController)Tesseract.GT_ENERGY.getController(tile.getLevel(), tile.getBlockPos().asLong()));
-                    transaction.pushCallback(a -> {
-                        callback.modify(a, this.side, modifyDirs.pop(), false);
-                        c.dataCommit(new GTConsumer(handle, Path.of(this.tile.getBlockPos().asLong(), cable, this.side, dir)), a);
-                    });
-                    modifyDirs.add(dir);
+                    for (int j = i; j < transaction.getData().size(); j++) {
+                        this.callback.modify(transaction.getData().get(j), this.side, dir, true);
+                        transaction.getData().get(j).setLoss(transaction.getData().get(j).getLoss() + cable.getLoss());
+                        GTController c = ((GTController)Tesseract.GT_ENERGY.getController(tile.getLevel(), tile.getBlockPos().asLong()));
+                        transaction.pushCallback(a -> {
+                            callback.modify(a, this.side, modifyDirs.pop(), false);
+                            c.dataCommit(new GTConsumer(handle, Path.of(this.tile.getBlockPos().asLong(), cable, this.side, dir)), a);
+                        }, j);
+                        modifyDirs.add(dir);
+                    }
                 }
                 if (!transaction.canContinue()) break;
             }
@@ -203,6 +207,18 @@ public class TesseractGTCapability<T extends TileEntity & IGTCable> extends Tess
     @Override
     public long getCapacity() {
         return 0;
+    }
+
+    
+
+    @Override
+    public long availableAmpsInput() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
+    public long availableAmpsOutput() {
+        return Long.MAX_VALUE;
     }
 
     @Override

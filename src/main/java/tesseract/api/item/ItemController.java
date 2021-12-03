@@ -180,8 +180,10 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
 
     @Override
     public void getInfo(long pos, @Nonnull List<String> list) {
-        this.group.getGroupInfo(pos, list);
-        list.add(String.format("Item Data size: %d", this.data.size()));
+        if (this.group != null) {
+            this.group.getGroupInfo(pos, list);
+            list.add(String.format("Item Data size: %d", this.data.size()));
+        }
     }
 
     public int getTransferred() {

@@ -68,6 +68,11 @@ public class Group<T, C extends IConnectable, N> implements INode {
         return () -> this.grids.values().stream().flatMap(t -> t.getConnectors().values().stream()).distinct().iterator();
     }
 
+    public Iterable<Long2ObjectMap.Entry<Cache<C>>> connectorsEntries() {
+        return () -> this.grids.values().stream().flatMap(t -> t.getConnectors().long2ObjectEntrySet().stream()).distinct().iterator();
+    }
+
+
     @Override
     public boolean contains(long pos) {
         return nodes.containsKey(pos) || connectors.containsKey(pos);
