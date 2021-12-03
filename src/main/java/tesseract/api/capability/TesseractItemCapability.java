@@ -8,8 +8,13 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import tesseract.Tesseract;
+import tesseract.api.item.IItemNode;
+import tesseract.api.item.IItemPipe;
+import tesseract.api.item.ItemConsumer;
+import tesseract.api.item.ItemController;
 import tesseract.api.item.ItemTransaction;
 import tesseract.graph.Graph;
+import tesseract.graph.Path;
 import tesseract.util.Pos;
 
 import java.util.ArrayDeque;
@@ -20,11 +25,11 @@ import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 
 
-public class TesseractItemCapability extends TesseractBaseCapability implements IItemHandler {
+public class TesseractItemCapability<T extends TileEntity & IItemPipe> extends TesseractBaseCapability<T> implements IItemHandler {
     
     private ItemTransaction old;
     
-    public TesseractItemCapability(TileEntity tile, Direction dir, boolean isNode, ITransactionModifier onTransaction) {
+    public TesseractItemCapability(T tile, Direction dir, boolean isNode, ITransactionModifier onTransaction) {
         super(tile, dir, isNode, onTransaction);
     }
 
@@ -43,11 +48,6 @@ public class TesseractItemCapability extends TesseractBaseCapability implements 
     @Override
     public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
         if (!simulate) {
-            if (this.isNode) {
-                for (ItemStack stac : this.old.getData()) {
-                    callback.modify(stac, this.side, modifyDirs.pop(), false);
-                }
-            }
             old.commit();
         } else {
             if (this.isSending) return stack;
@@ -62,6 +62,7 @@ public class TesseractItemCapability extends TesseractBaseCapability implements 
                 ItemStack current = stack.copy();
                 for (Direction dir : Graph.DIRECTIONS) {
                     if (dir == this.side) continue;
+                    if (!this.tile.connects(dir)) continue;
                     TileEntity tile = this.tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
                     if (tile == null) continue;
                     LazyOptional<IItemHandler> cap = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, dir.getOpposite());
@@ -79,7 +80,15 @@ public class TesseractItemCapability extends TesseractBaseCapability implements 
                             current.setCount(count);
                             final int ii = i;
                             modifyDirs.add(dir);
-                            transaction.addData(inserted, a -> handle.insertItem(ii, a, false));
+                            transaction.addData(inserted, a -> {
+                                for (ItemStack stac : this.old.getData()) {
+                                    callback.modify(stac, this.side, modifyDirs.pop(), false);
+                                }
+                                //ItemController has no extra method over transfer counting
+                                //ItemController c = ((ItemController)Tesseract.ITEM.getController(tile.getLevel(), tile.getBlockPos().asLong()));
+                                //c.dataCommit(new ItemConsumer(new IItemNode.ItemTileWrapper(this.tile,handle), Path.of(tile.getBlockPos().asLong(), ((IItemPipe) tile), this.side, dir), dir), a, a.getCount());
+                                handle.insertItem(ii, a, false);
+                            });
                         }
                     }
                 }

@@ -23,7 +23,6 @@ import java.util.Map;
 public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> implements IGTEvent {
 
     private long totalVoltage, totalAmperage, lastVoltage, lastAmperage, totalLoss, lastLoss;
-    private final Long2LongMap holders = new Long2LongLinkedOpenHashMap();
     // Cable monitoring.
     private Long2LongMap frameHolders = new Long2LongLinkedOpenHashMap();
     private Long2LongMap previousFrameHolder = new Long2LongLinkedOpenHashMap();
@@ -71,7 +70,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
 
                 Grid<IGTCable> grid = group.getGridAt(side, direction);
                 if (grid != null) {
-                    for (Path<IGTCable> path : grid.getPaths(pos, direction)) {
+                    for (Path<IGTCable> path : grid.getPaths(pos)) {
                         if (!path.isEmpty()) {
                             Node target = path.target();
                             assert target != null;
@@ -109,7 +108,6 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
      * @param consumers   The consumer nodes.
      * @param path        The paths to consumers.
      * @param consumerPos The position of the consumer.
-     * @param producerPos The position of the producer.
      * @return whether or not an issue arose checking node.
      */
     private boolean onCheck(IGTNode producer, List<GTConsumer> consumers, Path<IGTCable> path, long consumerPos, Direction dir) {
@@ -150,15 +148,16 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
     @Override
     public void tick() {
         super.tick();
-        holders.long2LongEntrySet().forEach(e -> frameHolders.compute(e.getLongKey(), (a, b) -> {
+        /*holders.long2LongEntrySet().forEach(e -> frameHolders.compute(e.getLongKey(), (a, b) -> {
             if (b == null)
                 b = 0L;
             return b + e.getLongValue();
-        }));
-        holders.clear();
+        }));*/
+        this.group.connectors().forEach(t -> t.value().setHolder(GTHolder.create(t.value(), 0)));
         this.group.getNodes().values().forEach(t -> {
             for (Map.Entry<Direction, IGTNode> n : t.values()) {
-                n.getValue();
+                n.getValue().tesseractTick();
+                break;
             }
         });
         // obtains.clear();
@@ -172,7 +171,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
         Map<Direction, List<GTConsumer>> map = this.data.get(Pos.offset(pipePos, side));
         if (map == null)
             return;
-        List<GTConsumer> list = map.get(side.getOpposite());
+        List<GTConsumer> list = map.get(side);
         if (list == null)
             return;
 
@@ -215,7 +214,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
      * @param consumer the consumer.
      * @param data     the transfer data.
      */
-    protected void dataCommit(GTConsumer consumer, GTTransaction.TransferData data) {
+    public void dataCommit(GTConsumer consumer, GTTransaction.TransferData data) {
         if (!consumer.canHandle(data.getVoltage()) || (consumer.getConnection() == ConnectionType.SINGLE
                 && !(consumer.canHandleAmp(data.getTotalAmperage())))) {
             for (Long2ObjectMap.Entry<Path.PathHolder<IGTCable>> c : consumer.getFull().long2ObjectEntrySet()) {
@@ -235,13 +234,9 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
             for (Long2ObjectMap.Entry<Path.PathHolder<IGTCable>> c : consumer.getCross().long2ObjectEntrySet()) {
                 long pos = c.getLongKey();
                 IGTCable cable = c.getValue().connector;
-
-                long holder = holders.get(pos);
-                holders.put(pos, (holder == 0L) ? GTHolder.create(cable, data.getTotalAmperage())
-                        : GTHolder.add(holder, data.getTotalAmperage()));
-
-                if (GTHolder.isOverAmperage(holders.get(pos))) {
-                    onCableOverAmperage(getWorld(), pos, GTHolder.getAmperage(holders.get(pos)));
+                cable.setHolder(GTHolder.add(cable.getHolder(), data.getTotalAmperage()));
+                if (GTHolder.isOverAmperage(cable.getHolder())) {
+                    onCableOverAmperage(getWorld(), pos, GTHolder.getAmperage(cable.getHolder()));
                     return;
                 }
             }

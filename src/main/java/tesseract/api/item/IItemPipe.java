@@ -12,4 +12,8 @@ public interface IItemPipe extends IConnectable {
      * @return A positive integer representing the maximum packets, zero or negative indicates that this component accepts no items.
      */
     int getCapacity();
+
+    int getHolder();
+
+    void setHolder(int holder);
 }

@@ -17,6 +17,8 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import javax.annotation.Nonnull;
+
 public class GraphWrapper<T, C extends IConnectable, N> {
 
     protected final Object2ObjectMap<IWorld, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
@@ -89,11 +91,12 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param pos The position at which the electric component is exist.
      * @return The controller object. (Can be null)
      */
+    @Nonnull
     public ITickingController<T, C, N> getController(World dim, long pos) {
         if (dim.isClientSide())
             return null;
         Group<T, C, N> group = getGraph(dim).getGroupAt(pos);
-        return group != null ? group.getController() : null;
+        return group != null ? group.getController() : supplier.apply(dim);
     }
 
     /**

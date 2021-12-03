@@ -11,7 +11,7 @@ public class GTHolder {
      * @param cable    The cable connector.
      * @param amperage The initial amperage.
      */
-    protected static long create(IGTCable cable, long amperage) {
+    public static long create(IGTCable cable, long amperage) {
         return (long) cable.getAmps() << 32 | amperage;
     }
 
@@ -21,7 +21,7 @@ public class GTHolder {
      * @param holder   The long with the packed holder.
      * @param amperage The added amperage.
      */
-    protected static long add(long holder, long amperage) {
+    public static long add(long holder, long amperage) {
         return (long) getMaxAmperage(holder) << 32 | getAmperage(holder) + amperage;
     }
 
@@ -29,7 +29,7 @@ public class GTHolder {
      * @param holder The long with the packed holder.
      * @return Gets a current amperage.
      */
-    protected static int getAmperage(long holder) {
+    public static int getAmperage(long holder) {
         return (int) (holder);
     }
 
@@ -37,7 +37,7 @@ public class GTHolder {
      * @param holder The long with the packed holder.
      * @return Gets a maximum amperage.
      */
-    protected static int getMaxAmperage(long holder) {
+    public static int getMaxAmperage(long holder) {
         return (int) (holder >> 32);
     }
 
@@ -45,7 +45,7 @@ public class GTHolder {
      * @param holder The long with the packed holder.
      * @return Checks that the holder is not able to handle it.
      */
-    protected static boolean isOverAmperage(long holder) {
+    public static boolean isOverAmperage(long holder) {
         return getMaxAmperage(holder) < getAmperage(holder);
     }
 }

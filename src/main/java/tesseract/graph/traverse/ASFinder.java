@@ -39,9 +39,6 @@ public class ASFinder {
      * @return An set of the points calculated by the A Star algorithm.
      */
     public Deque<Node> traverse(long origin, long target) {
-        return traverse(origin, target, Long.MIN_VALUE);
-    }
-    public Deque<Node> traverse(long origin, long target, long skip) {
         if (!closed.isEmpty() || !open.isEmpty()) {
             throw new ConcurrentModificationException("Attempted to run concurrent search operations on the same ASFinder instance");
         }
@@ -73,7 +70,6 @@ public class ASFinder {
                     if (n == null) {
                         break;
                     }
-                    if (n.asLong() == skip) continue;
                     if (closed.contains(n)) {
                         continue;
                     }

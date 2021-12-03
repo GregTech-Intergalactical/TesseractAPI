@@ -40,4 +40,16 @@ public class Cache<T extends IConnectable> {
     public T value() {
         return value;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Cache && ((Cache<T>)obj).value == this.value;
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
+
+    
 }

@@ -27,7 +27,6 @@ import java.util.Map;
  */
 public class ItemController extends Controller<ItemTransaction, IItemPipe, IItemNode> {
     private int transferred;
-    private final Long2IntMap holders = new Long2IntOpenHashMap();
     private final Long2ObjectMap<Map<Direction, List<ItemConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -37,12 +36,11 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
      */
     public ItemController(World dim) {
         super(dim);
-        holders.defaultReturnValue(0);
     }
 
     @Override
     protected void onFrame() {
-        holders.clear();
+        this.group.connectors().forEach(t -> t.value().setHolder(0));
     }
 
     protected void handleInput(long pos, NodeCache<IItemNode> cache) {
@@ -56,7 +54,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
                     long side = Pos.offset(pos, direction);// position.offset(direction).asLong();
                     Grid<IItemPipe> grid = group.getGridAt(side, direction);
                     if (grid != null) {
-                        for (Path<IItemPipe> path : grid.getPaths(pos, direction)) {
+                        for (Path<IItemPipe> path : grid.getPaths(pos)) {
                             if (!path.isEmpty()) {
                                 Node target = path.target();
                                 assert target != null;
@@ -123,7 +121,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
                 for (Long2ObjectMap.Entry<Path.PathHolder<IItemPipe>> p : consumer.getCross().long2ObjectEntrySet()) {
                     long pos = p.getLongKey();
                     IItemPipe pipe = p.getValue().connector;
-                    int stacksUsed = holders.get(pos) + tempHolders.get(pos);
+                    int stacksUsed = pipe.getHolder() + tempHolders.get(pos);
                     if (pipe.getCapacity() == stacksUsed) {
                         actual = 0;
                         break;
@@ -156,16 +154,12 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
         }
     }
 
-    protected void dataCommit(ItemConsumer consumer, ItemStack stack, int transferred) {
+    public void dataCommit(ItemConsumer consumer, ItemStack stack, int transferred) {
         consumer.insert(stack, false);
         this.transferred += transferred;
         if (consumer.getConnection() == ConnectionType.VARIATE) {
             for (Long2ObjectMap.Entry<Path.PathHolder<IItemPipe>> entry : consumer.getCross().long2ObjectEntrySet()) {
-                this.holders.compute(entry.getLongKey(), (a, b) -> {
-                    if (b == null)
-                        return 1;
-                    return b + 1;
-                });
+                entry.getValue().connector.setHolder(entry.getValue().connector.getHolder()+1);
             }
         }
     }
@@ -175,7 +169,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
      *
      * @param consumers The consumer nodes.
      * @param path      The paths to consumers.
-     * @param Direction The added Directionection.
+     * @param dir       The added dir.
      * @param pos       The position of the producer.
      */
     private void onCheck(List<ItemConsumer> consumers, Path<IItemPipe> path, Direction dir, long pos) {
@@ -195,7 +189,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
     }
 
     public int getCableTransferred(long pos) {
-        return holders.get(pos);
+        return group.getConnector(pos).value().getHolder();
     }
 
     @Override

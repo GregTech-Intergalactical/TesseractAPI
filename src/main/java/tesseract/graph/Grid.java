@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
+import tesseract.api.capability.TesseractBaseCapability;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Node;
@@ -11,7 +12,9 @@ import tesseract.util.Pos;
 
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.LongPredicate;
 
 /**
  * Grid provides the functionality of a set of linked nodes.
@@ -130,7 +133,7 @@ public class Grid<C extends IConnectable> implements INode {
      * @param from The position of the linked node.
      * @return Returns paths from the linked node.
      */
-    public List<Path<C>> getPaths(long from, Direction side) {
+    public List<Path<C>> getPaths(long from) {
         List<Path<C>> data = new ObjectArrayList<>();
         for (long to : nodes.keySet()) {
             if (from != to) {

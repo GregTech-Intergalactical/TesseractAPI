@@ -22,7 +22,7 @@ public class FluidHolder {
      *
      * @param pipe The pipe connector.
      */
-    protected FluidHolder(IFluidPipe pipe) {
+    public FluidHolder(IFluidPipe pipe) {
         this.maxCapacity = pipe.getCapacity();
         this.tickPressure = pipe.getPressure();
 
@@ -85,6 +85,11 @@ public class FluidHolder {
 
     public Set<SetHolder> getFluids() {
         return fluids;
+    }
+
+    public void clear() {
+        this.fluids.clear();
+        this.pressureAvailable = tickPressure*20;
     }
 
     public static class SetHolder {

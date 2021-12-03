@@ -21,7 +21,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      * @param path     The path information.
      * @param dir      The input direction.
      */
-    protected ItemConsumer(IItemNode consumer, Path<IItemPipe> path, Direction dir) {
+    public ItemConsumer(IItemNode consumer, Path<IItemPipe> path, Direction dir) {
         super(consumer, path);
         init();
         input = dir;

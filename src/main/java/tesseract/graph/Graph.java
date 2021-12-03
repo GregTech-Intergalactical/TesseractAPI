@@ -215,7 +215,9 @@ public class Graph<T, C extends IConnectable, N> implements INode {
      * @param pos The position of the entry to remove.
      */
     public boolean removeAt(long pos, Supplier<Controller<T, C, N>> controller) {
-        boolean isConnector = this.getGroupAt(pos).getConnector(pos) != null;
+        Group<T,C,N> gr = this.getGroupAt(pos);
+        if (gr == null) return false;
+        boolean isConnector = gr.getConnector(pos) != null;
         if (!isConnector) {
             throw new IllegalStateException("Attempting to call Graph::removeAt at an invalid position");
         }
@@ -269,7 +271,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
         }
         NodeCache<N> cache = group.getNodes().get(nodePos);
         if (cache == null) return;
-        boolean ok = updateNodeSides(nodePos, cache);
+        boolean ok = updateNodeSides(cache);
         removeInternal(nodePos);
         if (ok) {
             if (controller == null) {
@@ -279,27 +281,9 @@ public class Graph<T, C extends IConnectable, N> implements INode {
         }
     }
 
-    private boolean updateNodeSides(long pos, NodeCache<N> node) {
-        Group<T,C,N> group = this.getGroupAt(pos);
+    private boolean updateNodeSides(NodeCache<N> node) {
         for (int i = 0; i < Graph.DIRECTIONS.length; i++) {
-            Direction dir = Graph.DIRECTIONS[i];
-            long offset = Pos.offset(pos, dir);
-            Grid<C> grid = group.getGridAt(offset, dir);
-            if (grid != null) {
-                Cache<C> connector = grid.getConnectors().get(offset);
-                if (connector != null) {
-                    boolean ok = connector.value().validate(dir.getOpposite());
-                    if (!ok) {
-                        node.clearSide(dir);
-                    } else {
-                        node.setSide(dir);
-                    }
-                } else {
-                    node.clearSide(dir);
-                }
-            } else {
-                node.clearSide(dir);
-            }
+            node.updateSide(Graph.DIRECTIONS[i]);
         }
         return node.count() > 0;
     }

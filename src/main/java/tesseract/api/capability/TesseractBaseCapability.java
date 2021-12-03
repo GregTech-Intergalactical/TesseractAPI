@@ -5,9 +5,10 @@ import java.util.Deque;
 
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
+import tesseract.api.IConnectable;
 
-public abstract class TesseractBaseCapability {
-    public final TileEntity tile;
+public abstract class TesseractBaseCapability<T extends TileEntity & IConnectable> {
+    public final T tile;
     public final Direction side;
     public final boolean isNode;
     public final ITransactionModifier callback;
@@ -16,12 +17,11 @@ public abstract class TesseractBaseCapability {
 
     protected boolean isSending;
 
-    public TesseractBaseCapability(TileEntity tile, Direction side, boolean isNode, ITransactionModifier callback) {
+    public TesseractBaseCapability(T tile, Direction side, boolean isNode, ITransactionModifier callback) {
         this.tile = tile;
         this.side = side;
         this.isNode = isNode;
         this.callback = callback;
         this.isSending = false;
     }
-
 }

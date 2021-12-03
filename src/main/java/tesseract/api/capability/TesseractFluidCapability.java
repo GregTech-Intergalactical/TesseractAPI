@@ -7,19 +7,19 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
 import tesseract.Tesseract;
-import tesseract.api.fluid.FluidTransaction;
+import tesseract.api.fluid.*;
 import tesseract.graph.Graph;
+import tesseract.graph.Path;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 
-public class TesseractFluidCapability extends TesseractBaseCapability implements IFluidHandler {
+public class TesseractFluidCapability<T extends TileEntity & IFluidPipe> extends TesseractBaseCapability<T> implements IFluidHandler {
 
     private FluidTransaction old;
 
-    public TesseractFluidCapability(TileEntity tile, Direction dir, boolean isNode, ITransactionModifier callback) {
+    public TesseractFluidCapability(T tile, Direction dir, boolean isNode, ITransactionModifier callback) {
         super(tile, dir, isNode, callback);
     }
 
@@ -83,7 +83,10 @@ public class TesseractFluidCapability extends TesseractBaseCapability implements
                         callback.modify(copy, this.side, dir, true);
                         current.setAmount(current.getAmount() - copy.getAmount());
                         modifyDirs.add(dir);
-                        transaction.addData(copy, a -> handle.fill(a, FluidAction.EXECUTE));
+                        transaction.addData(copy, a -> {
+                            FluidController c = ((FluidController)Tesseract.FLUID.getController(tile.getLevel(), tile.getBlockPos().asLong()));
+                            c.dataCommit(new FluidConsumer(new IFluidNode.FluidTileWrapper(this.tile,handle), Path.of(tile.getBlockPos().asLong(), ((IFluidPipe) tile), this.side, dir), dir), a);
+                        });
                     }
                 }
             }

@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.LongConsumer;
 
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
@@ -63,6 +62,10 @@ public class Group<T, C extends IConnectable, N> implements INode {
         group.grids.put(id, Grid.singleConnector(pos, connector));
         group.updateController(controller);
         return group;
+    }
+
+    public Iterable<Cache<C>> connectors() {
+        return () -> this.grids.values().stream().flatMap(t -> t.getConnectors().values().stream()).distinct().iterator();
     }
 
     @Override
@@ -644,7 +647,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
     public boolean addSide(long pos, Direction side) {
         NodeCache<N> cache = this.nodes.get(pos);
         if (cache != null) {
-            return cache.setSide(side);
+            return cache.updateSide(side);
         }
         return false;
     }

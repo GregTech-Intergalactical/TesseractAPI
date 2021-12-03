@@ -25,7 +25,7 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
      * @param consumer The consumer node.
      * @param path     The path information.
      */
-    protected GTConsumer(IGTNode consumer, Path<IGTCable> path) {
+    public GTConsumer(IGTNode consumer, Path<IGTCable> path) {
         super(consumer, path);
         init();
     }

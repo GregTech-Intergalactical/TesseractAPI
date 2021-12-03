@@ -38,5 +38,9 @@ public interface IGTCable extends IConnectable {
         else if (getAmps() < amperage) return GTStatus.FAIL_AMPERAGE;
         return GTStatus.SUCCESS;
     }
+
+    long getHolder();
+
+    void setHolder(long holder);
 }
 

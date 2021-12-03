@@ -6,8 +6,14 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
 import tesseract.util.Node;
+import tesseract.util.Pos;
 
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
+import java.util.function.LongPredicate;
+import java.util.function.Predicate;
 
 /**
  * The Path is a class that should work with paths for grids.
@@ -19,6 +25,17 @@ public class Path<C extends IConnectable> {
     private final Long2ObjectMap<PathHolder<C>> full = new Long2ObjectLinkedOpenHashMap<>();
     private final Long2ObjectMap<PathHolder<C>> cross = new Long2ObjectLinkedOpenHashMap<>();
 
+
+    public static <C extends IConnectable> Path<C> of(long pos, C c, Direction from, Direction to) {
+        Node origin = new Node(Pos.offset(pos, from), from.getOpposite());
+        Node pathNode = new Node(pos, from);
+        pathNode.setParent(origin);
+        Node target = new Node(Pos.offset(pos, to), to.getOpposite());
+        target.setParent(pathNode);
+        return new Path<>(Long2ObjectMaps.singleton(pos, new Cache<>(c)), new ArrayDeque<>(Arrays.asList(target, pathNode, origin)));
+    }
+
+
     /**
      * Creates a path instance.
      *
@@ -28,7 +45,6 @@ public class Path<C extends IConnectable> {
     protected Path(Long2ObjectMap<Cache<C>> connectors, Deque<Node> path) {
         origin = path.pollLast();
         target = path.pollFirst();
-
         Node node;
         while (!path.isEmpty()) {
             node = path.removeLast();

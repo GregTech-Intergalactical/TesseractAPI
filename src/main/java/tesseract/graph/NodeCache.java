@@ -4,11 +4,11 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import net.minecraft.util.Direction;
+import tesseract.Tesseract;
 import tesseract.api.IConnectable;
 import tesseract.graph.Graph.INodeGetter;
 
 public class NodeCache<T> implements IConnectable {
-    private byte bitMap;
     private final EnumMap<Direction, T> value;
     private final INodeGetter<T> getter;
     private final Graph<?,?,T> graph;
@@ -22,33 +22,28 @@ public class NodeCache<T> implements IConnectable {
         this.getter = getter;
         this.pos = pos;
         this.graph = graph;
-        this.bitMap = 0;
         for (Direction d : Graph.DIRECTIONS) {
-            if (!graph.validate(d, pos)) continue;
-            T t = getter.get(pos, d, () -> graph.onCapabilityInvalidate(pos));
-            if (t != null) {
-                value.put(d, t);
-                if (t != null) setSide(d);
-            }
+            updateSide(d);
         }
     }
 
     public boolean connects(Direction side) {
-        return Connectivity.has(bitMap, side.get3DDataValue());
+        return value.get(side) != null;
     }
 
-    public boolean setSide(Direction side) {
-        byte old = bitMap;
-        if (!graph.validate(side, pos)) return count() > 0;
-        this.bitMap = Connectivity.set(bitMap, side.get3DDataValue());
+    public boolean updateSide(Direction side) {
+        if (!graph.validate(side, pos)) {
+            value.remove(side);
+            return count() > 0;
+        }
+        T t = getter.get(pos, side, () -> graph.onCapabilityInvalidate(pos));
+        if (t == null) {
+            Tesseract.LOGGER.info("NULL returned in NodeCache when not expected!");
+            this.value.remove(side);
+            return count() > 0;
+        }
         this.value.put(side, getter.get(pos, side, () -> graph.onCapabilityInvalidate(pos)));
-        return old != bitMap;
-    }
-
-    public boolean clearSide(Direction side) {
-        this.bitMap= Connectivity.clear(bitMap, side.get3DDataValue());
-        this.value.remove(side);
-        return count() > 0;
+        return value.size() > 0;
     }
 
     public T value(Direction side) {
@@ -60,7 +55,7 @@ public class NodeCache<T> implements IConnectable {
     }
 
     public int count() {
-        return Integer.bitCount(bitMap);
+        return value.size();
     }
 
     @Override

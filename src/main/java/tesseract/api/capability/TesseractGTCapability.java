@@ -10,16 +10,17 @@ import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.util.LazyOptional;
 import tesseract.Tesseract;
-import tesseract.api.gt.GTConsumer;
-import tesseract.api.gt.GTTransaction;
-import tesseract.api.gt.IEnergyHandler;
-import tesseract.api.gt.IGTNode;
+import tesseract.api.fluid.FluidConsumer;
+import tesseract.api.fluid.FluidController;
+import tesseract.api.fluid.IFluidNode;
+import tesseract.api.gt.*;
 import tesseract.graph.Graph;
+import tesseract.graph.Path;
 import tesseract.util.Pos;
 
 import javax.annotation.Nullable;
 
-public class TesseractGTCapability extends TesseractBaseCapability implements IEnergyHandler {
+public class TesseractGTCapability<T extends TileEntity & IGTCable> extends TesseractBaseCapability<T> implements IEnergyHandler {
     @CapabilityInject(IEnergyHandler.class)
     public static final Capability<IEnergyHandler> ENERGY_HANDLER_CAPABILITY;
 
@@ -28,7 +29,6 @@ public class TesseractGTCapability extends TesseractBaseCapability implements IE
     }
 
     public static void register() {
-
         CapabilityManager.INSTANCE.register(IEnergyHandler.class, new Capability.IStorage<IEnergyHandler>() {
             @Nullable
             @Override
@@ -129,22 +129,31 @@ public class TesseractGTCapability extends TesseractBaseCapability implements IE
         });
     }
 
-    public TesseractGTCapability(TileEntity tile, Direction dir, boolean isNode, ITransactionModifier modifier) {
+    private final IGTCable cable;
+    private long holder;
+
+    public TesseractGTCapability(T tile, Direction dir, boolean isNode, ITransactionModifier modifier) {
         super(tile, dir, isNode, modifier);
+        this.cable = (IGTCable) tile;
+        holder = GTHolder.create(cable, 0);
     }
 
     @Override
     public boolean insert(GTTransaction transaction) {
+        boolean flag = false;
         if (this.isSending) return false;
         this.isSending = true;
         long pos = tile.getBlockPos().asLong();
         if (!this.isNode) {
+            long old = transaction.getAvailableAmps();
             Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction);
+            flag = transaction.getAvailableAmps() < old;
         } else {
             modifyDirs.clear();
             for (Direction dir : Graph.DIRECTIONS) {
                 if (dir == this.side)
                     continue;
+                if (!this.tile.connects(dir)) continue;
                 TileEntity tile = this.tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
                 if (tile == null)
                     continue;
@@ -153,17 +162,21 @@ public class TesseractGTCapability extends TesseractBaseCapability implements IE
                 IEnergyHandler handle = cap.orElse(null);
                 if (handle == null)
                     continue;
-                handle.insert(transaction);
-                this.callback.modify(transaction.getLast(), this.side, dir, true);
-                transaction.pushCallback(t -> {
-                    callback.modify(t, this.side, modifyDirs.pop(), false);
-                });
-                modifyDirs.add(dir);
+                if (handle.insert(transaction)) {
+                    flag = true;
+                    this.callback.modify(transaction.getLast(), this.side, dir, true);
+                    GTController c = ((GTController)Tesseract.GT_ENERGY.getController(tile.getLevel(), tile.getBlockPos().asLong()));
+                    transaction.pushCallback(a -> {
+                        callback.modify(a, this.side, modifyDirs.pop(), false);
+                        c.dataCommit(new GTConsumer(handle, Path.of(this.tile.getBlockPos().asLong(), cable, this.side, dir)), a);
+                    });
+                    modifyDirs.add(dir);
+                }
                 if (!transaction.canContinue()) break;
             }
         }
         this.isSending = false;
-        return transaction.isValid();
+        return flag;
     }
 
     @Override
@@ -194,27 +207,27 @@ public class TesseractGTCapability extends TesseractBaseCapability implements IE
 
     @Override
     public long getOutputAmperage() {
-        return 0;
+        return Long.MAX_VALUE;
     }
 
     @Override
     public long getOutputVoltage() {
-        return 0;
+        return cable.getVoltage();
     }
 
     @Override
     public long getInputAmperage() {
-        return 0;
+        return Long.MAX_VALUE;
     }
 
     @Override
     public long getInputVoltage() {
-        return 0;
+        return cable.getVoltage();
     }
 
     @Override
     public boolean canOutput() {
-        return false;
+        return true;
     }
 
     @Override
@@ -229,7 +242,7 @@ public class TesseractGTCapability extends TesseractBaseCapability implements IE
 
     @Override
     public boolean canOutput(Direction direction) {
-        return false;
+        return true;
     }
 
     @Override
@@ -244,6 +257,6 @@ public class TesseractGTCapability extends TesseractBaseCapability implements IE
 
     @Override
     public GTConsumer.State getState() {
-        return null;
+        return new GTConsumer.State(this);
     }
 }

@@ -105,6 +105,7 @@ public interface IGTNode {
 
     default long availableAmpsOutput() {
         if (!canOutput()) return 0;
+        if (getOutputVoltage() == 0) return 0;
         long out = Math.min(getOutputAmperage(), (getEnergy() / getOutputVoltage()));
         if (out == -1) out = getOutputAmperage();
         out = Math.min(out, getState().extract(true, out));
@@ -113,6 +114,7 @@ public interface IGTNode {
 
     default long availableAmpsInput() {
         if (!canInput()) return 0;
+        if (getInputVoltage() == 0) return 0;
         long out = Math.min(getInputAmperage(), (int) (getCapacity() - getEnergy()) / getInputVoltage());
         if (out == -1) out = getInputAmperage();
         out = Math.min(out, getState().receive(true, out));
@@ -130,4 +132,5 @@ public interface IGTNode {
     default void tesseractTick() {
 
     }
+
 }

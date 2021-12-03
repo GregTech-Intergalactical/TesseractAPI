@@ -1,5 +1,6 @@
 package tesseract.api.fluid;
 
+import net.minecraftforge.fluids.FluidStack;
 import tesseract.api.IConnectable;
 
 /**
@@ -33,15 +34,19 @@ public interface IFluidPipe extends IConnectable {
      */
     boolean isGasProof();
 
+    FluidHolder getHolder();
+
     /**
      * @param temperature The current temperature.
      * @param pressure    The current pressure.
      * @param proof       True if current liquid is in a gas state.
      * @return Checks that the pipe is able to handle single packet.
      */
-    default FluidStatus getHandler(int temperature, boolean proof) {
+    default FluidStatus getHandler(FluidStack stack, int temperature, boolean proof) {
+        FluidHolder holder = getHolder();
         if (getTemperature() < temperature) return FluidStatus.FAIL_TEMP;
         else if (!isGasProof() && proof) return FluidStatus.FAIL_LEAK;
+        else if (!holder.allowFluid(stack.getFluid())) return FluidStatus.FAIL_CAPACITY;
         return FluidStatus.SUCCESS;
     }
 }

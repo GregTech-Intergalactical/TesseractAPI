@@ -33,7 +33,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param path     The path information.
      * @param dir      The added direction.
      */
-    protected FluidConsumer(IFluidNode consumer, Path<IFluidPipe> path, Direction dir) {
+    public FluidConsumer(IFluidNode consumer, Path<IFluidPipe> path, Direction dir) {
         super(consumer, path);
         init();
         this.input = dir;
@@ -67,7 +67,6 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
 
     /**
      * @param temperature The current temperature.
-     * @param pressure    The current pressure.
      * @param proof       True if current liquid is in a gas state.
      * @return Checks that the consumer is able to receive fluid.
      */
