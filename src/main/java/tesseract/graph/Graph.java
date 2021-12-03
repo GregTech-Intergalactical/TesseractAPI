@@ -72,7 +72,10 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     public void onUpdate(long connectorPos, long nodePos, INodeGetter<N> getter) {
         Direction side = Pos.subToDir(nodePos, connectorPos);
         Group<T,C,N> group = this.getGroupAt(connectorPos);
-        boolean ok = group.getConnector(connectorPos).value().validate(side);
+        if (group == null) return;
+        Cache<C> conn = group.getConnector(connectorPos);
+        if (conn == null) return;
+        boolean ok = conn.value().validate(side);
         NodeCache<N> node = group.getNodes().get(nodePos);
         if (node == null && ok) {
             NodeCache<N> cache = new NodeCache<>(nodePos, getter, this);
@@ -277,7 +280,6 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     }
 
     private boolean updateNodeSides(long pos, NodeCache<N> node) {
-        boolean ret = true;
         Group<T,C,N> group = this.getGroupAt(pos);
         for (int i = 0; i < Graph.DIRECTIONS.length; i++) {
             Direction dir = Graph.DIRECTIONS[i];
