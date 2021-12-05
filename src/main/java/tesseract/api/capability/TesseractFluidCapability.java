@@ -76,6 +76,7 @@ public class TesseractFluidCapability<T extends TileEntity & IFluidPipe> extends
                     if (handle == null)
                         continue;
                     int inserted = handle.fill(current, action);
+                    inserted = Math.min(inserted, this.tile.getHolder().getPressureAvailable());
                     if (inserted > 0) {
                         // Amount actually inserted
                         FluidStack copy = current.copy();
@@ -85,7 +86,7 @@ public class TesseractFluidCapability<T extends TileEntity & IFluidPipe> extends
                         modifyDirs.add(dir);
                         transaction.addData(copy, a -> {
                             FluidController c = ((FluidController)Tesseract.FLUID.getController(tile.getLevel(), tile.getBlockPos().asLong()));
-                            c.dataCommit(new FluidConsumer(new IFluidNode.FluidTileWrapper(this.tile,handle), Path.of(tile.getBlockPos().asLong(), ((IFluidPipe) tile), this.side, dir), dir), a);
+                            c.dataCommit(new FluidConsumer(new IFluidNode.FluidTileWrapper(this.tile,handle), Path.of(tile.getBlockPos().asLong(), ((IFluidPipe) this.tile), this.side, dir), dir), a);
                         });
                     }
                 }

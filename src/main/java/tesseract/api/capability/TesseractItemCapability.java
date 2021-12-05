@@ -68,9 +68,11 @@ public class TesseractItemCapability<T extends TileEntity & IItemPipe> extends T
                     LazyOptional<IItemHandler> cap = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, dir.getOpposite());
                     IItemHandler handle = cap.orElse(null);
                     if (handle == null) continue;
-                    for (int i = 0; i < handle.getSlots(); i++) {
+                    int used = 0;
+                    for (int i = 0; i < handle.getSlots() && (this.tile.getCapacity() - this.tile.getHolder() - used) > 0; i++) {
                         ItemStack inserted = handle.insertItem(i, current, true);
                         if (inserted.getCount() < current.getCount()) {
+                            used++;
                             //Amount actually inserted
                             int count = current.getCount() - inserted.getCount();
                             inserted = stack.copy();
@@ -86,7 +88,7 @@ public class TesseractItemCapability<T extends TileEntity & IItemPipe> extends T
                                 }
                                 //ItemController has no extra method over transfer counting
                                 //ItemController c = ((ItemController)Tesseract.ITEM.getController(tile.getLevel(), tile.getBlockPos().asLong()));
-                                //c.dataCommit(new ItemConsumer(new IItemNode.ItemTileWrapper(this.tile,handle), Path.of(tile.getBlockPos().asLong(), ((IItemPipe) tile), this.side, dir), dir), a, a.getCount());
+                                //c.dataCommit(new ItemConsumer(new IItemNode.ItemTileWrapper(this.tile,handle), Path.of(tile.getBlockPos().asLong(), ((IItemPipe) this.tile), this.side, dir), dir), a, a.getCount());
                                 handle.insertItem(ii, a, false);
                             });
                         }
