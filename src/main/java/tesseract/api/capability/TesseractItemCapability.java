@@ -1,31 +1,22 @@
 package tesseract.api.capability;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import javax.annotation.Nonnull;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import tesseract.Tesseract;
-import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
-import tesseract.api.item.ItemConsumer;
-import tesseract.api.item.ItemController;
 import tesseract.api.item.ItemTransaction;
 import tesseract.graph.Graph;
-import tesseract.graph.Path;
 import tesseract.util.Pos;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
-import java.util.function.Consumer;
 
-import javax.annotation.Nonnull;
-
-
-public class TesseractItemCapability<T extends TileEntity & IItemPipe> extends TesseractBaseCapability<T> implements IItemHandler {
+public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends TesseractBaseCapability<T> implements IItemHandler {
     
     private ItemTransaction old;
     
@@ -63,7 +54,7 @@ public class TesseractItemCapability<T extends TileEntity & IItemPipe> extends T
                 for (Direction dir : Graph.DIRECTIONS) {
                     if (dir == this.side) continue;
                     if (!this.tile.connects(dir)) continue;
-                    TileEntity tile = this.tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
+                    BlockEntity tile = this.tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
                     if (tile == null) continue;
                     LazyOptional<IItemHandler> cap = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, dir.getOpposite());
                     IItemHandler handle = cap.orElse(null);

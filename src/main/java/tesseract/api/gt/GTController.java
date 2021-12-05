@@ -2,8 +2,8 @@ package tesseract.api.gt;
 
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.util.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 import tesseract.Tesseract;
 import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
@@ -34,7 +34,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
      *
      * @param dim The dimension id.
      */
-    public GTController(World dim) {
+    public GTController(Level dim) {
         super(dim);
     }
 

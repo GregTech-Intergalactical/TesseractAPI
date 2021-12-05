@@ -1,6 +1,6 @@
 package tesseract.api;
 
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 
 /**
  * A simple interface for representing connectable objects.

@@ -1,17 +1,20 @@
 package tesseract;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import java.util.Set;
+import java.util.function.Consumer;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.common.Mod;
 import tesseract.api.GraphWrapper;
 import tesseract.api.capability.TesseractGTCapability;
 import tesseract.api.fluid.FluidTransaction;
@@ -27,8 +30,6 @@ import tesseract.api.item.ItemTransaction;
 import tesseract.controller.Energy;
 import tesseract.controller.Fluid;
 
-import java.util.Set;
-
 @Mod(Tesseract.API_ID)
 //@Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
 public class Tesseract {
@@ -40,7 +41,7 @@ public class Tesseract {
 
     public static final Logger LOGGER = LogManager.getLogger(API_ID);
 
-    private final static Set<IWorld> firstTick = new ObjectOpenHashSet<>();
+    private final static Set<LevelAccessor> firstTick = new ObjectOpenHashSet<>();
     //public static GraphWrapper<Integer, IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new);
     public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new);
@@ -49,21 +50,20 @@ public class Tesseract {
     public static final int HEALTH_CHECK_TIME = 1000;
 
     public Tesseract() {
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetup);
         MinecraftForge.EVENT_BUS.addListener(this::serverStoppedEvent);
         MinecraftForge.EVENT_BUS.addListener(this::worldUnloadEvent);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
+        MinecraftForge.EVENT_BUS.addListener((Consumer<RegisterCapabilitiesEvent>) t -> {
+            TesseractGTCapability.register(t);
+        });
+
     }
 
-    public static boolean hadFirstTick(IWorld world) {
+    public static boolean hadFirstTick(LevelAccessor world) {
         return firstTick.contains(world);
     }
 
-    public void commonSetup(FMLCommonSetupEvent event) {
-        TesseractGTCapability.register();
-    }
-
-    public void serverStoppedEvent(FMLServerStoppedEvent e) {
+    public void serverStoppedEvent(ServerStoppedEvent e) {
         firstTick.clear();
         //FE_ENERGY.clear();
         GT_ENERGY.clear();
@@ -72,17 +72,17 @@ public class Tesseract {
     }
 
     public void worldUnloadEvent(WorldEvent.Unload e) {
-        if (!(e.getWorld() instanceof World) || ((World) e.getWorld()).isClientSide) return;
+        if (!(e.getWorld() instanceof Level) || ((Level) e.getWorld()).isClientSide) return;
         //FE_ENERGY.removeWorld((World) e.getWorld());
-        GT_ENERGY.removeWorld((World) e.getWorld());
-        ITEM.removeWorld((World) e.getWorld());
-        FLUID.removeWorld((World) e.getWorld());
+        GT_ENERGY.removeWorld((Level) e.getWorld());
+        ITEM.removeWorld((Level) e.getWorld());
+        FLUID.removeWorld((Level) e.getWorld());
         firstTick.remove(e.getWorld());
     }
 
     public void onServerTick(TickEvent.WorldTickEvent event) {
         if (event.side.isClient()) return;
-        World dim = event.world;
+        Level dim = event.world;
         if (!hadFirstTick(dim)) {
             firstTick.add(event.world);
             GT_ENERGY.onFirstTick(dim);

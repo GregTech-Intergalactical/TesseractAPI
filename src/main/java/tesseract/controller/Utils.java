@@ -1,24 +1,24 @@
 package tesseract.controller;
 
-import net.minecraft.block.Blocks;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.Explosion;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 public class Utils {
 
-    public static void createExplosion(World world, BlockPos pos, float explosionRadius, Explosion.Mode modeIn) {
-        if (world instanceof ServerWorld) {
-            ServerWorld w = (ServerWorld) world;
+    public static void createExplosion(Level world, BlockPos pos, float explosionRadius, Explosion.BlockInteraction modeIn) {
+        if (world instanceof ServerLevel) {
+            ServerLevel w = (ServerLevel) world;
             w.explode(null, pos.getX(), pos.getY() + 0.0625D, pos.getZ(), explosionRadius, true, modeIn);
             w.sendParticles(ParticleTypes.SMOKE, pos.getX(), pos.getY() + 0.5D, pos.getZ(), 1, 0, 0, 0, 0.0D);
         }
     }
 
-    public static void createFireAround(World world, BlockPos pos) {
+    public static void createFireAround(Level world, BlockPos pos) {
         boolean fired = false;
         for (Direction side : Direction.values()) {
             BlockPos offset = pos.relative(side);

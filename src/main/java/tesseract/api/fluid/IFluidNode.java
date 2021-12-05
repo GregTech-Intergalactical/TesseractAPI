@@ -1,12 +1,14 @@
 package tesseract.api.fluid;
 
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import javax.annotation.Nonnull;
 
+
+import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 
 /**
  * An fluid node is the unit of interaction with fluid inventories.
@@ -73,10 +75,10 @@ public interface IFluidNode extends IFluidHandler {
     }
 
     class FluidTileWrapper implements IFluidNode {
-        private final TileEntity tile;
+        private final BlockEntity tile;
         private final IFluidHandler handler;
 
-        public FluidTileWrapper(TileEntity tile, IFluidHandler handler) {
+        public FluidTileWrapper(BlockEntity tile, IFluidHandler handler) {
             this.tile = tile;
             this.handler = handler;
         }

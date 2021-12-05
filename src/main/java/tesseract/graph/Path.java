@@ -1,19 +1,16 @@
 package tesseract.graph;
 
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
+
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 import tesseract.api.IConnectable;
 import tesseract.util.Node;
 import tesseract.util.Pos;
-
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.function.LongPredicate;
-import java.util.function.Predicate;
 
 /**
  * The Path is a class that should work with paths for grids.

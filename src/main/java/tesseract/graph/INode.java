@@ -1,6 +1,6 @@
 package tesseract.graph;
 
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 
 /**
  * A simple interface for representing objects that contain groups of positions that are connected in various ways.

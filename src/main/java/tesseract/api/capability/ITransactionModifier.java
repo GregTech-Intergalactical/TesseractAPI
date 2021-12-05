@@ -1,6 +1,6 @@
 package tesseract.api.capability;
 
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 
 @FunctionalInterface
 public interface ITransactionModifier {

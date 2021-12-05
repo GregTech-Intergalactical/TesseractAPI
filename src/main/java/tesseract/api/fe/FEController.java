@@ -6,8 +6,8 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.util.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.graph.*;
@@ -31,7 +31,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
      *
      * @param world The world.
      */
-    public FEController(World world) {
+    public FEController(Level world) {
         super(world);
         holders.defaultReturnValue(-1L);
     }

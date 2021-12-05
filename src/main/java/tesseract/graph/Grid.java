@@ -1,20 +1,22 @@
 package tesseract.graph;
 
-import it.unimi.dsi.fastutil.longs.*;
+import java.util.Deque;
+import java.util.List;
+import java.util.function.Consumer;
+
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import it.unimi.dsi.fastutil.longs.LongIterator;
+import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 import tesseract.api.IConnectable;
-import tesseract.api.capability.TesseractBaseCapability;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Node;
 import tesseract.util.Pos;
-
-import java.util.Deque;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.LongPredicate;
 
 /**
  * Grid provides the functionality of a set of linked nodes.

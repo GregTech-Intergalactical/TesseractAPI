@@ -1,8 +1,8 @@
 package tesseract.api.capability;
 
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
@@ -15,7 +15,8 @@ import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 
-public class TesseractFluidCapability<T extends TileEntity & IFluidPipe> extends TesseractBaseCapability<T> implements IFluidHandler {
+
+public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extends TesseractBaseCapability<T> implements IFluidHandler {
 
     private FluidTransaction old;
 
@@ -67,7 +68,7 @@ public class TesseractFluidCapability<T extends TileEntity & IFluidPipe> extends
                 for (Direction dir : Graph.DIRECTIONS) {
                     if (dir == this.side)
                         continue;
-                    TileEntity tile = this.tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
+                    BlockEntity tile = this.tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
                     if (tile == null)
                         continue;
                     LazyOptional<IFluidHandler> cap = tile

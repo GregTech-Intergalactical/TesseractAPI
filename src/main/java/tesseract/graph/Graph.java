@@ -1,28 +1,25 @@
 package tesseract.graph;
 
-import it.unimi.dsi.fastutil.ints.*;
+import java.util.List;
+import java.util.function.Supplier;
+
+import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
+import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Tuple;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraft.core.Direction;
 import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
 import tesseract.api.ITickingController;
 import tesseract.util.CID;
 import tesseract.util.Pos;
-
-import java.nio.channels.IllegalSelectorException;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle.Control;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
 /**
  * Class provides the functionality of any set of nodes.

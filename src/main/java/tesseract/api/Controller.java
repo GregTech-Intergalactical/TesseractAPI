@@ -1,12 +1,8 @@
 package tesseract.api;
 
-import net.minecraft.util.Direction;
-import net.minecraft.world.World;
-import tesseract.graph.Cache;
+import net.minecraft.world.level.Level;
 import tesseract.graph.Group;
 import tesseract.graph.INode;
-
-import java.util.function.Function;
 
 
 /**
@@ -15,7 +11,7 @@ import java.util.function.Function;
 abstract public class Controller<T, C extends IConnectable, N> implements ITickingController<T, C, N> {
 
     protected int tick;
-    protected final World dim;
+    protected final Level dim;
     protected Group<T, C, N> group;
 
     /**
@@ -24,7 +20,7 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
      * @param wrapper  the function to wrap pipes in a node.
      * @param supplier The world.
      */
-    protected Controller(World supplier) {
+    protected Controller(Level supplier) {
         this.dim = supplier;
     }
 
@@ -55,7 +51,7 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     protected abstract void onFrame();
 
     @Override
-    public World getWorld() {
+    public Level getWorld() {
         return this.dim;
     }
 }

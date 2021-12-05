@@ -3,7 +3,7 @@ package tesseract.graph;
 import java.util.EnumMap;
 import java.util.Map;
 
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 import tesseract.Tesseract;
 import tesseract.api.IConnectable;
 import tesseract.graph.Graph.INodeGetter;

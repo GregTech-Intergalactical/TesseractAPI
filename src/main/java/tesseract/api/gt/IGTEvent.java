@@ -1,6 +1,6 @@
 package tesseract.api.gt;
 
-import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
 
 /**
  * Interface for handling an electric events. (Controller will handle them)
@@ -14,7 +14,7 @@ public interface IGTEvent {
      * @param pos     The node position.
      * @param voltage The current voltage.
      */
-    default void onNodeOverVoltage(World world, long pos, long voltage) {
+    default void onNodeOverVoltage(Level world, long pos, long voltage) {
         //NOOP
     }
 
@@ -25,7 +25,7 @@ public interface IGTEvent {
      * @param pos     The cable position.
      * @param voltage The current voltage.
      */
-    default void onCableOverVoltage(World world, long pos, long voltage) {
+    default void onCableOverVoltage(Level world, long pos, long voltage) {
         //NOOP
     }
 
@@ -36,7 +36,7 @@ public interface IGTEvent {
      * @param pos      The cable position.
      * @param amperage The current amperage.
      */
-    default void onCableOverAmperage(World world, long pos, long amperage) {
+    default void onCableOverAmperage(Level world, long pos, long amperage) {
         //NOOP
     }
 }

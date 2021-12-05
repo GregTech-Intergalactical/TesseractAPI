@@ -2,7 +2,7 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 import tesseract.api.IConnectable;
 import tesseract.util.Node;
 import tesseract.util.Pos;

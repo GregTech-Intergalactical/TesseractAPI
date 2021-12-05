@@ -1,6 +1,6 @@
 package tesseract.api.gt;
 
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 
 
 /**

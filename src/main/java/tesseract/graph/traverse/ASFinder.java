@@ -1,7 +1,7 @@
 package tesseract.graph.traverse;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 import tesseract.graph.Graph;
 import tesseract.graph.INode;
 import tesseract.util.Node;

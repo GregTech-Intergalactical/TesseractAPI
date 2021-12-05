@@ -1,6 +1,6 @@
 package tesseract.util;
 
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 
 /**
  * The Node is a pretty straightforward class resembling regular nodes.

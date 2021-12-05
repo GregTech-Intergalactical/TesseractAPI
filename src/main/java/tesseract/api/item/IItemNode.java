@@ -1,8 +1,8 @@
 package tesseract.api.item;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
 import net.minecraftforge.items.IItemHandler;
 
 import javax.annotation.Nonnull;
@@ -72,10 +72,10 @@ public interface IItemNode extends IItemHandler {
 
     class ItemTileWrapper implements IItemNode {
 
-        private final TileEntity tile;
+        private final BlockEntity tile;
         private final IItemHandler handler;
     
-        public ItemTileWrapper(TileEntity tile, IItemHandler handler) {
+        public ItemTileWrapper(BlockEntity tile, IItemHandler handler) {
             this.tile = tile;
             this.handler = handler;
         }

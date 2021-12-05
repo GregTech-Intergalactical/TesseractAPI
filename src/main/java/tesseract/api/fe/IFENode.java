@@ -1,6 +1,6 @@
 package tesseract.api.fe;
 
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 import tesseract.api.IConnectable;
 
 /**

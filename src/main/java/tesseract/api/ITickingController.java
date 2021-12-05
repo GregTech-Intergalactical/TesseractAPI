@@ -1,7 +1,7 @@
 package tesseract.api;
 
-import net.minecraft.util.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 import tesseract.graph.INode;
 
 import javax.annotation.Nonnull;
@@ -48,5 +48,5 @@ public interface ITickingController<T, C extends IConnectable, N> {
      *
      * @return the world object.
      */
-    World getWorld();
+    Level getWorld();
 }

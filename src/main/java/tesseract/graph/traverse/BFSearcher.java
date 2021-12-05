@@ -4,7 +4,7 @@ import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 import tesseract.graph.Graph;
 import tesseract.graph.INode;
 import tesseract.util.Pos;

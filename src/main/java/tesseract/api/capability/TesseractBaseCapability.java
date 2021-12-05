@@ -3,11 +3,11 @@ package tesseract.api.capability;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
 import tesseract.api.IConnectable;
 
-public abstract class TesseractBaseCapability<T extends TileEntity & IConnectable> {
+public abstract class TesseractBaseCapability<T extends BlockEntity & IConnectable> {
     public final T tile;
     public final Direction side;
     public final boolean isNode;

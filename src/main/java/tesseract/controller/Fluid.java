@@ -1,12 +1,12 @@
 package tesseract.controller;
 
-import net.minecraft.block.Blocks;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.Explosion;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.fluids.FluidStack;
 import tesseract.api.fluid.FluidController;
 
@@ -23,32 +23,32 @@ public class Fluid extends FluidController {
      *
      * @param dim The dimension id.
      */
-    public Fluid(World dim) {
+    public Fluid(Level dim) {
         super(dim);
     }
 
     @Override
-    public void onPipeOverPressure(World w, long pos, int pressure, FluidStack fluid) {
-        Utils.createExplosion(w, BlockPos.of(pos), 4.0F, Explosion.Mode.BREAK);
+    public void onPipeOverPressure(Level w, long pos, int pressure, FluidStack fluid) {
+        Utils.createExplosion(w, BlockPos.of(pos), 4.0F, Explosion.BlockInteraction.BREAK);
     }
 
     @Override
-    public void onPipeOverCapacity(World w, long pos, int capacity, FluidStack fluid) {
-        Utils.createExplosion(w, BlockPos.of(pos), 1.0F, Explosion.Mode.NONE);
+    public void onPipeOverCapacity(Level w, long pos, int capacity, FluidStack fluid) {
+        Utils.createExplosion(w, BlockPos.of(pos), 1.0F, Explosion.BlockInteraction.NONE);
     }
 
     @Override
-    public void onPipeOverTemp(World w, long pos, int temperature) {
+    public void onPipeOverTemp(Level w, long pos, int temperature) {
         w.setBlockAndUpdate(BlockPos.of(pos), temperature >= Fluids.LAVA.getAttributes().getTemperature() ? Blocks.LAVA.defaultBlockState() : Blocks.FIRE.defaultBlockState());
     }
 
     @Override
-    public FluidStack onPipeGasLeak(World world, long pos, @Nonnull FluidStack fluid) {
+    public FluidStack onPipeGasLeak(Level world, long pos, @Nonnull FluidStack fluid) {
         if (fluid.isEmpty()) return fluid;
         FluidStack stack = fluid.copy();
         stack.setAmount((int) ((double) stack.getAmount() * PIPE_LEAK));
         if ((world.getGameTime() - lastGasLeakSound) > GAS_WAIT_TIME) {
-            world.playSound(null, BlockPos.of(pos), SoundEvents.FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.3F, 0.9F + world.random.nextFloat() * 0.2F);
+            world.playSound(null, BlockPos.of(pos), SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.3F, 0.9F + world.random.nextFloat() * 0.2F);
             lastGasLeakSound = world.getGameTime();
         }
         return stack;
