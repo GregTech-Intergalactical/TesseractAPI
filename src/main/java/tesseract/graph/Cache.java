@@ -9,14 +9,16 @@ import tesseract.api.IConnectable;
 public class Cache<T extends IConnectable> {
 
     private final byte connectivity;
+    private final boolean pathing;
     private final T value;
 
     /**
      * Creates a cache instance.
      */
-    public Cache(T value) {
+    public Cache(T value, boolean pathing) {
         this.value = value;
         this.connectivity = Connectivity.of(value);
+        this.pathing = pathing;
     }
 
     /**
@@ -39,6 +41,10 @@ public class Cache<T extends IConnectable> {
      */
     public T value() {
         return value;
+    }
+
+    public boolean pathing() {
+        return pathing;
     }
 
     @Override

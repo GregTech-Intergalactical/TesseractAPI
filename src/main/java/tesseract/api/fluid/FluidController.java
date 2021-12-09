@@ -18,6 +18,8 @@ import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
+import tesseract.api.capability.ITransactionModifier;
+import tesseract.api.capability.TesseractBaseCapability;
 import tesseract.graph.Cache;
 import tesseract.graph.Grid;
 import tesseract.graph.INode;
@@ -67,9 +69,11 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                         if (!path.isEmpty()) {
                             Node target = path.target();
                             assert target != null;
-                            onCheck(consumers, path, target.getDirection(), target.asLong());
+                            onCheck(producer, consumers, path, target.getDirection(), target.asLong());
                         }
                     }
+                } else if (group.getNodes().containsKey(side)) {
+                    onCheck(producer, consumers, null, direction.getOpposite(), side);
                 }
 
                 if (!consumers.isEmpty()) {
@@ -105,14 +109,14 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
      * @param dir       The added direction.
      * @param pos       The position of the producer.
      */
-    private void onCheck(List<FluidConsumer> consumers, Path<IFluidPipe> path, Direction dir, long pos) {
+    private void onCheck(IFluidNode producer, List<FluidConsumer> consumers, Path<IFluidPipe> path, Direction dir, long pos) {
         IFluidNode node = group.getNodes().get(pos).value(dir);
         if (node != null && node.canInput())
-            consumers.add(new FluidConsumer(node, path, dir));
+            consumers.add(new FluidConsumer(node,producer, path, dir));
     }
 
     @Override
-    public void insert(long producerPos, Direction side, FluidTransaction transaction) {
+    public void insert(long producerPos, Direction side, FluidTransaction transaction, ITransactionModifier modifier) {
         if (SLOOSH)
             return;
         if (!transaction.isValid())
@@ -144,9 +148,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                         amount = Math.min(amount, this.group.getConnector(consumer.lowestPipePosition).value().getHolder().getPressureAvailable());
                     }
                 } else {
-                    for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> entry : consumer.getCross()
+                    for (Long2ObjectMap.Entry<IFluidPipe> entry : consumer.getCross()
                             .long2ObjectEntrySet()) {
-                        FluidHolder holder = entry.getValue().connector.getHolder();
+                        FluidHolder holder = entry.getValue().getHolder();
                         if (!holder.allowFluid(data.getFluid())) {
                             amount = 0;
                             break;
@@ -163,9 +167,12 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 continue;
 
             if (consumer.getConnection() == ConnectionType.VARIATE) {
-                for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> p : consumer.getCross().long2ObjectEntrySet()) {
+                for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getCross().long2ObjectEntrySet()) {
                     final int finalAmount = amount;
                     pressureData.compute(p.getLongKey(), (k, v) -> v == null ? finalAmount : v + finalAmount);
+                    if (p.getValue() instanceof TesseractBaseCapability cap) {
+                        cap.callback.modify(data,cap.side, side, true);
+                    }
                 }
             }
             transaction.addData(data.copy(), a -> dataCommit(consumer, a));
@@ -181,9 +188,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
         boolean isGaseous = stack.getFluid().getAttributes().isGaseous();
         boolean cantHandle = !consumer.canHandle(temperature, isGaseous);
         if (!cantHandle) {
-            for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> p : consumer.getFull().long2ObjectEntrySet()) {
+            for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull().long2ObjectEntrySet()) {
                 long pos = p.getLongKey();
-                IFluidPipe pipe = p.getValue().connector;
+                IFluidPipe pipe = p.getValue();
                 switch (pipe.getHandler(stack, temperature, isGaseous)) {
                     case FAIL_TEMP:
                         onPipeOverTemp(getWorld(), pos, temperature);
@@ -211,9 +218,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 return;
             }
         } else if (consumer.getConnection() == ConnectionType.VARIATE) {
-            for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> pathHolderEntry : consumer.getCross()
+            for (Long2ObjectMap.Entry<IFluidPipe> pathHolderEntry : consumer.getCross()
                     .long2ObjectEntrySet()) {
-                FluidHolder holder = pathHolderEntry.getValue().connector.getHolder();
+                FluidHolder holder = pathHolderEntry.getValue().getHolder();
                 holder.use(stack.getAmount(), stack.getFluid(), getWorld().getGameTime());
                 if (holder.isOverPressure()) {
                     onPipeOverPressure(getWorld(), pathHolderEntry.getLongKey(), amount, stack);
@@ -222,6 +229,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 if (holder.isOverCapacity()) {
                     onPipeOverCapacity(getWorld(), pathHolderEntry.getLongKey(), amount, stack);
                     return;
+                }
+                if (pathHolderEntry.getValue() instanceof TesseractBaseCapability cap) {
+                    cap.callback.modify(data,cap.side, consumer.input, false);
                 }
             }
         }

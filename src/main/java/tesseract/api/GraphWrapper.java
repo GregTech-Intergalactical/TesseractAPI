@@ -13,6 +13,8 @@ import tesseract.graph.Cache;
 import tesseract.graph.Graph;
 import tesseract.graph.Graph.INodeGetter;
 import tesseract.graph.Group;
+import tesseract.graph.NodeCache;
+import tesseract.util.Pos;
 
 public class GraphWrapper<T, C extends IConnectable, N> {
 
@@ -34,7 +36,6 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      *
      * @param dim  The dimension id where the node will be added.
      * @param pos  The position at which the node will be added.
-     * @param node The node object.
      */
     /*public void registerNode(IWorld dim, long pos, Direction side, BiFunction<Long, Direction, N> node) {
         if (dim.isClientSide())
@@ -43,28 +44,24 @@ public class GraphWrapper<T, C extends IConnectable, N> {
                 Tesseract.hadFirstTick(dim));
     }*/
 
-    public void refreshNode(Level dim, long pos) {
-        if (dim.isClientSide())
-            return;
-        getGraph(dim).refreshNode(pos);
-    }
-
     /**
-     * Creates an instance of a class for a given connector.
+     * Registers a connector into Tesseract.
      *
      * @param dim       The dimension id where the node will be added.
      * @param pos       The position at which the node will be added.
      * @param connector The connector object.
+     * @param applier   The getter that gets nodes and applies callback to invalidation of capabilities.
      */
-    public void registerConnector(Level dim, long pos, C connector, INodeGetter<N> applier) {
+    public void registerConnector(Level dim, long pos, C connector, INodeGetter<N> applier, boolean regular) {
         if (dim.isClientSide())
             return;
-        getGraph(dim).addConnector(pos, new Cache<>(connector), applier, Tesseract.hadFirstTick(dim));
+        getGraph(dim).addConnector(pos, new Cache<>(connector, regular), applier, Tesseract.hadFirstTick(dim), regular);
+
     }
 
     public void blockUpdate(Level dim, long connector, long node, INodeGetter<N> applier) {
         if (dim.isClientSide()) return;
-        getGraph(dim).onUpdate(connector, node, applier);
+        getGraph(dim).update(node, Pos.subToDir(connector, node), applier, false);
     }
 
     /**
@@ -103,7 +100,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
     public boolean remove(Level dim, long pos) {
         if (dim.isClientSide())
             return false;
-        return getGraph(dim).removeAt(pos, () -> supplier.apply(dim));
+        return getGraph(dim).removeAt(pos);
     }
 
     public void tick(Level dim) {

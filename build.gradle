@@ -24,7 +24,6 @@ apply plugin: "eclipse"
 apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: 'java'
 apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply from: 'https://raw.githubusercontent.com/SizableShrimp/Forge-Class-Remapper/main/classremapper.gradle'
 archivesBaseName = 'TesseractAPI'
 version = "${minecraft_version}-${mod_version}"
 group = "com.github.gregtech-intergalactical"

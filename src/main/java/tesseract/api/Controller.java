@@ -1,8 +1,14 @@
 package tesseract.api;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import tesseract.graph.Graph;
 import tesseract.graph.Group;
 import tesseract.graph.INode;
+import tesseract.graph.NodeCache;
+import tesseract.util.Pos;
 
 
 /**
@@ -13,11 +19,11 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     protected int tick;
     protected final Level dim;
     protected Group<T, C, N> group;
+    protected LongSet visited = new LongOpenHashSet();
 
     /**
      * Creates instance of the controller.
      *
-     * @param wrapper  the function to wrap pipes in a node.
      * @param supplier The world.
      */
     protected Controller(Level supplier) {
@@ -44,7 +50,6 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
             onFrame();
         }
     }
-
     /**
      * Frame handler, which executes each second.
      */

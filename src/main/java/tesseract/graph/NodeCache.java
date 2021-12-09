@@ -13,6 +13,7 @@ public class NodeCache<T> implements IConnectable {
     private final INodeGetter<T> getter;
     private final Graph<?,?,T> graph;
     private final long pos;
+    public final IConnectable pipe;
 
     /**
      * Creates a cache instance.
@@ -22,28 +23,48 @@ public class NodeCache<T> implements IConnectable {
         this.getter = getter;
         this.pos = pos;
         this.graph = graph;
+        this.pipe = null;
         for (Direction d : Graph.DIRECTIONS) {
             updateSide(d);
         }
     }
+
+    public NodeCache(long pos, IConnectable pipe, INodeGetter<T> getter) {
+        this.value = new EnumMap<>(Direction.class);
+        this.getter = getter;
+        this.pos = pos;
+        this.graph = null;
+        this.pipe = pipe;
+        for (Direction d : Graph.DIRECTIONS) {
+            updateSide(d);
+        }
+    }
+
 
     public boolean connects(Direction side) {
         return value.get(side) != null;
     }
 
     public boolean updateSide(Direction side) {
-        if (!graph.validate(side, pos)) {
+        if (pipe == null && !graph.validate(side, pos)) {
             value.remove(side);
-            return count() > 0;
+            return false;
         }
-        T t = getter.get(pos, side, () -> graph.onCapabilityInvalidate(pos));
+        //if we have this key it means the capability is still valid.
+        if (this.value.containsKey(side)) return true;
+        T t = getter.get(pos, side, graph == null ? () -> {} : () -> graph.update(pos, side, getter, true));
         if (t == null) {
-            Tesseract.LOGGER.info("NULL returned in NodeCache when not expected!");
+            if (pipe == null) Tesseract.LOGGER.info("NULL returned in NodeCache when not expected!");
             this.value.remove(side);
-            return count() > 0;
+            return false;
         }
-        this.value.put(side, getter.get(pos, side, () -> graph.onCapabilityInvalidate(pos)));
-        return value.size() > 0;
+        this.value.put(side, t);
+        return true;
+    }
+
+    public boolean clearSide(Direction side) {
+        value.remove(side);
+        return count() > 0;
     }
 
     public T value(Direction side) {

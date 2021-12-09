@@ -3,6 +3,7 @@ package tesseract.graph;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.LongPredicate;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -17,6 +18,7 @@ import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Node;
 import tesseract.util.Pos;
+import tesseract.util.SetUtil;
 
 /**
  * Grid provides the functionality of a set of linked nodes.
@@ -137,11 +139,11 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public List<Path<C>> getPaths(long from) {
         List<Path<C>> data = new ObjectArrayList<>();
-        for (long to : nodes.keySet()) {
+        nodes.keySet().forEach(to -> {
             if (from != to) {
                 data.add(new Path<>(connectors, finder.traverse(from, to)));
             }
-        }
+        });
 
         return data;
     }

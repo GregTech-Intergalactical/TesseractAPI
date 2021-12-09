@@ -10,6 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
+import tesseract.api.capability.ITransactionModifier;
 import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
@@ -173,9 +174,9 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
 
                     case VARIATE:
                         long limit = inserted;
-                        for (Long2ObjectMap.Entry<Path.PathHolder<IFECable>> p : consumer.getCross().long2ObjectEntrySet()) {
+                        for (Long2ObjectMap.Entry<IFECable> p : consumer.getCross().long2ObjectEntrySet()) {
                             long pos = p.getLongKey();
-                            IFECable cable = p.getValue().connector;
+                            IFECable cable = p.getValue();
 
                             long capacity = holders.get(pos);
                             if (capacity == -1L) {
@@ -241,7 +242,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
     }
 
     @Override
-    public void insert(long producerPos, Direction side, Integer transaction) {
+    public void insert(long producerPos, Direction side, Integer transaction, ITransactionModifier modifier) {
         // TODO Auto-generated method stub
         
     }

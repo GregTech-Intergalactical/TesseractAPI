@@ -8,6 +8,7 @@ import tesseract.Tesseract;
 import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
+import tesseract.api.capability.ITransactionModifier;
 import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
@@ -78,6 +79,8 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
                                 return false;
                         }
                     }
+                } else if (group.getNodes().containsKey(side)) {
+                    onCheck(producer, consumers, null,side, direction.getOpposite());
                 }
                 if (!consumers.isEmpty())
                     data.computeIfAbsent(pos, m -> new EnumMap<>(Direction.class))
@@ -116,7 +119,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
         IGTNode node = nodee.value(dir);
 
         if (node != null && node.canInput(dir)) {
-            GTConsumer consumer = new GTConsumer(node, path);
+            GTConsumer consumer = new GTConsumer(node,producer, path);
             long voltage = producer.getOutputVoltage() - consumer.getLoss();
             if (voltage <= 0) {
                 return true;
@@ -159,7 +162,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
     }
 
     @Override
-    public void insert(long pipePos, Direction side, GTTransaction stack) {
+    public void insert(long pipePos, Direction side, GTTransaction stack, ITransactionModifier modifier) {
         NodeCache<IGTNode> node = this.group.getNodes().get(Pos.offset(pipePos, side));
         if (node == null) return;
         IGTNode producer = node.value(side.getOpposite());
@@ -212,9 +215,9 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
     public void dataCommit(GTConsumer consumer, GTTransaction.TransferData data) {
         if (!consumer.canHandle(data.getVoltage()) || (consumer.getConnection() == ConnectionType.SINGLE
                 && !(consumer.canHandleAmp(data.getTotalAmperage())))) {
-            for (Long2ObjectMap.Entry<Path.PathHolder<IGTCable>> c : consumer.getFull().long2ObjectEntrySet()) {
+            for (Long2ObjectMap.Entry<IGTCable> c : consumer.getFull().long2ObjectEntrySet()) {
                 long pos = c.getLongKey();
-                IGTCable cable = c.getValue().connector;
+                IGTCable cable = c.getValue();
                 switch (cable.getHandler(data.getVoltage(), data.getTotalAmperage())) {
                     case FAIL_VOLTAGE:
                         onCableOverVoltage(getWorld(), pos, data.getVoltage());
@@ -226,9 +229,9 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
             }
         }
         if (consumer.getConnection() == ConnectionType.VARIATE) {
-            for (Long2ObjectMap.Entry<Path.PathHolder<IGTCable>> c : consumer.getCross().long2ObjectEntrySet()) {
+            for (Long2ObjectMap.Entry<IGTCable> c : consumer.getCross().long2ObjectEntrySet()) {
                 long pos = c.getLongKey();
-                IGTCable cable = c.getValue().connector;
+                IGTCable cable = c.getValue();
                 cable.setHolder(GTHolder.add(cable.getHolder(), data.getTotalAmperage()));
                 if (GTHolder.isOverAmperage(cable.getHolder())) {
                     onCableOverAmperage(getWorld(), pos, GTHolder.getAmperage(cable.getHolder()));

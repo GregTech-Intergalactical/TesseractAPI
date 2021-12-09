@@ -19,20 +19,8 @@ public class Path<C extends IConnectable> {
 
     private final Node origin;
     private final Node target;
-    private final Long2ObjectMap<PathHolder<C>> full = new Long2ObjectLinkedOpenHashMap<>();
-    private final Long2ObjectMap<PathHolder<C>> cross = new Long2ObjectLinkedOpenHashMap<>();
-
-
-    public static <C extends IConnectable> Path<C> of(long pos, C c, Direction from, Direction to) {
-        Node origin = new Node(Pos.offset(pos, from), from.getOpposite());
-        Node pathNode = new Node(pos, from);
-        pathNode.setParent(origin);
-        Node target = new Node(Pos.offset(pos, to), to.getOpposite());
-        target.setParent(pathNode);
-        Path<C> path = new Path<>(Long2ObjectMaps.singleton(pos, new Cache<>(c)), new ArrayDeque<>(Arrays.asList(target, pathNode, origin)));
-        path.cross.put(pos, path.full.get(pos));
-        return path;
-    }
+    private final Long2ObjectMap<C> full = new Long2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<C> cross = new Long2ObjectLinkedOpenHashMap<>();
 
 
     /**
@@ -52,17 +40,9 @@ public class Path<C extends IConnectable> {
             Cache<C> cache = connectors.get(pos);
             if (cache != null) {
                 C cable = cache.value();
-                Direction from = node.getDirection();
-                Direction to;
-                if (target.getParent() == node) {
-                    to = target.getDirection().getOpposite();
-                } else {
-                    to = path.peekLast().getDirection().getOpposite();
-                }
-                PathHolder<C> holder = new PathHolder<>(cable, from, to);
-                full.put(pos, holder);
+                full.put(pos, cable);
                 if (node.isCrossroad()) {
-                    cross.put(pos, holder);
+                    cross.put(pos, cable);
                 }
             }
         }
@@ -85,15 +65,15 @@ public class Path<C extends IConnectable> {
     /**
      * @return Gets the full connectors path.
      */
-    public Long2ObjectMap<PathHolder<C>> getFull() {
-        return Long2ObjectMaps.unmodifiable(full);
+    public Long2ObjectMap<C> getFull() {
+        return full;
     }
 
     /**
      * @return Gets the crossroad connectors path.
      */
-    public Long2ObjectMap<PathHolder<C>> getCross() {
-        return Long2ObjectMaps.unmodifiable(cross);
+    public Long2ObjectMap<C> getCross() {
+        return cross;
     }
 
     /**
@@ -101,17 +81,5 @@ public class Path<C extends IConnectable> {
      */
     public boolean isEmpty() {
         return (origin == null || target == null);
-    }
-
-    public static class PathHolder<C> {
-        public final C connector;
-        public final Direction from;
-        public final Direction to;
-
-        public PathHolder(C connector, Direction from, Direction to) {
-            this.connector = connector;
-            this.from = from;
-            this.to = to;
-        }
     }
 }

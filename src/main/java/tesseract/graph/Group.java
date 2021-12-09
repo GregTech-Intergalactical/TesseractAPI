@@ -5,9 +5,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
-import org.apache.commons.collections4.SetUtils;
 import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
@@ -16,6 +16,7 @@ import tesseract.graph.traverse.BFDivider;
 import tesseract.util.CID;
 import tesseract.util.Pos;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -121,7 +122,9 @@ public class Group<T, C extends IConnectable, N> implements INode {
      * @return Returns blocks set.
      */
     public Set<Long> getBlocks() {
-        return SetUtils.union(nodes.keySet(), connectors.keySet());
+        Set<Long> copy = new ObjectOpenHashSet<>(nodes.keySet());
+        copy.addAll(connectors.keySet());
+        return copy;
     }
 
     /**
@@ -130,7 +133,19 @@ public class Group<T, C extends IConnectable, N> implements INode {
     public Long2ObjectMap<NodeCache<N>> getNodes() {
         return Long2ObjectMaps.unmodifiable(nodes);
     }
-
+    /*
+    public NodeCache<N> getNode(long pos) {
+        NodeCache<N> cache = this.nodes.get(pos);
+        if (cache != null) return cache;
+        if (this.connectors.containsKey(pos)) {
+            Cache<C> conn = this.grids.get(this.connectors.get(pos)).getConnectors().get(pos);
+            if (conn.pathing()) {
+                return new NodeCache<>(pos,conn.value());
+            }
+        }
+        return null;
+    }
+*/
     /**
      * @return Returns grids set.
      */
@@ -647,14 +662,6 @@ public class Group<T, C extends IConnectable, N> implements INode {
                 Tesseract.LOGGER.error("This is a bug, report to mod authors");
             }
         }*/
-    }
-
-    public boolean addSide(long pos, Direction side) {
-        NodeCache<N> cache = this.nodes.get(pos);
-        if (cache != null) {
-            return cache.updateSide(side);
-        }
-        return false;
     }
 
     private void warn(BlockPos pos) {
