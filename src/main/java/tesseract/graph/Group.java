@@ -133,19 +133,19 @@ public class Group<T, C extends IConnectable, N> implements INode {
     public Long2ObjectMap<NodeCache<N>> getNodes() {
         return Long2ObjectMaps.unmodifiable(nodes);
     }
-    /*
+
     public NodeCache<N> getNode(long pos) {
         NodeCache<N> cache = this.nodes.get(pos);
         if (cache != null) return cache;
         if (this.connectors.containsKey(pos)) {
             Cache<C> conn = this.grids.get(this.connectors.get(pos)).getConnectors().get(pos);
             if (conn.pathing()) {
-                return new NodeCache<>(pos,conn.value());
+                return conn.resolveCaps(pos, null);
             }
         }
         return null;
     }
-*/
+
     /**
      * @return Returns grids set.
      */
@@ -453,14 +453,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
     public boolean removeAt(long pos, Consumer<Group<T, C, N>> split) {
-        NodeCache<N> node = nodes.get(pos);
-        boolean flag = false;
-        
         internalRemove(pos, split);
-        //Readd the node if it should not be removed completely.
-        if (flag) {
-            addNode(pos, node, (Controller<T, C, N>) getController());
-        }
         return true;
     }
 

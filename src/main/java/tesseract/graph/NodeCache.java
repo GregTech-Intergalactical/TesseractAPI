@@ -10,7 +10,7 @@ import tesseract.graph.Graph.INodeGetter;
 
 public class NodeCache<T> implements IConnectable {
     private final EnumMap<Direction, T> value;
-    private final INodeGetter<T> getter;
+    public final INodeGetter<T> getter;
     private final Graph<?,?,T> graph;
     private final long pos;
     public final IConnectable pipe;
@@ -52,7 +52,7 @@ public class NodeCache<T> implements IConnectable {
         }
         //if we have this key it means the capability is still valid.
         if (this.value.containsKey(side)) return true;
-        T t = getter.get(pos, side, graph == null ? () -> {} : () -> graph.update(pos, side, getter, true));
+        T t = getter.get(null, pos, side, graph == null ? () -> {} : () -> graph.update(pos, side, true));
         if (t == null) {
             if (pipe == null) Tesseract.LOGGER.info("NULL returned in NodeCache when not expected!");
             this.value.remove(side);

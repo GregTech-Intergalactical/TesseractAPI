@@ -19,7 +19,6 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     protected int tick;
     protected final Level dim;
     protected Group<T, C, N> group;
-    protected LongSet visited = new LongOpenHashSet();
 
     /**
      * Creates instance of the controller.

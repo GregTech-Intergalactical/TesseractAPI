@@ -1,11 +1,11 @@
 package tesseract.api;
 
+import java.util.Set;
 import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import tesseract.Tesseract;
@@ -13,22 +13,25 @@ import tesseract.graph.Cache;
 import tesseract.graph.Graph;
 import tesseract.graph.Graph.INodeGetter;
 import tesseract.graph.Group;
-import tesseract.graph.NodeCache;
 import tesseract.util.Pos;
 
 public class GraphWrapper<T, C extends IConnectable, N> {
 
+    private static final ObjectSet<GraphWrapper<?,?,?>> ALL_WRAPPERS = new ObjectOpenHashSet<>();
+
     protected final Object2ObjectMap<LevelAccessor, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
-    // TODO: maybe do this better.
     protected final Function<Level, Controller<T, C, N>> supplier;
+    protected final INodeGetter<N> getter;
 
     /**
      * Creates a graph wrapper.
      *
      * @param supplier The default controller supplier.
      */
-    public GraphWrapper(Function<Level, Controller<T, C, N>> supplier) {
+    public GraphWrapper(Function<Level, Controller<T, C, N>> supplier, INodeGetter<N> getter) {
         this.supplier = supplier;
+        this.getter = getter;
+        ALL_WRAPPERS.add(this);
     }
 
     /**
@@ -50,18 +53,17 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param dim       The dimension id where the node will be added.
      * @param pos       The position at which the node will be added.
      * @param connector The connector object.
-     * @param applier   The getter that gets nodes and applies callback to invalidation of capabilities.
      */
-    public void registerConnector(Level dim, long pos, C connector, INodeGetter<N> applier, boolean regular) {
+    public void registerConnector(Level dim, long pos, C connector, boolean regular) {
         if (dim.isClientSide())
             return;
-        getGraph(dim).addConnector(pos, new Cache<>(connector, regular), applier, Tesseract.hadFirstTick(dim), regular);
+        getGraph(dim).addConnector(pos, new Cache<>(connector, !regular),Tesseract.hadFirstTick(dim));
 
     }
 
-    public void blockUpdate(Level dim, long connector, long node, INodeGetter<N> applier) {
+    public void blockUpdate(Level dim, long connector, long node) {
         if (dim.isClientSide()) return;
-        getGraph(dim).update(node, Pos.subToDir(connector, node), applier, false);
+        getGraph(dim).update(node, Pos.subToDir(connector, node), false);
     }
 
     /**
@@ -73,7 +75,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      */
     public Graph<T, C, N> getGraph(LevelAccessor dim) {
         assert !dim.isClientSide();
-        return graph.computeIfAbsent(dim, k -> new Graph<>(() -> supplier.apply((Level) dim)));
+        return graph.computeIfAbsent(dim, k -> new Graph<>(() -> supplier.apply((Level) dim), getter));
     }
 
     /**
@@ -85,8 +87,9 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      */
     @Nonnull
     public ITickingController<T, C, N> getController(Level dim, long pos) {
-        if (dim.isClientSide())
-            return null;
+        if (dim.isClientSide()) {
+            throw new IllegalStateException("Call to GraphWrapper::getController on client side!");
+        }
         Group<T, C, N> group = getGraph(dim).getGroupAt(pos);
         return group != null ? group.getController() : supplier.apply(dim);
     }
@@ -118,6 +121,10 @@ public class GraphWrapper<T, C extends IConnectable, N> {
                 Tesseract.LOGGER.warn("Error updating controller : " + ex);
             }
         });
+    }
+
+    public static Set<GraphWrapper<?,?,?>> getWrappers() {
+        return ObjectSets.unmodifiable(ALL_WRAPPERS);
     }
 
     public void removeWorld(Level world) {

@@ -43,9 +43,9 @@ public class Tesseract {
 
     private final static Set<LevelAccessor> firstTick = new ObjectOpenHashSet<>();
     //public static GraphWrapper<Integer, IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
-    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new);
-    public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new);
-    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new);
+    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
+    public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new, IFluidNode.GETTER);
+    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new, IItemNode.GETTER);
 
     public static final int HEALTH_CHECK_TIME = 1000;
 
@@ -53,9 +53,7 @@ public class Tesseract {
         MinecraftForge.EVENT_BUS.addListener(this::serverStoppedEvent);
         MinecraftForge.EVENT_BUS.addListener(this::worldUnloadEvent);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
-        MinecraftForge.EVENT_BUS.addListener((Consumer<RegisterCapabilitiesEvent>) t -> {
-            TesseractGTCapability.register(t);
-        });
+        MinecraftForge.EVENT_BUS.addListener((Consumer<RegisterCapabilitiesEvent>) TesseractGTCapability::register);
 
     }
 
@@ -66,17 +64,13 @@ public class Tesseract {
     public void serverStoppedEvent(ServerStoppedEvent e) {
         firstTick.clear();
         //FE_ENERGY.clear();
-        GT_ENERGY.clear();
-        ITEM.clear();
-        FLUID.clear();
+        GraphWrapper.getWrappers().forEach(GraphWrapper::clear);
     }
 
     public void worldUnloadEvent(WorldEvent.Unload e) {
         if (!(e.getWorld() instanceof Level) || ((Level) e.getWorld()).isClientSide) return;
         //FE_ENERGY.removeWorld((World) e.getWorld());
-        GT_ENERGY.removeWorld((Level) e.getWorld());
-        ITEM.removeWorld((Level) e.getWorld());
-        FLUID.removeWorld((Level) e.getWorld());
+        GraphWrapper.getWrappers().forEach(g -> g.removeWorld((Level)e.getWorld()));
         firstTick.remove(e.getWorld());
     }
 
@@ -85,22 +79,13 @@ public class Tesseract {
         Level dim = event.world;
         if (!hadFirstTick(dim)) {
             firstTick.add(event.world);
-            GT_ENERGY.onFirstTick(dim);
-            //FE_ENERGY.onFirstTick(dim);
-            FLUID.onFirstTick(dim);
-            ITEM.onFirstTick(dim);
+            GraphWrapper.getWrappers().forEach(t -> t.onFirstTick(dim));
         }
         if (event.phase == TickEvent.Phase.START) {
-            GT_ENERGY.tick(dim);
-            //FE_ENERGY.tick(dim);
-            FLUID.tick(dim);
-            ITEM.tick(dim);
+            GraphWrapper.getWrappers().forEach(t -> t.tick(dim));
         }
         if (HEALTH_CHECK_TIME > 0 && event.world.getGameTime() % HEALTH_CHECK_TIME == 0) {
-            GT_ENERGY.healthCheck();
-            //FE_ENERGY.healthCheck();
-            FLUID.healthCheck();
-            ITEM.healthCheck();
+            GraphWrapper.getWrappers().forEach(GraphWrapper::healthCheck);
         }
     }
 }

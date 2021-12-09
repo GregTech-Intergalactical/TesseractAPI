@@ -11,6 +11,7 @@ public class Cache<T extends IConnectable> {
     private final byte connectivity;
     private final boolean pathing;
     private final T value;
+    private NodeCache<?> cache;
 
     /**
      * Creates a cache instance.
@@ -49,7 +50,7 @@ public class Cache<T extends IConnectable> {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Cache && ((Cache<T>)obj).value == this.value;
+        return obj instanceof Cache && ((Cache<?>)obj).value == this.value;
     }
 
     @Override
@@ -57,5 +58,11 @@ public class Cache<T extends IConnectable> {
         return value.hashCode();
     }
 
-    
+    @SuppressWarnings("unchecked")
+    public <N> NodeCache<N> resolveCaps(long thisPos, Graph.INodeGetter<N> getter) {
+        if (cache != null) return (NodeCache<N>) cache;
+        NodeCache<N> cache = new NodeCache<N>(thisPos, this.value, getter);
+        this.cache = cache;
+        return cache;
+    }
 }

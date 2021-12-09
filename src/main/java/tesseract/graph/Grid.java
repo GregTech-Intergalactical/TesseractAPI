@@ -94,9 +94,7 @@ public class Grid<C extends IConnectable> implements INode {
 
         if (cache != null) {
             byte connectivity = cache.connectivity();
-           // long off = Pos.offset(pos, towards);
-            //NodeCache<?> cach = this.nodes.get(off);
-            return Connectivity.has(connectivity, towards.get3DDataValue()); //&& (cach == null || cach.connects(towards.getOpposite()));
+            return Connectivity.has(connectivity, towards.get3DDataValue());
         } else {
             NodeCache<?> c = nodes.get(pos);
             return c != null && c.connects(towards);
@@ -125,7 +123,7 @@ public class Grid<C extends IConnectable> implements INode {
     }
 
     /**
-     * @return Returns nodes map.
+     * @return Returns nodes map, excluding connectors.
      */
     public Long2ObjectMap<NodeCache<?>> getNodes() {
         return Long2ObjectMaps.unmodifiable(nodes);
@@ -139,12 +137,11 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public List<Path<C>> getPaths(long from) {
         List<Path<C>> data = new ObjectArrayList<>();
-        nodes.keySet().forEach(to -> {
+        SetUtil.union(nodes.keySet(), connectors.keySet(), (LongPredicate) p -> connectors.get(p).pathing()).forEach(to -> {
             if (from != to) {
                 data.add(new Path<>(connectors, finder.traverse(from, to)));
             }
         });
-
         return data;
     }
 

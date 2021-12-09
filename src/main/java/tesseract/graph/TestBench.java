@@ -19,7 +19,7 @@ class TestBench {
 
     public static void main(String[] args) throws Exception {
 
-        Graph<Integer, ExampleConnector, ExampleNode> graph = new Graph<>(() -> null);
+        Graph<Integer, ExampleConnector, ExampleNode> graph = new Graph<>(() -> null, (a,b,c,d) -> new ExampleNode());
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {

@@ -8,21 +8,16 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2IntMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Direction;
-import tesseract.Tesseract;
+import net.minecraft.world.level.Level;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
-import tesseract.api.ITickingController;
 import tesseract.util.CID;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * Class provides the functionality of any set of nodes.
@@ -32,12 +27,14 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     public static final Direction[] DIRECTIONS = Direction.values();
     private final Int2ObjectMap<Group<T, C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
     private final Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
-    private final Long2ObjectMap<INodeGetter<N>> PENDING_NODES = new Long2ObjectOpenHashMap<>();
+    private final LongSet PENDING_NODES = new LongOpenHashSet();
     private final Supplier<Controller<T,C,N>> controller;
+    private final INodeGetter<N> getter;
 
-    public Graph(Supplier<Controller<T,C,N>> controller) {
+    public Graph(Supplier<Controller<T,C,N>> controller, INodeGetter<N> getter) {
         positions.defaultReturnValue(CID.INVALID);
         this.controller = controller;
+        this.getter = getter;
     }
 
     @Override
@@ -46,9 +43,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     }
 
     public void onFirstTick() {
-        for (Long2ObjectMap.Entry<INodeGetter<N>> m : PENDING_NODES.long2ObjectEntrySet()) {
-            addNodes(m.getLongKey(), m.getValue());
-        }
+        PENDING_NODES.forEach(this::addNodes);
         PENDING_NODES.clear();
     }
 
@@ -80,7 +75,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
      * Primary update method in Tesseract, receiving capability invalidations and block updates.
      * @param pos the node position.
      */
-    public void update(long pos, @Nonnull Direction side, INodeGetter<N> getter, boolean isInvalidate) {
+    public void update(long pos, @Nonnull Direction side, boolean isInvalidate) {
         //offset to the connector.
         long cPos = Pos.offset(pos, side);
         Group<T,C,N> group = this.getGroupAt(cPos);
@@ -124,12 +119,11 @@ public class Graph<T, C extends IConnectable, N> implements INode {
      * Adds a node to the graph at the specified position.
      *
      * @param pos        The position at which the node will be added.
-     * @param node       The node to add, present as a LongFunction.
      */
-    private void addNodes(long pos, INodeGetter<N> node) {
+    private void addNodes(long pos) {
            for (Direction dir : Graph.DIRECTIONS) {
                 final long nodePos = Pos.offset(pos, dir);
-                NodeCache<N> cache = new NodeCache<>(nodePos, node, this);
+                NodeCache<N> cache = new NodeCache<>(nodePos, getter, this);
                 addNode(nodePos, cache);
            }
     }
@@ -146,25 +140,17 @@ public class Graph<T, C extends IConnectable, N> implements INode {
      * around it.
      * @param pos the connector position.
      * @param connector the cached connector.
-     * @param node the node supplier (world -> interface)
      * @param hadFirstTick if tesseract has ticked yet
-     * @param regular if its a regular connector or a node.
      */
-    public void addConnector(long pos, Cache<C> connector, INodeGetter<N> node, boolean hadFirstTick, boolean regular) {
+    public void addConnector(long pos, Cache<C> connector, boolean hadFirstTick) {
         if (!contains(pos)) {
-            if (regular) {
-                Group<T, C, N> group = add(pos, () -> Group.singleConnector(pos, connector, controller.get()));
-                if (group != null)
-                    group.addConnector(pos, connector, controller.get());
-                if (!hadFirstTick) {
-                    PENDING_NODES.put(pos, node);
-                } else {
-                    addNodes(pos, node);
-                }
+            Group<T, C, N> group = add(pos, () -> Group.singleConnector(pos, connector, controller.get()));
+            if (group != null)
+                group.addConnector(pos, connector, controller.get());
+            if (!hadFirstTick) {
+                PENDING_NODES.add(pos);
             } else {
-                NodeCache<N> pipe = new NodeCache<>(pos, connector.value(),  node);
-                addNode(pos, pipe);
-                addNodes(pos, node);
+                addNodes(pos);
             }
         }
     }
@@ -181,24 +167,25 @@ public class Graph<T, C extends IConnectable, N> implements INode {
         int id;
         IntSet mergers = getNeighboringGroups(pos);
         switch (mergers.size()) {
-            case 0:
+            case 0 -> {
                 id = CID.nextId();
                 positions.put(pos, id);
                 groups.put(id, single.get());
                 return null;
-
-            case 1:
+            }
+            case 1 -> {
                 id = mergers.iterator().nextInt();
                 positions.put(pos, id);
                 return groups.get(id);
-
-            default:
+            }
+            default -> {
                 Merged<T, C, N> data = beginMerge(mergers);
                 positions.put(pos, data.bestId);
                 for (Group<T, C, N> other : data.merged) {
                     data.best.mergeWith(other, pos);
                 }
                 return data.best;
+            }
         }
     }
 
@@ -363,23 +350,16 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     /**
      * @apiNote Wrapper for merged groups.
      */
-    private static class Merged<T, C extends IConnectable, N> {
-
-        final int bestId;
-        final Group<T, C, N> best;
-        final List<Group<T, C, N>> merged;
-
+    private record Merged<T, C extends IConnectable, N>(int bestId, Group<T, C, N> best,
+                                                        List<Group<T, C, N>> merged) {
         /**
          * Constructs a new Merged of the groups.
          */
-        Merged(int bestId, Group<T, C, N> best, List<Group<T, C, N>> merged) {
-            this.best = best;
-            this.bestId = bestId;
-            this.merged = merged;
+        private Merged {
         }
     }
 
     public interface INodeGetter<T> {
-        T get(long pos, Direction capSide, Runnable capCallback);
+        T get(Level level, long pos, Direction capSide, Runnable capCallback);
     }
 }
