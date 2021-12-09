@@ -122,14 +122,12 @@ task sourcesJar(type: Jar) {
 shadowJar {
     configurations = [project.configurations.shadow]
     archiveClassifier.set('')
-    relocate 'org.apache.commons.collections4', 'tesseract.collections'
 }
 reobf {
     shadowJar {}
 }
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    shadow 'org.apache.commons:commons-collections4:4.4'
     testImplementation('junit:junit:4.11')
 }
 
