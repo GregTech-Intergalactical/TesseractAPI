@@ -15,7 +15,7 @@ import tesseract.graph.Graph;
 import tesseract.graph.Path;
 import tesseract.util.Pos;
 
-public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends TesseractBaseCapability<T> implements IGTNode {
+public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends TesseractBaseCapability<T> implements IEnergyHandler {
 
     public static final Capability<IEnergyHandler> ENERGY_HANDLER_CAPABILITY = CapabilityManager.get(new CapabilityToken<>(){});
 
@@ -131,5 +131,15 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
     @Override
     public GTConsumer.State getState() {
         return new GTConsumer.State(this);
+    }
+
+    @Override
+    public CompoundTag serializeNBT() {
+        return null;
+    }
+
+    @Override
+    public void deserializeNBT(CompoundTag nbt) {
+
     }
 }

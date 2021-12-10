@@ -6,6 +6,7 @@ import java.util.function.Function;
 import javax.annotation.Nonnull;
 
 import it.unimi.dsi.fastutil.objects.*;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import tesseract.Tesseract;
@@ -21,14 +22,14 @@ public class GraphWrapper<T, C extends IConnectable, N> {
 
     protected final Object2ObjectMap<LevelAccessor, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
     protected final Function<Level, Controller<T, C, N>> supplier;
-    protected final INodeGetter<N> getter;
+    protected final ICapabilityGetter<N> getter;
 
     /**
      * Creates a graph wrapper.
      *
      * @param supplier The default controller supplier.
      */
-    public GraphWrapper(Function<Level, Controller<T, C, N>> supplier, INodeGetter<N> getter) {
+    public GraphWrapper(Function<Level, Controller<T, C, N>> supplier, ICapabilityGetter<N> getter) {
         this.supplier = supplier;
         this.getter = getter;
         ALL_WRAPPERS.add(this);
@@ -57,7 +58,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
     public void registerConnector(Level dim, long pos, C connector, boolean regular) {
         if (dim.isClientSide())
             return;
-        getGraph(dim).addConnector(pos, new Cache<>(connector, !regular),Tesseract.hadFirstTick(dim));
+        getGraph(dim).addConnector(pos, new Cache<>(connector, /*!regular*/false),Tesseract.hadFirstTick(dim));
 
     }
 
@@ -75,7 +76,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      */
     public Graph<T, C, N> getGraph(LevelAccessor dim) {
         assert !dim.isClientSide();
-        return graph.computeIfAbsent(dim, k -> new Graph<>(() -> supplier.apply((Level) dim), getter));
+        return graph.computeIfAbsent(dim, k -> new Graph<>(() -> supplier.apply((Level) dim), (a,b,c) -> getter.get((Level)dim,a,b,c)));
     }
 
     /**
@@ -137,5 +138,9 @@ public class GraphWrapper<T, C extends IConnectable, N> {
 
     public void healthCheck() {
         this.graph.values().forEach(v -> v.getGroups().values().forEach(Group::healthCheck));
+    }
+
+    public interface ICapabilityGetter<T> {
+        T get(Level level, long pos, Direction capSide, Runnable capCallback);
     }
 }

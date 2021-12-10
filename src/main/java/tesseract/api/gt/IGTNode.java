@@ -6,6 +6,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
+import tesseract.api.GraphWrapper;
 import tesseract.api.capability.TesseractGTCapability;
 import tesseract.graph.Graph;
 
@@ -140,7 +141,7 @@ public interface IGTNode {
 
     }
 
-    Graph.INodeGetter<IGTNode> GT_GETTER = (level, pos, side, invalidate) -> {
+    GraphWrapper.ICapabilityGetter<IGTNode> GT_GETTER = (level, pos, side, invalidate) -> {
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         LazyOptional<IEnergyHandler> capability = tile.getCapability(TesseractGTCapability.ENERGY_HANDLER_CAPABILITY, side);
         if (capability.isPresent()) {

@@ -12,6 +12,7 @@ import javax.annotation.Nonnull;
 
 
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
+import tesseract.api.GraphWrapper;
 import tesseract.graph.Graph;
 
 /**
@@ -156,7 +157,7 @@ public interface IFluidNode extends IFluidHandler {
         }
     }
 
-    Graph.INodeGetter<IFluidNode> GETTER = ((level, pos, capSide, capCallback) ->  {
+    GraphWrapper.ICapabilityGetter<IFluidNode> GETTER = ((level, pos, capSide, capCallback) ->  {
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) {
             return null;

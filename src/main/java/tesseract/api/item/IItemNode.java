@@ -7,6 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import tesseract.api.GraphWrapper;
 import tesseract.graph.Graph;
 
 import javax.annotation.Nonnull;
@@ -147,7 +148,7 @@ public interface IItemNode extends IItemHandler {
             return handler.isItemValid(slot, stack);
         }
     }
-    Graph.INodeGetter<IItemNode> GETTER = ((level, pos, capSide, capCallback) -> {
+    GraphWrapper.ICapabilityGetter<IItemNode> GETTER = ((level, pos, capSide, capCallback) -> {
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) {
             return null;

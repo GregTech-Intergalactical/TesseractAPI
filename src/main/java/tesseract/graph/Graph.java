@@ -360,6 +360,6 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     }
 
     public interface INodeGetter<T> {
-        T get(Level level, long pos, Direction capSide, Runnable capCallback);
+        T get(long pos, Direction capSide, Runnable capCallback);
     }
 }
