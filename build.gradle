@@ -107,7 +107,13 @@ minecraft {
 repositories {
     jcenter()
 }
-
+afterEvaluate { project ->
+    project.tasks.publishToMavenLocal {
+        onlyIf {
+            return rootProject.name == "${modid}"
+        }
+    }
+}
 task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
     archiveBaseName.set(project.archivesBaseName)
