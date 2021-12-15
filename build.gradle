@@ -19,6 +19,15 @@ plugins {
     id 'maven-publish'
     id 'com.github.johnrengelman.shadow' version '7.1.0'
 }
+
+def isCI = System.getenv("GITHUB_ACTION")
+def isRELEASE = System.getenv("GITHUB_RELEASE")
+def gitHash() {
+    String hash = System.getenv("GITHUB_SHA")
+    if (hash != null) return hash.substring(0,8)
+    return ""
+}
+
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: "eclipse"
 apply plugin: "com.github.johnrengelman.shadow"
@@ -27,6 +36,10 @@ apply plugin: 'org.parchmentmc.librarian.forgegradle'
 archivesBaseName = 'TesseractAPI'
 version = "${minecraft_version}-${mod_version}"
 group = "com.github.gregtech-intergalactical"
+
+if (isCI) {
+    version = version + "-" + gitHash()
+}
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 configurations {
@@ -144,7 +157,10 @@ afterEvaluate { project ->
         }
     }
 }
-
+if (isCI) {
+    jar.finalizedBy('reobfJar')
+    println("In CI mode")
+}
 jar {
     zip64 true
     manifest {
@@ -172,8 +188,17 @@ publishing {
         }
     }
     repositories {
-        maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
+        if (isCI && isRELEASE) {
+            maven {
+                name = "GitHubPackages"
+                url = "https://maven.pkg.github.com/GregTech-Intergalactical/TesseractAPI"
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+        } else {
+            maven { url "file:///${project.projectDir}/mcmodsrepo"}
         }
     }
     //repositories {
