@@ -39,7 +39,7 @@ jobs:
       uses: gradle/gradle-build-action@4137be6a8bf7d7133955359dbd952c0ca73b1021
       with:
         arguments: build
-    # The USERNAME and TOKEN need to correspond to the credentials environment variables used in
+    # The USERNAME and TOKEN need to correspond to the credential environment variables used in
     # the publishing section of your build.gradle
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
