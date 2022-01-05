@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "tesseract",
+  "id": "tesseractapi",
   "version": "${version}",
   "name": "Tesseract API",
   "description": "Powerful framework for energy, item, and fluid transport",

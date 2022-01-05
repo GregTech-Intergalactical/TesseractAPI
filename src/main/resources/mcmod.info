@@ -1,6 +1,6 @@
 [
 {
-  "modid": "tesseract",
+  "modid": "tesseractapi",
   "name": "Tesseract API",
   "description": "Powerful framework for energy, item, and fluid transport",
   "version": "${version}",
