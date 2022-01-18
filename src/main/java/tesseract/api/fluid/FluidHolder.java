@@ -14,7 +14,7 @@ import java.util.Set;
 public class FluidHolder {
 
     private int pressureAvailable;
-    private final int tickPressure, maxCapacity;
+    public final int tickPressure, maxCapacity;
     private final Set<SetHolder> fluids = new ObjectOpenHashSet<>();
 
     /**

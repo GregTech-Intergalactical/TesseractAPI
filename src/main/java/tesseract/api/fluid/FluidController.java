@@ -1,9 +1,6 @@
 package tesseract.api.fluid;
 
-import it.unimi.dsi.fastutil.longs.Long2IntMap;
-import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -37,6 +34,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
     private boolean isLeaking, lastLeaking;
     private final Long2ObjectMap<Map<Direction, List<FluidConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
     private final Long2IntMap pressureData = new Long2IntOpenHashMap(10);
+    //public final Long2IntMap sentPressure = new Long2IntOpenHashMap(10);
 
     /**
      * Creates instance of the controller.
@@ -177,7 +175,6 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 break;
         }
     }
-
     public void dataCommit(FluidConsumer consumer, FluidStack stack) {
         int temperature = stack.getFluid().getAttributes().getTemperature();
         int amount = stack.getAmount();
@@ -231,7 +228,10 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 }
             }
         }
-
+        /*consumer.getFull().keySet().forEach(l -> {
+            int pressure = amount + this.sentPressure.get(l);
+            this.sentPressure.put(l, pressure);
+        });*/
         maxTemperature = Math.max(temperature, maxTemperature);
         totalPressure += amount;
         consumer.insert(stack, false);
@@ -240,6 +240,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
     @Override
     public void tick() {
         super.tick();
+      //  sentPressure.clear();
         for (Cache<IFluidPipe> pipe : this.group.connectors()) {
             pipe.value().getHolder().tick(getWorld().getGameTime());
         }
@@ -253,10 +254,6 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
         totalPressure = 0L;
         maxTemperature = 0;
         isLeaking = false;
-    }
-
-    public FluidHolder getCableHolder(long pos) {
-        return this.group.getConnector(pos).value().getHolder();
     }
 
     @Override

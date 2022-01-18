@@ -17,6 +17,7 @@ import javax.annotation.Nonnull;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongConsumer;
 
 /**
  * Class acts as a controller in the group of an electrical components.
@@ -29,6 +30,8 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
     private Long2LongMap previousFrameHolder = new Long2LongLinkedOpenHashMap();
     // private final Object2IntMap<IGTNode> obtains = new Object2IntOpenHashMap<>();
     private final Long2ObjectMap<Map<Direction, List<GTConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
+
+    public final LongSet cableIsActive = new LongOpenHashSet();
 
     /**
      * Creates instance of the controller.
@@ -239,6 +242,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
                 }
             }
         }
+        cableIsActive.addAll(consumer.getFull().keySet());
 
         this.totalLoss += data.getLoss();
         this.totalAmperage += data.getTotalAmperage();
@@ -254,6 +258,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
         totalAmperage = totalVoltage = totalLoss = 0L;
         previousFrameHolder = frameHolders;
         frameHolders = new Long2LongOpenHashMap();
+        cableIsActive.clear();
     }
 
     @Override
