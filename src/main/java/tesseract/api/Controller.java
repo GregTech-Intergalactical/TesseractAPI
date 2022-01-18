@@ -1,14 +1,9 @@
 package tesseract.api;
 
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
-import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import tesseract.graph.Graph;
 import tesseract.graph.Group;
 import tesseract.graph.INode;
-import tesseract.graph.NodeCache;
-import tesseract.util.Pos;
 
 
 /**
@@ -19,14 +14,16 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     protected int tick;
     protected final Level dim;
     protected Group<T, C, N> group;
+    protected final Graph.INodeGetter<N> getter;
 
     /**
      * Creates instance of the controller.
      *
      * @param supplier The world.
      */
-    protected Controller(Level supplier) {
+    protected Controller(Level supplier, Graph.INodeGetter<N> getter) {
         this.dim = supplier;
+        this.getter = getter;
     }
 
     /**

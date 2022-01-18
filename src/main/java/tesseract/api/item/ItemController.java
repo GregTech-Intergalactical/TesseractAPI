@@ -5,16 +5,14 @@ import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.Direction;
-import net.minecraft.util.Tuple;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.api.capability.ITransactionModifier;
-import tesseract.api.capability.TesseractBaseCapability;
 import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
@@ -36,8 +34,8 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
      *
      * @param dim The dimension id.
      */
-    public ItemController(Level dim) {
-        super(dim);
+    public ItemController(Level dim, Graph.INodeGetter<IItemNode> getter) {
+        super(dim, getter);
     }
 
     @Override
@@ -120,7 +118,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             int actual = stack.getCount() - amount;
 
             if (consumer.getConnection() == ConnectionType.SINGLE) {
-                actual = Math.min(actual, consumer.getMinCapacity());
+                actual = actual;//Math.min(actual, consumer.getMinCapacity());
             } else {
                 // Verify cross chain.
                 for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
@@ -204,6 +202,6 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
 
     @Override
     public ITickingController<ItemTransaction, IItemPipe, IItemNode> clone(INode group) {
-        return new ItemController(dim).set(group);
+        return new ItemController(dim, getter).set(group);
     }
 }

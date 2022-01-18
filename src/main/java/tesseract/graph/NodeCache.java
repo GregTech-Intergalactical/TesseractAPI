@@ -1,28 +1,33 @@
 package tesseract.graph;
 
-import java.util.EnumMap;
-import java.util.Map;
-
 import net.minecraft.core.Direction;
 import tesseract.Tesseract;
 import tesseract.api.IConnectable;
 import tesseract.graph.Graph.INodeGetter;
 
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+
 public class NodeCache<T> implements IConnectable {
+
     private final EnumMap<Direction, T> value;
     public final INodeGetter<T> getter;
-    private final Graph<?,?,T> graph;
+    private final BiPredicate<Direction, Long> validator;
+    private final BiConsumer<Direction, Long> callback;
     private final long pos;
     private final boolean pipe;
 
     /**
      * Creates a cache instance.
      */
-    public NodeCache(long pos, INodeGetter<T> getter, Graph<?,?,T> graph) {
+    public NodeCache(long pos, INodeGetter<T> getter, BiPredicate<Direction, Long> validator, BiConsumer<Direction, Long> callback) {
         this.value = new EnumMap<>(Direction.class);
         this.getter = getter;
         this.pos = pos;
-        this.graph = graph;
+        this.validator = validator;
+        this.callback = callback;
         this.pipe = false;
         for (Direction d : Graph.DIRECTIONS) {
             updateSide(d);
@@ -33,8 +38,9 @@ public class NodeCache<T> implements IConnectable {
         this.value = new EnumMap<>(Direction.class);
         this.getter = getter;
         this.pos = pos;
-        this.graph = null;
         this.pipe = true;
+        this.validator = null;
+        this.callback = null;
         for (Direction d : Graph.DIRECTIONS) {
             updateSide(d);
         }
@@ -46,13 +52,13 @@ public class NodeCache<T> implements IConnectable {
     }
 
     public boolean updateSide(Direction side) {
-        if (!pipe && !graph.validate(side, pos)) {
+        if (!pipe && !validator.test(side, pos)) {
             value.remove(side);
             return false;
         }
         //if we have this key it means the capability is still valid.
         if (this.value.containsKey(side)) return true;
-        T t = getter.get(pos, side, graph == null ? null : () -> graph.update(pos, side, true));
+        T t = getter.get(pos, side, () -> callback.accept(side, pos));
         if (t == null) {
             if (!pipe) Tesseract.LOGGER.info("NULL returned in NodeCache when not expected!");
             this.value.remove(side);

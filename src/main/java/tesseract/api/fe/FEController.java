@@ -33,7 +33,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
      * @param world The world.
      */
     public FEController(Level world) {
-        super(world);
+        super(world, null);
         holders.defaultReturnValue(-1L);
     }
 

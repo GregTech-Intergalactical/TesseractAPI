@@ -4,6 +4,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import tesseract.api.gt.GTController;
+import tesseract.api.gt.IGTNode;
+import tesseract.graph.Graph;
 
 // TODO: Make explosions depend on voltage, amp
 public class Energy extends GTController {
@@ -13,8 +15,8 @@ public class Energy extends GTController {
      *
      * @param dim The dimension id.
      */
-    public Energy(Level dim) {
-        super(dim);
+    public Energy(Level dim, Graph.INodeGetter<IGTNode> node) {
+        super(dim, node);
     }
 
     @Override

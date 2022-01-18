@@ -35,8 +35,8 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
      *
      * @param dim The dimension id.
      */
-    public GTController(Level dim) {
-        super(dim);
+    public GTController(Level dim, Graph.INodeGetter<IGTNode> getter) {
+        super(dim, getter);
     }
 
     /**
@@ -299,6 +299,6 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
 
     @Override
     public ITickingController clone(INode group) {
-        return new GTController(dim).set(group);
+        return new GTController(dim, getter).set(group);
     }
 }

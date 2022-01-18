@@ -1,11 +1,5 @@
 package tesseract.api.fluid;
 
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Nonnull;
-
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
@@ -24,6 +18,11 @@ import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import javax.annotation.Nonnull;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Class acts as a controller in the group of a fluid components.
  */
@@ -37,7 +36,6 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
     private int maxTemperature, lastTemperature;
     private boolean isLeaking, lastLeaking;
     private final Long2ObjectMap<Map<Direction, List<FluidConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
-    private final Graph.INodeGetter<IFluidNode> getter;
     private final Long2IntMap pressureData = new Long2IntOpenHashMap(10);
 
     /**
@@ -45,9 +43,8 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
      *
      * @param world the world.
      */
-    public FluidController(Level world, Graph.INodeGetter<IFluidNode> geter) {
-        super(world);
-        this.getter = geter;
+    public FluidController(Level world, Graph.INodeGetter<IFluidNode> getter) {
+        super(world, getter);
     }
 
     private void handleInput(long pos, NodeCache<IFluidNode> producers) {

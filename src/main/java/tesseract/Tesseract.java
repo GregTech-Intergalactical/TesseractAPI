@@ -1,11 +1,5 @@
 package tesseract;
 
-import java.util.Set;
-import java.util.function.Consumer;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -15,6 +9,8 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import tesseract.api.GraphWrapper;
 import tesseract.api.capability.TesseractGTCapability;
 import tesseract.api.fluid.FluidTransaction;
@@ -30,6 +26,9 @@ import tesseract.api.item.ItemTransaction;
 import tesseract.controller.Energy;
 import tesseract.controller.Fluid;
 
+import java.util.Set;
+import java.util.function.Consumer;
+
 @Mod(Tesseract.API_ID)
 //@Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
 public class Tesseract {
@@ -43,9 +42,9 @@ public class Tesseract {
 
     private final static Set<LevelAccessor> firstTick = new ObjectOpenHashSet<>();
     //public static GraphWrapper<Integer, IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
-    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = null;//new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
+    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
     public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new, IFluidNode.GETTER);
-    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = null;//new GraphWrapper<>(ItemController::new, IItemNode.GETTER);
+    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new, IItemNode.GETTER);
 
     public static final int HEALTH_CHECK_TIME = 1000;
 
