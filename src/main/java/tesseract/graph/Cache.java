@@ -9,17 +9,15 @@ import tesseract.api.IConnectable;
 public class Cache<T extends IConnectable> {
 
     private final byte connectivity;
-    private final boolean pathing;
     private final T value;
     private NodeCache<?> cache;
 
     /**
      * Creates a cache instance.
      */
-    public Cache(T value, boolean pathing) {
+    public Cache(T value) {
         this.value = value;
         this.connectivity = Connectivity.of(value);
-        this.pathing = pathing;
     }
 
     /**
@@ -45,7 +43,7 @@ public class Cache<T extends IConnectable> {
     }
 
     public boolean pathing() {
-        return pathing;
+        return value.path();
     }
 
     @Override
@@ -56,13 +54,5 @@ public class Cache<T extends IConnectable> {
     @Override
     public int hashCode() {
         return value.hashCode();
-    }
-
-    @SuppressWarnings("unchecked")
-    public <N> NodeCache<N> resolveCaps(long thisPos, Graph.INodeGetter<N> getter) {
-        if (cache != null) return (NodeCache<N>) cache;
-        NodeCache<N> cache = new NodeCache<N>(thisPos, this.value, getter);
-        this.cache = cache;
-        return cache;
     }
 }

@@ -43,9 +43,9 @@ public class Tesseract {
 
     private final static Set<LevelAccessor> firstTick = new ObjectOpenHashSet<>();
     //public static GraphWrapper<Integer, IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
-    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
+    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = null;//new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
     public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new, IFluidNode.GETTER);
-    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new, IItemNode.GETTER);
+    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = null;//new GraphWrapper<>(ItemController::new, IItemNode.GETTER);
 
     public static final int HEALTH_CHECK_TIME = 1000;
 

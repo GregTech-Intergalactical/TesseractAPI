@@ -3,6 +3,7 @@ package tesseract.graph;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 import java.util.function.LongPredicate;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
@@ -137,8 +138,8 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public List<Path<C>> getPaths(long from) {
         List<Path<C>> data = new ObjectArrayList<>();
-        SetUtil.union(nodes.keySet(), connectors.keySet(), (LongPredicate) p -> connectors.get(p).pathing()).forEach(to -> {
-            if (from != to) {
+        nodes.keySet().forEach((LongConsumer)  to -> {
+            if (to != from) {
                 data.add(new Path<>(connectors, finder.traverse(from, to)));
             }
         });

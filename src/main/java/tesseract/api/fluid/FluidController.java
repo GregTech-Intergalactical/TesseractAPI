@@ -20,11 +20,7 @@ import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.api.capability.ITransactionModifier;
 import tesseract.api.capability.TesseractBaseCapability;
-import tesseract.graph.Cache;
-import tesseract.graph.Grid;
-import tesseract.graph.INode;
-import tesseract.graph.NodeCache;
-import tesseract.graph.Path;
+import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
@@ -41,7 +37,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
     private int maxTemperature, lastTemperature;
     private boolean isLeaking, lastLeaking;
     private final Long2ObjectMap<Map<Direction, List<FluidConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
-
+    private final Graph.INodeGetter<IFluidNode> getter;
     private final Long2IntMap pressureData = new Long2IntOpenHashMap(10);
 
     /**
@@ -49,8 +45,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
      *
      * @param world the world.
      */
-    public FluidController(Level world) {
+    public FluidController(Level world, Graph.INodeGetter<IFluidNode> geter) {
         super(world);
+        this.getter = geter;
     }
 
     private void handleInput(long pos, NodeCache<IFluidNode> producers) {
@@ -92,6 +89,8 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
             for (Long2ObjectMap.Entry<NodeCache<IFluidNode>> e : group.getNodes().long2ObjectEntrySet()) {
                 handleInput(e.getLongKey(), e.getValue());
             }
+
+            this.group.pipeNodes().forEach(t -> handleInput(t, new NodeCache<>(t, getter)));
 
             for (Map<Direction, List<FluidConsumer>> map : data.values()) {
                 for (List<FluidConsumer> consumers : map.values()) {
@@ -273,7 +272,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
 
     @Override
     public ITickingController clone(INode group) {
-        return new FluidController(dim).set(group);
+        return new FluidController(dim, getter).set(group);
     }
 
 }

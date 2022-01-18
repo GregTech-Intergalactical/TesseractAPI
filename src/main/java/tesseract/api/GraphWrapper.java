@@ -1,6 +1,7 @@
 package tesseract.api;
 
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import javax.annotation.Nonnull;
@@ -21,7 +22,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
     private static final ObjectSet<GraphWrapper<?,?,?>> ALL_WRAPPERS = new ObjectOpenHashSet<>();
 
     protected final Object2ObjectMap<LevelAccessor, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
-    protected final Function<Level, Controller<T, C, N>> supplier;
+    protected final BiFunction<Level, INodeGetter<N>, Controller<T, C, N>> supplier;
     protected final ICapabilityGetter<N> getter;
 
     /**
@@ -29,7 +30,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      *
      * @param supplier The default controller supplier.
      */
-    public GraphWrapper(Function<Level, Controller<T, C, N>> supplier, ICapabilityGetter<N> getter) {
+    public GraphWrapper(BiFunction<Level, INodeGetter<N>, Controller<T, C, N>> supplier, ICapabilityGetter<N> getter) {
         this.supplier = supplier;
         this.getter = getter;
         ALL_WRAPPERS.add(this);
@@ -58,7 +59,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
     public void registerConnector(Level dim, long pos, C connector, boolean regular) {
         if (dim.isClientSide())
             return;
-        getGraph(dim).addConnector(pos, new Cache<>(connector, /*!regular*/false),Tesseract.hadFirstTick(dim));
+        getGraph(dim).addConnector(pos, new Cache<>(connector),Tesseract.hadFirstTick(dim));
 
     }
 
@@ -76,7 +77,8 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      */
     public Graph<T, C, N> getGraph(LevelAccessor dim) {
         assert !dim.isClientSide();
-        return graph.computeIfAbsent(dim, k -> new Graph<>(() -> supplier.apply((Level) dim), (a,b,c) -> getter.get((Level)dim,a,b,c)));
+        INodeGetter<N> get = (a,b,c) -> getter.get((Level)dim,a,b,c);
+        return graph.computeIfAbsent(dim, k -> new Graph<>(() -> supplier.apply((Level) dim, get), get));
     }
 
     /**
@@ -92,7 +94,9 @@ public class GraphWrapper<T, C extends IConnectable, N> {
             throw new IllegalStateException("Call to GraphWrapper::getController on client side!");
         }
         Group<T, C, N> group = getGraph(dim).getGroupAt(pos);
-        return group != null ? group.getController() : supplier.apply(dim);
+        INodeGetter<N> get = (a,b,c) -> getter.get((Level)dim,a,b,c);
+
+        return group != null ? group.getController() : supplier.apply(dim, get);
     }
 
     /**

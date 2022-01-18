@@ -9,6 +9,8 @@ import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.fluids.FluidStack;
 import tesseract.api.fluid.FluidController;
+import tesseract.api.fluid.IFluidNode;
+import tesseract.graph.Graph;
 
 import javax.annotation.Nonnull;
 
@@ -23,8 +25,8 @@ public class Fluid extends FluidController {
      *
      * @param dim The dimension id.
      */
-    public Fluid(Level dim) {
-        super(dim);
+    public Fluid(Level dim, Graph.INodeGetter<IFluidNode> get) {
+        super(dim, get);
     }
 
     @Override

@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
@@ -71,6 +73,10 @@ public class Group<T, C extends IConnectable, N> implements INode {
 
     public Iterable<Long2ObjectMap.Entry<Cache<C>>> connectorsEntries() {
         return () -> this.grids.values().stream().flatMap(t -> t.getConnectors().long2ObjectEntrySet().stream()).distinct().iterator();
+    }
+
+    public LongStream pipeNodes() {
+        return this.connectors.long2IntEntrySet().stream().mapToLong(t -> this.grids.get(t.getIntValue()).getConnectors().get(t.getLongKey()).pathing() ? t.getLongKey() : Long.MIN_VALUE).filter(l -> l != Long.MIN_VALUE);
     }
 
 
@@ -132,18 +138,6 @@ public class Group<T, C extends IConnectable, N> implements INode {
      */
     public Long2ObjectMap<NodeCache<N>> getNodes() {
         return Long2ObjectMaps.unmodifiable(nodes);
-    }
-
-    public NodeCache<N> getNode(long pos) {
-        NodeCache<N> cache = this.nodes.get(pos);
-        if (cache != null) return cache;
-        if (this.connectors.containsKey(pos)) {
-            Cache<C> conn = this.grids.get(this.connectors.get(pos)).getConnectors().get(pos);
-            if (conn.pathing()) {
-                return conn.resolveCaps(pos, null);
-            }
-        }
-        return null;
     }
 
     /**

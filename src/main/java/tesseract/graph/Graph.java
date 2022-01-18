@@ -109,9 +109,6 @@ public class Graph<T, C extends IConnectable, N> implements INode {
             return conn.value().validate(side.getOpposite());
         }
         NodeCache<N> cache = group.getNodes().get(Pos.offset(pos, side));
-        if (cache != null && cache.pipe != null) {
-            return cache.pipe.validate(side.getOpposite());
-        }
         return false;
     }
 
