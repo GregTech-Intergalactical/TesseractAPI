@@ -56,7 +56,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                tesseract {
+                tesseractapi {
                     source sourceSets.main
                 }
             }
@@ -72,7 +72,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                tesseract {
+                tesseractapi {
                     source sourceSets.main
                 }
             }
@@ -91,7 +91,7 @@ minecraft {
                     '--existing', '"' + sourceSets.main.resources.srcDirs[0] + '"'
 
             mods {
-                tesseract {
+                tesseractapi {
                     source sourceSets.main
                 }
             }
