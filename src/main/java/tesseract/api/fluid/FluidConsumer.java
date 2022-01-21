@@ -1,5 +1,6 @@
 package tesseract.api.fluid;
 
+
 import net.minecraft.util.Direction;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -22,7 +23,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
 
     private int minPressure = Integer.MAX_VALUE;
     private int minTemperature = Integer.MAX_VALUE;
-    private final Direction input;
+    public final Direction input;
 
     public long lowestPipePosition = -1;
 
@@ -33,8 +34,8 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param path     The path information.
      * @param dir      The added direction.
      */
-    public FluidConsumer(IFluidNode consumer, Path<IFluidPipe> path, Direction dir) {
-        super(consumer, path);
+    public FluidConsumer(IFluidNode consumer,IFluidNode producer, Path<IFluidPipe> path, Direction dir) {
+        super(consumer,producer, path);
         init();
         this.input = dir;
     }
@@ -80,7 +81,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
         minTemperature = Math.min(minTemperature, pipe.getTemperature());
         minCapacity = Math.min(minCapacity, pipe.getCapacity());
         if (pipe.getPressure() < minPressure && connection == ConnectionType.SINGLE) {
-            lowestPipePosition = this.getFull().long2ObjectEntrySet().stream().filter(t -> t.getValue().connector == pipe).findFirst().get().getLongKey();
+            lowestPipePosition = this.getFull().long2ObjectEntrySet().stream().filter(t -> t.getValue() == pipe).findFirst().get().getLongKey();
         }
         minPressure = Math.min(minPressure, pipe.getPressure());
     }

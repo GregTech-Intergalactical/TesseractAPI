@@ -12,9 +12,6 @@ public abstract class TesseractBaseCapability<T extends TileEntity & IConnectabl
     public final Direction side;
     public final boolean isNode;
     public final ITransactionModifier callback;
-
-    protected final Deque<Direction> modifyDirs = new ArrayDeque<>(6);
-
     protected boolean isSending;
 
     public TesseractBaseCapability(T tile, Direction side, boolean isNode, ITransactionModifier callback) {

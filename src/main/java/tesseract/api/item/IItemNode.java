@@ -3,7 +3,12 @@ package tesseract.api.item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import tesseract.api.GraphWrapper;
+import tesseract.graph.Graph;
 
 import javax.annotation.Nonnull;
 
@@ -143,5 +148,19 @@ public interface IItemNode extends IItemHandler {
             return handler.isItemValid(slot, stack);
         }
     }
-    
+    GraphWrapper.ICapabilityGetter<IItemNode> GETTER = ((level, pos, capSide, capCallback) -> {
+        TileEntity tile = level.getBlockEntity(BlockPos.of(pos));
+        if (tile == null) {
+            return null;
+        }
+        LazyOptional<IItemHandler> h = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, capSide);
+        if (h.isPresent()) {
+            if (capCallback != null) h.addListener(t -> capCallback.run());
+            if (h.map(t -> t instanceof IItemNode).orElse(false)) {
+                return (IItemNode) h.resolve().get();
+            }
+            return new ItemTileWrapper(tile, h.orElse(null));
+        }
+        return null;
+    });
 }

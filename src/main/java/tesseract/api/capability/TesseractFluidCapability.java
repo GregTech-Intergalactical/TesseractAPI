@@ -15,7 +15,8 @@ import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
 
-public class TesseractFluidCapability<T extends TileEntity & IFluidPipe> extends TesseractBaseCapability<T> implements IFluidHandler {
+
+public class TesseractFluidCapability<T extends TileEntity & IFluidPipe> extends TesseractBaseCapability<T> implements IFluidNode {
 
     private FluidTransaction old;
 
@@ -49,46 +50,17 @@ public class TesseractFluidCapability<T extends TileEntity & IFluidPipe> extends
         if (this.isSending) return 0;
         this.isSending = true;
         if (action.execute()) {
-            if (this.isNode) {
-                for (FluidStack stac : this.old.getData()) {
-                    callback.modify(stac, this.side, modifyDirs.pop(), false);
-                }
-            }
             old.commit();
         } else {
             long pos = tile.getBlockPos().asLong();
             FluidTransaction transaction = new FluidTransaction(resource.copy(), a -> {
             });
             if (!this.isNode) {
-                Tesseract.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction);
+                Tesseract.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             } else {
-                modifyDirs.clear();
-                FluidStack current = resource.copy();
                 for (Direction dir : Graph.DIRECTIONS) {
-                    if (dir == this.side)
-                        continue;
-                    TileEntity tile = this.tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
-                    if (tile == null)
-                        continue;
-                    LazyOptional<IFluidHandler> cap = tile
-                            .getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, dir.getOpposite());
-                    IFluidHandler handle = cap.orElse(null);
-                    if (handle == null)
-                        continue;
-                    int inserted = handle.fill(current, action);
-                    inserted = Math.min(inserted, this.tile.getHolder().getPressureAvailable());
-                    if (inserted > 0) {
-                        // Amount actually inserted
-                        FluidStack copy = current.copy();
-                        copy.setAmount(inserted);
-                        callback.modify(copy, this.side, dir, true);
-                        current.setAmount(current.getAmount() - copy.getAmount());
-                        modifyDirs.add(dir);
-                        transaction.addData(copy, a -> {
-                            FluidController c = ((FluidController)Tesseract.FLUID.getController(tile.getLevel(), tile.getBlockPos().asLong()));
-                            c.dataCommit(new FluidConsumer(new IFluidNode.FluidTileWrapper(this.tile,handle), Path.of(tile.getBlockPos().asLong(), ((IFluidPipe) this.tile), this.side, dir), dir), a);
-                        });
-                    }
+                    if (dir == side || !this.tile.connects(dir)) continue;
+                    Tesseract.FLUID.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
                 }
             }
             this.old = transaction;
@@ -107,5 +79,35 @@ public class TesseractFluidCapability<T extends TileEntity & IFluidPipe> extends
     @Override
     public FluidStack drain(int maxDrain, FluidAction action) {
         return FluidStack.EMPTY;
+    }
+
+    @Override
+    public int getPriority(Direction direction) {
+        return 0;
+    }
+
+    @Override
+    public boolean canOutput() {
+        return true;
+    }
+
+    @Override
+    public boolean canInput() {
+        return true;
+    }
+
+    @Override
+    public boolean canInput(Direction direction) {
+        return true;
+    }
+
+    @Override
+    public boolean canOutput(Direction direction) {
+        return true;
+    }
+
+    @Override
+    public boolean canInput(FluidStack fluid, Direction direction) {
+        return true;
     }
 }

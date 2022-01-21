@@ -5,9 +5,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import org.apache.commons.collections4.SetUtils;
 import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
@@ -16,10 +16,13 @@ import tesseract.graph.traverse.BFDivider;
 import tesseract.util.CID;
 import tesseract.util.Pos;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.
@@ -72,6 +75,10 @@ public class Group<T, C extends IConnectable, N> implements INode {
         return () -> this.grids.values().stream().flatMap(t -> t.getConnectors().long2ObjectEntrySet().stream()).distinct().iterator();
     }
 
+    public LongStream pipeNodes() {
+        return this.connectors.long2IntEntrySet().stream().mapToLong(t -> this.grids.get(t.getIntValue()).getConnectors().get(t.getLongKey()).pathing() ? t.getLongKey() : Long.MIN_VALUE).filter(l -> l != Long.MIN_VALUE);
+    }
+
 
     @Override
     public boolean contains(long pos) {
@@ -121,7 +128,9 @@ public class Group<T, C extends IConnectable, N> implements INode {
      * @return Returns blocks set.
      */
     public Set<Long> getBlocks() {
-        return SetUtils.union(nodes.keySet(), connectors.keySet());
+        Set<Long> copy = new ObjectOpenHashSet<>(nodes.keySet());
+        copy.addAll(connectors.keySet());
+        return copy;
     }
 
     /**
@@ -438,14 +447,7 @@ public class Group<T, C extends IConnectable, N> implements INode {
      * @param split A consumer for the resulting fresh graphs from the split operation.
      */
     public boolean removeAt(long pos, Consumer<Group<T, C, N>> split) {
-        NodeCache<N> node = nodes.get(pos);
-        boolean flag = false;
-        
         internalRemove(pos, split);
-        //Readd the node if it should not be removed completely.
-        if (flag) {
-            addNode(pos, node, (Controller<T, C, N>) getController());
-        }
         return true;
     }
 
@@ -647,14 +649,6 @@ public class Group<T, C extends IConnectable, N> implements INode {
                 Tesseract.LOGGER.error("This is a bug, report to mod authors");
             }
         }*/
-    }
-
-    public boolean addSide(long pos, Direction side) {
-        NodeCache<N> cache = this.nodes.get(pos);
-        if (cache != null) {
-            return cache.updateSide(side);
-        }
-        return false;
     }
 
     private void warn(BlockPos pos) {

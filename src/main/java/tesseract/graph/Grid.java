@@ -1,20 +1,25 @@
 package tesseract.graph;
 
-import it.unimi.dsi.fastutil.longs.*;
+import java.util.Deque;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.LongConsumer;
+import java.util.function.LongPredicate;
+
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import it.unimi.dsi.fastutil.longs.LongIterator;
+import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
-import tesseract.api.capability.TesseractBaseCapability;
 import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Node;
 import tesseract.util.Pos;
-
-import java.util.Deque;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.LongPredicate;
+import tesseract.util.SetUtil;
 
 /**
  * Grid provides the functionality of a set of linked nodes.
@@ -90,9 +95,7 @@ public class Grid<C extends IConnectable> implements INode {
 
         if (cache != null) {
             byte connectivity = cache.connectivity();
-           // long off = Pos.offset(pos, towards);
-            //NodeCache<?> cach = this.nodes.get(off);
-            return Connectivity.has(connectivity, towards.get3DDataValue()); //&& (cach == null || cach.connects(towards.getOpposite()));
+            return Connectivity.has(connectivity, towards.get3DDataValue());
         } else {
             NodeCache<?> c = nodes.get(pos);
             return c != null && c.connects(towards);
@@ -121,7 +124,7 @@ public class Grid<C extends IConnectable> implements INode {
     }
 
     /**
-     * @return Returns nodes map.
+     * @return Returns nodes map, excluding connectors.
      */
     public Long2ObjectMap<NodeCache<?>> getNodes() {
         return Long2ObjectMaps.unmodifiable(nodes);
@@ -135,12 +138,11 @@ public class Grid<C extends IConnectable> implements INode {
      */
     public List<Path<C>> getPaths(long from) {
         List<Path<C>> data = new ObjectArrayList<>();
-        for (long to : nodes.keySet()) {
-            if (from != to) {
+        nodes.keySet().forEach((LongConsumer)  to -> {
+            if (to != from) {
                 data.add(new Path<>(connectors, finder.traverse(from, to)));
             }
-        }
-
+        });
         return data;
     }
 

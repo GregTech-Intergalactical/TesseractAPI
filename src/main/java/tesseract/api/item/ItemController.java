@@ -13,6 +13,7 @@ import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
+import tesseract.api.capability.ITransactionModifier;
 import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
@@ -34,8 +35,8 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
      *
      * @param dim The dimension id.
      */
-    public ItemController(World dim) {
-        super(dim);
+    public ItemController(World dim, Graph.INodeGetter<IItemNode> getter) {
+        super(dim, getter);
     }
 
     @Override
@@ -58,9 +59,11 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
                             if (!path.isEmpty()) {
                                 Node target = path.target();
                                 assert target != null;
-                                onCheck(consumers, path, target.getDirection(), target.asLong());
+                                onCheck(producer, consumers, path, target.getDirection(), target.asLong());
                             }
                         }
+                    } else if (group.getNodes().containsKey(side)) {
+                        onCheck(producer, consumers, null, direction.getOpposite(), side);
                     }
 
                     if (!consumers.isEmpty()) {
@@ -93,7 +96,8 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
         super.tick();
     }
 
-    public void insert(long producerPos, Direction side, ItemTransaction transaction) {
+    @Override
+    public void insert(long producerPos, Direction side, ItemTransaction transaction, ITransactionModifier modifier) {
         Map<Direction, List<ItemConsumer>> map = this.data.get(Pos.offset(producerPos, side));
         ItemStack stack = transaction.stack;
         if (map == null)
@@ -115,31 +119,33 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             int actual = stack.getCount() - amount;
 
             if (consumer.getConnection() == ConnectionType.SINGLE) {
-                actual = Math.min(actual, consumer.getMinCapacity());
+                actual = actual;//Math.min(actual, consumer.getMinCapacity());
             } else {
                 // Verify cross chain.
-                for (Long2ObjectMap.Entry<Path.PathHolder<IItemPipe>> p : consumer.getCross().long2ObjectEntrySet()) {
+                for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
                     long pos = p.getLongKey();
-                    IItemPipe pipe = p.getValue().connector;
+                    IItemPipe pipe = p.getValue();
                     int stacksUsed = pipe.getHolder() + tempHolders.get(pos);
                     if (pipe.getCapacity() == stacksUsed) {
                         actual = 0;
                         break;
                     }
+
                 }
             }
 
             if (actual == 0)
                 continue;
+
             // Insert the count into the transaction.
             ItemStack insert = stack.copy();
             insert.setCount(actual);
-
+            modifier.modify(insert, null, side, true);
             actual = insert.getCount();
             final int act = actual;
             if (act == 0)
                 continue;
-            for (Long2ObjectMap.Entry<Path.PathHolder<IItemPipe>> p : consumer.getCross().long2ObjectEntrySet()) {
+            for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
                 tempHolders.compute(p.getLongKey(), (a, b) -> {
                     if (b == null) {
                         return 1;
@@ -147,20 +153,21 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
                     return b + 1;
                 });
             }
-            transaction.addData(insert, t -> dataCommit(consumer, t, act));
+            transaction.addData(insert, t -> dataCommit(consumer, t, side, modifier, act));
             // stack.setCount(stack.getCount() - actual);
             if (transaction.stack.getCount() == 0)
                 return;
         }
     }
 
-    public void dataCommit(ItemConsumer consumer, ItemStack stack, int transferred) {
+    public void dataCommit(ItemConsumer consumer, ItemStack stack, Direction side, ITransactionModifier modifier, int transferred) {
         consumer.insert(stack, false);
         this.transferred += transferred;
         if (consumer.getConnection() == ConnectionType.VARIATE) {
-            for (Long2ObjectMap.Entry<Path.PathHolder<IItemPipe>> entry : consumer.getCross().long2ObjectEntrySet()) {
-                entry.getValue().connector.setHolder(entry.getValue().connector.getHolder()+1);
+            for (Long2ObjectMap.Entry<IItemPipe> entry : consumer.getCross().long2ObjectEntrySet()) {
+                entry.getValue().setHolder(entry.getValue().getHolder()+1);
             }
+            modifier.modify(stack, null, side, true);
         }
     }
 
@@ -172,10 +179,10 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
      * @param dir       The added dir.
      * @param pos       The position of the producer.
      */
-    private void onCheck(List<ItemConsumer> consumers, Path<IItemPipe> path, Direction dir, long pos) {
+    private void onCheck(IItemNode producer, List<ItemConsumer> consumers, Path<IItemPipe> path, Direction dir, long pos) {
         IItemNode node = group.getNodes().get(pos).value(dir);
         if (node != null && node.canInput(dir))
-            consumers.add(new ItemConsumer(node, path, dir));
+            consumers.add(new ItemConsumer(node,producer, path, dir));
     }
 
     @Override
@@ -196,6 +203,6 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
 
     @Override
     public ITickingController<ItemTransaction, IItemPipe, IItemNode> clone(INode group) {
-        return new ItemController(dim).set(group);
+        return new ItemController(dim, getter).set(group);
     }
 }

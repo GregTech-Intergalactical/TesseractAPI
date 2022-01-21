@@ -1,12 +1,9 @@
 package tesseract.api;
 
-import net.minecraft.util.Direction;
 import net.minecraft.world.World;
-import tesseract.graph.Cache;
+import tesseract.graph.Graph;
 import tesseract.graph.Group;
 import tesseract.graph.INode;
-
-import java.util.function.Function;
 
 
 /**
@@ -17,15 +14,16 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
     protected int tick;
     protected final World dim;
     protected Group<T, C, N> group;
+    protected final Graph.INodeGetter<N> getter;
 
     /**
      * Creates instance of the controller.
      *
-     * @param wrapper  the function to wrap pipes in a node.
      * @param supplier The world.
      */
-    protected Controller(World supplier) {
+    protected Controller(World supplier, Graph.INodeGetter<N> getter) {
         this.dim = supplier;
+        this.getter = getter;
     }
 
     /**
@@ -48,7 +46,6 @@ abstract public class Controller<T, C extends IConnectable, N> implements ITicki
             onFrame();
         }
     }
-
     /**
      * Frame handler, which executes each second.
      */

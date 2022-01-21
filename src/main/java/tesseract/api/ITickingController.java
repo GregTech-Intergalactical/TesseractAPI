@@ -2,10 +2,14 @@ package tesseract.api;
 
 import net.minecraft.util.Direction;
 import net.minecraft.world.World;
+import tesseract.api.capability.ITransactionModifier;
+import tesseract.graph.Graph;
 import tesseract.graph.INode;
 
 import javax.annotation.Nonnull;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Interface abstracting ticking behaviour for the groups in the graph.
@@ -36,12 +40,12 @@ public interface ITickingController<T, C extends IConnectable, N> {
     void getInfo(long pos, @Nonnull List<String> list);
 
     /**
-     * Core method of tesseract. Inserts an object into this pipe.
-     *
-     * @param producerPos position of node (can be pipe.)
-     * @return controller-sensitive insertion information(amount inserted).
+     * Core method of Tesseract. Inserts an object into this pipe.
+     * @param producerPos the position of the producer
+     * @param side the side at which the object was inserted into the pipe.
+     * @param transaction the transaction object.
      */
-    void insert(long producerPos, Direction side, T transaction);
+    void insert(long producerPos, Direction side, T transaction, ITransactionModifier modifier);
 
     /**
      * Returns the active world for this ticking controller.

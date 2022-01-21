@@ -25,7 +25,7 @@ public class FEConsumer extends Consumer<IFECable, IFENode> {
      * @param path     The path information.
      */
     protected FEConsumer(IFENode consumer, Path<IFECable> path) {
-        super(consumer, path);
+        super(consumer, null, path);
         init();
     }
 

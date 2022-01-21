@@ -3,25 +3,14 @@ package tesseract.graph;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Direction;
-import net.minecraft.util.Tuple;
-import net.minecraftforge.common.util.LazyOptional;
-import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
-import tesseract.api.ITickingController;
 import tesseract.util.CID;
 import tesseract.util.Pos;
 
-import java.nio.channels.IllegalSelectorException;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle.Control;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 /**
@@ -32,10 +21,9 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     public static final Direction[] DIRECTIONS = Direction.values();
     private final Int2ObjectMap<Group<T, C, N>> groups = new Int2ObjectLinkedOpenHashMap<>();
     private final Long2IntMap positions = new Long2IntLinkedOpenHashMap(); // group positions
-    private final Long2ObjectMap<INodeGetter<N>> PENDING_NODES = new Long2ObjectOpenHashMap<>();
     private final Supplier<Controller<T,C,N>> controller;
 
-    public Graph(Supplier<Controller<T,C,N>> controller) {
+    public Graph(Supplier<Controller<T, C, N>> controller) {
         positions.defaultReturnValue(CID.INVALID);
         this.controller = controller;
     }
@@ -43,13 +31,6 @@ public class Graph<T, C extends IConnectable, N> implements INode {
     @Override
     public boolean contains(long pos) {
         return positions.containsKey(pos);
-    }
-
-    public void onFirstTick() {
-        for (Long2ObjectMap.Entry<INodeGetter<N>> m : PENDING_NODES.long2ObjectEntrySet()) {
-            addNodes(getGroupAt(m.getLongKey()).getConnector(m.getLongKey()).value(), m.getLongKey(), m.getValue());
-        }
-        PENDING_NODES.clear();
     }
 
     @Override
@@ -69,23 +50,6 @@ public class Graph<T, C extends IConnectable, N> implements INode {
         return groups.size();
     }
 
-    public void onUpdate(long connectorPos, long nodePos, INodeGetter<N> getter) {
-        Direction side = Pos.subToDir(nodePos, connectorPos);
-        Group<T,C,N> group = this.getGroupAt(connectorPos);
-        if (group == null) return;
-        Cache<C> conn = group.getConnector(connectorPos);
-        if (conn == null) return;
-        boolean ok = conn.value().validate(side);
-        NodeCache<N> node = group.getNodes().get(nodePos);
-        if (node == null && ok) {
-            NodeCache<N> cache = new NodeCache<>(nodePos, getter, this);
-            addNode(nodePos, controller.get(), cache);
-        } else if (node != null) {
-           updateNode(nodePos, controller);
-        }
-        //we have a node already, cap wasn't updated tho so we can leave
-    }
-
     /**
      * @return Gets the groups map.
      */
@@ -93,84 +57,26 @@ public class Graph<T, C extends IConnectable, N> implements INode {
         return Int2ObjectMaps.unmodifiable(groups);
     }
 
-    void onCapabilityInvalidate(long pos) {
-        Group<T,C,N> group = this.getGroupAt(pos);
-        if (group == null) return;
-        if (!group.contains(pos)) return;
-        boolean isConnector = group.getConnector(pos) != null;
-        if (!isConnector) {
-            updateNode(pos, controller);
-        }
-    }
-
-    boolean validate(Direction side, long pos) {
-        Group<T,C,N> group = this.getGroupAt(Pos.offset(pos,side));
-        if (group == null) return false;
-        Cache<C> conn = group.getConnector(Pos.offset(pos, side));
-        if (conn == null) return false;
-        return conn.value().validate(side.getOpposite());
-    }
-
-    /**
-     * Adds a node to the graph at the specified position.
-     *
-     * @param pos        The position at which the node will be added.
-     * @param node       The node to add, present as a LongFunction.
-     * @param side       the side which the connector exists on. (Facing away from
-     *                   node)
-     * @param controller the controller supplier.
-     * @return True on success or false otherwise.
-     */
-    private boolean addNodes(C connector, long pos, INodeGetter<N> node) {
-           for (Direction dir : Graph.DIRECTIONS) {
-                final long nodePos = Pos.offset(pos, dir);
-                NodeCache<N> cache = new NodeCache<>(nodePos, node, this);
-                if (cache.count() > 0) addNode(nodePos, controller.get(), cache);
-           }
-           return true;
-    }
-
-    private void addNode(long pos, Controller<T,C,N> control, NodeCache<N> cache) {
-        Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, control));
+    public void addNode(long pos, NodeCache<N> cache) {
+        if (cache.count() == 0) return;
+        Group<T, C, N> group = add(pos, () -> Group.singleNode(pos, cache, controller.get()));
         if (group != null)
-            group.addNode(pos, cache, control);
-    }
-
-    public void refreshNode(long pos) {
-        if (contains(pos)) {
-            ITickingController<T, C, N> controller = getGroupAt(pos).getController();
-            if (Tesseract.hadFirstTick(controller.getWorld())) {
-                try {
-                    controller.change();
-                } catch (Exception ex) {
-                    Tesseract.LOGGER.warn("Error updating controller : " + ex);
-                }
-            }
-        }
+            group.addNode(pos, cache, controller.get());
     }
 
     /**
-     * Adds a connector to the graph at the specified position.
+     * Primary Tesseract interaction. Adds a connector to the graph at the specified position while adding listeners to blocks
+     * around it.
      *
-     * @param pos        The position at which the node will be added.
-     * @param connector  The connector to add.
-     * @param controller The controller to use.
-     * @return True on success or false otherwise.
+     * @param pos       the connector position.
+     * @param connector the cached connector.
      */
-    public boolean addConnector(long pos, Cache<C> connector, INodeGetter<N> node, boolean hadFirstTick) {
+    public void addConnector(long pos, Cache<C> connector) {
         if (!contains(pos)) {
             Group<T, C, N> group = add(pos, () -> Group.singleConnector(pos, connector, controller.get()));
             if (group != null)
                 group.addConnector(pos, connector, controller.get());
-            if (!hadFirstTick) {
-                PENDING_NODES.put(pos, node);
-            } else {
-                addNodes(connector.value(), pos, node);
-            }
-            return true;
         }
-
-        return false;
     }
 
     /**
@@ -185,24 +91,25 @@ public class Graph<T, C extends IConnectable, N> implements INode {
         int id;
         IntSet mergers = getNeighboringGroups(pos);
         switch (mergers.size()) {
-            case 0:
+            case 0 : {
                 id = CID.nextId();
                 positions.put(pos, id);
                 groups.put(id, single.get());
                 return null;
-
-            case 1:
+            }
+            case 1 : {
                 id = mergers.iterator().nextInt();
                 positions.put(pos, id);
                 return groups.get(id);
-
-            default:
+            }
+            default : {
                 Merged<T, C, N> data = beginMerge(mergers);
                 positions.put(pos, data.bestId);
                 for (Group<T, C, N> other : data.merged) {
                     data.best.mergeWith(other, pos);
                 }
                 return data.best;
+            }
         }
     }
 
@@ -214,21 +121,8 @@ public class Graph<T, C extends IConnectable, N> implements INode {
      *
      * @param pos The position of the entry to remove.
      */
-    public boolean removeAt(long pos, Supplier<Controller<T, C, N>> controller) {
-        Group<T,C,N> gr = this.getGroupAt(pos);
-        if (gr == null) return false;
-        boolean isConnector = gr.getConnector(pos) != null;
-        if (!isConnector) {
-            throw new IllegalStateException("Attempting to call Graph::removeAt at an invalid position");
-        }
-        boolean ok = removeInternal(pos);
-        if (ok) {
-            for (Direction dir : Graph.DIRECTIONS) {
-                updateNode(Pos.offset(pos, dir), controller);
-            }
-        }
-
-        return ok;
+    public boolean removeAt(long pos) {
+        return removeInternal(pos);
     }
 
     private boolean removeInternal(long pos) {
@@ -263,31 +157,6 @@ public class Graph<T, C extends IConnectable, N> implements INode {
         }
         return ok;
     }
-
-    private void updateNode(long nodePos, Supplier<Controller<T, C, N>> controller) {
-        Group<T,C,N> group = this.getGroupAt(nodePos);
-        if (group == null) {
-            return;
-        }
-        NodeCache<N> cache = group.getNodes().get(nodePos);
-        if (cache == null) return;
-        boolean ok = updateNodeSides(cache);
-        removeInternal(nodePos);
-        if (ok) {
-            if (controller == null) {
-                throw new IllegalStateException("expected non-null controller supplier in graph::refreshNodes");
-            }
-            addNode(nodePos, controller.get(), cache);
-        }
-    }
-
-    private boolean updateNodeSides(NodeCache<N> node) {
-        for (int i = 0; i < Graph.DIRECTIONS.length; i++) {
-            node.updateSide(Graph.DIRECTIONS[i]);
-        }
-        return node.count() > 0;
-    }
-
 
     /**
      * Gets the group by a given position.

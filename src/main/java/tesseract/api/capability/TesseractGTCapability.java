@@ -12,11 +12,7 @@ import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.util.LazyOptional;
 import tesseract.Tesseract;
-import tesseract.api.gt.GTConsumer;
-import tesseract.api.gt.GTController;
-import tesseract.api.gt.GTTransaction;
-import tesseract.api.gt.IEnergyHandler;
-import tesseract.api.gt.IGTCable;
+import tesseract.api.gt.*;
 import tesseract.graph.Graph;
 import tesseract.graph.Path;
 import tesseract.util.Pos;
@@ -134,7 +130,7 @@ public class TesseractGTCapability<T extends TileEntity & IGTCable> extends Tess
 
     public TesseractGTCapability(T tile, Direction dir, boolean isNode, ITransactionModifier modifier) {
         super(tile, dir, isNode, modifier);
-        this.cable = (IGTCable) tile;
+        this.cable = tile;
     }
 
     @Override
@@ -145,38 +141,12 @@ public class TesseractGTCapability<T extends TileEntity & IGTCable> extends Tess
         long pos = tile.getBlockPos().asLong();
         if (!this.isNode) {
             long old = transaction.getAvailableAmps();
-            Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction);
+            Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             flag = transaction.getAvailableAmps() < old;
         } else {
-            if (true) throw new IllegalStateException("For now, covers on GT Cables are disallowed");
-            modifyDirs.clear();
             for (Direction dir : Graph.DIRECTIONS) {
-                if (dir == this.side)
-                    continue;
-                if (!this.tile.connects(dir)) continue;
-                TileEntity tile = this.tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
-                if (tile == null)
-                    continue;
-                LazyOptional<IEnergyHandler> cap = tile
-                        .getCapability(ENERGY_HANDLER_CAPABILITY, dir.getOpposite());
-                IEnergyHandler handle = cap.orElse(null);
-                if (handle == null)
-                    continue;
-                int i = transaction.getData().size();
-                if (handle.insert(transaction)) {
-                    flag = true;
-                    for (int j = i; j < transaction.getData().size(); j++) {
-                        this.callback.modify(transaction.getData().get(j), this.side, dir, true);
-                        transaction.getData().get(j).setLoss(transaction.getData().get(j).getLoss() + cable.getLoss());
-                        GTController c = ((GTController)Tesseract.GT_ENERGY.getController(tile.getLevel(), tile.getBlockPos().asLong()));
-                        transaction.pushCallback(a -> {
-                            callback.modify(a, this.side, modifyDirs.pop(), false);
-                            c.dataCommit(new GTConsumer(handle, Path.of(this.tile.getBlockPos().asLong(), cable, this.side, dir)), a);
-                        }, j);
-                        modifyDirs.add(dir);
-                    }
-                }
-                if (!transaction.canContinue()) break;
+                if (dir == side || !this.tile.connects(dir)) continue;
+                Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
             }
         }
         this.isSending = false;
@@ -262,17 +232,17 @@ public class TesseractGTCapability<T extends TileEntity & IGTCable> extends Tess
     }
 
     @Override
+    public GTConsumer.State getState() {
+        return new GTConsumer.State(this);
+    }
+
+    @Override
     public CompoundNBT serializeNBT() {
-        return new CompoundNBT();
+        return null;
     }
 
     @Override
     public void deserializeNBT(CompoundNBT nbt) {
 
-    }
-
-    @Override
-    public GTConsumer.State getState() {
-        return new GTConsumer.State(this);
     }
 }

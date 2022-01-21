@@ -10,7 +10,6 @@ buildscript {
         }
     }
     dependencies {
-        classpath "com.github.jengelman.gradle.plugins:shadow:5.2.0"
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1+', changing: true
         classpath 'org.parchmentmc:librarian:1.+'
     }
@@ -18,7 +17,17 @@ buildscript {
 
 plugins {
     id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
 }
+
+def isCI = System.getenv("GITHUB_ACTION")
+def isRELEASE = System.getenv("GITHUB_RELEASE")
+def gitHash() {
+    String hash = System.getenv("GITHUB_SHA")
+    if (hash != null) return hash.substring(0,8)
+    return ""
+}
+
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: "eclipse"
 apply plugin: "com.github.johnrengelman.shadow"
@@ -27,6 +36,10 @@ apply plugin: 'org.parchmentmc.librarian.forgegradle'
 archivesBaseName = 'TesseractAPI'
 version = "${minecraft_version}-${mod_version}"
 group = "com.github.gregtech-intergalactical"
+
+if (isCI) {
+    version = version + "-" + gitHash()
+}
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 configurations {
@@ -107,7 +120,13 @@ minecraft {
 repositories {
     jcenter()
 }
-
+afterEvaluate { project ->
+    project.tasks.publishToMavenLocal {
+        onlyIf {
+            return rootProject.name == "${modid}"
+        }
+    }
+}
 task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
     archiveBaseName.set(project.archivesBaseName)
@@ -122,14 +141,12 @@ task sourcesJar(type: Jar) {
 shadowJar {
     configurations = [project.configurations.shadow]
     archiveClassifier.set('')
-    relocate 'org.apache.commons.collections4', 'tesseract.collections'
 }
 reobf {
     shadowJar {}
 }
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    shadow 'org.apache.commons:commons-collections4:4.4'
     testImplementation('junit:junit:4.11')
 }
 
@@ -140,7 +157,10 @@ afterEvaluate { project ->
         }
     }
 }
-
+if (isCI) {
+    jar.finalizedBy('reobfJar')
+    println("In CI mode")
+}
 jar {
     zip64 true
     manifest {
@@ -168,8 +188,17 @@ publishing {
         }
     }
     repositories {
-        maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
+        if (isCI && isRELEASE) {
+            maven {
+                name = "GitHubPackages"
+                url = "https://maven.pkg.github.com/GregTech-Intergalactical/TesseractAPI"
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+        } else {
+            maven { url "file:///${project.projectDir}/mcmodsrepo"}
         }
     }
     //repositories {

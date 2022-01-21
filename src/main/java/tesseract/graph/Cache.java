@@ -10,6 +10,7 @@ public class Cache<T extends IConnectable> {
 
     private final byte connectivity;
     private final T value;
+    private NodeCache<?> cache;
 
     /**
      * Creates a cache instance.
@@ -41,15 +42,17 @@ public class Cache<T extends IConnectable> {
         return value;
     }
 
+    public boolean pathing() {
+        return value.path();
+    }
+
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Cache && ((Cache<T>)obj).value == this.value;
+        return obj instanceof Cache && ((Cache<?>)obj).value == this.value;
     }
 
     @Override
     public int hashCode() {
         return value.hashCode();
     }
-
-    
 }

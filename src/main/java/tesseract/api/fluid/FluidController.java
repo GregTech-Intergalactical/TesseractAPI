@@ -1,9 +1,6 @@
 package tesseract.api.fluid;
 
-import it.unimi.dsi.fastutil.longs.Long2IntMap;
-import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Tuple;
@@ -13,17 +10,16 @@ import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
+import tesseract.api.capability.ITransactionModifier;
+import tesseract.api.capability.TesseractBaseCapability;
 import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Class acts as a controller in the group of a fluid components.
@@ -38,16 +34,16 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
     private int maxTemperature, lastTemperature;
     private boolean isLeaking, lastLeaking;
     private final Long2ObjectMap<Map<Direction, List<FluidConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
-
     private final Long2IntMap pressureData = new Long2IntOpenHashMap(10);
+    //public final Long2IntMap sentPressure = new Long2IntOpenHashMap(10);
 
     /**
      * Creates instance of the controller.
      *
      * @param world the world.
      */
-    public FluidController(World world) {
-        super(world);
+    public FluidController(World world, Graph.INodeGetter<IFluidNode> getter) {
+        super(world, getter);
     }
 
     private void handleInput(long pos, NodeCache<IFluidNode> producers) {
@@ -66,9 +62,11 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                         if (!path.isEmpty()) {
                             Node target = path.target();
                             assert target != null;
-                            onCheck(consumers, path, target.getDirection(), target.asLong());
+                            onCheck(producer, consumers, path, target.getDirection(), target.asLong());
                         }
                     }
+                } else if (group.getNodes().containsKey(side)) {
+                    onCheck(producer, consumers, null, direction.getOpposite(), side);
                 }
 
                 if (!consumers.isEmpty()) {
@@ -88,6 +86,8 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 handleInput(e.getLongKey(), e.getValue());
             }
 
+            this.group.pipeNodes().forEach(t -> handleInput(t, new NodeCache<>(t, getter)));
+
             for (Map<Direction, List<FluidConsumer>> map : data.values()) {
                 for (List<FluidConsumer> consumers : map.values()) {
                     consumers.sort(Consumer.COMPARATOR);
@@ -104,14 +104,14 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
      * @param dir       The added direction.
      * @param pos       The position of the producer.
      */
-    private void onCheck(List<FluidConsumer> consumers, Path<IFluidPipe> path, Direction dir, long pos) {
+    private void onCheck(IFluidNode producer, List<FluidConsumer> consumers, Path<IFluidPipe> path, Direction dir, long pos) {
         IFluidNode node = group.getNodes().get(pos).value(dir);
         if (node != null && node.canInput())
-            consumers.add(new FluidConsumer(node, path, dir));
+            consumers.add(new FluidConsumer(node,producer, path, dir));
     }
 
     @Override
-    public void insert(long producerPos, Direction side, FluidTransaction transaction) {
+    public void insert(long producerPos, Direction side, FluidTransaction transaction, ITransactionModifier modifier) {
         if (SLOOSH)
             return;
         if (!transaction.isValid())
@@ -143,9 +143,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                         amount = Math.min(amount, this.group.getConnector(consumer.lowestPipePosition).value().getHolder().getPressureAvailable());
                     }
                 } else {
-                    for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> entry : consumer.getCross()
+                    for (Long2ObjectMap.Entry<IFluidPipe> entry : consumer.getCross()
                             .long2ObjectEntrySet()) {
-                        FluidHolder holder = entry.getValue().connector.getHolder();
+                        FluidHolder holder = entry.getValue().getHolder();
                         if (!holder.allowFluid(data.getFluid())) {
                             amount = 0;
                             break;
@@ -162,9 +162,13 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 continue;
 
             if (consumer.getConnection() == ConnectionType.VARIATE) {
-                for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> p : consumer.getCross().long2ObjectEntrySet()) {
+                for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getCross().long2ObjectEntrySet()) {
                     final int finalAmount = amount;
                     pressureData.compute(p.getLongKey(), (k, v) -> v == null ? finalAmount : v + finalAmount);
+                    if (p.getValue() instanceof TesseractBaseCapability) {
+                        TesseractBaseCapability<?> cap = (TesseractBaseCapability<?>) p.getValue();
+                        cap.callback.modify(data,cap.side, side, true);
+                    }
                 }
             }
             transaction.addData(data.copy(), a -> dataCommit(consumer, a));
@@ -173,16 +177,15 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 break;
         }
     }
-
     public void dataCommit(FluidConsumer consumer, FluidStack stack) {
         int temperature = stack.getFluid().getAttributes().getTemperature();
         int amount = stack.getAmount();
         boolean isGaseous = stack.getFluid().getAttributes().isGaseous();
         boolean cantHandle = !consumer.canHandle(temperature, isGaseous);
         if (!cantHandle) {
-            for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> p : consumer.getFull().long2ObjectEntrySet()) {
+            for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull().long2ObjectEntrySet()) {
                 long pos = p.getLongKey();
-                IFluidPipe pipe = p.getValue().connector;
+                IFluidPipe pipe = p.getValue();
                 switch (pipe.getHandler(stack, temperature, isGaseous)) {
                     case FAIL_TEMP:
                         onPipeOverTemp(getWorld(), pos, temperature);
@@ -210,9 +213,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 return;
             }
         } else if (consumer.getConnection() == ConnectionType.VARIATE) {
-            for (Long2ObjectMap.Entry<Path.PathHolder<IFluidPipe>> pathHolderEntry : consumer.getCross()
+            for (Long2ObjectMap.Entry<IFluidPipe> pathHolderEntry : consumer.getCross()
                     .long2ObjectEntrySet()) {
-                FluidHolder holder = pathHolderEntry.getValue().connector.getHolder();
+                FluidHolder holder = pathHolderEntry.getValue().getHolder();
                 holder.use(stack.getAmount(), stack.getFluid(), getWorld().getGameTime());
                 if (holder.isOverPressure()) {
                     onPipeOverPressure(getWorld(), pathHolderEntry.getLongKey(), amount, stack);
@@ -222,9 +225,16 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                     onPipeOverCapacity(getWorld(), pathHolderEntry.getLongKey(), amount, stack);
                     return;
                 }
+                if (pathHolderEntry.getValue() instanceof TesseractBaseCapability) {
+                    TesseractBaseCapability<?> cap = (TesseractBaseCapability<?>) pathHolderEntry.getValue();
+                    cap.callback.modify(data,cap.side, consumer.input, false);
+                }
             }
         }
-
+        /*consumer.getFull().keySet().forEach(l -> {
+            int pressure = amount + this.sentPressure.get(l);
+            this.sentPressure.put(l, pressure);
+        });*/
         maxTemperature = Math.max(temperature, maxTemperature);
         totalPressure += amount;
         consumer.insert(stack, false);
@@ -233,6 +243,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
     @Override
     public void tick() {
         super.tick();
+      //  sentPressure.clear();
         for (Cache<IFluidPipe> pipe : this.group.connectors()) {
             pipe.value().getHolder().tick(getWorld().getGameTime());
         }
@@ -248,10 +259,6 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
         isLeaking = false;
     }
 
-    public FluidHolder getCableHolder(long pos) {
-        return this.group.getConnector(pos).value().getHolder();
-    }
-
     @Override
     public void getInfo(long pos, @Nonnull List<String> list) {
         if (this.group != null) {
@@ -262,7 +269,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
 
     @Override
     public ITickingController clone(INode group) {
-        return new FluidController(dim).set(group);
+        return new FluidController(dim, getter).set(group);
     }
 
 }
