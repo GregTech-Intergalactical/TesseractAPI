@@ -50,6 +50,7 @@ public class TesseractFluidCapability<T extends TileEntity & IFluidPipe> extends
         if (this.isSending) return 0;
         this.isSending = true;
         if (action.execute()) {
+            if (old == null) return 0;
             old.commit();
         } else {
             long pos = tile.getBlockPos().asLong();
