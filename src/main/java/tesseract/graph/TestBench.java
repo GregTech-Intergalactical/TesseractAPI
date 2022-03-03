@@ -2,10 +2,8 @@ package tesseract.graph;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
-import tesseract.api.ITickHost;
-import tesseract.api.ITickingController;
-import tesseract.util.Dir;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
@@ -21,7 +19,7 @@ class TestBench {
 
     public static void main(String[] args) throws Exception {
 
-        Graph<ExampleConnector, ExampleNode> graph = new Graph<>();
+        Graph<Integer, ExampleConnector, ExampleNode> graph = new Graph<>(() -> null);
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
@@ -40,14 +38,23 @@ class TestBench {
                 long position = pos.asLong();
 
                 if (points.length == 5 && points[4].startsWith("c")) {
-                    if (!graph.addConnector(position, new Cache<>(new ExampleConnector()), null)) {
+                    /*if (!graph.addConnector(position, new Cache<>(new ExampleConnector()), null)) {
                         System.out.println("Error: connector at" + pos + " already exists in the graph");
                         continue;
-                    }
+                    }*/
                 } else {
-                    if (!graph.addNode(position, new Cache<>(new ExampleNode()), null)) {
-                        System.out.println("Error: node at" + pos + " already exists in the graph");
-                        continue;
+                    for (Direction d : Graph.DIRECTIONS) {
+                        long posC = Pos.offset(position, d);
+                        Group<Integer, ExampleConnector, ExampleNode> group = graph.getGroupAt(posC);
+                        if (group == null)
+                            continue;
+                        Cache<ExampleConnector> val = group.getConnector(posC);
+                        if (val != null) {
+                            /*if (!graph.addNode(position, (a,b) -> new ExampleNode(), Pos.subToDir(posC, position), () -> null, true)) {
+                                System.out.println("error");
+                            }*/
+                        }
+
                     }
                 }
                 System.out.println("Added " + pos + " to the graph");
@@ -61,7 +68,7 @@ class TestBench {
 
                 Pos pos = new Pos(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
 
-                graph.removeAt(pos.asLong());
+                //graph.removeAt(pos.asLong());
 
                 System.out.println("Removed " + pos + " from the graph");
 
@@ -75,7 +82,8 @@ class TestBench {
                 long origin = packAll(Integer.parseInt(points[1]), Integer.parseInt(points[2]), Integer.parseInt(points[3]));
                 long target = packAll(Integer.parseInt(points[4]), Integer.parseInt(points[5]), Integer.parseInt(points[6]));
 
-                for (Int2ObjectMap.Entry<Group<ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
+                for (Int2ObjectMap.Entry<Group<Integer, ExampleConnector, ExampleNode>> group : graph.getGroups()
+                        .int2ObjectEntrySet()) {
                     for (Grid<ExampleConnector> grid : group.getValue().getGrids().values()) {
                         for (Node node : grid.getPath(origin, target)) {
                             System.out.println(node);
@@ -89,26 +97,29 @@ class TestBench {
 
             System.out.println("Graph contains " + graph.countGroups() + " groups:");
 
-            for (Int2ObjectMap.Entry<Group<ExampleConnector, ExampleNode>> group : graph.getGroups().int2ObjectEntrySet()) {
-                System.out.println("  Group " + group.getIntKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
+            for (Int2ObjectMap.Entry<Group<Integer, ExampleConnector, ExampleNode>> group : graph.getGroups()
+                    .int2ObjectEntrySet()) {
+                System.out
+                        .println("  Group " + group.getIntKey() + " contains " + group.getValue().countBlocks() + " blocks: ");
 
-                for (Long2ObjectMap.Entry<Cache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
-                    System.out.println("    Node at " +  new Pos(node.getLongKey()) + ": " + node.getValue().value());
+                for (Long2ObjectMap.Entry<NodeCache<ExampleNode>> node : group.getValue().getNodes().long2ObjectEntrySet()) {
+                    //System.out.println("    Node at " + new Pos(node.getLongKey()) + ": " + node.getValue().value());
                 }
 
                 for (Grid<ExampleConnector> grid : group.getValue().getGrids().values()) {
                     System.out.println("    Grid contains " + grid.countConnectors() + " connectors:");
 
                     for (Long2ObjectMap.Entry<Cache<ExampleConnector>> connector : grid.getConnectors().long2ObjectEntrySet()) {
-                        System.out.println("      Connector at " + new Pos(connector.getLongKey()) + ": " + connector.getValue().value());
+                        System.out
+                                .println("      Connector at " + new Pos(connector.getLongKey()) + ": " + connector.getValue().value());
                     }
 
                     int linked = grid.countNodes();
                     if (linked != 0) {
                         System.out.println("      Grid contains " + linked + " linked nodes:");
-                        for (long pos : grid.getNodes().keySet()) {
-                            System.out.println("          Node at " + new Pos(pos));
-                        }
+                        // for (long pos : grid.getNodes()) {
+                        // System.out.println(" Node at " + new Pos(pos));
+                        // }
                     }
                 }
             }
@@ -125,26 +136,21 @@ class TestBench {
         }
 
         @Override
-        public boolean connects(Dir direction) {
+        public boolean connects(Direction direction) {
+            return true;
+        }
+
+        @Override
+        public boolean validate(Direction dir) {
             return true;
         }
     }
 
-    private static class ExampleNode implements IConnectable, ITickHost {
+    private static class ExampleNode {
 
         @Override
         public String toString() {
             return "ExampleNode";
-        }
-
-        @Override
-        public boolean connects(Dir direction) {
-            return true;
-        }
-
-        @Override
-        public void reset(ITickingController oldController, ITickingController newController) {
-            System.out.println("oldController: " + oldController + "| newController: " + newController);
         }
     }
 }

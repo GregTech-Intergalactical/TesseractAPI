@@ -1,100 +1,208 @@
 buildscript {
     repositories {
+        maven { url 'https://files.minecraftforge.net/maven' }
+        jcenter()
+        mavenCentral()
+        gradlePluginPortal()
         maven {
-            url "https://plugins.gradle.org/m2/"
+            name = 'parchment'
+            url = 'https://maven.parchmentmc.org' 
         }
     }
     dependencies {
-        classpath "com.github.jengelman.gradle.plugins:shadow:5.2.0"
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1+', changing: true
+        classpath 'org.parchmentmc:librarian:1.+'
     }
 }
-
 
 plugins {
     id 'maven-publish'
-    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
 }
+
+def isCI = System.getenv("GITHUB_ACTION")
+def isRELEASE = System.getenv("GITHUB_RELEASE")
+def gitHash() {
+    String hash = System.getenv("GITHUB_SHA")
+    if (hash != null) return hash.substring(0,8)
+    return ""
+}
+
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: "eclipse"
 apply plugin: "com.github.johnrengelman.shadow"
-//evaluationDependsOn(':version')
+apply plugin: 'java'
+apply plugin: 'org.parchmentmc.librarian.forgegradle'
+archivesBaseName = 'TesseractAPI'
+version = "${minecraft_version}-${mod_version}"
+group = "com.github.gregtech-intergalactical"
 
-group = 'com.github.gregtech-intergalactical' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'tesseract'
+if (isCI) {
+    version = version + "-" + gitHash()
+}
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
-
-assemble.dependsOn shadowJar
-
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 configurations {
-    embed
-    deobf
-
-    embed.extendsFrom(implementation)
-    testCompile.extendsFrom(shadow)
+    shadow
 }
+minecraft {
+    // The mappings can be changed at any time, and must be in the following format.
+    // snapshot_YYYYMMDD   Snapshot are built nightly.
+    // stable_#            Stables are built at the discretion of the MCP team.
+    // Use non-default mappings at your own risk. they may not always work.
+    // Simply re-run your setup task after changing the mappings to update your workspace.
+    mappings channel: 'parchment', version: '2021.10.17-1.16.5'   
+    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 
-shadowJar {
-    configurations = [project.configurations.embed]
-}
+    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
-// Deobfuscated jar; development purposes.
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-task deobfJar(type: ShadowJar) {
-    from sourceSets.main.output
-    configurations = [project.configurations.deobf]
-    classifier "dev"
-}
+    // Default run configurations.
+    // These can be tweaked, removed, or duplicated as needed.
+    runs {
+        client {
+            workingDirectory project.file('run')
 
-repositories {
-    jcenter()
-    maven { url = 'https://files.minecraftforge.net/maven' }
-}
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
 
-dependencies {
-    //   Main dependencies:
-    // Declare here your dependencies here with:
-    // 'shadow' if the jar shouldn't be included in the fat jar,
-    // 'implementation' if the jar should be included in the jar
-    shadow 'org.apache.commons:commons-collections4:4.4'
-    shadow 'it.unimi.dsi:fastutil:8.2.1'
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
 
-    //   Test dependencies:
-    testImplementation 'junit:junit:4.11'
-
-    //   Embedded dependencies:
-    // Those will be included in the fat jar.
-    // You will likely not edit those dependencies.
-    if (rootProject.name == "tesseract") {
-        embed project(path: ':forge', configuration: 'archives')
-        deobf project(path: ':forge', configuration: 'deobf')
-    } else {
-        embed project(path: ':tesseract:forge', configuration: 'archives')
-        deobf project(path: ':tesseract:forge', configuration: 'deobf')
-    }
-        
-    //embed project(path: ':fabric', configuration: 'archives') TODO coming soon(tm).
-}
-
-jar {
-    zip64 true
-}
-
-// Maven publishing:
-
-static def configurePublishingRepositories(repositoryHandler) {
-    if (System.env.MAVEN_URL) {
-        repositoryHandler.maven {
-            url = System.env.MAVEN_URL
-
-            if (System.env.MAVEN_USERNAME && System.env.MAVEN_PASSWORD) {
-                authentication {
-                    basic(BasicAuthentication)
+            mods {
+                tesseractapi {
+                    source sourceSets.main
                 }
+            }
+        }
 
-                credentials {
-                    username = System.env.USERNAME
-                    password = System.env.PASSWORD
+        server {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                tesseractapi {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            args '--mod', 'tesseract', '--all', '--output', '"' + rootProject.file('src/generated/resources/') + '"',
+                    '--existing', '"' + sourceSets.main.resources.srcDirs[0] + '"'
+
+            mods {
+                tesseractapi {
+                    source sourceSets.main
                 }
             }
         }
     }
 }
+
+
+
+// Deobfuscated jar; development purposes.
+//import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+repositories {
+    jcenter()
+}
+afterEvaluate { project ->
+    project.tasks.publishToMavenLocal {
+        onlyIf {
+            return rootProject.name == "${modid}"
+        }
+    }
+}
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    archiveBaseName.set(project.archivesBaseName)
+    archiveVersion.set("${project.version}")
+    archiveClassifier.set('sources')
+}
+
+/*task javadocJar(type: Jar, dependsOn: javadoc) {
+    from javadoc.destinationDir
+    archiveClassifier.set('javadoc')
+}*/
+shadowJar {
+    configurations = [project.configurations.shadow]
+    archiveClassifier.set('')
+}
+reobf {
+    shadowJar {}
+}
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    testImplementation('junit:junit:4.11')
+}
+
+afterEvaluate { project ->
+    project.tasks.publishToMavenLocal {
+        onlyIf {
+            return rootProject.name == "${modid}"
+        }
+    }
+}
+if (isCI) {
+    jar.finalizedBy('reobfJar')
+    println("In CI mode")
+}
+jar {
+    zip64 true
+    manifest {
+        attributes([
+                "Specification-Title": project.name,
+                "Specification-Vendor": "GregTech Intergalactical",
+                "Specification-Version": project.version,
+                "Implementation-Title": project.name,
+                "Implementation-Version": project.version,
+                "Implementation-Vendor": "GregTech Intergalactical",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+artifacts {
+    archives jar, shadowJar, sourcesJar//, javadocJar
+}
+publishing {
+    tasks.publish.dependsOn 'build', 'reobfJar'
+    publications {
+        mavenJava(MavenPublication) {
+            //artifactId = archivesBaseName
+            artifact shadowJar
+        }
+    }
+    repositories {
+        if (isCI && isRELEASE) {
+            maven {
+                name = "GitHubPackages"
+                url = "https://maven.pkg.github.com/GregTech-Intergalactical/TesseractAPI"
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+        } else {
+            maven { url "file:///${project.projectDir}/mcmodsrepo"}
+        }
+    }
+    //repositories {
+    //    rootProject.configurePublishingRepositories(delegate)
+    //}
+}
+

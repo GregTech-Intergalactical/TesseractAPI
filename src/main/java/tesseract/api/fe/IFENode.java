@@ -1,7 +1,7 @@
 package tesseract.api.fe;
 
+import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
-import tesseract.util.Dir;
 
 /**
  * A flux node is the unit of interaction with flux inventories.
@@ -14,16 +14,18 @@ public interface IFENode extends IConnectable {
 
     /**
      * Adds energy to the node. Returns quantity of energy that was accepted.
+     *
      * @param maxReceive Maximum amount of energy to be inserted.
-     * @param simulate If true, the insertion will only be simulated.
+     * @param simulate   If true, the insertion will only be simulated.
      * @return Amount of energy that was (or would have been, if simulated) accepted by the storage.
      */
     long insert(long maxReceive, boolean simulate);
 
     /**
      * Removes energy from the node. Returns quantity of energy that was removed.
+     *
      * @param maxExtract Maximum amount of energy to be extracted.
-     * @param simulate If true, the extraction will only be simulated.
+     * @param simulate   If true, the extraction will only be simulated.
      * @return Amount of energy that was (or would have been, if simulated) extracted from the storage.
      */
     long extract(long maxExtract, boolean simulate);
@@ -45,20 +47,23 @@ public interface IFENode extends IConnectable {
 
     /**
      * Gets if this storage can have energy extracted.
+     *
      * @return If this is false, then any calls to extractEnergy will return 0.
      */
     boolean canOutput();
 
     /**
      * Used to determine if this storage can receive energy.
+     *
      * @return If this is false, then any calls to receiveEnergy will return 0.
      */
     boolean canInput();
 
     /**
      * Used to determine which sides can output energy (if any).
+     *
      * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */
-    boolean canOutput(Dir direction);
+    boolean canOutput(Direction direction);
 }

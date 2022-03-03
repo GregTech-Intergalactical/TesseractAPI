@@ -4,8 +4,9 @@ import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import net.minecraft.util.Direction;
+import tesseract.graph.Graph;
 import tesseract.graph.INode;
-import tesseract.util.Dir;
 import tesseract.util.Pos;
 
 import java.util.ConcurrentModificationException;
@@ -41,8 +42,8 @@ public class BFSearcher {
      * to the provided consumer. As a result of the algorithm, each reported position is guaranteed to be connected to
      * an existing position, or in the case of the first reported position, it will be identical to from.
      *
-     * @param from The start position of the search operation. This will be the first position reported to the consumer.
-     * @param reached The receiver of the discovered positions
+     * @param from     The start position of the search operation. This will be the first position reported to the consumer.
+     * @param reached  The receiver of the discovered positions
      * @param excluder A function that can add values to the closed set prior to the search operation.
      *                 They will not be reported or traversed; null is interpreted to mean no exclusions.
      */
@@ -79,7 +80,7 @@ public class BFSearcher {
 
                 Pos position = new Pos(current);
                 // Discover new nodes
-                for (Dir direction : Dir.VALUES) {
+                for (Direction direction : Graph.DIRECTIONS) {
                     long pos = position.offset(direction).asLong();
 
                     if (closed.contains(pos)) {

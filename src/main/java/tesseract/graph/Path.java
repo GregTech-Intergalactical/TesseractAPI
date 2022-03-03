@@ -1,13 +1,16 @@
 package tesseract.graph;
 
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
+
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
 import tesseract.util.Node;
-
-import java.util.Deque;
-import java.util.Iterator;
+import tesseract.util.Pos;
 
 /**
  * The Path is a class that should work with paths for grids.
@@ -19,19 +22,19 @@ public class Path<C extends IConnectable> {
     private final Long2ObjectMap<C> full = new Long2ObjectLinkedOpenHashMap<>();
     private final Long2ObjectMap<C> cross = new Long2ObjectLinkedOpenHashMap<>();
 
+
     /**
      * Creates a path instance.
      *
      * @param connectors The connectors array.
-     * @param path The path queue.
+     * @param path       The path queue.
      */
     protected Path(Long2ObjectMap<Cache<C>> connectors, Deque<Node> path) {
         origin = path.pollLast();
         target = path.pollFirst();
-
-        Iterator<Node> it = path.descendingIterator();
-        while (it.hasNext()) {
-            Node node = it.next();
+        Node node;
+        while (!path.isEmpty()) {
+            node = path.removeLast();
             long pos = node.asLong();
 
             Cache<C> cache = connectors.get(pos);
@@ -63,14 +66,14 @@ public class Path<C extends IConnectable> {
      * @return Gets the full connectors path.
      */
     public Long2ObjectMap<C> getFull() {
-        return Long2ObjectMaps.unmodifiable(full);
+        return full;
     }
 
     /**
      * @return Gets the crossroad connectors path.
      */
     public Long2ObjectMap<C> getCross() {
-        return Long2ObjectMaps.unmodifiable(cross);
+        return cross;
     }
 
     /**

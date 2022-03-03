@@ -1,8 +1,17 @@
 package tesseract.api.item;
 
-import it.unimi.dsi.fastutil.ints.IntList;
-import tesseract.api.IConnectable;
-import tesseract.util.Dir;
+import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import tesseract.api.GraphWrapper;
+import tesseract.graph.Graph;
+
+import javax.annotation.Nonnull;
+
 
 /**
  * An item node is the unit of interaction with item inventories.
@@ -12,45 +21,13 @@ import tesseract.util.Dir;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IItemNode<T> extends IConnectable {
-
-    /**
-     * Inserts an item into an available slot and return the remainder.
-     * @param data ItemData to insert. This must not be modified by the item handler.
-     * @param simulate If true, the insertion is only simulated
-     * @return The remaining ItemData that was not inserted (if the entire stack is accepted, then return an empty ItemData).
-     *         May be the same as the input ItemData if unchanged, otherwise a new ItemData.
-     *         The returned ItemData can be safely modified after.
-     **/
-    int insert(ItemData<T> data, boolean simulate);
-
-    /**
-     * Extracts an item from an available slot.
-     * @param slot The slot to extract from.
-     * @param amount Amount to extract (may be greater than the current stack's max limit)
-     * @param simulate If true, the extraction is only simulated
-     * @return ItemData extracted from the slot, must be null if nothing can be extracted.
-     *         The returned ItemData can be safely modified after, so item handlers should return a new or copied stack.
-     **/
-    ItemData<T> extract(int slot, int amount, boolean simulate);
-
-    /**
-     * @param direction The direction index.
-     * @return Gets all available slots.
-     **/
-    IntList getAvailableSlots(Dir direction);
-
-    /**
-     * @param direction Direction to the proceed.
-     * @return Gets the initial amount of items that can be output.
-     */
-    int getOutputAmount(Dir direction);
+public interface IItemNode extends IItemHandler {
 
     /**
      * @param direction Direction to the proceed.
      * @return Returns the priority of this node as a number.
      */
-    int getPriority(Dir direction);
+    int getPriority(Direction direction);
 
     /**
      * @param slot The slot index.
@@ -60,28 +37,130 @@ public interface IItemNode<T> extends IConnectable {
 
     /**
      * Gets if this storage can have item extracted.
+     *
      * @return If this is false, then any calls to extractEnergy will return 0.
      */
     boolean canOutput();
 
     /**
      * Used to determine if this storage can receive item.
+     *
      * @return If this is false, then any calls to receiveEnergy will return 0.
      */
     boolean canInput();
 
     /**
+     * Used to determine if this storage can receive item.
+     *
+     * @return If this is false, then any calls to receiveEnergy will return 0.
+     */
+    boolean canInput(Direction direction);
+
+    /**
      * Used to determine which sides can output item (if any).
+     *
      * @param direction Direction to the output.
      * @return Returns true if the given direction is output side.
      */
-    boolean canOutput(Dir direction);
+    boolean canOutput(Direction direction);
 
     /**
      * Used to determine which items and at which direction can be consumed.
-     * @param item The Item to be queried.
+     *
+     * @param item      The Item to be queried.
      * @param direction Direction to the input.
      * @return If the storage can input the item (EVER, not at the time of query).
      */
-    boolean canInput(Object item, Dir direction);
+    default boolean canInput(ItemStack item, Direction direction) {
+        return true;
+    }
+
+    class ItemTileWrapper implements IItemNode {
+
+        private final TileEntity tile;
+        private final IItemHandler handler;
+    
+        public ItemTileWrapper(TileEntity tile, IItemHandler handler) {
+            this.tile = tile;
+            this.handler = handler;
+        }
+    
+        @Override
+        public int getPriority(Direction direction) {
+            return 0;
+        }
+    
+        @Override
+        public boolean isEmpty(int slot) {
+            return handler.getStackInSlot(slot).isEmpty();
+        }
+    
+        @Override
+        public boolean canOutput() {
+            return handler != null;
+        }
+    
+        @Override
+        public boolean canInput() {
+            return handler != null;
+        }
+    
+        @Override
+        public boolean canInput(Direction direction) {
+            return handler != null;
+        }
+    
+        @Override
+        public boolean canOutput(Direction direction) {
+            return true;
+        }
+    
+        @Override
+        public int getSlots() {
+            return handler.getSlots();
+        }
+    
+        @Nonnull
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return handler.getStackInSlot(slot);
+        }
+    
+        @Nonnull
+        @Override
+        public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+            return handler.insertItem(slot, stack, simulate);
+        }
+    
+        @Nonnull
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return handler.extractItem(slot, amount, simulate);
+        }
+    
+        @Override
+        public int getSlotLimit(int slot) {
+            return handler.getSlotLimit(slot);
+        }
+    
+        @Override
+        public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+            return handler.isItemValid(slot, stack);
+        }
+    }
+    GraphWrapper.ICapabilityGetter<IItemNode> GETTER = ((level, pos, capSide, capCallback) -> {
+        TileEntity tile = level.getBlockEntity(BlockPos.of(pos));
+        if (tile == null) {
+            return null;
+        }
+        LazyOptional<IItemHandler> h = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, capSide);
+        if (h.isPresent()) {
+            if (capCallback != null) h.addListener(t -> capCallback.run());
+            if (h.map(t -> t instanceof IItemNode).orElse(false)) {
+                return (IItemNode) h.resolve().get();
+            }
+            return new ItemTileWrapper(tile, h.orElse(null));
+        }
+        return null;
+    });
 }

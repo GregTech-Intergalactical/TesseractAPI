@@ -22,10 +22,10 @@ public class FEConsumer extends Consumer<IFECable, IFENode> {
      * Creates instance of the consumer.
      *
      * @param consumer The consumer node.
-     * @param path The path information.
+     * @param path     The path information.
      */
     protected FEConsumer(IFENode consumer, Path<IFECable> path) {
-        super(consumer, path);
+        super(consumer, null, path);
         init();
     }
 
@@ -33,7 +33,7 @@ public class FEConsumer extends Consumer<IFECable, IFENode> {
      * Adds energy to the node. Returns quantity of energy that was accepted.
      *
      * @param maxReceive Amount of energy to be inserted.
-     * @param simulate If true, the insertion will only be simulated.
+     * @param simulate   If true, the insertion will only be simulated.
      * @return Amount of energy that was (or would have been, if simulated) accepted by the storage.
      */
     public long insert(long maxReceive, boolean simulate) {

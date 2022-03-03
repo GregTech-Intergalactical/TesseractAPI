@@ -1,7 +1,7 @@
 package tesseract.graph;
 
+import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
-import tesseract.util.Dir;
 
 /**
  * The Cache is a class that should work with connections.
@@ -10,6 +10,7 @@ public class Cache<T extends IConnectable> {
 
     private final byte connectivity;
     private final T value;
+    private NodeCache<?> cache;
 
     /**
      * Creates a cache instance.
@@ -20,19 +21,11 @@ public class Cache<T extends IConnectable> {
     }
 
     /**
-     * Creates a cache instance from a delegate.
-     */
-    public Cache(T value, IConnectable delegate) {
-        this.value = value;
-        this.connectivity = Connectivity.of(delegate);
-    }
-
-    /**
      * @param direction The direction index.
      * @return True when connect, false otherwise.
      */
-    public boolean connects(Dir direction) {
-        return Connectivity.has(connectivity, direction.getIndex());
+    public boolean connects(Direction direction) {
+        return Connectivity.has(connectivity, direction.get3DDataValue());
     }
 
     /**
@@ -47,5 +40,19 @@ public class Cache<T extends IConnectable> {
      */
     public T value() {
         return value;
+    }
+
+    public boolean pathing() {
+        return value.path();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Cache && ((Cache<?>)obj).value == this.value;
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
     }
 }

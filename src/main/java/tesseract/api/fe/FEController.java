@@ -6,22 +6,22 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.Direction;
+import net.minecraft.world.World;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
-import tesseract.graph.Cache;
-import tesseract.graph.Grid;
-import tesseract.graph.INode;
-import tesseract.graph.Path;
-import tesseract.util.Dir;
+import tesseract.api.capability.ITransactionModifier;
+import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
  * Class acts as a controller in the group of a energy components.
  */
-public class FEController extends Controller<IFECable, IFENode> {
+public class FEController extends Controller<Integer, IFECable, IFENode> {
 
     private long totalEnergy, lastEnergy;
     private final Long2LongMap holders = new Long2LongOpenHashMap();
@@ -29,11 +29,11 @@ public class FEController extends Controller<IFECable, IFENode> {
 
     /**
      * Creates instance of the controller.
-
-     * @param dim The dimension id.
+     *
+     * @param world The world.
      */
-    public FEController(int dim) {
-        super(dim);
+    public FEController(World world) {
+        super(world, null);
         holders.defaultReturnValue(-1L);
     }
 
@@ -45,19 +45,20 @@ public class FEController extends Controller<IFECable, IFENode> {
      * Finally, it will pre-build consumer objects which are available for the producers. So each producer has a list of possible
      * consumers with unique information about paths, loss, ect.
      * </p>
+     *
      * @see tesseract.graph.Grid (Cache)
      */
     @Override
     public void change() {
         data.clear();
 
-        for (Long2ObjectMap.Entry<Cache<IFENode>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<NodeCache<IFENode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
-            IFENode producer = e.getValue().value();
+            IFENode producer = null;//e.getValue().value();
 
             if (producer.canOutput()) {
                 Pos position = new Pos(pos);
-                for (Dir direction : Dir.VALUES) {
+                for (Direction direction : Graph.DIRECTIONS) {
                     if (producer.canOutput(direction)) {
                         List<FEConsumer> consumers = new ObjectArrayList<>();
                         long side = position.offset(direction).asLong();
@@ -97,7 +98,7 @@ public class FEController extends Controller<IFECable, IFENode> {
     /**
      * Merge the existing consumers with new ones.
      *
-     * @param producer The producer node.
+     * @param producer  The producer node.
      * @param consumers The consumer nodes.
      */
     private void onMerge(IFENode producer, List<FEConsumer> consumers) {
@@ -117,11 +118,11 @@ public class FEController extends Controller<IFECable, IFENode> {
      * Adds available consumers to the list.
      *
      * @param consumers The consumer nodes.
-     * @param path The paths to consumers.
-     * @param pos The position of the producer.
+     * @param path      The paths to consumers.
+     * @param pos       The position of the producer.
      */
     private void onCheck(List<FEConsumer> consumers, Path<IFECable> path, long pos) {
-        IFENode node = group.getNodes().get(pos).value();
+        IFENode node = null;//group.getNodes().get(pos).value();
         if (node.canInput()) consumers.add(new FEConsumer(node, path));
     }
 
@@ -213,6 +214,11 @@ public class FEController extends Controller<IFECable, IFENode> {
         }
     }
 
+    // @Override
+    // public int insert(long producerPos, long direction, Integer stack, boolean simulate) {
+    //    return 0;
+    // }
+
     @Override
     protected void onFrame() {
         lastEnergy = totalEnergy;
@@ -220,14 +226,24 @@ public class FEController extends Controller<IFECable, IFENode> {
     }
 
     @Override
-    public String[] getInfo() {
-        return new String[]{
-            "Total Energy: ".concat(Long.toString(lastEnergy))
-        };
+    public void getInfo(long pos, @Nonnull List<String> list) {
+        this.group.getGroupInfo(pos, list);
+        list.add(String.format("FE Data size: %d", this.data.size()));
     }
+
+    /*@Override
+    public void insert(long producerPos, long pipePos, Integer transaction) {
+
+    }*/
 
     @Override
     public ITickingController clone(INode group) {
         return new FEController(dim).set(group);
+    }
+
+    @Override
+    public void insert(long producerPos, Direction side, Integer transaction, ITransactionModifier modifier) {
+        // TODO Auto-generated method stub
+        
     }
 }

@@ -23,28 +23,25 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
      * Creates instance of the consumer.
      *
      * @param consumer The consumer node.
-     * @param path The path information.
+     * @param path     The path information.
      */
-    protected GTConsumer(IGTNode consumer, Path<IGTCable> path) {
-        super(consumer, path);
+    public GTConsumer(IGTNode consumer,IGTNode producer, Path<IGTCable> path) {
+        super(consumer,producer, path);
         init();
     }
 
     /**
      * Adds energy to the node. Returns quantity of energy that was accepted.
-     *
-     * @param maxReceive Amount of energy to be inserted.
-     * @param simulate If true, the insertion will only be simulated.
      */
-    public void insert(long maxReceive, boolean simulate) {
-        node.insert(maxReceive, simulate);
+    public void insert(GTTransaction transaction) {
+        node.insert(transaction);
     }
 
     /**
      * @return Gets the amperage required for the consumer.
      */
-    public int getRequiredAmperage(int voltage) {
-        return (int) Math.min(((node.getCapacity() - node.getEnergy())) / voltage, node.getInputAmperage());
+    public long getRequiredAmperage(long voltage) {
+        return node.availableAmpsInput();//Math.min(((node.getCapacity() - node.getEnergy())) / voltage, node.getInputAmperage());
     }
 
     /**
@@ -63,11 +60,14 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
 
     /**
      * @param voltage The current voltage.
-     * @param amperage The current amperage.
      * @return Checks that the consumer is able to receive energy.
      */
-    public boolean canHandle(int voltage, int amperage) {
-        return minVoltage >= voltage && minAmperage >= amperage;
+    public boolean canHandle(long voltage) {
+        return minVoltage >= voltage;
+    }
+
+    public boolean canHandleAmp(long minAmperage) {
+        return this.minAmperage >= minAmperage;
     }
 
     /**
@@ -88,5 +88,58 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
         loss += cable.getLoss();
         minVoltage = Math.min(minVoltage, cable.getVoltage());
         minAmperage = Math.min(minAmperage, cable.getAmps());
+    }
+
+    public static class State {
+        long ampsReceived;
+        long ampsSent;
+        long euReceived;
+        long euSent;
+        public final IGTNode handler;
+
+        public State(IGTNode handler) {
+            ampsReceived = 0;
+            euReceived = 0;
+            this.handler = handler;
+        }
+
+        public void onTick() {
+            ampsReceived = 0;
+            euReceived = 0;
+            ampsSent = 0;
+            euSent = 0;
+        }
+
+        public long extract(boolean simulate, long amps) {
+            if (handler.canOutput()) {
+                if (simulate) {
+                    return Math.min(amps, handler.getOutputAmperage() - (ampsSent));
+                }
+                if (ampsSent + amps > handler.getOutputAmperage()) {
+                    return 0;
+                }
+                if (!simulate) {
+                    ampsSent += amps;
+                }
+                return amps;
+            }
+            return 0;
+        }
+
+        public long receive(boolean simulate, long amps) {
+            if (handler.canInput()) {
+                if (simulate) {
+                    return Math.min(amps, handler.getInputAmperage() - (ampsReceived));
+                }
+                if (ampsReceived + amps > handler.getInputAmperage()) {
+                    return 0;
+                }
+                if (!simulate) {
+                    ampsReceived += amps;
+                }
+                return amps;
+            }
+            return 0;
+        }
     }
 }

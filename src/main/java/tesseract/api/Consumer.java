@@ -1,22 +1,24 @@
 package tesseract.api;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import tesseract.graph.Path;
+import static java.lang.Integer.compare;
 
 import java.util.Comparator;
 
-import static java.lang.Integer.compare;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import tesseract.api.capability.TesseractBaseCapability;
+import tesseract.graph.Path;
 
 /**
  * A class that acts as a wrapper for a node component.
  */
-abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
+abstract public class Consumer<C extends IConnectable, N> {
 
     protected final N node;
     protected final ConnectionType connection;
 
-    protected Long2ObjectMap<C> full;
-    protected Long2ObjectMap<C> cross;
+    protected Long2ObjectMap<C> full = Long2ObjectMaps.emptyMap();
+    protected Long2ObjectMap<C> cross = Long2ObjectMaps.emptyMap();
     protected int distance;
 
     // Way of the sorting by the priority level and the distance to the node
@@ -28,16 +30,32 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
      * @param node The node instance.
      * @param path The path information.
      */
-    protected Consumer(N node, Path<C> path) {
+    protected Consumer(N node, N producer, Path<C> path) {
         this.node = node;
 
         if (path != null) {
-            full = path.getFull();
+            full =  path.getFull();
             cross = path.getCross();
         }
+        int fullSize = full.size();
+        if (producer instanceof TesseractBaseCapability) {
+            TesseractBaseCapability<?> cap = (TesseractBaseCapability<?>) producer;
+            long pos = cap.tile.getBlockPos().asLong();
+            if (full.size() == 0) {
+                full = Long2ObjectMaps.singleton(pos, (C) cap.tile);
+            } else {
+                full.put(pos, (C) cap.tile);
+            }
+            if (cross.size() == 0) {
+                cross = Long2ObjectMaps.singleton(pos, (C) cap.tile);
+            } else {
+                cross.put(pos, (C) cap.tile);
+            }
+        }
+        int crossSize = cross.size();
 
-        if (cross == null || cross.size() == 0) {
-            connection = (full == null) ? ConnectionType.ADJACENT : ConnectionType.SINGLE;
+        if (crossSize == 0) {
+            connection = (fullSize == 0) ? ConnectionType.ADJACENT : ConnectionType.SINGLE;
         } else {
             connection = ConnectionType.VARIATE;
         }
@@ -53,6 +71,7 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
                 onConnectorCatch(connector);
             }
         }
+
     }
 
     /**
@@ -83,7 +102,6 @@ abstract public class Consumer<C extends IConnectable, N extends IConnectable> {
     public Long2ObjectMap<C> getCross() {
         return cross;
     }
-
     /**
      * @return Gets the full path of connectors.
      */

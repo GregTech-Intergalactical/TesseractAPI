@@ -1,7 +1,7 @@
 package tesseract.graph;
 
+import net.minecraft.util.Direction;
 import tesseract.api.IConnectable;
-import tesseract.util.Dir;
 
 
 /**
@@ -18,9 +18,9 @@ public class Connectivity {
     public static byte of(IConnectable connectable) {
         byte connectivity = 0;
 
-        for (Dir direction : Dir.VALUES) {
+        for (Direction direction : Direction.values()) {
             if (connectable.connects(direction)) {
-                connectivity = Connectivity.set(connectivity, direction.getIndex());
+                connectivity = Connectivity.set(connectivity, direction.get3DDataValue());
             }
         }
 
@@ -31,7 +31,7 @@ public class Connectivity {
      * Bitwise set operation.
      *
      * @param connectivity The provided state.
-     * @param side The side index. {@see tesseract.util.Dir}
+     * @param side         The side index. {@see tesseract.util.Dir}
      * @return Connectivity state for a connection.
      */
     public static byte set(byte connectivity, int side) {
@@ -42,7 +42,7 @@ public class Connectivity {
      * Bitwise clear operation.
      *
      * @param connectivity The provided state.
-     * @param side The side index. {@see tesseract.util.Dir}
+     * @param side         The side index. {@see tesseract.util.Dir}
      * @return Connectivity state for a connection.
      */
     public static byte clear(byte connectivity, int side) {
@@ -53,7 +53,7 @@ public class Connectivity {
      * Bitwise toggle operation.
      *
      * @param connectivity The provided state.
-     * @param side The side index. {@see tesseract.util.Dir}
+     * @param side         The side index. {@see tesseract.util.Dir}
      * @return Connectivity state for a connection.
      */
     public static byte toggle(byte connectivity, int side) {
@@ -64,7 +64,7 @@ public class Connectivity {
      * Bitwise check operation.
      *
      * @param connectivity The provided state.
-     * @param side The side index. {@see tesseract.util.Dir}
+     * @param side         The side index. {@see tesseract.util.Dir}
      * @return True if a connection is exist, false otherwise.
      */
     public static boolean has(byte connectivity, int side) {

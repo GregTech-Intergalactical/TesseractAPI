@@ -1,13 +1,13 @@
 [
 {
-  "modid": "tesseract",
+  "modid": "tesseractapi",
   "name": "Tesseract API",
   "description": "Powerful framework for energy, item, and fluid transport",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
   "updateUrl": "",
-  "authorList": ["coderbot16", "qubka", "repolainen", "mitchej123", "Muramasa"],
+  "authorList": ["coderbot16", "qubka", "repolainen", "mitchej123", "Muramasa", "Vliro"],
   "credits": "",
   "logoFile": "",
   "screenshots": [],
