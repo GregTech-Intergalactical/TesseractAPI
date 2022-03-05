@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "tesseractapi",
+  "version": "${version}",
+  "name": "Tesseract API",
+  "description": "Powerful framework for energy, item, and fluid transport",
+  "authors": [
+    "coderbot16",
+    "qubka",
+    "repolainen",
+    "mitchej123",
+    "Muramasa"
+  ],
+  "contact": {
+    "sources": "https://github.com/GregTech-Intergalactical/TesseractAPI"
+  },
+  "license": "LGPL-3.0-only",
+  "icon": "assets/tesseractapi/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "tesseract.Tesseract"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.4.0",
+    "fabric": "*"
+  }
+}
