@@ -4,7 +4,7 @@ architectury {
 
 /*
 publishing {
-    tasks.publish.dependsOn 'build', 'reobfJar'
+    tasks.publish.dependsOn "build", "reobfJar"
     publications {
         mavenJava(org.gradle.api.publish.maven.MavenPublication) {
             //artifactId = archivesBaseName

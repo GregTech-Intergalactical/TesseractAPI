@@ -2,8 +2,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 plugins {
     id "architectury-plugin" version "3.4-SNAPSHOT"
     id "dev.architectury.loom" version "0.10.0-SNAPSHOT" apply false
-    id 'maven-publish'
-    id 'com.github.johnrengelman.shadow' version '7.1.0'
+    id "maven-publish"
 }
 
 architectury {
