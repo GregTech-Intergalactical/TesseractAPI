@@ -1,10 +1,10 @@
 package tesseract.api.fluid;
 
 
+import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidStack;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.fluids.FluidStack;
 
 import java.util.Set;
 
@@ -36,11 +36,10 @@ public class FluidHolder {
 
     /**
      * Uses up a part of this pipe and adds the fluid to the set.
-     *
-     * @param pressure The added pressure.
+     *  @param pressure The added pressure.
      * @param fluid    The fluid type.
      */
-    public void use(int pressure, Fluid fluid, long currentTime) {
+    public void use(long pressure, Fluid fluid, long currentTime) {
         this.pressureAvailable -= pressure;
         SetHolder holder = new SetHolder(fluid, currentTime);
         fluids.remove(holder);

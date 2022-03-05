@@ -1,16 +1,11 @@
 package tesseract.api.capability;
 
+import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
-import net.minecraft.core.BlockPos;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 import tesseract.Tesseract;
 import tesseract.api.fluid.*;
 import tesseract.graph.Graph;
-import tesseract.graph.Path;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
@@ -36,7 +31,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     }
 
     @Override
-    public int getTankCapacity(int tank) {
+    public long getTankCapacity(int tank) {
         return Integer.MAX_VALUE;
     }
 
@@ -46,10 +41,10 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     }
 
     @Override
-    public int fill(FluidStack resource, FluidAction action) {
+    public long fill(FluidStack resource, boolean action) {
         if (this.isSending) return 0;
         this.isSending = true;
-        if (action.execute()) {
+        if (action) {
             old.commit();
         } else {
             long pos = tile.getBlockPos().asLong();
@@ -71,13 +66,13 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
 
     @Nonnull
     @Override
-    public FluidStack drain(FluidStack resource, FluidAction action) {
+    public FluidStack drain(FluidStack resource, boolean action) {
         return FluidStack.EMPTY;
     }
 
     @Nonnull
     @Override
-    public FluidStack drain(int maxDrain, FluidAction action) {
+    public FluidStack drain(long maxDrain, boolean action) {
         return FluidStack.EMPTY;
     }
 

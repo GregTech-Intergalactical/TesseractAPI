@@ -1,6 +1,7 @@
 package tesseract;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.fabricmc.api.ModInitializer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraftforge.common.MinecraftForge;
@@ -29,9 +30,8 @@ import tesseract.controller.Fluid;
 import java.util.Set;
 import java.util.function.Consumer;
 
-@Mod(Tesseract.API_ID)
-//@Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
-public class Tesseract {
+
+public class Tesseract implements ModInitializer {
 
     public static final String API_ID = "tesseractapi";
     public static final String API_NAME = "Tesseract API";
@@ -52,7 +52,6 @@ public class Tesseract {
         MinecraftForge.EVENT_BUS.addListener(this::serverStoppedEvent);
         MinecraftForge.EVENT_BUS.addListener(this::worldUnloadEvent);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
-        MinecraftForge.EVENT_BUS.addListener((Consumer<RegisterCapabilitiesEvent>) TesseractGTCapability::register);
 
     }
 
@@ -86,5 +85,10 @@ public class Tesseract {
         if (HEALTH_CHECK_TIME > 0 && event.world.getGameTime() % HEALTH_CHECK_TIME == 0) {
             GraphWrapper.getWrappers().forEach(GraphWrapper::healthCheck);
         }
+    }
+
+    @Override
+    public void onInitialize() {
+
     }
 }

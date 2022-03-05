@@ -1,25 +1,26 @@
 package tesseract.api.gt;
 
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.energy.IEnergyStorage;
+import team.reborn.energy.api.EnergyStorage;
 
 public class EnergyTileWrapper implements IGTNode {
 
     private final BlockEntity tile;
-    private final IEnergyStorage storage;
+    private final EnergyStorage storage;
 
     private final GTConsumer.State state = new GTConsumer.State(this);
 
-    public EnergyTileWrapper(BlockEntity tile, IEnergyStorage storage) {
+    public EnergyTileWrapper(BlockEntity tile, EnergyStorage storage) {
         this.tile = tile;
         this.storage = storage;
     }
 
     @Override
     public boolean insert(GTTransaction transaction) {
-        if (storage.getEnergyStored() >= transaction.voltageOut /4) {
+        if (storage.getAmount() >= transaction.voltageOut /4) {
             transaction.addData(1, 0, this::extractEnergy);
             return true;
         }
@@ -28,12 +29,12 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public boolean extractEnergy(GTTransaction.TransferData data) {
-        return storage.extractEnergy((int) (data.getEnergy(1, false) /4), false) > 0;
+        return storage.extract((data.getEnergy(1, false) /4), TransactionContext.) > 0;
     }
 
     @Override
     public boolean addEnergy(GTTransaction.TransferData data) {
-        return storage.receiveEnergy((int) (data.getEnergy(1, true)  /4), false) > 0;
+        return storage.insert((data.getEnergy(1, true)  /4), false) > 0;
     }
 
     @Override

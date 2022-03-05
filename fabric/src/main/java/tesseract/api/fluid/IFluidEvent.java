@@ -1,7 +1,7 @@
 package tesseract.api.fluid;
 
+import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fluids.FluidStack;
 
 /**
  * Interface for handling a fluid events. (Controller will handle them)
@@ -15,7 +15,7 @@ public interface IFluidEvent<T> {
      * @param pos      The pipe position.
      * @param pressure The current pressure.
      */
-    default void onPipeOverPressure(Level world, long pos, int pressure, FluidStack fluid) {
+    default void onPipeOverPressure(Level world, long pos, long pressure, FluidStack fluid) {
         //NOOP
     }
 
@@ -26,7 +26,7 @@ public interface IFluidEvent<T> {
      * @param pos      The pipe position.
      * @param capacity The current capacity.
      */
-    default void onPipeOverCapacity(Level world, long pos, int capacity, FluidStack fluid) {
+    default void onPipeOverCapacity(Level world, long pos, long capacity, FluidStack fluid) {
         //NOOP
     }
 

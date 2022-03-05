@@ -18,7 +18,6 @@ import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IGTCable;
-import tesseract.api.gt.IGTNode;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
 import tesseract.api.item.ItemController;

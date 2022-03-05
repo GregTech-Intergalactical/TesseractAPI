@@ -1,10 +1,10 @@
 package tesseract.api.fluid;
 
+import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidStack;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fluids.FluidStack;
 import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
@@ -33,7 +33,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
     private int maxTemperature, lastTemperature;
     private boolean isLeaking, lastLeaking;
     private final Long2ObjectMap<Map<Direction, List<FluidConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
-    private final Long2IntMap pressureData = new Long2IntOpenHashMap(10);
+    private final Long2LongMap pressureData = new Long2LongOpenHashMap(10);
     //public final Long2IntMap sentPressure = new Long2IntOpenHashMap(10);
 
     /**
@@ -130,7 +130,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 continue;
             }
 
-            int amount = consumer.insert(data, true);
+            long amount = consumer.insert(data, true);
             if (amount <= 0) {
                 continue;
             }
@@ -149,7 +149,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                             amount = 0;
                             break;
                         }
-                        int tempData = pressureData.get(entry.getLongKey());
+                        long tempData = pressureData.get(entry.getLongKey());
                         amount = Math.min(amount, holder.getPressureAvailable() - tempData);
                         if (amount == 0)
                             continue loop;
@@ -162,7 +162,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
 
             if (consumer.getConnection() == ConnectionType.VARIATE) {
                 for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getCross().long2ObjectEntrySet()) {
-                    final int finalAmount = amount;
+                    final long finalAmount = amount;
                     pressureData.compute(p.getLongKey(), (k, v) -> v == null ? finalAmount : v + finalAmount);
                     if (p.getValue() instanceof TesseractBaseCapability cap) {
                         cap.callback.modify(data,cap.side, side, true);
@@ -177,7 +177,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
     }
     public void dataCommit(FluidConsumer consumer, FluidStack stack) {
         int temperature = stack.getFluid().getAttributes().getTemperature();
-        int amount = stack.getAmount();
+        long amount = stack.getAmount();
         boolean isGaseous = stack.getFluid().getAttributes().isGaseous();
         boolean cantHandle = !consumer.canHandle(temperature, isGaseous);
         if (!cantHandle) {

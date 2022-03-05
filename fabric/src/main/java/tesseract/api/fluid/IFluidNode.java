@@ -1,19 +1,19 @@
 package tesseract.api.fluid;
 
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
+import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidStack;
+import io.github.fabricators_of_create.porting_lib.transfer.fluid.IFluidHandler;
+import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+
 
 import javax.annotation.Nonnull;
 
 
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
+
 import tesseract.api.GraphWrapper;
-import tesseract.graph.Graph;
 
 /**
  * An fluid node is the unit of interaction with fluid inventories.
@@ -72,11 +72,11 @@ public interface IFluidNode extends IFluidHandler {
      * Drains from the input tanks rather than output tanks. Useful for recipes.
      *
      * @param stack  stack to drain.
-     * @param action execute/simulate
+     * @param sim execute/simulate
      * @return the drained stack
      */
-    default FluidStack drainInput(FluidStack stack, IFluidHandler.FluidAction action) {
-        return drain(stack, action);
+    default FluidStack drainInput(FluidStack stack, boolean sim) {
+        return drain(stack, sim);
     }
 
     class FluidTileWrapper implements IFluidNode {
@@ -130,7 +130,7 @@ public interface IFluidNode extends IFluidHandler {
         }
 
         @Override
-        public int getTankCapacity(int tank) {
+        public long getTankCapacity(int tank) {
             return handler.getTankCapacity(tank);
         }
 
@@ -140,19 +140,19 @@ public interface IFluidNode extends IFluidHandler {
         }
 
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
+        public long fill(FluidStack resource, boolean action) {
             return handler.fill(resource, action);
         }
 
         @Nonnull
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
+        public FluidStack drain(FluidStack resource, boolean action) {
             return handler.drain(resource, action);
         }
 
         @Nonnull
         @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
+        public FluidStack drain(long maxDrain, boolean action) {
             return handler.drain(maxDrain, action);
         }
     }
@@ -162,7 +162,7 @@ public interface IFluidNode extends IFluidHandler {
         if (tile == null) {
             return null;
         }
-        LazyOptional<IFluidHandler> capability = tile.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, capSide);
+        LazyOptional<IFluidHandler> capability = TransferUtil.getFluidHandler(tile, capSide);
         if (capability.isPresent()) {
             if (capCallback != null) capability.addListener(o -> capCallback.run());
             IFluidHandler handler = capability.orElse(null);

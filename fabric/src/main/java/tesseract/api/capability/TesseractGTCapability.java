@@ -1,33 +1,46 @@
 package tesseract.api.capability;
 
+import io.github.fabricators_of_create.porting_lib.transfer.item.IItemHandler;
+import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.common.util.LazyOptional;
+import org.jetbrains.annotations.Nullable;
 import tesseract.Tesseract;
 import tesseract.api.gt.*;
 import tesseract.graph.Graph;
 import tesseract.graph.Path;
 import tesseract.util.Pos;
 
+import java.util.Objects;
+
 public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends TesseractBaseCapability<T> implements IEnergyHandler {
-
-    public static final Capability<IEnergyHandler> ENERGY_HANDLER_CAPABILITY = CapabilityManager.get(new CapabilityToken<>(){});
-
-    public static void register(RegisterCapabilitiesEvent ev) {
-        ev.register(IEnergyHandler.class);
-    }
 
     private final IGTCable cable;
 
     public TesseractGTCapability(T tile, Direction dir, boolean isNode, ITransactionModifier modifier) {
         super(tile, dir, isNode, modifier);
         this.cable = tile;
+    }
+
+    public static LazyOptional<IEnergyHandler> getGTEnergyHandler(Level level, BlockPos pos) {
+        return getGTEnergyHandler(level, pos, null);
+    }
+
+    public static LazyOptional<IEnergyHandler> getGTEnergyHandler(Level level, BlockPos pos, @Nullable Direction direction) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be == null) return LazyOptional.empty();
+        return getGTEnergyHandler(be, direction);
+    }
+
+    public static LazyOptional<IEnergyHandler> getGTEnergyHandler(BlockEntity blockEntity, Direction side){
+        if (blockEntity instanceof EnergyTransferable t){
+            return t.getGTEnergyHandler(side);
+        }
+        Objects.requireNonNull(blockEntity.getLevel()).isClientSide();
+        return LazyOptional.empty();
     }
 
     @Override

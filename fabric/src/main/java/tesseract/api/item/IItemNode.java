@@ -1,12 +1,12 @@
 package tesseract.api.item;
 
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
+import io.github.fabricators_of_create.porting_lib.transfer.item.IItemHandler;
+import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
 import tesseract.api.GraphWrapper;
 import tesseract.graph.Graph;
 
@@ -153,7 +153,7 @@ public interface IItemNode extends IItemHandler {
         if (tile == null) {
             return null;
         }
-        LazyOptional<IItemHandler> h = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, capSide);
+        LazyOptional<IItemHandler> h = TransferUtil.getItemHandler(tile, capSide);
         if (h.isPresent()) {
             if (capCallback != null) h.addListener(t -> capCallback.run());
             if (h.map(t -> t instanceof IItemNode).orElse(false)) {

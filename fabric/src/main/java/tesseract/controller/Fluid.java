@@ -30,12 +30,12 @@ public class Fluid extends FluidController {
     }
 
     @Override
-    public void onPipeOverPressure(Level w, long pos, int pressure, FluidStack fluid) {
+    public void onPipeOverPressure(Level w, long pos, long pressure, FluidStack fluid) {
         Utils.createExplosion(w, BlockPos.of(pos), 4.0F, Explosion.BlockInteraction.BREAK);
     }
 
     @Override
-    public void onPipeOverCapacity(Level w, long pos, int capacity, FluidStack fluid) {
+    public void onPipeOverCapacity(Level w, long pos, long capacity, FluidStack fluid) {
         Utils.createExplosion(w, BlockPos.of(pos), 1.0F, Explosion.BlockInteraction.NONE);
     }
 

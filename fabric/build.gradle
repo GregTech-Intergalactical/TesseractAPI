@@ -27,6 +27,9 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 
     modImplementation(include("io.github.fabricators_of_create:Porting-Lib:0.1.0+1.18.${rootProject.port_lib_hash}")) { transitive(false) }
+    modApi("teamreborn:energy:${project.energy_version}") {
+        transitive = false
+    }
 }
 
 processResources {
