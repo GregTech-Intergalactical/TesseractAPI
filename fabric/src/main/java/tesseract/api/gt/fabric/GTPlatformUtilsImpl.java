@@ -19,11 +19,9 @@ public class GTPlatformUtilsImpl {
             if (invalidate != null) capability.addListener(t -> invalidate.run());
             return capability.resolve().get();
         } else {
-            LazyOptional<EnergyStorage> cap = tile.getCapability(CapabilityEnergy.ENERGY, side);
-            if (cap.isPresent()) {
-                EnergyTileWrapper node = new EnergyTileWrapper(tile, cap.orElse(null));
-                cap.addListener(o -> invalidate.run());
-                return node;
+            EnergyStorage storage = EnergyStorage.SIDED.find(level, pos, level.getBlockState(BlockPos.of(pos)), tile, direction);
+            if (storage != null) {
+                return new EnergyTileWrapper(tile, storage);
             }
         }
         return null;
