@@ -12,10 +12,13 @@ import org.jetbrains.annotations.NotNull;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.api.capability.ITransactionModifier;
-import tesseract.graph.*;
+import tesseract.graph.Graph;
+import tesseract.graph.Grid;
+import tesseract.graph.INode;
+import tesseract.graph.NodeCache;
+import tesseract.graph.Path;
 import tesseract.util.Node;
 import tesseract.util.Pos;
-
 
 import java.util.List;
 
@@ -47,7 +50,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
      * consumers with unique information about paths, loss, ect.
      * </p>
      *
-     * @see tesseract.graph.Grid (Cache)
+     * @see Grid (Cache)
      */
     @Override
     public void change() {
