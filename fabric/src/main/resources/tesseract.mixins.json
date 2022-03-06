@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "tesseract.mixin.fabric",
+  "compatibilityLevel": "JAVA_16",
+  "minVersion": "0.8",
+  "mixins": [
+    "MixinIItemNode"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
