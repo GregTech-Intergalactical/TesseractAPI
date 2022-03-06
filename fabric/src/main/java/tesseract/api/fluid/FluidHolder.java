@@ -1,6 +1,7 @@
 package tesseract.api.fluid;
 
 
+import io.github.fabricators_of_create.porting_lib.extensions.RegistryNameProvider;
 import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidStack;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.world.level.material.Fluid;
@@ -102,22 +103,23 @@ public class FluidHolder {
 
         @Override
         public int hashCode() {
-            return fluid.getRegistryName().hashCode();
+            return ((RegistryNameProvider)fluid).getRegistryName().hashCode();
         }
 
         @Override
         public boolean equals(Object obj) {
-            if (obj instanceof SetHolder) {
-                return ((SetHolder) obj).fluid.getRegistryName().equals(this.fluid.getRegistryName());
+            ResourceLocation compare = ((RegistryNameProvider)this.fluid).getRegistryName();
+            if (obj instanceof SetHolder s) {
+                return ((RegistryNameProvider)s.fluid).getRegistryName().equals(compare);
             }
-            if (obj instanceof Fluid) {
-                return ((Fluid) obj).getRegistryName().equals(this.fluid.getRegistryName());
+            if (obj instanceof Fluid f) {
+                return ((RegistryNameProvider)f).getRegistryName().equals(compare);
             }
-            if (obj instanceof FluidStack) {
-                return ((FluidStack) obj).getFluid().getRegistryName().equals(this.fluid.getRegistryName());
+            if (obj instanceof FluidStack s) {
+                return ((RegistryNameProvider)s.getFluid()).getRegistryName().equals(compare);
             }
-            if (obj instanceof ResourceLocation) {
-                return obj.equals(this.fluid.getRegistryName());
+            if (obj instanceof ResourceLocation r) {
+                return r.equals(compare);
             }
             return false;
         }
