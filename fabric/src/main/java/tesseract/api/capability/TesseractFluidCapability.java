@@ -3,12 +3,11 @@ package tesseract.api.capability;
 import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
-import tesseract.Tesseract;
+import org.jetbrains.annotations.NotNull;
 import tesseract.api.fluid.*;
+import tesseract.fabric.TesseractImpl;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
-
-import javax.annotation.Nonnull;
 
 
 public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extends TesseractBaseCapability<T> implements IFluidNode {
@@ -24,7 +23,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
         return 1;
     }
 
-    @Nonnull
+    @NotNull
     @Override
     public FluidStack getFluidInTank(int tank) {
         return FluidStack.EMPTY;
@@ -36,7 +35,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     }
 
     @Override
-    public boolean isFluidValid(int tank, @Nonnull FluidStack stack) {
+    public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
         return true;
     }
 
@@ -51,11 +50,11 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
             FluidTransaction transaction = new FluidTransaction(resource.copy(), a -> {
             });
             if (!this.isNode) {
-                Tesseract.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
+                TesseractImpl.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             } else {
                 for (Direction dir : Graph.DIRECTIONS) {
                     if (dir == side || !this.tile.connects(dir)) continue;
-                    Tesseract.FLUID.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
+                    TesseractImpl.FLUID.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
                 }
             }
             this.old = transaction;
@@ -64,13 +63,13 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
         return resource.getAmount() - this.old.stack.getAmount();
     }
 
-    @Nonnull
+    @NotNull
     @Override
     public FluidStack drain(FluidStack resource, boolean action) {
         return FluidStack.EMPTY;
     }
 
-    @Nonnull
+    @NotNull
     @Override
     public FluidStack drain(long maxDrain, boolean action) {
         return FluidStack.EMPTY;

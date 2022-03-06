@@ -2,11 +2,12 @@ package tesseract.api;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import tesseract.api.capability.ITransactionModifier;
 import tesseract.graph.Graph;
 import tesseract.graph.INode;
 
-import javax.annotation.Nonnull;
+
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -37,7 +38,7 @@ public interface ITickingController<T, C extends IConnectable, N> {
     /**
      * @return To get simple things like a some information.
      */
-    void getInfo(long pos, @Nonnull List<String> list);
+    void getInfo(long pos, @NotNull List<String> list);
 
     /**
      * Core method of Tesseract. Inserts an object into this pipe.

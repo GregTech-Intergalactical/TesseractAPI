@@ -1,6 +1,5 @@
 package tesseract.api.capability;
 
-import io.github.fabricators_of_create.porting_lib.transfer.item.IItemHandler;
 import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -8,10 +7,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
-import tesseract.Tesseract;
 import tesseract.api.gt.*;
+import tesseract.fabric.TesseractImpl;
 import tesseract.graph.Graph;
-import tesseract.graph.Path;
 import tesseract.util.Pos;
 
 import java.util.Objects;
@@ -51,12 +49,12 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
         long pos = tile.getBlockPos().asLong();
         if (!this.isNode) {
             long old = transaction.getAvailableAmps();
-            Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
+            TesseractImpl.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             flag = transaction.getAvailableAmps() < old;
         } else {
             for (Direction dir : Graph.DIRECTIONS) {
                 if (dir == side || !this.tile.connects(dir)) continue;
-                Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
+                TesseractImpl.GT_ENERGY.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
             }
         }
         this.isSending = false;

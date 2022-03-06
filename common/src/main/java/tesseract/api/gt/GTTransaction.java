@@ -2,7 +2,6 @@ package tesseract.api.gt;
 
 import tesseract.api.Transaction;
 
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 public class GTTransaction extends Transaction<GTTransaction.TransferData> {

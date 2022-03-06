@@ -1,8 +1,8 @@
 package tesseract.graph;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+//import static org.junit.Assert.assertEquals;
+//import static org.junit.Assert.assertFalse;
+//import static org.junit.Assert.assertTrue;
 import static tesseract.util.Pos.packAll;
 
 import java.util.ArrayDeque;
@@ -12,7 +12,7 @@ import java.util.List;
 
 import com.google.common.primitives.Longs;
 
-import org.junit.Test;
+//import org.junit.Test;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;

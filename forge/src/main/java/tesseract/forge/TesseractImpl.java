@@ -1,4 +1,4 @@
-package tesseract;
+package tesseract.forge;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.world.level.Level;
@@ -9,8 +9,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import tesseract.Tesseract;
 import tesseract.api.GraphWrapper;
 import tesseract.api.capability.TesseractGTCapability;
 import tesseract.api.fluid.FluidTransaction;
@@ -18,6 +17,7 @@ import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IGTCable;
+import tesseract.api.gt.IGTNode;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
 import tesseract.api.item.ItemController;
@@ -29,15 +29,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 @Mod(Tesseract.API_ID)
-//@Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
-public class Tesseract {
-
-    public static final String API_ID = "tesseractapi";
-    public static final String API_NAME = "Tesseract API";
-    public static final String VERSION = "0.0.1";
-    public static final String DEPENDS = "";
-
-    public static final Logger LOGGER = LogManager.getLogger(API_ID);
+public class TesseractImpl {
 
     private final static Set<LevelAccessor> firstTick = new ObjectOpenHashSet<>();
     //public static GraphWrapper<Integer, IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
@@ -45,9 +37,7 @@ public class Tesseract {
     public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new, IFluidNode.GETTER);
     public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new, IItemNode.GETTER);
 
-    public static final int HEALTH_CHECK_TIME = 1000;
-
-    public Tesseract() {
+    public TesseractImpl() {
         MinecraftForge.EVENT_BUS.addListener(this::serverStoppedEvent);
         MinecraftForge.EVENT_BUS.addListener(this::worldUnloadEvent);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
@@ -82,7 +72,7 @@ public class Tesseract {
         if (event.phase == TickEvent.Phase.START) {
             GraphWrapper.getWrappers().forEach(t -> t.tick(dim));
         }
-        if (HEALTH_CHECK_TIME > 0 && event.world.getGameTime() % HEALTH_CHECK_TIME == 0) {
+        if (Tesseract.HEALTH_CHECK_TIME > 0 && event.world.getGameTime() % Tesseract.HEALTH_CHECK_TIME == 0) {
             GraphWrapper.getWrappers().forEach(GraphWrapper::healthCheck);
         }
     }

@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.objects.*;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import org.jetbrains.annotations.NotNull;
 import tesseract.Tesseract;
 import tesseract.graph.Cache;
 import tesseract.graph.Graph;
@@ -14,7 +15,7 @@ import tesseract.graph.Group;
 import tesseract.graph.NodeCache;
 import tesseract.util.Pos;
 
-import javax.annotation.Nonnull;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -95,7 +96,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param pos The position at which the electric component is exist.
      * @return The controller object. (Can be null)
      */
-    @Nonnull
+    @NotNull
     public ITickingController<T, C, N> getController(Level dim, long pos) {
         if (dim.isClientSide()) {
             throw new IllegalStateException("Call to GraphWrapper::getController on client side!");
@@ -111,7 +112,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      *
      * @param pos the node position.
      */
-    private void update(Level dim, long pos, @Nonnull Direction side, boolean isInvalidate) {
+    private void update(Level dim, long pos, @NotNull Direction side, boolean isInvalidate) {
         //offset to the connector.
         long cPos = Pos.offset(pos, side);
         Graph<T, C, N> graph = getGraph(dim);

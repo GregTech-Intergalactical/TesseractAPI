@@ -1,13 +1,8 @@
 package tesseract.api.gt;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.energy.IEnergyStorage;
+import tesseract.TesseractPlatformUtils;
 import tesseract.api.GraphWrapper;
-import tesseract.api.capability.TesseractGTCapability;
 
 
 /**
@@ -140,5 +135,5 @@ public interface IGTNode {
 
     }
 
-    GraphWrapper.ICapabilityGetter<IGTNode> GT_GETTER = GTPlatformUtils::getNode;
+    GraphWrapper.ICapabilityGetter<IGTNode> GT_GETTER = TesseractPlatformUtils::getGTNode;
 }

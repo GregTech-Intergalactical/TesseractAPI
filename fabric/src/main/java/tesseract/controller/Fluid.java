@@ -1,5 +1,6 @@
 package tesseract.controller;
 
+import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.sounds.SoundSource;
@@ -7,12 +8,12 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fluids.FluidStack;
+
+import org.jetbrains.annotations.NotNull;
 import tesseract.api.fluid.FluidController;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.graph.Graph;
 
-import javax.annotation.Nonnull;
 
 // TODO: Make explosions depend on pressure, capacity, temperature
 public class Fluid extends FluidController {
@@ -41,11 +42,11 @@ public class Fluid extends FluidController {
 
     @Override
     public void onPipeOverTemp(Level w, long pos, int temperature) {
-        w.setBlockAndUpdate(BlockPos.of(pos), temperature >= Fluids.LAVA.getAttributes().getTemperature() ? Blocks.LAVA.defaultBlockState() : Blocks.FIRE.defaultBlockState());
+        w.setBlockAndUpdate(BlockPos.of(pos), temperature >= 1300 ? Blocks.LAVA.defaultBlockState() : Blocks.FIRE.defaultBlockState());
     }
 
     @Override
-    public FluidStack onPipeGasLeak(Level world, long pos, @Nonnull FluidStack fluid) {
+    public FluidStack onPipeGasLeak(Level world, long pos, @NotNull FluidStack fluid) {
         if (fluid.isEmpty()) return fluid;
         FluidStack stack = fluid.copy();
         stack.setAmount((int) ((double) stack.getAmount() * PIPE_LEAK));

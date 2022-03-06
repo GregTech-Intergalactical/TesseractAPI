@@ -29,7 +29,7 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public boolean extractEnergy(GTTransaction.TransferData data) {
-        return storage.extract((data.getEnergy(1, false) /4), TransactionContext.) > 0;
+        return storage.extract((data.getEnergy(1, false) /4), false) > 0;
     }
 
     @Override
@@ -45,12 +45,12 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public long getEnergy() {
-        return (long) (storage.getEnergyStored() /4);
+        return storage.getAmount() /4;
     }
 
     @Override
     public long getCapacity() {
-        return (long) (storage.getMaxEnergyStored() * 4);
+        return storage.getCapacity() * 4;
     }
 
     @Override
@@ -80,7 +80,7 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public boolean canInput() {
-        return storage.canReceive();
+        return storage.supportsInsertion();
     }
 
     @Override

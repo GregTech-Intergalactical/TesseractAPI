@@ -9,10 +9,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 
 
-import javax.annotation.Nonnull;
-
-
-
+import org.jetbrains.annotations.NotNull;
 import tesseract.api.GraphWrapper;
 
 /**
@@ -123,7 +120,7 @@ public interface IFluidNode extends IFluidHandler {
             return handler.getTanks();
         }
 
-        @Nonnull
+        @NotNull
         @Override
         public FluidStack getFluidInTank(int tank) {
             return handler.getFluidInTank(tank);
@@ -135,7 +132,7 @@ public interface IFluidNode extends IFluidHandler {
         }
 
         @Override
-        public boolean isFluidValid(int tank, @Nonnull FluidStack stack) {
+        public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
             return handler.isFluidValid(tank, stack);
         }
 
@@ -144,13 +141,13 @@ public interface IFluidNode extends IFluidHandler {
             return handler.fill(resource, action);
         }
 
-        @Nonnull
+        @NotNull
         @Override
         public FluidStack drain(FluidStack resource, boolean action) {
             return handler.drain(resource, action);
         }
 
-        @Nonnull
+        @NotNull
         @Override
         public FluidStack drain(long maxDrain, boolean action) {
             return handler.drain(maxDrain, action);

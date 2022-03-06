@@ -1,6 +1,5 @@
 package tesseract.api.capability;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -8,11 +7,9 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.common.util.LazyOptional;
-import tesseract.Tesseract;
 import tesseract.api.gt.*;
+import tesseract.forge.TesseractImpl;
 import tesseract.graph.Graph;
-import tesseract.graph.Path;
 import tesseract.util.Pos;
 
 public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends TesseractBaseCapability<T> implements IEnergyHandler {
@@ -38,12 +35,12 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
         long pos = tile.getBlockPos().asLong();
         if (!this.isNode) {
             long old = transaction.getAvailableAmps();
-            Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
+            TesseractImpl.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             flag = transaction.getAvailableAmps() < old;
         } else {
             for (Direction dir : Graph.DIRECTIONS) {
                 if (dir == side || !this.tile.connects(dir)) continue;
-                Tesseract.GT_ENERGY.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
+                TesseractImpl.GT_ENERGY.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
             }
         }
         this.isSending = false;

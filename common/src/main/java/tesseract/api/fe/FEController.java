@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.api.capability.ITransactionModifier;
@@ -15,7 +16,7 @@ import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import javax.annotation.Nonnull;
+
 import java.util.List;
 
 /**
@@ -226,7 +227,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
     }
 
     @Override
-    public void getInfo(long pos, @Nonnull List<String> list) {
+    public void getInfo(long pos, @NotNull List<String> list) {
         this.group.getGroupInfo(pos, list);
         list.add(String.format("FE Data size: %d", this.data.size()));
     }

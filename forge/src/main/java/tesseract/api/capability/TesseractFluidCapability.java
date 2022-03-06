@@ -2,15 +2,10 @@ package tesseract.api.capability;
 
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
-import net.minecraft.core.BlockPos;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import tesseract.Tesseract;
 import tesseract.api.fluid.*;
+import tesseract.forge.TesseractImpl;
 import tesseract.graph.Graph;
-import tesseract.graph.Path;
 import tesseract.util.Pos;
 
 import javax.annotation.Nonnull;
@@ -56,11 +51,11 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
             FluidTransaction transaction = new FluidTransaction(resource.copy(), a -> {
             });
             if (!this.isNode) {
-                Tesseract.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
+                TesseractImpl.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             } else {
                 for (Direction dir : Graph.DIRECTIONS) {
                     if (dir == side || !this.tile.connects(dir)) continue;
-                    Tesseract.FLUID.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
+                    TesseractImpl.FLUID.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
                 }
             }
             this.old = transaction;

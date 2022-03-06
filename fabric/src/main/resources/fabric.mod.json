@@ -19,7 +19,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "tesseract.Tesseract"
+      "tesseract.fabric.TesseractImpl"
     ]
   },
   "depends": {
