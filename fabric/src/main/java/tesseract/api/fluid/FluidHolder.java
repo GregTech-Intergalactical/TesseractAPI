@@ -103,20 +103,20 @@ public class FluidHolder {
 
         @Override
         public int hashCode() {
-            return ((RegistryNameProvider)fluid).getRegistryName().hashCode();
+            return fluid.getRegistryName().hashCode();
         }
 
         @Override
         public boolean equals(Object obj) {
-            ResourceLocation compare = ((RegistryNameProvider)this.fluid).getRegistryName();
+            ResourceLocation compare = this.fluid.getRegistryName();
             if (obj instanceof SetHolder s) {
-                return ((RegistryNameProvider)s.fluid).getRegistryName().equals(compare);
+                return s.fluid.getRegistryName().equals(compare);
             }
             if (obj instanceof Fluid f) {
-                return ((RegistryNameProvider)f).getRegistryName().equals(compare);
+                return f.getRegistryName().equals(compare);
             }
             if (obj instanceof FluidStack s) {
-                return ((RegistryNameProvider)s.getFluid()).getRegistryName().equals(compare);
+                return s.getFluid().getRegistryName().equals(compare);
             }
             if (obj instanceof ResourceLocation r) {
                 return r.equals(compare);
