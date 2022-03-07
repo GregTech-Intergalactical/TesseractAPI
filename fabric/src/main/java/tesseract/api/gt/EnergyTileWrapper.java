@@ -1,5 +1,6 @@
 package tesseract.api.gt;
 
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -29,12 +30,12 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public boolean extractEnergy(GTTransaction.TransferData data) {
-        return storage.extract((data.getEnergy(1, false) /4), false) > 0;
+        return storage.extract((data.getEnergy(1, false) /4), Transaction.openNested(null)) > 0;
     }
 
     @Override
     public boolean addEnergy(GTTransaction.TransferData data) {
-        return storage.insert((data.getEnergy(1, true)  /4), false) > 0;
+        return storage.insert((data.getEnergy(1, true)  /4), Transaction.openNested(null)) > 0;
     }
 
     @Override
