@@ -40,7 +40,7 @@ allprojects {
     apply plugin: "maven-publish"
 
     archivesBaseName = rootProject.archive_base_name
-    version = rootProject.minecraft_version-rootProject.mod_version
+    version = "${rootProject.minecraft_version}-${rootProject.mod_version}"
     group = rootProject.maven_group
 
     repositories {
@@ -57,13 +57,6 @@ allprojects {
 
     if (isCI) {
         version = version + "-" + gitHash()
-    }
-    afterEvaluate { project ->
-        project.tasks.publishToMavenLocal {
-            onlyIf {
-                return rootProject.name == "${modid}"
-            }
-        }
     }
 }
 

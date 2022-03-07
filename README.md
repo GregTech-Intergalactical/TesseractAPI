@@ -15,15 +15,16 @@ The API is written without using additional libraries other than FastUtils.
 ## Artifacts
 
 Currently, two artifacts classes has been defined:
-* `tesseract` which includes (path: `$projectDir/`):
-  * `base` is the shared code (compiled),
-  * `fat` is the full mod working with both Forge and (in the future) Fabric,
-  * `dev` is same as `fat` but not obfuscated, made to run in development environments.
+* `tesseract-fabric` which includes (path: `$projectDir/fabric`):
+  * *default* is the mod for fabric only,
+  * `dev-shadow` is same as `jar` but not obfuscated, made to run in development environments,
+  * `sources` is the source code.
 * `tesseract-forge` which includes (path: `$projectDir/forge`):
-  * *default* unused,
-  * `all` is the mod for Forge only,
-  * `dev` is same as `all` but not obfuscated, made to run in development environments,
-  * `sources` is the source code (not fully ready).
+  * *default* is the mod for Forge only,
+  * `dev-shadow` is same as `jar` but not obfuscated, made to run in development environments,
+  * `sources` is the source code.
+
+The common submodule has no use, cause some parts of the api had to be separated into their respective forge and fabric versions
 
 ## Building
 
@@ -36,17 +37,20 @@ Then you will find full mod in the right `build/libs` directories.
 
 ### Install as a dependency
 
-Currently only Forge is supported, use this in your `build.gradle`
+Use this in your `build.gradle`
 ```groovy
 repositories {
     maven {
-        url = 'https://files.axelandre42.ovh/maven/'
+        url = 'https://jitpack.io'
     }
 }
 
 dependencies {
-    // TODO update version:
-    implementation 'com.github.gregtech-intergalactical:tesseract-forge:${tesseract_version}:dev'
+    //Tag can be a commit hash, a github release tag, or (branch name)-SNAPSHOT
+    //forge
+    implementation 'com.github.GregTech-Intergalactical.TesseractAPI:TesseractAPI-forge:Tag'
+    //forge
+    implementation 'com.github.GregTech-Intergalactical.TesseractAPI:TesseractAPI-fabric:Tag'
 }
 ```
 
