@@ -108,17 +108,17 @@ public class FluidHolder {
 
         @Override
         public boolean equals(Object obj) {
-            if (obj instanceof SetHolder) {
-                return ((SetHolder) obj).fluid.getRegistryName().equals(this.fluid.getRegistryName());
+            if (obj instanceof SetHolder s) {
+                return s.fluid.getRegistryName().equals(this.fluid.getRegistryName());
             }
-            if (obj instanceof Fluid) {
-                return ((Fluid) obj).getRegistryName().equals(this.fluid.getRegistryName());
+            if (obj instanceof Fluid f) {
+                return f.getRegistryName().equals(this.fluid.getRegistryName());
             }
-            if (obj instanceof FluidStack) {
-                return ((FluidStack) obj).getFluid().getRegistryName().equals(this.fluid.getRegistryName());
+            if (obj instanceof FluidStack fs) {
+                return fs.getFluid().getRegistryName().equals(this.fluid.getRegistryName());
             }
-            if (obj instanceof ResourceLocation) {
-                return obj.equals(this.fluid.getRegistryName());
+            if (obj instanceof ResourceLocation rl) {
+                return rl.equals(this.fluid.getRegistryName());
             }
             return false;
         }
