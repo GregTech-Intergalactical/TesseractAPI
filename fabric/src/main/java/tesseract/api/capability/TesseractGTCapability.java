@@ -37,7 +37,6 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
         if (blockEntity instanceof EnergyTransferable t){
             return t.getGTEnergyHandler(side);
         }
-        Objects.requireNonNull(blockEntity.getLevel()).isClientSide();
         return LazyOptional.empty();
     }
 
