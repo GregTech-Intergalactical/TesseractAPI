@@ -2,15 +2,9 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
-loom {
-    forge{
-        mixinConfig "tesseract.mixins.json"
-    }
-}
-
 architectury {
     platformSetupLoomIde()
-    forge()
+    fabric()
 }
 
 configurations {
@@ -18,27 +12,35 @@ configurations {
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
     compileClasspath.extendsFrom common
     runtimeClasspath.extendsFrom common
-    developmentForge.extendsFrom common
+    developmentFabric.extendsFrom common
+}
+
+repositories {
+    maven { url = "https://maven.devos.community/snapshots/" }
 }
 
 dependencies {
-    forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
+    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+
+    modImplementation(include("io.github.fabricators_of_create:Porting-Lib:0.1.0+1.18.${rootProject.port_lib_hash}")) { transitive(false) }
+    modApi("teamreborn:energy:${project.energy_version}") {
+        transitive = false
+    }
 }
 
 processResources {
     inputs.property "version", project.version
 
-    filesMatching("META-INF/mods.toml") {
+    filesMatching("fabric.mod.json") {
         expand "version": project.version
     }
 }
 
 shadowJar {
-    exclude "fabric.mod.json"
-
     configurations = [project.configurations.shadowCommon]
     classifier "dev-shadow"
 }
@@ -67,7 +69,7 @@ components.java {
 
 publishing {
     publications {
-        mavenForge(MavenPublication) {
+        mavenFabric(MavenPublication) {
             artifactId = rootProject.archive_base_name + "-" + project.name
             from components.java
         }

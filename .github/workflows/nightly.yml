@@ -42,11 +42,19 @@ jobs:
         arguments: build
     # The USERNAME and TOKEN need to correspond to the credential environment variables used in
     # the publishing section of your build.gradle
-    - name: Upload Artifact
+    - name: Upload Forge Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: TesseractAPI JAR
-        path: build/libs
+        name: TesseractAPI Forge JAR
+        path: forge/build/libs
+      env:
+        USERNAME: ${{ github.actor }}
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload Fabric Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: TesseractAPI Fabric JAR
+        path: fabric/build/libs
       env:
         USERNAME: ${{ github.actor }}
         TOKEN: ${{ secrets.GITHUB_TOKEN }}
