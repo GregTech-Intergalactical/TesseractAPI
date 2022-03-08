@@ -30,12 +30,12 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public boolean extractEnergy(GTTransaction.TransferData data) {
-        return storage.extract((data.getEnergy(1, false) /4), Transaction.openNested(null)) > 0;
+        return storage.extract(data.getEnergy(1, false), Transaction.openNested(null)) > 0;
     }
 
     @Override
     public boolean addEnergy(GTTransaction.TransferData data) {
-        return storage.insert((data.getEnergy(1, true)  /4), Transaction.openNested(null)) > 0;
+        return storage.insert(data.getEnergy(1, true), Transaction.openNested(null)) > 0;
     }
 
     @Override
@@ -46,12 +46,12 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public long getEnergy() {
-        return storage.getAmount() /4;
+        return storage.getAmount();
     }
 
     @Override
     public long getCapacity() {
-        return storage.getCapacity() * 4;
+        return storage.getCapacity();
     }
 
     @Override
