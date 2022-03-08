@@ -5,6 +5,7 @@ import javax.annotation.Nonnull;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.items.IItemHandler;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
 import tesseract.api.item.ItemTransaction;
@@ -13,7 +14,7 @@ import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
 
-public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends TesseractBaseCapability<T> implements IItemNode {
+public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends TesseractBaseCapability<T> implements IItemNode, IItemHandler {
     
     private ItemTransaction old;
     
