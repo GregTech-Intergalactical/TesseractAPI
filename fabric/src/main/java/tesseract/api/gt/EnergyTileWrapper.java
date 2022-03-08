@@ -56,12 +56,12 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public long getOutputAmperage() {
-        return 0;
+        return 1;
     }
 
     @Override
     public long getOutputVoltage() {
-        return 0;
+        return Integer.MAX_VALUE;
     }
 
     @Override
@@ -76,7 +76,7 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public boolean canOutput() {
-        return false;
+        return storage.supportsExtraction();
     }
 
     @Override
@@ -91,7 +91,7 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public boolean canOutput(Direction direction) {
-        return false;
+        return canOutput();
     }
 
     @Override
