@@ -5,5 +5,5 @@ import org.spongepowered.asm.mixin.Mixin;
 import tesseract.api.item.IItemNode;
 
 @Mixin(IItemNode.class)
-public abstract class MixinIItemNode implements IItemHandler {
+public interface MixinIItemNode extends IItemHandler {
 }
