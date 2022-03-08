@@ -3,6 +3,7 @@ package tesseract.fabric;
 import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
 import io.github.fabricators_of_create.porting_lib.transfer.item.IItemHandler;
 import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -22,7 +23,7 @@ public class TesseractPlatformUtilsImpl {
         if (capability.isPresent()) {
             if (invalidate != null) capability.addListener(t -> invalidate.run());
             return capability.resolve().get();
-        } else {
+        } else if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")){
             EnergyStorage storage = EnergyStorage.SIDED.find(level, BlockPos.of(pos), level.getBlockState(BlockPos.of(pos)), tile, direction);
             if (storage != null) {
                 return new EnergyTileWrapper(tile, storage);
