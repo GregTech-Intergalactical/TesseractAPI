@@ -1,6 +1,5 @@
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 plugins {
-    id "architectury-plugin" version "3.4-SNAPSHOT" apply(false)
     id "dev.architectury.loom" version "0.11.0-SNAPSHOT" apply false
     id "maven-publish"
 }
@@ -14,16 +13,22 @@ def gitHash() {
 }
 
 subprojects {
-    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-}
-
-allprojects {
     apply plugin: "java"
-    apply plugin: "maven-publish"
-
     archivesBaseName = rootProject.archive_base_name
     version = "${rootProject.minecraft_version}-${rootProject.mod_version}"
     group = rootProject.maven_group
+    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+    java {
+        withSourcesJar()
+    }
+
+
+}
+
+allprojects {
+    apply plugin: "maven-publish"
+
+
 
     repositories {
         // Add repositories to retrieve artifacts from in here.
@@ -33,9 +38,6 @@ allprojects {
         // for more information about repositories.
     }
 
-    java {
-        withSourcesJar()
-    }
 
     if (isCI) {
         version = version + "-" + gitHash()
