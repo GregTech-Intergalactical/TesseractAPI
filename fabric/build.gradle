@@ -1,10 +1,16 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.0.0"
 }
+apply plugin: "dev.architectury.loom"
+apply plugin: "architectury-plugin"
 
 architectury {
     platformSetupLoomIde()
     fabric()
+}
+
+loom {
+    silentMojangMappingsLicense()
 }
 
 configurations {
@@ -20,6 +26,9 @@ repositories {
 }
 
 dependencies {
+    minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+    // The following line declares the mojmap mappings, you may use other mappings as well
+    mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
 
