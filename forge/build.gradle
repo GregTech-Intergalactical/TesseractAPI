@@ -30,8 +30,8 @@ dependencies {
     mappings loom.officialMojangMappings()
     forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
 
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+    common(project(path: ":tesseract-common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":tesseract-common", configuration: "transformProductionForge")) { transitive = false }
 }
 
 processResources {

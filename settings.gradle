@@ -11,9 +11,13 @@ pluginManagement {
     }
 }
 
-include("common")
-include("fabric")
-include("forge")
+include("tesseract-common")
+include("tesseract-fabric")
+include("tesseract-forge")
+
+project(':tesseract-common').setProjectDir(new File("common"))
+project(':tesseract-forge').setProjectDir(new File("forge"))
+project(':tesseract-fabric').setProjectDir(new File("fabric"))
 
 rootProject.name = "${modid}"
 
