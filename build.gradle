@@ -1,6 +1,5 @@
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 plugins {
-    id "dev.architectury.loom" version "0.11.0-SNAPSHOT" apply false
     id "maven-publish"
 }
 
