@@ -1,15 +1,14 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.0.0"
-    id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "dev.architectury.loom" version "0.11.0-SNAPSHOT"
 }
-apply plugin: "dev.architectury.loom"
-apply plugin: "architectury-plugin"
 
 architectury {
     platformSetupLoomIde()
     fabric()
 }
+
+archivesBaseName = rootProject.tesseract_archive_base_name
+version = "${rootProject.minecraft_version}-${rootProject.tesseract_mod_version}"
 
 loom {
     silentMojangMappingsLicense()

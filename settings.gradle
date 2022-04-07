@@ -4,6 +4,10 @@ pluginManagement {
         maven { url "https://maven.architectury.dev/" }
         maven { url "https://maven.minecraftforge.net/" }
         maven {
+            name = 'parchment'
+            url = 'https://maven.parchmentmc.org'
+        }
+        maven {
             name = 'Sponge Snapshots'
             url = 'https://repo.spongepowered.org/repository/maven-public/'
         }

@@ -1,26 +1,14 @@
-plugins {
-    id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "dev.architectury.loom" version "0.11.0-SNAPSHOT"
-}
-apply plugin: "dev.architectury.loom"
-apply plugin: "architectury-plugin"
+archivesBaseName = rootProject.tesseract_archive_base_name
+version = "${rootProject.minecraft_version}-${rootProject.tesseract_mod_version}"
 
+dependencies{
+    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+}
 
 architectury {
-    platformSetupLoomIde()
     common()
 }
 
-loom {
-    silentMojangMappingsLicense()
-}
-
-dependencies {
-    minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
-    // The following line declares the mojmap mappings, you may use other mappings as well
-    mappings loom.officialMojangMappings()
-    compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.4'
-}
 /*
 publishing {
     tasks.publish.dependsOn "build", "reobfJar"
