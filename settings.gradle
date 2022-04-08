@@ -3,13 +3,25 @@ pluginManagement {
         maven { url "https://maven.fabricmc.net/" }
         maven { url "https://maven.architectury.dev/" }
         maven { url "https://maven.minecraftforge.net/" }
+        maven {
+            name = 'parchment'
+            url = 'https://maven.parchmentmc.org'
+        }
+        maven {
+            name = 'Sponge Snapshots'
+            url = 'https://repo.spongepowered.org/repository/maven-public/'
+        }
         gradlePluginPortal()
     }
 }
 
-include("common")
-include("fabric")
-include("forge")
+include("tesseract-common")
+include("tesseract-fabric")
+include("tesseract-forge")
+
+project(':tesseract-common').setProjectDir(new File("common"))
+project(':tesseract-forge').setProjectDir(new File("forge"))
+project(':tesseract-fabric').setProjectDir(new File("fabric"))
 
 rootProject.name = "${modid}"
 

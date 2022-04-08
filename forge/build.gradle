@@ -2,7 +2,11 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
+archivesBaseName = rootProject.tesseract_archive_base_name
+version = "${rootProject.minecraft_version}-${rootProject.tesseract_mod_version}"
+
 loom {
+    silentMojangMappingsLicense()
     forge{
         mixinConfig "tesseract.mixins.json"
     }
@@ -24,8 +28,8 @@ configurations {
 dependencies {
     forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
 
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+    common(project(path: ":tesseract-common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":tesseract-common", configuration: "transformProductionForge")) { transitive = false }
 }
 
 processResources {
@@ -54,7 +58,7 @@ jar {
 }
 
 sourcesJar {
-    def commonSources = project(":common").sourcesJar
+    def commonSources = project(":tesseract-common").sourcesJar
     dependsOn commonSources
     from commonSources.archiveFile.map { zipTree(it) }
 }
@@ -68,7 +72,7 @@ components.java {
 publishing {
     publications {
         mavenForge(MavenPublication) {
-            artifactId = rootProject.archive_base_name + "-" + project.name
+            artifactId = rootProject.tesseract_archive_base_name + "-" + project.name
             from components.java
         }
     }
