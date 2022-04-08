@@ -40,6 +40,18 @@ public class TesseractImpl implements ModInitializer {
         return firstTick.contains(world);
     }
 
+    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> getGT_ENERGY(){
+        return GT_ENERGY;
+    }
+
+    public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> getFLUID(){
+        return FLUID;
+    }
+
+    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> getITEM(){
+        return ITEM;
+    }
+
     @Override
     public void onInitialize() {
         ServerLifecycleEvents.SERVER_STOPPING.register(s -> {

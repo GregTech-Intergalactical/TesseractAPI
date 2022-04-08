@@ -1,15 +1,14 @@
 archivesBaseName = rootProject.tesseract_archive_base_name
 version = "${rootProject.minecraft_version}-${rootProject.tesseract_mod_version}"
 
-dependencies{
-    //modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    compileOnly(project(":tesseract-common-dep")){
-        transitive = false
-    }
+repositories {
+    maven { url = "https://mvn.devos.one/snapshots/" }
 }
 
-architectury {
-    common()
+dependencies{
+    modCompileOnly "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+    modCompileOnly("net.fabricmc.fabric-api:fabric-transfer-api-v1:${project.fabric_transfer_api_version}")
+    modCompileOnly("io.github.fabricators_of_create:Porting-Lib:0.1.0+1.18.${rootProject.port_lib_hash}") { transitive(false) }
 }
 
 /*

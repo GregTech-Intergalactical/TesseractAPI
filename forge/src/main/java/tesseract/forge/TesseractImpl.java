@@ -49,6 +49,18 @@ public class TesseractImpl {
         return firstTick.contains(world);
     }
 
+    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> getGT_ENERGY(){
+        return GT_ENERGY;
+    }
+
+    public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> getFLUID(){
+        return FLUID;
+    }
+
+    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> getITEM(){
+        return ITEM;
+    }
+
     public void serverStoppedEvent(ServerStoppedEvent e) {
         firstTick.clear();
         //FE_ENERGY.clear();

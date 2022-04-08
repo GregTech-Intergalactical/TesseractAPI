@@ -1,6 +1,7 @@
 package tesseract.api.capability;
 
 import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
+import io.github.fabricators_of_create.porting_lib.util.NBTSerializable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -12,9 +13,7 @@ import tesseract.fabric.TesseractImpl;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
-import java.util.Objects;
-
-public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends TesseractBaseCapability<T> implements IEnergyHandler {
+public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends TesseractBaseCapability<T> implements IGTNode, NBTSerializable {
 
     private final IGTCable cable;
 

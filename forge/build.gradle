@@ -5,13 +5,6 @@ plugins {
 archivesBaseName = rootProject.tesseract_archive_base_name
 version = "${rootProject.minecraft_version}-${rootProject.tesseract_mod_version}"
 
-loom {
-    silentMojangMappingsLicense()
-    forge{
-        mixinConfig "tesseract.mixins.json"
-    }
-}
-
 architectury {
     platformSetupLoomIde()
     forge()

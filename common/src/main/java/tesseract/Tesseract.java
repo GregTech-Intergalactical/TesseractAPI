@@ -5,6 +5,19 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.world.level.LevelAccessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import tesseract.api.GraphWrapper;
+import tesseract.api.Transaction;
+import tesseract.api.fluid.FluidTransaction;
+import tesseract.api.fluid.IFluidNode;
+import tesseract.api.fluid.IFluidPipe;
+import tesseract.api.gt.GTTransaction;
+import tesseract.api.gt.IGTCable;
+import tesseract.api.gt.IGTNode;
+import tesseract.api.item.IItemNode;
+import tesseract.api.item.IItemPipe;
+import tesseract.api.item.ItemTransaction;
+import tesseract.graph.INode;
+
 import java.util.Set;
 
 
@@ -29,5 +42,18 @@ public class Tesseract {
         return false;
     }
 
+    @ExpectPlatform
+    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> getGT_ENERGY(){
+        return null;
+    }
 
+    @ExpectPlatform
+    public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> getFLUID(){
+        return null;
+    }
+
+    @ExpectPlatform
+    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> getITEM(){
+        return null;
+    }
 }

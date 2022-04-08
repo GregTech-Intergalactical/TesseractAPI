@@ -18,8 +18,10 @@ pluginManagement {
 include("tesseract-common")
 include("tesseract-fabric")
 include("tesseract-forge")
+include("tesseract-common-dep")
 
 project(':tesseract-common').setProjectDir(new File("common"))
+project(':tesseract-common-dep').setProjectDir(new File("common-dep"))
 project(':tesseract-forge').setProjectDir(new File("forge"))
 project(':tesseract-fabric').setProjectDir(new File("fabric"))
 

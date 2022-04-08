@@ -2,6 +2,7 @@ package tesseract.api.item;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.items.IItemHandler;
 import tesseract.TesseractPlatformUtils;
 import tesseract.api.GraphWrapper;
 
@@ -14,7 +15,7 @@ import tesseract.api.GraphWrapper;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IItemNode {
+public interface IItemNode extends IItemHandler {
 
     /**
      * @param direction Direction to the proceed.
@@ -67,13 +68,6 @@ public interface IItemNode {
     default boolean canInput(ItemStack item, Direction direction) {
         return true;
     }
-
-    int getSlots();
-    ItemStack getStackInSlot(int slot);
-    ItemStack insertItem(int slot, ItemStack stack, boolean sim); // remainder
-    ItemStack extractItem(int slot, int amount, boolean sim); // extracted
-    int getSlotLimit(int slot);
-    boolean isItemValid(int slot, ItemStack stack);
 
     GraphWrapper.ICapabilityGetter<IItemNode> GETTER = (TesseractPlatformUtils::getItemNode);
 }

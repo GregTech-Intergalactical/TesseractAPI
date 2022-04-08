@@ -6,15 +6,19 @@ import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.material.Fluid;
 import team.reborn.energy.api.EnergyStorage;
 import tesseract.api.capability.TesseractGTCapability;
-import tesseract.api.gt.EnergyTileWrapper;
+import tesseract.api.fluid.IFluidNode;
+import tesseract.api.fabric.wrapper.EnergyTileWrapper;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTNode;
 import tesseract.api.item.IItemNode;
-import tesseract.api.item.ItemTileWrapper;
+import tesseract.api.fabric.wrapper.ItemTileWrapper;
 
 public class TesseractPlatformUtilsImpl {
     public static IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
@@ -46,5 +50,21 @@ public class TesseractPlatformUtilsImpl {
             return new ItemTileWrapper(tile, h.orElse(null));
         }
         return null;
+    }
+
+    public static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
+        return null;
+    }
+
+    public static ResourceLocation getFluidId(Fluid fluid){
+        return Registry.FLUID.getKey(fluid);
+    }
+
+    public static int getFluidTemperature(Fluid fluid){
+        return 0;
+    }
+
+    public static boolean isFluidGaseous(Fluid fluid){
+        return false;
     }
 }
