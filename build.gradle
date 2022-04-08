@@ -50,6 +50,10 @@ allprojects {
 
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
+        maven {
+            name = 'parchment'
+            url = 'https://maven.parchmentmc.org'
+        }
     }
 
     java {
