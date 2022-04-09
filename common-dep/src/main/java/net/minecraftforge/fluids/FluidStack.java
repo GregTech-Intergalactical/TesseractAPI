@@ -211,11 +211,11 @@ public class FluidStack {
         return new FluidStack(FluidVariant.of(getFluid(), getType().copyNbt()), getAmount(), getTag());
     }
 
-    public io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidStack toPortingLibStack(){
-        return new io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidStack(this.type, this.amount);
+    public io.github.fabricators_of_create.porting_lib.util.FluidStack toPortingLibStack(){
+        return new io.github.fabricators_of_create.porting_lib.util.FluidStack(this.type, this.amount);
     }
 
-    public static FluidStack fromPortingLibStack(io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidStack stack){
+    public static FluidStack fromPortingLibStack(io.github.fabricators_of_create.porting_lib.util.FluidStack stack){
         return new FluidStack(stack.getType(), stack.getAmount());
     }
 }
