@@ -1,9 +1,9 @@
 package tesseract.api.fabric.wrapper;
 
-import io.github.fabricators_of_create.porting_lib.transfer.item.IItemHandler;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import tesseract.api.item.IItemNode;
 

@@ -1,7 +1,6 @@
 package tesseract.fabric;
 
 import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
-import io.github.fabricators_of_create.porting_lib.transfer.item.IItemHandler;
 import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
@@ -11,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.items.IItemHandler;
 import team.reborn.energy.api.EnergyStorage;
 import tesseract.api.fabric.TesseractCaps;
 import tesseract.api.fluid.IFluidNode;
@@ -41,14 +41,14 @@ public class TesseractPlatformUtilsImpl {
         if (tile == null) {
             return null;
         }
-        LazyOptional<IItemHandler> h = TransferUtil.getItemHandler(tile, capSide);
+        /*LazyOptional<IItemHandler> h = TransferUtil.getItemHandler(tile, capSide);
         if (h.isPresent()) {
             if (capCallback != null) h.addListener(t -> capCallback.run());
             if (h.map(t -> t instanceof IItemNode).orElse(false)) {
                 return (IItemNode) h.resolve().get();
             }
             return new ItemTileWrapper(tile, h.orElse(null));
-        }
+        }*/
         return null;
     }
 
