@@ -7,6 +7,8 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.event.server.ServerStopCallback;
 import net.fabricmc.fabric.api.event.world.WorldTickCallback;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import tesseract.Tesseract;
@@ -52,37 +54,45 @@ public class TesseractImpl implements ModInitializer {
         return ITEM;
     }
 
+    private static void onWorldUnload(MinecraftServer server, ServerLevel world) {
+        if (world == null) return;
+        //FE_ENERGY.removeWorld((World) e.getWorld());
+        GraphWrapper.getWrappers().forEach(g -> g.removeWorld(world));
+        firstTick.remove(world);
+    }
+
+    private static void onEndTick(ServerLevel l) {
+        if (!hadFirstTick(l)) {
+            firstTick.add(l);
+            GraphWrapper.getWrappers().forEach(t -> t.onFirstTick(l));
+        }
+        if (Tesseract.HEALTH_CHECK_TIME > 0 && l.getGameTime() % Tesseract.HEALTH_CHECK_TIME == 0) {
+            GraphWrapper.getWrappers().forEach(GraphWrapper::healthCheck);
+        }
+    }
+
+    private static void onStartTick(ServerLevel l) {
+        if (!hadFirstTick(l)) {
+            firstTick.add(l);
+            GraphWrapper.getWrappers().forEach(t -> t.onFirstTick(l));
+        }
+        GraphWrapper.getWrappers().forEach(t -> t.tick(l));
+        if (Tesseract.HEALTH_CHECK_TIME > 0 && l.getGameTime() % Tesseract.HEALTH_CHECK_TIME == 0) {
+            GraphWrapper.getWrappers().forEach(GraphWrapper::healthCheck);
+        }
+    }
+
+    private static void onServerStopping(MinecraftServer s) {
+        firstTick.clear();
+        //FE_ENERGY.clear();
+        GraphWrapper.getWrappers().forEach(GraphWrapper::clear);
+    }
+
     @Override
     public void onInitialize() {
-        ServerLifecycleEvents.SERVER_STOPPING.register(s -> {
-            firstTick.clear();
-            //FE_ENERGY.clear();
-            GraphWrapper.getWrappers().forEach(GraphWrapper::clear);
-        });
-        ServerTickEvents.START_WORLD_TICK.register(l -> {
-            if (!hadFirstTick(l)) {
-                firstTick.add(l);
-                GraphWrapper.getWrappers().forEach(t -> t.onFirstTick(l));
-            }
-            GraphWrapper.getWrappers().forEach(t -> t.tick(l));
-            if (Tesseract.HEALTH_CHECK_TIME > 0 && l.getGameTime() % Tesseract.HEALTH_CHECK_TIME == 0) {
-                GraphWrapper.getWrappers().forEach(GraphWrapper::healthCheck);
-            }
-        });
-        ServerTickEvents.END_WORLD_TICK.register(l -> {
-            if (!hadFirstTick(l)) {
-                firstTick.add(l);
-                GraphWrapper.getWrappers().forEach(t -> t.onFirstTick(l));
-            }
-            if (Tesseract.HEALTH_CHECK_TIME > 0 && l.getGameTime() % Tesseract.HEALTH_CHECK_TIME == 0) {
-                GraphWrapper.getWrappers().forEach(GraphWrapper::healthCheck);
-            }
-        });
-        ServerWorldEvents.UNLOAD.register(((server, world) -> {
-            if (world == null) return;
-            //FE_ENERGY.removeWorld((World) e.getWorld());
-            GraphWrapper.getWrappers().forEach(g -> g.removeWorld(world));
-            firstTick.remove(world);
-        }));
+        ServerLifecycleEvents.SERVER_STOPPING.register(TesseractImpl::onServerStopping);
+        ServerTickEvents.START_WORLD_TICK.register(TesseractImpl::onStartTick);
+        ServerTickEvents.END_WORLD_TICK.register(TesseractImpl::onEndTick);
+        ServerWorldEvents.UNLOAD.register((TesseractImpl::onWorldUnload));
     }
 }

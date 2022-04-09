@@ -11,6 +11,10 @@ dependencies{
     modCompileOnly("io.github.fabricators_of_create:Porting-Lib:0.1.0+1.18.${rootProject.port_lib_hash}") { transitive(false) }
 }
 
+architectury {
+    common()
+}
+
 /*
 publishing {
     tasks.publish.dependsOn "build", "reobfJar"

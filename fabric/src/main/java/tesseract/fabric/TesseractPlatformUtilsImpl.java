@@ -12,7 +12,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
 import team.reborn.energy.api.EnergyStorage;
-import tesseract.api.capability.TesseractGTCapability;
+import tesseract.api.fabric.TesseractCaps;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fabric.wrapper.EnergyTileWrapper;
 import tesseract.api.gt.IEnergyHandler;
@@ -23,7 +23,7 @@ import tesseract.api.fabric.wrapper.ItemTileWrapper;
 public class TesseractPlatformUtilsImpl {
     public static IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        LazyOptional<IEnergyHandler> capability = TesseractGTCapability.getGTEnergyHandler(tile, direction);
+        LazyOptional<IEnergyHandler> capability = TesseractCaps.getGTEnergyHandler(tile, direction);
         if (capability.isPresent()) {
             if (invalidate != null) capability.addListener(t -> invalidate.run());
             return capability.resolve().get();

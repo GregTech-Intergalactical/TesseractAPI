@@ -1,13 +1,13 @@
 package tesseract.api;
 
-import static java.lang.Integer.compare;
-
-import java.util.Comparator;
-
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import tesseract.api.capability.TesseractBaseCapability;
 import tesseract.graph.Path;
+
+import java.util.Comparator;
+
+import static java.lang.Integer.compare;
 
 /**
  * A class that acts as a wrapper for a node component.

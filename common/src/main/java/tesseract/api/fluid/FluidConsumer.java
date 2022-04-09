@@ -2,6 +2,7 @@ package tesseract.api.fluid;
 
 import net.minecraft.core.Direction;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
@@ -46,7 +47,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
     public long insert(FluidStack data, boolean simulate) {
-        return node.fill(data, simulate);
+        return node.fill(data, simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
     }
 
     /**

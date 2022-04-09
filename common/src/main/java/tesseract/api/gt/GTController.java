@@ -1,6 +1,12 @@
 package tesseract.api.gt;
 
-import it.unimi.dsi.fastutil.longs.*;
+import it.unimi.dsi.fastutil.longs.Long2LongLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2LongMap;
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -10,15 +16,17 @@ import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.api.capability.ITransactionModifier;
-import tesseract.graph.*;
+import tesseract.graph.Graph;
+import tesseract.graph.Grid;
+import tesseract.graph.INode;
+import tesseract.graph.NodeCache;
+import tesseract.graph.Path;
 import tesseract.util.Node;
 import tesseract.util.Pos;
-
 
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.LongConsumer;
 
 /**
  * Class acts as a controller in the group of an electrical components.

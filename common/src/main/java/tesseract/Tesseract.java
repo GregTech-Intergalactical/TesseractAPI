@@ -1,12 +1,10 @@
 package tesseract;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.world.level.LevelAccessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import tesseract.api.GraphWrapper;
-import tesseract.api.Transaction;
 import tesseract.api.fluid.FluidTransaction;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
@@ -16,9 +14,6 @@ import tesseract.api.gt.IGTNode;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
 import tesseract.api.item.ItemTransaction;
-import tesseract.graph.INode;
-
-import java.util.Set;
 
 
 public class Tesseract {

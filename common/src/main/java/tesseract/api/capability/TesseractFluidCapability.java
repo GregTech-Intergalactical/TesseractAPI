@@ -1,11 +1,13 @@
 package tesseract.api.capability;
 
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.fluids.FluidStack;
 import org.jetbrains.annotations.NotNull;
 import tesseract.Tesseract;
-import tesseract.api.fluid.*;
+import tesseract.api.fluid.FluidTransaction;
+import tesseract.api.fluid.IFluidNode;
+import tesseract.api.fluid.IFluidPipe;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
 

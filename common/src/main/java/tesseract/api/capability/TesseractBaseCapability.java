@@ -1,7 +1,7 @@
 package tesseract.api.capability;
 
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import tesseract.api.IConnectable;
 
 public abstract class TesseractBaseCapability<T extends BlockEntity & IConnectable> {

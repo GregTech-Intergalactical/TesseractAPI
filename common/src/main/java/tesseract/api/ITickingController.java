@@ -4,13 +4,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import tesseract.api.capability.ITransactionModifier;
-import tesseract.graph.Graph;
 import tesseract.graph.INode;
 
-
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Interface abstracting ticking behaviour for the groups in the graph.

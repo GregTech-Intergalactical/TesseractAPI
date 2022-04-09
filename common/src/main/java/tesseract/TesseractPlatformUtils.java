@@ -8,7 +8,6 @@ import net.minecraft.world.level.material.Fluid;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.gt.IGTNode;
 import tesseract.api.item.IItemNode;
-import tesseract.graph.INode;
 
 public class TesseractPlatformUtils {
     @ExpectPlatform

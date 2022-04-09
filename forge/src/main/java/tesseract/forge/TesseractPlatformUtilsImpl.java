@@ -13,8 +13,8 @@ import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-import tesseract.api.capability.TesseractGTCapability;
 import tesseract.api.fluid.IFluidNode;
+import tesseract.api.forge.TesseractCaps;
 import tesseract.api.forge.wrapper.FluidTileWrapper;
 import tesseract.api.forge.wrapper.EnergyTileWrapper;
 import tesseract.api.gt.IEnergyHandler;
@@ -25,7 +25,7 @@ import tesseract.api.forge.wrapper.ItemTileWrapper;
 public class TesseractPlatformUtilsImpl {
     public static IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        LazyOptional<IEnergyHandler> capability = tile.getCapability(TesseractGTCapability.ENERGY_HANDLER_CAPABILITY, direction);
+        LazyOptional<IEnergyHandler> capability = tile.getCapability(TesseractCaps.ENERGY_HANDLER_CAPABILITY, direction);
         if (capability.isPresent()) {
             if (invalidate != null) capability.addListener(t -> invalidate.run());
             return capability.resolve().get();

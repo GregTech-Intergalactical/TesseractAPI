@@ -1,11 +1,5 @@
 package tesseract.graph;
 
-import java.util.Deque;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.LongConsumer;
-import java.util.function.LongPredicate;
-
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
@@ -19,7 +13,11 @@ import tesseract.graph.traverse.ASFinder;
 import tesseract.graph.traverse.BFDivider;
 import tesseract.util.Node;
 import tesseract.util.Pos;
-import tesseract.util.SetUtil;
+
+import java.util.Deque;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
 /**
  * Grid provides the functionality of a set of linked nodes.

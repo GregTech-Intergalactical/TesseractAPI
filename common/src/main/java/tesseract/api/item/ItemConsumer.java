@@ -1,7 +1,7 @@
 package tesseract.api.item;
 
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
 

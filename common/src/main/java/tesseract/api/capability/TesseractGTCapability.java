@@ -1,42 +1,24 @@
 package tesseract.api.capability;
 
-import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
-import io.github.fabricators_of_create.porting_lib.util.NBTSerializable;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import org.jetbrains.annotations.Nullable;
-import tesseract.api.gt.*;
-import tesseract.fabric.TesseractImpl;
+import net.minecraftforge.common.util.INBTSerializable;
+import tesseract.Tesseract;
+import tesseract.api.gt.GTConsumer;
+import tesseract.api.gt.GTTransaction;
+import tesseract.api.gt.IGTCable;
+import tesseract.api.gt.IGTNode;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
-public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends TesseractBaseCapability<T> implements IGTNode, NBTSerializable {
+public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends TesseractBaseCapability<T> implements IGTNode, INBTSerializable<CompoundTag> {
 
     private final IGTCable cable;
 
     public TesseractGTCapability(T tile, Direction dir, boolean isNode, ITransactionModifier modifier) {
         super(tile, dir, isNode, modifier);
         this.cable = tile;
-    }
-
-    public static LazyOptional<IEnergyHandler> getGTEnergyHandler(Level level, BlockPos pos) {
-        return getGTEnergyHandler(level, pos, null);
-    }
-
-    public static LazyOptional<IEnergyHandler> getGTEnergyHandler(Level level, BlockPos pos, @Nullable Direction direction) {
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be == null) return LazyOptional.empty();
-        return getGTEnergyHandler(be, direction);
-    }
-
-    public static LazyOptional<IEnergyHandler> getGTEnergyHandler(BlockEntity blockEntity, Direction side){
-        if (blockEntity instanceof EnergyTransferable t){
-            return t.getGTEnergyHandler(side);
-        }
-        return LazyOptional.empty();
     }
 
     @Override
@@ -47,12 +29,12 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
         long pos = tile.getBlockPos().asLong();
         if (!this.isNode) {
             long old = transaction.getAvailableAmps();
-            TesseractImpl.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
+            Tesseract.getGT_ENERGY().getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             flag = transaction.getAvailableAmps() < old;
         } else {
             for (Direction dir : Graph.DIRECTIONS) {
                 if (dir == side || !this.tile.connects(dir)) continue;
-                TesseractImpl.GT_ENERGY.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
+                Tesseract.getGT_ENERGY().getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
             }
         }
         this.isSending = false;
