@@ -1,10 +1,11 @@
 package tesseract.api.fabric;
 
-import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.Nullable;
 import tesseract.api.gt.EnergyTransferable;
 import tesseract.api.gt.IEnergyHandler;

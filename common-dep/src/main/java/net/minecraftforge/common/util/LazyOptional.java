@@ -1,4 +1,4 @@
-package io.github.fabricators_of_create.porting_lib.util;
+package net.minecraftforge.common.util;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -9,6 +9,10 @@ import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+
+import io.github.fabricators_of_create.porting_lib.util.NonNullConsumer;
+import io.github.fabricators_of_create.porting_lib.util.NonNullFunction;
+import io.github.fabricators_of_create.porting_lib.util.NonNullSupplier;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableObject;
