@@ -9,8 +9,8 @@ version="${version}"
 displayName="TesseractAPI"
 #updateJSONURL="http://myurl.me/"
 displayURL="https://github.com/GregTech-Intergalactical/TesseractAPI"
-logoFile="assets/tesseractapi/icon.png"
-authors="coderbot16, qubka, repolainen, mitchej123, Muramasa"
+#logoFile="icon.png"
+authors="coderbot16, qubka, repolainen, mitchej123, Muramasa, abbe, Trinsdar"
 credits="Rongmario - cheerleading from the side"
 description='''Powerful framework for energy, item, and fluid transport'''
 [[dependencies.tesseractapi]]
