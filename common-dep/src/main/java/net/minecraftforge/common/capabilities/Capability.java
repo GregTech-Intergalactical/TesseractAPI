@@ -38,7 +38,7 @@ public class Capability<T> {
         return this;
     }
 
-    Capability(String name) {
+    public Capability(String name) {
         this.name = name;
     }
 
