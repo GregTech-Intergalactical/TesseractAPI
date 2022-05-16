@@ -2,16 +2,19 @@ package net.minecraftforge.fluids;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.fabricators_of_create.porting_lib.util.FluidUtil;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -188,7 +191,7 @@ public class FluidStack {
         return tag != null;
     }
 
-    public static FluidStack fromBuffer(FriendlyByteBuf buffer) {
+    public static FluidStack readFromPacket(FriendlyByteBuf buffer) {
         FluidVariant fluid = FluidVariant.fromPacket(buffer);
         long amount = buffer.readVarLong();
         CompoundTag tag = buffer.readNbt();
@@ -196,11 +199,11 @@ public class FluidStack {
         return new FluidStack(fluid, amount, tag);
     }
 
-    public FriendlyByteBuf toBuffer(FriendlyByteBuf buffer) {
-        return toBuffer(this, buffer);
+    public FriendlyByteBuf writeToPacket(FriendlyByteBuf buffer) {
+        return writeToPacket(this, buffer);
     }
 
-    public static FriendlyByteBuf toBuffer(FluidStack stack, FriendlyByteBuf buffer) {
+    public static FriendlyByteBuf writeToPacket(FluidStack stack, FriendlyByteBuf buffer) {
         stack.getType().toPacket(buffer);
         buffer.writeVarLong(stack.getAmount());
         buffer.writeNbt(stack.tag);
@@ -209,6 +212,31 @@ public class FluidStack {
 
     public FluidStack copy() {
         return new FluidStack(FluidVariant.of(getFluid(), getType().copyNbt()), getAmount(), getTag());
+    }
+
+    private boolean isFluidStackTagEqual(FluidStack other) {
+        return this.tag == null ? other.tag == null : other.tag != null && this.tag.equals(other.tag);
+    }
+
+    public static boolean areFluidStackTagsEqual(@Nonnull FluidStack stack1, @Nonnull FluidStack stack2) {
+        return stack1.isFluidStackTagEqual(stack2);
+    }
+
+    public boolean containsFluid(@Nonnull FluidStack other) {
+        return this.isFluidEqual(other) && this.amount >= other.amount;
+    }
+
+    public boolean isFluidStackIdentical(FluidStack other) {
+        return this.isFluidEqual(other) && this.amount == other.amount;
+    }
+
+    //TODO: figure out how fabric stores fluids in items
+    /*public boolean isFluidEqual(@Nonnull ItemStack other) {
+        return (Boolean) FluidUtil.getFluidContained(other).map(this::isFluidEqual).orElse(false);
+    }*/
+
+    public final boolean equals(Object o) {
+        return !(o instanceof FluidStack) ? false : this.isFluidEqual((FluidStack)o);
     }
 
     public io.github.fabricators_of_create.porting_lib.util.FluidStack toPortingLibStack(){
