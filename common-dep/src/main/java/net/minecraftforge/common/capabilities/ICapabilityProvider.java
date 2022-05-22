@@ -8,7 +8,9 @@ import javax.annotation.Nullable;
 
 public interface ICapabilityProvider {
     @Nonnull
-    <T> LazyOptional<T> getCapability(@Nonnull Capability<T> capability, @Nullable Direction arg);
+    default <T> LazyOptional<T> getCapability(@Nonnull Capability<T> capability, @Nullable Direction arg){
+        return LazyOptional.empty();
+    };
 
     @Nonnull
     default <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap) {
