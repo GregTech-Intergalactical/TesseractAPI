@@ -1,10 +1,16 @@
 package tesseract.api.fluid;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import tesseract.TesseractPlatformUtils;
 import tesseract.api.GraphWrapper;
+import tesseract.api.wrapper.FluidTileWrapper;
 
 /**
  * An fluid node is the unit of interaction with fluid inventories.
@@ -81,5 +87,20 @@ public interface IFluidNode extends IFluidHandler {
         return drain(stack, sim ? FluidAction.SIMULATE : FluidAction.EXECUTE);
     }
 
-    GraphWrapper.ICapabilityGetter<IFluidNode> GETTER = (TesseractPlatformUtils::getFluidNode);
+    GraphWrapper.ICapabilityGetter<IFluidNode> GETTER = (IFluidNode::getFluidNode);
+
+    static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
+        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
+        if (tile == null) {
+            return null;
+        }
+        LazyOptional<IFluidHandler> capability = TesseractPlatformUtils.getFluidHandler(tile, capSide);
+        if (capability.isPresent()) {
+            if (capCallback != null) capability.addListener(o -> capCallback.run());
+            IFluidHandler handler = capability.orElse(null);
+            return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);
+        } else {
+            return null;
+        }
+    }
 }

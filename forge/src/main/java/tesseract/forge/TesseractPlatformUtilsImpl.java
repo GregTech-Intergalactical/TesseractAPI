@@ -3,6 +3,7 @@ package tesseract.forge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
@@ -11,21 +12,24 @@ import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import tesseract.api.fluid.IFluidNode;
-import tesseract.api.forge.TesseractCaps;
-import tesseract.api.forge.wrapper.FluidTileWrapper;
+import tesseract.api.forge.TesseractCapsImpl;
+import tesseract.api.wrapper.FluidTileWrapper;
 import tesseract.api.forge.wrapper.EnergyTileWrapper;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTNode;
 import tesseract.api.item.IItemNode;
-import tesseract.api.forge.wrapper.ItemTileWrapper;
+import tesseract.api.wrapper.ItemTileWrapper;
+
+import javax.annotation.Nullable;
 
 public class TesseractPlatformUtilsImpl {
     public static IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        LazyOptional<IEnergyHandler> capability = tile.getCapability(TesseractCaps.ENERGY_HANDLER_CAPABILITY, direction);
+        LazyOptional<IEnergyHandler> capability = tile.getCapability(TesseractCapsImpl.ENERGY_HANDLER_CAPABILITY, direction);
         if (capability.isPresent()) {
             if (invalidate != null) capability.addListener(t -> invalidate.run());
             return capability.resolve().get();
@@ -40,35 +44,17 @@ public class TesseractPlatformUtilsImpl {
         return null;
     }
 
-    public static IItemNode getItemNode(Level level, long pos, Direction capSide, Runnable capCallback){
-        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        if (tile == null) {
-            return null;
-        }
-        LazyOptional<IItemHandler> h = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, capSide);
-        if (h.isPresent()) {
-            if (capCallback != null) h.addListener(t -> capCallback.run());
-            if (h.map(t -> t instanceof IItemNode).orElse(false)) {
-                return (IItemNode) h.resolve().get();
-            }
-            return new ItemTileWrapper(tile, h.orElse(null));
-        }
-        return null;
+    public static LazyOptional<IItemHandler> getItemHandler(BlockEntity be, @Nullable Direction side){
+        return be.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side);
     }
 
-    public static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
-        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        if (tile == null) {
-            return null;
-        }
-        LazyOptional<IFluidHandler> capability = tile.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, capSide);
-        if (capability.isPresent()) {
-            if (capCallback != null) capability.addListener(o -> capCallback.run());
-            IFluidHandler handler = capability.orElse(null);
-            return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);
-        } else {
-            return null;
-        }
+    public static LazyOptional<IFluidHandler> getFluidHandler(BlockEntity be, @Nullable Direction side){
+        return be.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side);
+    }
+
+    public static LazyOptional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return LazyOptional.empty();
+        return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY);
     }
 
     public static ResourceLocation getFluidId(Fluid fluid){

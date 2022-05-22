@@ -7,12 +7,36 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class ItemHandlerHelper
 {
+
+    /**
+     * @return stack extracted
+     */
+    public static ItemStack extract(IItemHandler inv, ItemStack stack, boolean sim) {
+        int toExtract = stack.getCount();
+        int totalSlots = inv.getSlots();
+        ItemStack finalStack = ItemStack.EMPTY;
+
+        for (int i = 0; i < totalSlots; i++) {
+            ItemStack stackInSlot = inv.getStackInSlot(i);
+            if (!canItemStacksStack(stackInSlot, stack)) continue;
+            ItemStack extracted = inv.extractItem(i, toExtract, sim);
+            toExtract -= extracted.getCount();
+            if (finalStack == ItemStack.EMPTY) {
+                finalStack = extracted;
+            } else {
+                finalStack.setCount(finalStack.getCount() + extracted.getCount());
+            }
+        }
+
+        return finalStack;
+    }
     @Nonnull
     public static ItemStack insertItem(IItemHandler dest, @Nonnull ItemStack stack, boolean simulate)
     {
@@ -129,9 +153,9 @@ public class ItemHandlerHelper
     }
 
     /** giveItemToPlayer without preferred slot */
-    /*public static void giveItemToPlayer(Player player, @Nonnull ItemStack stack) {
+    public static void giveItemToPlayer(Player player, @Nonnull ItemStack stack) {
         giveItemToPlayer(player, stack, -1);
-    }*/
+    }
 
     /**
      * Inserts the given itemstack into the players inventory.
@@ -140,7 +164,7 @@ public class ItemHandlerHelper
      * @param player The player to give the item to
      * @param stack  The itemstack to insert
      */
-    /*public static void giveItemToPlayer(Player player, @Nonnull ItemStack stack, int preferredSlot)
+    public static void giveItemToPlayer(Player player, @Nonnull ItemStack stack, int preferredSlot)
     {
         if (stack.isEmpty()) return;
 
@@ -176,7 +200,7 @@ public class ItemHandlerHelper
 
             level.addFreshEntity(entityitem);
         }
-    }*/
+    }
 
     /**
      * This method uses the standard vanilla algorithm to calculate a comparator output for how "full" the inventory is.

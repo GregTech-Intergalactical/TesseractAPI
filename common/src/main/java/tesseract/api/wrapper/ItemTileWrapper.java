@@ -1,12 +1,11 @@
-package tesseract.api.forge.wrapper;
+package tesseract.api.wrapper;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandler;
+import org.jetbrains.annotations.NotNull;
 import tesseract.api.item.IItemNode;
-
-import javax.annotation.Nonnull;
 
 public record ItemTileWrapper(BlockEntity tile,
                               IItemHandler handler) implements IItemNode {
@@ -46,19 +45,19 @@ public record ItemTileWrapper(BlockEntity tile,
         return handler.getSlots();
     }
 
-    @Nonnull
+    @NotNull
     @Override
     public ItemStack getStackInSlot(int slot) {
         return handler.getStackInSlot(slot);
     }
 
-    @Nonnull
+    @NotNull
     @Override
-    public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+    public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
         return handler.insertItem(slot, stack, simulate);
     }
 
-    @Nonnull
+    @NotNull
     @Override
     public ItemStack extractItem(int slot, int amount, boolean simulate) {
         return handler.extractItem(slot, amount, simulate);
@@ -70,7 +69,7 @@ public record ItemTileWrapper(BlockEntity tile,
     }
 
     @Override
-    public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
         return handler.isItemValid(slot, stack);
     }
 }

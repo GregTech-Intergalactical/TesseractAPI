@@ -14,7 +14,7 @@ import tesseract.api.GraphWrapper;
 import tesseract.api.fluid.FluidTransaction;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
-import tesseract.api.forge.TesseractCaps;
+import tesseract.api.forge.TesseractCapsImpl;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IGTCable;
 import tesseract.api.gt.IGTNode;
@@ -41,7 +41,7 @@ public class TesseractImpl {
         MinecraftForge.EVENT_BUS.addListener(this::serverStoppedEvent);
         MinecraftForge.EVENT_BUS.addListener(this::worldUnloadEvent);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
-        MinecraftForge.EVENT_BUS.addListener((Consumer<RegisterCapabilitiesEvent>) TesseractCaps::register);
+        MinecraftForge.EVENT_BUS.addListener((Consumer<RegisterCapabilitiesEvent>) TesseractCapsImpl::register);
 
     }
 

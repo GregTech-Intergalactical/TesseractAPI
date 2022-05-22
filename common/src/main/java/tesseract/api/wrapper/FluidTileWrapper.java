@@ -1,4 +1,4 @@
-package tesseract.api.forge.wrapper;
+package tesseract.api.wrapper;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -53,7 +53,7 @@ public record FluidTileWrapper(BlockEntity tile,
     }
 
     @Override
-    public int getTankCapacity(int tank) {
+    public long getTankCapacity(int tank) {
         return handler.getTankCapacity(tank);
     }
 
@@ -63,7 +63,7 @@ public record FluidTileWrapper(BlockEntity tile,
     }
 
     @Override
-    public int fill(FluidStack resource, FluidAction action) {
+    public long fill(FluidStack resource, FluidAction action) {
         return handler.fill(resource, action);
     }
 
@@ -75,7 +75,7 @@ public record FluidTileWrapper(BlockEntity tile,
 
     @Nonnull
     @Override
-    public FluidStack drain(int maxDrain, FluidAction action) {
+    public FluidStack drain(long maxDrain, FluidAction action) {
         return handler.drain(maxDrain, action);
     }
 }
