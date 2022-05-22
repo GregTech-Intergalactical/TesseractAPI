@@ -52,11 +52,11 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
             FluidTransaction transaction = new FluidTransaction(resource.copy(), a -> {
             });
             if (!this.isNode) {
-                Tesseract.getFLUID().getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
+                Tesseract.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             } else {
                 for (Direction dir : Graph.DIRECTIONS) {
                     if (dir == side || !this.tile.connects(dir)) continue;
-                    Tesseract.getFLUID().getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
+                    Tesseract.FLUID.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
                 }
             }
             this.old = transaction;

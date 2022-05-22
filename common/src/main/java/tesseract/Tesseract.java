@@ -11,12 +11,21 @@ import tesseract.api.fluid.IFluidPipe;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IGTCable;
 import tesseract.api.gt.IGTNode;
+import tesseract.api.heat.HeatController;
+import tesseract.api.heat.HeatTransaction;
+import tesseract.api.heat.IHeatNode;
+import tesseract.api.heat.IHeatPipe;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
+import tesseract.api.item.ItemController;
 import tesseract.api.item.ItemTransaction;
+import tesseract.controller.Fluid;
 
 
 public class Tesseract {
+    public static final GraphWrapper<HeatTransaction, IHeatPipe, IHeatNode> HEAT_CONTROLLER = new GraphWrapper<>(HeatController::new, IHeatNode.GETTER);
+    public static final GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new, IFluidNode.GETTER);
+    public static final GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new, IItemNode.GETTER);
 
     public static final String API_ID = "tesseractapi";
     public static final String API_NAME = "Tesseract API";
@@ -29,6 +38,10 @@ public class Tesseract {
 
     public static final int HEALTH_CHECK_TIME = 1000;
 
+    public static void init() {
+
+    }
+
     public Tesseract() {
     }
 
@@ -39,16 +52,6 @@ public class Tesseract {
 
     @ExpectPlatform
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> getGT_ENERGY(){
-        return null;
-    }
-
-    @ExpectPlatform
-    public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> getFLUID(){
-        return null;
-    }
-
-    @ExpectPlatform
-    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> getITEM(){
         return null;
     }
 }

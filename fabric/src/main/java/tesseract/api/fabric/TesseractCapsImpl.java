@@ -11,13 +11,17 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.Nullable;
 import tesseract.api.gt.EnergyTransferable;
 import tesseract.api.gt.IEnergyHandler;
+import tesseract.api.heat.IHeatHandler;
 
 public class TesseractCapsImpl {
     public static final Capability<IEnergyHandler> ENERGY_HANDLER_CAPABILITY = new Capability<>("gt_energy");
 
-
+    public static final Capability<IHeatHandler> HEAT_CAPABILITY = new Capability<>("heat");
     public static Capability<IEnergyHandler> getENERGY_HANDLER_CAPABILITY(){
         return ENERGY_HANDLER_CAPABILITY;
+    }
+    public static Capability<IHeatHandler> getHEAT_CAPABILITY(){
+        return HEAT_CAPABILITY;
     }
 
     public static LazyOptional<IEnergyHandler> getGTEnergyHandler(Level level, BlockPos pos) {

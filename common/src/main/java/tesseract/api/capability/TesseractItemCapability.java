@@ -42,11 +42,11 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
             ItemTransaction transaction = new ItemTransaction(stack, a -> {});
             long pos = tile.getBlockPos().asLong();
             if (!isNode) {
-                Tesseract.getITEM().getController(tile.getLevel(), pos).insert(pos, this.side, transaction, callback);
+                Tesseract.ITEM.getController(tile.getLevel(), pos).insert(pos, this.side, transaction, callback);
             } else {
                 for (Direction dir : Graph.DIRECTIONS) {
                     if (dir == this.side || !this.tile.connects(dir)) continue;
-                    Tesseract.getITEM().getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
+                    Tesseract.ITEM.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
                 }
             }
             this.old = transaction;

@@ -32,8 +32,6 @@ public class TesseractImpl implements ModInitializer {
     private final static Set<LevelAccessor> firstTick = new ObjectOpenHashSet<>();
     //public static GraphWrapper<Integer, IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
-    public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new, IFluidNode.GETTER);
-    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new, IItemNode.GETTER);
 
     public TesseractImpl(){
     }
@@ -44,14 +42,6 @@ public class TesseractImpl implements ModInitializer {
 
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> getGT_ENERGY(){
         return GT_ENERGY;
-    }
-
-    public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> getFLUID(){
-        return FLUID;
-    }
-
-    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> getITEM(){
-        return ITEM;
     }
 
     private static void onWorldUnload(MinecraftServer server, ServerLevel world) {
@@ -90,6 +80,7 @@ public class TesseractImpl implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        Tesseract.init();
         ServerLifecycleEvents.SERVER_STOPPING.register(TesseractImpl::onServerStopping);
         ServerTickEvents.START_WORLD_TICK.register(TesseractImpl::onStartTick);
         ServerTickEvents.END_WORLD_TICK.register(TesseractImpl::onEndTick);

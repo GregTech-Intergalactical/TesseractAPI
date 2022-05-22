@@ -34,14 +34,13 @@ public class TesseractImpl {
     private final static Set<LevelAccessor> firstTick = new ObjectOpenHashSet<>();
     //public static GraphWrapper<Integer, IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
-    public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new, IFluidNode.GETTER);
-    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new, IItemNode.GETTER);
 
     public TesseractImpl() {
+        Tesseract.init();
         MinecraftForge.EVENT_BUS.addListener(this::serverStoppedEvent);
         MinecraftForge.EVENT_BUS.addListener(this::worldUnloadEvent);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
-        MinecraftForge.EVENT_BUS.addListener((Consumer<RegisterCapabilitiesEvent>) TesseractCapsImpl::register);
+        MinecraftForge.EVENT_BUS.addListener(TesseractCapsImpl::register);
 
     }
 
@@ -51,14 +50,6 @@ public class TesseractImpl {
 
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> getGT_ENERGY(){
         return GT_ENERGY;
-    }
-
-    public static GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> getFLUID(){
-        return FLUID;
-    }
-
-    public static GraphWrapper<ItemTransaction, IItemPipe, IItemNode> getITEM(){
-        return ITEM;
     }
 
     public void serverStoppedEvent(ServerStoppedEvent e) {
