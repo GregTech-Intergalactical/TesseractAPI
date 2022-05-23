@@ -148,6 +148,11 @@ public class TesseractPlatformUtilsImpl {
         return fluidStorage == null ? LazyOptional.empty() : LazyOptional.ofObject(new FluidStorageHandlerItem(ctx, fluidStorage));
     }
 
+    //TODO
+    public static LazyOptional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){
+        return LazyOptional.empty();
+    }
+
     private static Direction[] getDirections(@Nullable Direction direction) {
         if (direction == null) return Direction.values();
         return new Direction[] {direction};

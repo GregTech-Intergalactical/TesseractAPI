@@ -14,6 +14,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.IItemHandler;
 import tesseract.api.fluid.IFluidNode;
+import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTNode;
 import tesseract.api.item.IItemNode;
 
@@ -44,6 +45,11 @@ public class TesseractPlatformUtils {
 
     @ExpectPlatform
     public static LazyOptional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack) {
+        return LazyOptional.empty();
+    }
+
+    @ExpectPlatform
+    public static LazyOptional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){
         return LazyOptional.empty();
     }
 

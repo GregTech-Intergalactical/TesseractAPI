@@ -57,6 +57,11 @@ public class TesseractPlatformUtilsImpl {
         return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY);
     }
 
+    public static LazyOptional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){
+        if (stack == null || stack.isEmpty()) return LazyOptional.empty();
+        return stack.getCapability(TesseractCapsImpl.ENERGY_HANDLER_CAPABILITY);
+    }
+
     public static ResourceLocation getFluidId(Fluid fluid){
         return fluid.getRegistryName();
     }
