@@ -7,6 +7,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
@@ -30,6 +32,13 @@ public class TesseractPlatformUtils {
 
     @ExpectPlatform
     public static LazyOptional<IFluidHandler> getFluidHandler(BlockEntity be, @Nullable Direction side){
+        return LazyOptional.empty();
+    }
+
+    public static<T> LazyOptional<T> getCapability(BlockEntity be, Capability<T> capability, @Nullable Direction side){
+        if (be instanceof ICapabilityProvider provider){
+            return provider.getCapability(capability, side);
+        }
         return LazyOptional.empty();
     }
 
