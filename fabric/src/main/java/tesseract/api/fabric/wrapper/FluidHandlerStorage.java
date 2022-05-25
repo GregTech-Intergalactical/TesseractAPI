@@ -25,7 +25,7 @@ public record FluidHandlerStorage(IFluidHandler handler) implements Storage<Flui
 
     @Override
     public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-        long remainder = handler.fill(new FluidStack(resource, maxAmount), SIMULATE);
+        long remainder = handler.fillLong(new FluidStack(resource, maxAmount), SIMULATE);
         transaction.addCloseCallback((t, result) -> {
             if (result.wasCommitted()) {
                 handler.fillLong(new FluidStack(resource, maxAmount), EXECUTE);

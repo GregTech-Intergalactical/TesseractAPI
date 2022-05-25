@@ -149,7 +149,7 @@ public class FluidUtil
                         }
                         else
                         {
-                            containerFluidHandler.fill(simulatedTransfer, IFluidHandler.FluidAction.SIMULATE);
+                            containerFluidHandler.fillLong(simulatedTransfer, IFluidHandler.FluidAction.SIMULATE);
                         }
 
                         ItemStack resultContainer = containerFluidHandler.getContainer();
@@ -388,7 +388,7 @@ public class FluidUtil
     @Nonnull
     private static FluidStack tryFluidTransfer_Internal(IFluidHandler fluidDestination, IFluidHandler fluidSource, FluidStack drainable, boolean doTransfer)
     {
-        int fillableAmount = fluidDestination.fill(drainable, IFluidHandler.FluidAction.SIMULATE);
+        long fillableAmount = fluidDestination.fillLong(drainable, IFluidHandler.FluidAction.SIMULATE);
         if (fillableAmount > 0)
         {
             drainable.setAmount(fillableAmount);
@@ -397,7 +397,7 @@ public class FluidUtil
                 FluidStack drained = fluidSource.drain(drainable, IFluidHandler.FluidAction.EXECUTE);
                 if (!drained.isEmpty())
                 {
-                    drained.setAmount(fluidDestination.fill(drained, IFluidHandler.FluidAction.EXECUTE));
+                    drained.setAmount(fluidDestination.fillLong(drained, IFluidHandler.FluidAction.EXECUTE));
                     return drained;
                 }
             }
