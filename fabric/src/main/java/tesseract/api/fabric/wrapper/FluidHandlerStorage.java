@@ -28,7 +28,7 @@ public record FluidHandlerStorage(IFluidHandler handler) implements Storage<Flui
         long remainder = handler.fill(new FluidStack(resource, maxAmount), SIMULATE);
         transaction.addCloseCallback((t, result) -> {
             if (result.wasCommitted()) {
-                handler.fill(new FluidStack(resource, maxAmount), EXECUTE);
+                handler.fillLong(new FluidStack(resource, maxAmount), EXECUTE);
             }
         });
         return remainder;
@@ -113,7 +113,7 @@ public record FluidHandlerStorage(IFluidHandler handler) implements Storage<Flui
 
         @Override
         public long getCapacity() {
-            return owner.getTankCapacity(tankIndex);
+            return owner.getTankCapacityLong(tankIndex);
         }
     }
 }

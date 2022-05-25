@@ -56,7 +56,7 @@ public class FluidTank implements IFluidHandler, IFluidTank {
         return validator.test(stack);
     }
 
-    public long getCapacity()
+    public long getCapacityLong()
     {
         return capacity;
     }
@@ -67,7 +67,7 @@ public class FluidTank implements IFluidHandler, IFluidTank {
         return fluid;
     }
 
-    public long getFluidAmount()
+    public long getFluidAmountLong()
     {
         return fluid.getAmount();
     }
@@ -100,9 +100,9 @@ public class FluidTank implements IFluidHandler, IFluidTank {
     }
 
     @Override
-    public long getTankCapacity(int tank) {
+    public long getTankCapacityLong(int tank) {
 
-        return getCapacity();
+        return getCapacityLong();
     }
 
     @Override
@@ -112,7 +112,7 @@ public class FluidTank implements IFluidHandler, IFluidTank {
     }
 
     @Override
-    public long fill(FluidStack resource, FluidAction action)
+    public long fillLong(FluidStack resource, FluidAction action)
     {
         if (resource.isEmpty() || !isFluidValid(resource))
         {

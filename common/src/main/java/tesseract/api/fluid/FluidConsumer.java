@@ -47,7 +47,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
     public long insert(FluidStack data, boolean simulate) {
-        return node.fill(data, simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
+        return node.fillLong(data, simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
     }
 
     /**
