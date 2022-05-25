@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "tesseract.mixin.forge",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "tesseract.refmap.json",
+  "mixins": [
+    "IFluidHandlerMixin",
+    "IFluidTankMixin"
+  ],
+  "minVersion": "0.8"
+}
