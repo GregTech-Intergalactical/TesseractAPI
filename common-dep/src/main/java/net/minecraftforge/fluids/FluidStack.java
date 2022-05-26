@@ -2,12 +2,15 @@ package net.minecraftforge.fluids;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.fabricators_of_create.porting_lib.extensions.FluidExtensions;
 import io.github.fabricators_of_create.porting_lib.util.FluidUtil;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.FlowingFluid;
@@ -20,6 +23,8 @@ import java.util.Optional;
 
 @SuppressWarnings({"UnstableApiUsage"})
 public class FluidStack {
+
+    private io.github.fabricators_of_create.porting_lib.util.FluidStack portingLibStack = io.github.fabricators_of_create.porting_lib.util.FluidStack.EMPTY;
 
     public static final Codec<FluidStack> CODEC = RecordCodecBuilder.create(
             instance -> instance.group(
@@ -89,6 +94,7 @@ public class FluidStack {
 
     public FluidStack setAmount(long amount) {
         this.amount = amount;
+        this.portingLibStack.setAmount(amount);
         return this;
     }
 
@@ -168,6 +174,14 @@ public class FluidStack {
         return stack;
     }
 
+    public Component getDisplayName() {
+        return ((FluidExtensions)getFluid()).getAttributes().getDisplayName(this.toPortingLibStack());
+    }
+
+    public String getTranslationKey() {
+        return ((FluidExtensions)getFluid()).getAttributes().getTranslationKey(this.toPortingLibStack());
+    }
+
     public void setTag(CompoundTag tag) {
         this.tag = tag;
     }
@@ -236,11 +250,14 @@ public class FluidStack {
     }*/
 
     public final boolean equals(Object o) {
-        return !(o instanceof FluidStack) ? false : this.isFluidEqual((FluidStack)o);
+        return o instanceof FluidStack fs && this.isFluidEqual(fs);
     }
 
     public io.github.fabricators_of_create.porting_lib.util.FluidStack toPortingLibStack(){
-        return new io.github.fabricators_of_create.porting_lib.util.FluidStack(this.type, this.amount);
+        if (portingLibStack.isEmpty() || portingLibStack.getAmount() != this.getAmount()){
+            portingLibStack = new io.github.fabricators_of_create.porting_lib.util.FluidStack(this.type, this.amount);
+        }
+        return portingLibStack;
     }
 
     public static FluidStack fromPortingLibStack(io.github.fabricators_of_create.porting_lib.util.FluidStack stack){
