@@ -16,8 +16,6 @@ import java.util.stream.Stream;
 
 @Mixin(Ingredient.class)
 public class IngredientMixin implements IngredientExtension {
-    @Unique
-    private static final java.util.concurrent.atomic.AtomicInteger INVALIDATION_COUNTER = new java.util.concurrent.atomic.AtomicInteger();
 
     @Unique
     private int invalidationCounter;
@@ -55,6 +53,7 @@ public class IngredientMixin implements IngredientExtension {
         }
     }
 
+    @Override
     public boolean checkInvalidation() {
         int currentInvalidationCounter = INVALIDATION_COUNTER.get();
         if (this.invalidationCounter != currentInvalidationCounter) {
@@ -64,17 +63,20 @@ public class IngredientMixin implements IngredientExtension {
         return false;
     }
 
-    protected void markValid() {
+    @Override
+    public void markValid() {
         this.invalidationCounter = INVALIDATION_COUNTER.get();
     }
 
-    protected void invalidate() {
+    @Override
+    public void invalidate() {
         this.itemStacks = null;
         this.stackingIds = null;
     }
 
+    @Override
     public boolean isSimple() {
-        return isSimple || this == EMPTY;
+        return isSimple || ((Ingredient)(Object)this) == EMPTY;
     }
 
     private final boolean isVanilla = this.getClass().equals(Ingredient.class);
@@ -83,7 +85,8 @@ public class IngredientMixin implements IngredientExtension {
         return isVanilla;
     }
 
-    public static void invalidateAll() {
-        INVALIDATION_COUNTER.incrementAndGet();
+    public net.minecraftforge.common.crafting.IIngredientSerializer<? extends Ingredient> getSerializer() {
+        if (!isVanilla()) throw new IllegalStateException("Modders must implement Ingredient.getSerializer in their custom Ingredients: " + this);
+        return net.minecraftforge.common.crafting.VanillaIngredientSerializer.INSTANCE;
     }
 }
