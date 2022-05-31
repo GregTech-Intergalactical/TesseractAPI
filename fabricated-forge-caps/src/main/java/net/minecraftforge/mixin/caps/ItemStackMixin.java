@@ -1,4 +1,4 @@
-package net.minecraftforge.mixin;
+package net.minecraftforge.mixin.caps;
 
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;

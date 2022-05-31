@@ -1,4 +1,4 @@
-package net.minecraftforge.mixin;
+package net.minecraftforge.mixin.caps;
 
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.capabilities.ICapabilityItem;

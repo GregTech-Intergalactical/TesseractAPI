@@ -32,10 +32,10 @@ dependencies {
 
     common(project(path: ":tesseract-common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":tesseract-common", configuration: "transformProductionFabric")) { transitive false }
-    compileOnly(project(path: ":tesseract-common-dep", configuration: "namedElements")){
+    compileOnly(project(path: ":fabricated-forge-caps", configuration: "namedElements")){
         transitive = false
     }
-    shadowCommon(project(path: ":tesseract-common-dep", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":fabricated-forge-caps", configuration: "namedElements")) { transitive false }
     //modImplementation(include("io.github.fabricators_of_create:Porting-Lib:0.2.0+1.18.2.${rootProject.port_lib_hash}")) { transitive(false) }
     modApi("teamreborn:energy:${project.energy_version}") {
         transitive = false
