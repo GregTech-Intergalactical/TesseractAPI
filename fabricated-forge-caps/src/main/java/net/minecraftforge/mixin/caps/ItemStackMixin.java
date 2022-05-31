@@ -26,6 +26,9 @@ public class ItemStackMixin implements ICapabilityProvider {
 
     @Inject(method = "<init>(Lnet/minecraft/world/level/ItemLike;)V", at = @At("TAIL"))
     private void injectCapInit(ItemLike itemLike, CallbackInfo ci){
+        if (itemLike == null){
+            return;
+        }
         this.capabilityProvider = ((ICapabilityItem)itemLike.asItem()).initCapabilities(((ItemStack) (Object)this), this.capNBT);
         if (this.capNBT != null){
 

@@ -20,5 +20,12 @@
   "depends": {
     "fabricloader": ">=0.4.0",
     "fabric": "*"
+  },
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/class_1856": [
+        "net/minecraftforge/common/crafting/IngredientExtension"
+      ]
+    }
   }
 }

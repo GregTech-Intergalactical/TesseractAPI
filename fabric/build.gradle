@@ -32,7 +32,10 @@ dependencies {
 
     common(project(path: ":tesseract-common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":tesseract-common", configuration: "transformProductionFabric")) { transitive false }
-    compileOnly(project(path: ":fabricated-forge-caps", configuration: "namedElements")){
+    common(project(path: ":fabricated-forge-caps", configuration: "namedElements")){
+        transitive = false
+    }
+    common(project(path: ":fabricated-forge-recipe-api", configuration: "namedElements")){
         transitive = false
     }
     shadowCommon(project(path: ":fabricated-forge-caps", configuration: "namedElements")) { transitive false }

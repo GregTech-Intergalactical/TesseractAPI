@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "fabricated-forge-recipe-api.refmap.json",
   "mixins": [
+    "IngredientAccessor",
     "IngredientMixin"
   ],
   "minVersion": "0.8"

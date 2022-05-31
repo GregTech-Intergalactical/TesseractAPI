@@ -6,17 +6,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public interface IngredientExtension {
     AtomicInteger INVALIDATION_COUNTER = new AtomicInteger();
-    boolean isVanilla();
+    default boolean isVanilla(){
+        return true;
+    }
 
-    boolean isSimple();
+    default boolean isSimple(){
+        return true;
+    }
 
-    void invalidate();
+    default void invalidate(){}
 
-    void markValid();
+    default void markValid(){}
 
-    boolean checkInvalidation();
+    default boolean checkInvalidation(){
+        return true;
+    }
 
-    net.minecraftforge.common.crafting.IIngredientSerializer<? extends Ingredient> getSerializer();
+    default IIngredientSerializer<? extends Ingredient> getSerializer(){
+        return null;
+    }
 
     static void invalidateAll() {
         INVALIDATION_COUNTER.incrementAndGet();

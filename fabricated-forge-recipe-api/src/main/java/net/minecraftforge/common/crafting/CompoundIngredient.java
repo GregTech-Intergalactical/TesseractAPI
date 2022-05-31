@@ -78,12 +78,14 @@ public class CompoundIngredient extends Ingredient {
         return children.stream().anyMatch(c -> c.test(target));
     }
 
-    protected void invalidate()
+    @Override
+    public void invalidate()
     {
         this.itemIds = null;
         this.stacks = null;
     }
 
+    @Override
     public boolean isSimple()
     {
         return isSimple;
