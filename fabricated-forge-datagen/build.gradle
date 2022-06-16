@@ -1,6 +1,10 @@
 archivesBaseName = rootProject.tesseract_archive_base_name
 version = "${rootProject.minecraft_version}-${rootProject.tesseract_mod_version}"
 
+loom {
+    accessWidenerPath = file("src/main/resources/fabricated-forge-datagen.accesswidener")
+}
+
 repositories {
     maven { url = "https://mvn.devos.one/snapshots/" }
 }

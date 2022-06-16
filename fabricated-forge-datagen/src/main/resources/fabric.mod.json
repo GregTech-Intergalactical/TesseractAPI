@@ -10,6 +10,7 @@
   "contact": {
     "sources": "https://github.com/GregTech-Intergalactical/TesseractAPI"
   },
+  "accessWidener": "fabricated-forge-datagen.accesswidener",
   "license": "LGPL-3.0-only",
   "icon": "assets/tesseractapi/icon.png",
   "environment": "*",
