@@ -9,7 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.fluids.FluidStack;
 import org.jetbrains.annotations.NotNull;
-import tesseract.TesseractPlatformUtils;
+import tesseract.FluidPlatformUtils;
 import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.api.Controller;
@@ -185,9 +185,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
         }
     }
     public void dataCommit(FluidConsumer consumer, FluidStack stack) {
-        int temperature = TesseractPlatformUtils.getFluidTemperature(stack.getFluid());
+        int temperature = FluidPlatformUtils.getFluidTemperature(stack.getFluid());
         long amount = stack.getAmount();
-        boolean isGaseous = TesseractPlatformUtils.isFluidGaseous(stack.getFluid());
+        boolean isGaseous = FluidPlatformUtils.isFluidGaseous(stack.getFluid());
         boolean cantHandle = !consumer.canHandle(temperature, isGaseous);
         if (!cantHandle) {
             for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull().long2ObjectEntrySet()) {

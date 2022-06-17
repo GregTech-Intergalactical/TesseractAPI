@@ -5,7 +5,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
-import tesseract.TesseractPlatformUtils;
+import tesseract.FluidPlatformUtils;
 
 import java.util.Set;
 
@@ -103,20 +103,20 @@ public class FluidHolder {
 
         @Override
         public int hashCode() {
-            return TesseractPlatformUtils.getFluidId(fluid).hashCode();
+            return FluidPlatformUtils.getFluidId(fluid).hashCode();
         }
 
         @Override
         public boolean equals(Object obj) {
-            ResourceLocation compare = TesseractPlatformUtils.getFluidId(fluid);
+            ResourceLocation compare = FluidPlatformUtils.getFluidId(fluid);
             if (obj instanceof SetHolder s) {
-                return TesseractPlatformUtils.getFluidId(s.fluid).equals(compare);
+                return FluidPlatformUtils.getFluidId(s.fluid).equals(compare);
             }
             if (obj instanceof Fluid f) {
-                return TesseractPlatformUtils.getFluidId(f).equals(compare);
+                return FluidPlatformUtils.getFluidId(f).equals(compare);
             }
             if (obj instanceof FluidStack s) {
-                return TesseractPlatformUtils.getFluidId(s.getFluid()).equals(compare);
+                return FluidPlatformUtils.getFluidId(s.getFluid()).equals(compare);
             }
             if (obj instanceof ResourceLocation r) {
                 return r.equals(compare);

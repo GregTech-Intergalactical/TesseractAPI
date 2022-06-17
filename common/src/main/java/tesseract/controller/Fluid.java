@@ -8,7 +8,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
-import tesseract.TesseractPlatformUtils;
+import tesseract.FluidPlatformUtils;
 import tesseract.api.fluid.FluidController;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.graph.Graph;
@@ -42,7 +42,7 @@ public class Fluid extends FluidController {
 
     @Override
     public void onPipeOverTemp(Level w, long pos, int temperature) {
-        w.setBlockAndUpdate(BlockPos.of(pos), temperature >= TesseractPlatformUtils.getFluidTemperature(Fluids.LAVA) ? Blocks.LAVA.defaultBlockState() : Blocks.FIRE.defaultBlockState());
+        w.setBlockAndUpdate(BlockPos.of(pos), temperature >= FluidPlatformUtils.getFluidTemperature(Fluids.LAVA) ? Blocks.LAVA.defaultBlockState() : Blocks.FIRE.defaultBlockState());
     }
 
     @Override

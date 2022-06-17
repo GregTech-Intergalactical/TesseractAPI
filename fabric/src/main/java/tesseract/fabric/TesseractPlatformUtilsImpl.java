@@ -169,16 +169,4 @@ public class TesseractPlatformUtilsImpl {
         if (storage instanceof FluidHandlerStorage handler) return LazyOptional.ofObject(handler.handler());
         return LazyOptional.ofObject(new FluidStorageHandler(storage));
     }
-
-    public static ResourceLocation getFluidId(Fluid fluid){
-        return Registry.FLUID.getKey(fluid);
-    }
-
-    public static int getFluidTemperature(Fluid fluid){
-        return 0;
-    }
-
-    public static boolean isFluidGaseous(Fluid fluid){
-        return false;
-    }
 }
