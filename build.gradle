@@ -70,3 +70,37 @@ allprojects {
     }
 }
 
+subprojects{
+    if (!project.path.contains("common")){
+        apply plugin: "com.github.johnrengelman.shadow"
+
+        configurations {
+            common
+            shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+            compileClasspath.extendsFrom common
+            runtimeClasspath.extendsFrom common
+            developmentForge.extendsFrom common
+        }
+
+        shadowJar {
+            configurations = [project.configurations.shadowCommon]
+            classifier "dev-shadow"
+        }
+
+        remapJar {
+            input.set shadowJar.archiveFile
+            dependsOn shadowJar
+            classifier null
+        }
+
+        jar {
+            classifier "dev"
+        }
+
+        components.java {
+            withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+                skip()
+            }
+        }
+    }
+}
