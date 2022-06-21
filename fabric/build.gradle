@@ -3,7 +3,7 @@ architectury {
     fabric()
 }
 
-archivesBaseName = rootProject.tesseract_archive_base_name
+archivesBaseName = "${rootProject.tesseract_archive_base_name}-fabric"
 version = "${rootProject.minecraft_version}-${rootProject.tesseract_mod_version}"
 
 loom {

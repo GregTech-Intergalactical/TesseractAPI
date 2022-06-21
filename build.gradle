@@ -91,7 +91,6 @@ subprojects{
         remapJar {
             input.set shadowJar.archiveFile
             dependsOn shadowJar
-            archiveBaseName.set "${rootProject.tesseract_archive_base_name}-${project.name.replace("tesseract-", "")}"
             classifier null
         }
 
