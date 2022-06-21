@@ -17,8 +17,6 @@ def gitHash() {
     return ""
 }
 
-println("Is in CI? " + isCI)
-
 subprojects {
     apply plugin: "dev.architectury.loom"
     java.toolchain.languageVersion = JavaLanguageVersion.of(17)

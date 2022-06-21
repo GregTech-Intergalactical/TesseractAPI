@@ -18,8 +18,6 @@ pluginManagement {
 include("tesseract-common")
 include("tesseract-fabric")
 include("tesseract-forge")
-include("fabricated-forge-caps")
-include("fabricated-forge-recipe-api")
 
 project(':tesseract-common').setProjectDir(new File("common"))
 project(':tesseract-forge').setProjectDir(new File("forge"))
