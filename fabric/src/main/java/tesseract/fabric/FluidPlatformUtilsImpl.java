@@ -4,8 +4,13 @@ import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.fluids.FluidStack;
 
 public class FluidPlatformUtilsImpl {
+    public static FluidStack createFluidStack(Fluid fluid, long amount){
+        return new FluidStack(fluid, amount);
+    }
+
     //todo figure this out
     public static ResourceLocation getStillTexture(Fluid fluid){
         return null;

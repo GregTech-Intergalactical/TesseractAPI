@@ -3,8 +3,14 @@ package tesseract;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.fluids.FluidStack;
 
 public class FluidPlatformUtils {
+    @ExpectPlatform
+    public static FluidStack createFluidStack(Fluid fluid, long amount){
+        return null;
+    }
+
     @ExpectPlatform
     public static ResourceLocation getStillTexture(Fluid fluid){
         return null;
