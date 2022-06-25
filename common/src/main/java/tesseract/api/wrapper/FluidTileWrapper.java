@@ -58,8 +58,8 @@ public record FluidTileWrapper(BlockEntity tile,
     }
 
     @Override
-    public long getTankCapacityLong(int tank) {
-        return handler.getTankCapacityLong(tank);
+    public long getTankCapacityInDroplets(int tank) {
+        return handler.getTankCapacityInDroplets(tank);
     }
 
     @Override
@@ -68,8 +68,8 @@ public record FluidTileWrapper(BlockEntity tile,
     }
 
     @Override
-    public long fillLong(FluidStack resource, FluidAction action) {
-        return handler.fillLong(resource, action);
+    public long fillDroplets(FluidStack resource, FluidAction action) {
+        return handler.fillDroplets(resource, action);
     }
 
     @Override

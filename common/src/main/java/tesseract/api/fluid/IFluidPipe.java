@@ -1,6 +1,7 @@
 package tesseract.api.fluid;
 
 import net.minecraftforge.fluids.FluidStack;
+import tesseract.Tesseract;
 import tesseract.api.IConnectable;
 
 /**
@@ -23,6 +24,15 @@ public interface IFluidPipe extends IConnectable {
     int getPressure();
 
     /**
+     * Version of {@link #getPressure} that returns a max pressure but in fabric's droplets unit of fluid measurement. 1 mb = 81 droplets
+     *
+     * @return A positive long representing the maximum amount, zero or negative indicates that this component accepts no fluid.
+     */
+    default long getPressureInDroplets(){
+        return getPressure() * Tesseract.dropletMultiplier;
+    }
+
+    /**
      * Returns the maximum temperature that this fluid component will permit to pass through or be received in a single packet.
      *
      * @return A positive integer representing the maximum accepted temp, zero or negative indicates that this component accepts no fluid.
@@ -37,15 +47,15 @@ public interface IFluidPipe extends IConnectable {
     FluidHolder getHolder();
 
     /**
+     * @param stack       The current stack.
      * @param temperature The current temperature.
-     * @param pressure    The current pressure.
-     * @param proof       True if current liquid is in a gas state.
+     * @param isGas       True if current liquid is in a gas state.
      * @return Checks that the pipe is able to handle single packet.
      */
-    default FluidStatus getHandler(FluidStack stack, int temperature, boolean proof) {
+    default FluidStatus getHandler(FluidStack stack, int temperature, boolean isGas) {
         FluidHolder holder = getHolder();
         if (getTemperature() < temperature) return FluidStatus.FAIL_TEMP;
-        else if (!isGasProof() && proof) return FluidStatus.FAIL_LEAK;
+        else if (!isGasProof() && isGas) return FluidStatus.FAIL_LEAK;
         else if (!holder.allowFluid(stack.getFluid())) return FluidStatus.FAIL_CAPACITY;
         return FluidStatus.SUCCESS;
     }

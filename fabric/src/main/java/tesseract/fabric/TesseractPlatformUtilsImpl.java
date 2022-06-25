@@ -1,5 +1,13 @@
 package tesseract.fabric;
 
+import net.fabricatedforgeapi.caps.CapUtils;
+import net.fabricatedforgeapi.fluid.FluidHandlerStorage;
+import net.fabricatedforgeapi.fluid.FluidStorageHandler;
+import net.fabricatedforgeapi.fluid.FluidStorageHandlerItem;
+import net.fabricatedforgeapi.fluid.IFluidHandlerStorage;
+import net.fabricatedforgeapi.item.IItemHandlerStorage;
+import net.fabricatedforgeapi.item.ItemHandlerStorage;
+import net.fabricatedforgeapi.item.ItemStorageHandler;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -61,38 +69,7 @@ public class TesseractPlatformUtilsImpl {
         // lib handling
         if (be instanceof ICapabilityProvider p) return p.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side);
         if (be instanceof IItemTransferable transferable) return transferable.getItemHandler(side);
-        // client handling
-        if (Objects.requireNonNull(be.getLevel()).isClientSide()) {
-            return LazyOptional.empty();
-        }
-        // external handling
-        List<Storage<ItemVariant>> itemStorages = new ArrayList<>();
-        Level l = be.getLevel();
-        BlockPos pos = be.getBlockPos();
-        BlockState state = be.getBlockState();
-
-        for (Direction direction : getDirections(side)) {
-            Storage<ItemVariant> itemStorage = ItemStorage.SIDED.find(l, pos, state, be, direction);
-
-            if (itemStorage != null) {
-                if (itemStorages.size() == 0) {
-                    itemStorages.add(itemStorage);
-                    continue;
-                }
-
-                for (Storage<ItemVariant> storage : itemStorages) {
-                    if (!Objects.equals(itemStorage, storage)) {
-                        itemStorages.add(itemStorage);
-                        break;
-                    }
-                }
-            }
-        }
-
-
-        if (itemStorages.isEmpty()) return LazyOptional.empty();
-        if (itemStorages.size() == 1) return simplifyItem(itemStorages.get(0));
-        return simplifyItem(new CombinedStorage<>(itemStorages));
+        return CapUtils.getWrappedItemHandler(be, side);
     }
 
     public static LazyOptional<IFluidHandler> getFluidHandler(BlockEntity be, @Nullable Direction side) {
@@ -105,38 +82,7 @@ public class TesseractPlatformUtilsImpl {
             }*/
             return transferable.getFluidHandler(side);
         }
-        // client handling
-        if (client) { // TODO this system might be unnecessary
-//            IFluidHandler cached = FluidTileDataHandler.getCachedHandler(be);
-//            return LazyOptional.ofObject(cached);
-        }
-        // external handling
-        List<Storage<FluidVariant>> fluidStorages = new ArrayList<>();
-        Level l = be.getLevel();
-        BlockPos pos = be.getBlockPos();
-        BlockState state = be.getBlockState();
-
-        for (Direction direction : getDirections(side)) {
-            Storage<FluidVariant> fluidStorage = FluidStorage.SIDED.find(l, pos, state, be, direction);
-
-            if (fluidStorage != null) {
-                if (fluidStorages.size() == 0) {
-                    fluidStorages.add(fluidStorage);
-                    continue;
-                }
-
-                for (Storage<FluidVariant> storage : fluidStorages) {
-                    if (!Objects.equals(fluidStorage, storage)) {
-                        fluidStorages.add(fluidStorage);
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (fluidStorages.isEmpty()) return LazyOptional.empty();
-        if (fluidStorages.size() == 1) return simplifyFluid(fluidStorages.get(0));
-        return simplifyFluid(new CombinedStorage<>(fluidStorages));
+        return CapUtils.getWrappedFluidHandler(be, side);
     }
 
     // Fluid-containing items
@@ -160,13 +106,17 @@ public class TesseractPlatformUtilsImpl {
 
     public static LazyOptional<IItemHandler> simplifyItem(Storage<ItemVariant> storage) {
         if (storage == null) return LazyOptional.empty();
-        if (storage instanceof ItemHandlerStorage handler) return LazyOptional.ofObject(handler.getHandler());
+        if (storage instanceof IItemHandlerStorage handler) return LazyOptional.ofObject(handler.getHandler());
         return LazyOptional.ofObject(new ItemStorageHandler(storage));
     }
 
     public static LazyOptional<IFluidHandler> simplifyFluid(Storage<FluidVariant> storage) {
         if (storage == null) return LazyOptional.empty();
-        if (storage instanceof FluidHandlerStorage handler) return LazyOptional.ofObject(handler.handler());
+        if (storage instanceof IFluidHandlerStorage handler) return LazyOptional.ofObject(handler.getHandler());
         return LazyOptional.ofObject(new FluidStorageHandler(storage));
+    }
+
+    public static boolean isForge(){
+        return false;
     }
 }

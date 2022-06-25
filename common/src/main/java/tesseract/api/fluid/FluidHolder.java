@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import tesseract.FluidPlatformUtils;
+import tesseract.Tesseract;
 
 import java.util.Set;
 
@@ -14,8 +15,9 @@ import java.util.Set;
  */
 public class FluidHolder {
 
-    private int pressureAvailable;
-    public final int tickPressure, maxCapacity;
+    private long pressureAvailable;
+    public long tickPressure;
+    public final int maxCapacity;
     private final Set<SetHolder> fluids = new ObjectOpenHashSet<>();
 
     /**
@@ -25,9 +27,9 @@ public class FluidHolder {
      */
     public FluidHolder(IFluidPipe pipe) {
         this.maxCapacity = pipe.getCapacity();
-        this.tickPressure = pipe.getPressure();
+        this.tickPressure = pipe.getPressureInDroplets();
 
-        this.pressureAvailable = tickPressure * 20;
+        this.pressureAvailable = tickPressure * 20L;
     }
 
     public void tick(long time) {
@@ -50,7 +52,7 @@ public class FluidHolder {
     /**
      * @return Gets the current available pressure. If 0 then no liquid can be sent
      */
-    public int getPressureAvailable() {
+    public long getPressureAvailable() {
         return pressureAvailable;
     }
 

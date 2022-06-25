@@ -32,8 +32,8 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     }
 
     @Override
-    public long getTankCapacityLong(int tank) {
-        return Integer.MAX_VALUE;
+    public long getTankCapacityInDroplets(int tank) {
+        return Integer.MAX_VALUE * Tesseract.dropletMultiplier;
     }
 
     @Override
@@ -47,7 +47,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     }
 
     @Override
-    public long fillLong(FluidStack resource, FluidAction action) {
+    public long fillDroplets(FluidStack resource, FluidAction action) {
         if (this.isSending) return 0;
         this.isSending = true;
         if (action.execute()) {
@@ -67,11 +67,11 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
             this.old = transaction;
         }
         this.isSending = false;
-        return resource.getAmount() - this.old.stack.getAmount();
+        return resource.getRealAmount() - this.old.stack.getRealAmount();
     }
 
     public int fill(FluidStack resource, FluidAction action){
-        return (int) fillLong(resource, action);
+        return (int) (fillDroplets(resource, action) / Tesseract.dropletMultiplier);
     }
 
     @NotNull

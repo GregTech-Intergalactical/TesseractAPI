@@ -49,4 +49,9 @@ public class TesseractPlatformUtils {
         return LazyOptional.empty();
     }
 
+    @ExpectPlatform
+    public static boolean isForge(){
+        return false;
+    }
+
 }

@@ -186,7 +186,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
     }
     public void dataCommit(FluidConsumer consumer, FluidStack stack) {
         int temperature = FluidPlatformUtils.getFluidTemperature(stack.getFluid());
-        long amount = stack.getAmount();
+        long amount = stack.getRealAmount();
         boolean isGaseous = FluidPlatformUtils.isFluidGaseous(stack.getFluid());
         boolean cantHandle = !consumer.canHandle(temperature, isGaseous);
         if (!cantHandle) {
@@ -210,7 +210,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
         }
         if (consumer.getConnection() == ConnectionType.SINGLE) {
             FluidHolder holder = this.group.getConnector(consumer.lowestPipePosition).value().getHolder();
-            holder.use(stack.getAmount(), stack.getFluid(), getWorld().getGameTime());
+            holder.use(stack.getRealAmount(), stack.getFluid(), getWorld().getGameTime());
             if (holder.isOverPressure()) {
                 onPipeOverPressure(getWorld(), consumer.lowestPipePosition, amount, stack);
                 return;
@@ -223,7 +223,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
             for (Long2ObjectMap.Entry<IFluidPipe> pathHolderEntry : consumer.getCross()
                     .long2ObjectEntrySet()) {
                 FluidHolder holder = pathHolderEntry.getValue().getHolder();
-                holder.use(stack.getAmount(), stack.getFluid(), getWorld().getGameTime());
+                holder.use(stack.getRealAmount(), stack.getFluid(), getWorld().getGameTime());
                 if (holder.isOverPressure()) {
                     onPipeOverPressure(getWorld(), pathHolderEntry.getLongKey(), amount, stack);
                     return;

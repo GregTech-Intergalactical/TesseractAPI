@@ -23,6 +23,8 @@ import tesseract.controller.Fluid;
 
 
 public class Tesseract {
+
+    public static final long dropletMultiplier = TesseractPlatformUtils.isForge() ? 1L : 81L;
     public static final GraphWrapper<HeatTransaction, IHeatPipe, IHeatNode> HEAT_CONTROLLER = new GraphWrapper<>(HeatController::new, IHeatNode.GETTER);
     public static final GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new, IFluidNode.GETTER);
     public static final GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new, IItemNode.GETTER);

@@ -74,4 +74,7 @@ public class TesseractPlatformUtilsImpl {
         return fluid.getAttributes().isGaseous();
     }
 
+    public static boolean isForge(){
+        return true;
+    }
 }

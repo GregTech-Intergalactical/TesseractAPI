@@ -15,11 +15,10 @@ public interface IFluidHandlerMixin {
     int fill(FluidStack stack, IFluidHandler.FluidAction action);
     @Shadow
     FluidStack drain(int i, IFluidHandler.FluidAction fluidAction);
-
-    default long getTankCapacityLong(int tank){
+    default long getTankCapacityInDroplets(int tank){
         return getTankCapacity(tank);
     }
-    default long fillLong(FluidStack stack, IFluidHandler.FluidAction action){
+    default long fillDroplets(FluidStack stack, IFluidHandler.FluidAction action){
         return fill(stack, action);
     }
 

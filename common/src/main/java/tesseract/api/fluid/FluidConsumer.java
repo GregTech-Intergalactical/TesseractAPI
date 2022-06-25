@@ -16,11 +16,11 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
     private int isProof = 1;
     private int minCapacity = Integer.MAX_VALUE;
 
-    public int getMinPressure() {
+    public long getMinPressure() {
         return minPressure;
     }
 
-    private int minPressure = Integer.MAX_VALUE;
+    private long minPressure = Long.MAX_VALUE;
     private int minTemperature = Integer.MAX_VALUE;
     public final Direction input;
 
@@ -47,7 +47,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
     public long insert(FluidStack data, boolean simulate) {
-        return node.fillLong(data, simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
+        return node.fillDroplets(data, simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
     }
 
     /**
@@ -67,11 +67,11 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
 
     /**
      * @param temperature The current temperature.
-     * @param proof       True if current liquid is in a gas state.
+     * @param isGas       True if current liquid is in a gas state.
      * @return Checks that the consumer is able to receive fluid.
      */
-    public boolean canHandle(int temperature, boolean proof) {
-        return minTemperature >= temperature /*&& minPressure >= pressure */ && isProof == (proof ? 1 : 0);
+    public boolean canHandle(int temperature, boolean isGas) {
+        return minTemperature >= temperature /*&& minPressure >= pressure */ && isProof == (isGas ? 1 : 0);
     }
 
     @Override
@@ -79,9 +79,9 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
         isProof = Math.min(isProof, pipe.isGasProof() ? 1 : 0);
         minTemperature = Math.min(minTemperature, pipe.getTemperature());
         minCapacity = Math.min(minCapacity, pipe.getCapacity());
-        if (pipe.getPressure() < minPressure && connection == ConnectionType.SINGLE) {
+        if (pipe.getPressureInDroplets() < minPressure && connection == ConnectionType.SINGLE) {
             lowestPipePosition = this.getFull().long2ObjectEntrySet().stream().filter(t -> t.getValue() == pipe).findFirst().get().getLongKey();
         }
-        minPressure = Math.min(minPressure, pipe.getPressure());
+        minPressure = Math.min(minPressure, pipe.getPressureInDroplets());
     }
 }

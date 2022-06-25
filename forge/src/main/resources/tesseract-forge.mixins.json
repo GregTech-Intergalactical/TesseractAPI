@@ -5,7 +5,8 @@
   "refmap": "tesseract.refmap.json",
   "mixins": [
     "IFluidHandlerMixin",
-    "IFluidTankMixin"
+    "IFluidTankMixin",
+    "FluidStackMixin"
   ],
   "minVersion": "0.8"
 }
