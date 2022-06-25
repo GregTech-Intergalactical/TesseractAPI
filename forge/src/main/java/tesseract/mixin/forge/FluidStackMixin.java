@@ -8,7 +8,13 @@ import org.spongepowered.asm.mixin.Shadow;
 public abstract class FluidStackMixin {
     @Shadow public abstract int getAmount();
 
+    @Shadow public abstract void setAmount(int par1);
+
     public long getRealAmount(){
         return getAmount();
+    }
+
+    public void setAmount(long amount){
+        setAmount((int)amount);
     }
 }
