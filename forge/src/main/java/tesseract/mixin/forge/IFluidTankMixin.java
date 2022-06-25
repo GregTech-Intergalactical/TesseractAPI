@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(IFluidTank.class)
 public interface IFluidTankMixin {
-    default long getFluidAmountLong(){
+    default long getFluidAmountInDroplets(){
         return getFluidAmount();
     }
 
@@ -18,7 +18,7 @@ public interface IFluidTankMixin {
     /**
      * @return Capacity of this fluid tank.
      */
-    default long getCapacityLong(){
+    default long getCapacityInDroplets(){
         return getCapacity();
     }
 
@@ -28,7 +28,7 @@ public interface IFluidTankMixin {
     int fill(FluidStack stack, IFluidHandler.FluidAction action);
     @Shadow
     FluidStack drain(int i, IFluidHandler.FluidAction fluidAction);
-    default long fillLong(FluidStack stack, IFluidHandler.FluidAction action){
+    default long fillDroplets(FluidStack stack, IFluidHandler.FluidAction action){
         return fill(stack, action);
     }
 
