@@ -32,13 +32,6 @@ public class TesseractPlatformUtils {
         return LazyOptional.empty();
     }
 
-    public static<T> LazyOptional<T> getCapability(BlockEntity be, Capability<T> capability, @Nullable Direction side){
-        if (be instanceof ICapabilityProvider provider){
-            return provider.getCapability(capability, side);
-        }
-        return LazyOptional.empty();
-    }
-
     @ExpectPlatform
     public static LazyOptional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack) {
         return LazyOptional.empty();

@@ -55,6 +55,7 @@ allprojects {
             name = 'parchment'
             url = 'https://maven.parchmentmc.org'
         }
+        maven { url = "https://mvn.devos.one/snapshots/" }
         maven { url 'https://jitpack.io' }
     }
 

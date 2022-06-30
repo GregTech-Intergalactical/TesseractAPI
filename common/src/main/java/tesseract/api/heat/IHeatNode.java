@@ -22,11 +22,8 @@ public interface IHeatNode {
 
     GraphWrapper.ICapabilityGetter<IHeatNode> GETTER = ((level, pos, capSide, invalidate) -> {
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        LazyOptional<IHeatHandler> capability = LazyOptional.empty();
         if (tile == null) return null;
-        if (tile instanceof ICapabilityProvider provider){
-            capability = provider.getCapability(TesseractCaps.getHEAT_CAPABILITY(), capSide);
-        }
+        LazyOptional<IHeatHandler> capability = tile.getCapability(TesseractCaps.getHEAT_CAPABILITY(), capSide);
         if (capability.isPresent()) {
             if (invalidate != null) capability.addListener(t -> invalidate.run());
             return capability.resolve().get();
