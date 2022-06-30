@@ -94,7 +94,7 @@ public interface IFluidNode extends IFluidHandler {
         if (tile == null) {
             return null;
         }
-        LazyOptional<IFluidHandler> capability = TesseractPlatformUtils.getFluidHandler(tile, capSide);
+        LazyOptional<IFluidHandler> capability = tile.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, capSide);
         if (capability.isPresent()) {
             if (capCallback != null) capability.addListener(o -> capCallback.run());
             IFluidHandler handler = capability.orElse(null);

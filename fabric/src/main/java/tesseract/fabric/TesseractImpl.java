@@ -11,8 +11,11 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import tesseract.Tesseract;
 import tesseract.api.GraphWrapper;
+import tesseract.api.TesseractCaps;
+import tesseract.api.fabric.TesseractCapsImpl;
 import tesseract.api.fluid.FluidTransaction;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
@@ -81,6 +84,7 @@ public class TesseractImpl implements ModInitializer {
     @Override
     public void onInitialize() {
         Tesseract.init();
+        RegisterCapabilitiesEvent.REGISTER_CAPS.register(TesseractCaps::register);
         ServerLifecycleEvents.SERVER_STOPPING.register(TesseractImpl::onServerStopping);
         ServerTickEvents.START_WORLD_TICK.register(TesseractImpl::onStartTick);
         ServerTickEvents.END_WORLD_TICK.register(TesseractImpl::onEndTick);

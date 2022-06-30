@@ -11,6 +11,7 @@ import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
 import tesseract.Tesseract;
 import tesseract.api.GraphWrapper;
+import tesseract.api.TesseractCaps;
 import tesseract.api.fluid.FluidTransaction;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
@@ -40,7 +41,7 @@ public class TesseractImpl {
         MinecraftForge.EVENT_BUS.addListener(this::serverStoppedEvent);
         MinecraftForge.EVENT_BUS.addListener(this::worldUnloadEvent);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
-        MinecraftForge.EVENT_BUS.addListener(TesseractCapsImpl::register);
+        MinecraftForge.EVENT_BUS.addListener(TesseractCaps::register);
 
     }
 

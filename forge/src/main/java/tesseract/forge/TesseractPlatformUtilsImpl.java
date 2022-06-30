@@ -44,14 +44,6 @@ public class TesseractPlatformUtilsImpl {
         return null;
     }
 
-    public static LazyOptional<IItemHandler> getItemHandler(BlockEntity be, @Nullable Direction side){
-        return be.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side);
-    }
-
-    public static LazyOptional<IFluidHandler> getFluidHandler(BlockEntity be, @Nullable Direction side){
-        return be.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side);
-    }
-
     public static LazyOptional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return LazyOptional.empty();
         return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY);

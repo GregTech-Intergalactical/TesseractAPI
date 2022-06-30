@@ -17,8 +17,4 @@ public class TesseractCapsImpl {
     public static Capability<IHeatHandler> getHEAT_CAPABILITY(){
         return HEAT_CAPABILITY;
     }
-    public static void register(RegisterCapabilitiesEvent ev) {
-        ev.register(IEnergyHandler.class);
-        ev.register(IHeatHandler.class);
-    }
 }

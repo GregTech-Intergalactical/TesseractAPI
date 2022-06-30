@@ -23,16 +23,6 @@ public class TesseractPlatformUtils {
     }
 
     @ExpectPlatform
-    public static LazyOptional<IItemHandler> getItemHandler(BlockEntity be, @Nullable Direction side){
-        return LazyOptional.empty();
-    }
-
-    @ExpectPlatform
-    public static LazyOptional<IFluidHandler> getFluidHandler(BlockEntity be, @Nullable Direction side){
-        return LazyOptional.empty();
-    }
-
-    @ExpectPlatform
     public static LazyOptional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack) {
         return LazyOptional.empty();
     }

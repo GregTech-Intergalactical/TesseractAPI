@@ -82,7 +82,7 @@ public interface IItemNode extends IItemHandler {
         if (tile == null) {
             return null;
         }
-        LazyOptional<IItemHandler> h = TesseractPlatformUtils.getItemHandler(tile, capSide);
+        LazyOptional<IItemHandler> h = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, capSide);
         if (h.isPresent()) {
             if (capCallback != null) h.addListener(t -> capCallback.run());
             if (h.map(t -> t instanceof IItemNode).orElse(false)) {
