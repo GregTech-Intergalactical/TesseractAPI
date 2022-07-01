@@ -64,18 +64,9 @@ public class TesseractPlatformUtilsImpl {
         return null;
     }
 
-    // Fluid-containing items
-
-    public static LazyOptional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) return LazyOptional.empty();
-        ContainerItemContext ctx = ContainerItemContext.withInitial(stack);
-        Storage<FluidVariant> fluidStorage = FluidStorage.ITEM.find(stack, ctx);
-        return fluidStorage == null ? LazyOptional.empty() : LazyOptional.of(() -> new FluidStorageHandlerItem(ctx, fluidStorage));
-    }
-
     //TODO
     public static LazyOptional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){
-        return LazyOptional.empty();
+        return stack.getCapability(TesseractCaps.getENERGY_HANDLER_CAPABILITY());
     }
 
     public static boolean isForge(){

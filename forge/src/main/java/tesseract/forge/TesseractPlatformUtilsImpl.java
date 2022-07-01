@@ -44,26 +44,9 @@ public class TesseractPlatformUtilsImpl {
         return null;
     }
 
-    public static LazyOptional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) return LazyOptional.empty();
-        return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY);
-    }
-
     public static LazyOptional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){
         if (stack == null || stack.isEmpty()) return LazyOptional.empty();
         return stack.getCapability(TesseractCapsImpl.ENERGY_HANDLER_CAPABILITY);
-    }
-
-    public static ResourceLocation getFluidId(Fluid fluid){
-        return fluid.getRegistryName();
-    }
-
-    public static int getFluidTemperature(Fluid fluid){
-        return fluid.getAttributes().getTemperature();
-    }
-
-    public static boolean isFluidGaseous(Fluid fluid){
-        return fluid.getAttributes().isGaseous();
     }
 
     public static boolean isForge(){

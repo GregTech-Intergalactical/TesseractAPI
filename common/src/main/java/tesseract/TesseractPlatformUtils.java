@@ -23,11 +23,6 @@ public class TesseractPlatformUtils {
     }
 
     @ExpectPlatform
-    public static LazyOptional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack) {
-        return LazyOptional.empty();
-    }
-
-    @ExpectPlatform
     public static LazyOptional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){
         return LazyOptional.empty();
     }
