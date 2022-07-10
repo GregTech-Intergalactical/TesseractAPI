@@ -23,7 +23,7 @@ dependencies {
     modImplementation(include("com.github.FeltMC.Fabricated-Forge-API:fabricated-forge-caps:${rootProject.fabricated_forge_hash}")){
         transitive = false
     }
-    modCompileOnly("io.github.fabricators_of_create:Porting-Lib:1.1.310-beta+1.18.2-dev.${rootProject.port_lib_hash}"){ transitive(false) }
+    modCompileOnly("com.github.FeltMC:Porting-Lib:${rootProject.port_lib_hash}"){ transitive(false) }
     modApi("teamreborn:energy:${project.energy_version}") {
         transitive = false
     }
