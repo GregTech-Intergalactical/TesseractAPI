@@ -1,6 +1,7 @@
 package tesseract.forge;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -26,5 +27,13 @@ public class FluidPlatformUtilsImpl {
 
     public static boolean isFluidGaseous(Fluid fluid){
         return fluid.getAttributes().isGaseous();
+    }
+
+    public static int getFluidColor(Fluid fluid){
+        return fluid.getAttributes().getColor();
+    }
+
+    public static SoundEvent getFluidSound(Fluid fluid, boolean fill){
+        return fill ? fluid.getAttributes().getFillSound() : fluid.getAttributes().getEmptySound();
     }
 }
