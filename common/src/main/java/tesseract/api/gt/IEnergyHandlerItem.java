@@ -7,6 +7,9 @@ public interface IEnergyHandlerItem extends IEnergyHandler{
     @Override
     void setCapacity(long capacity);
 
+    @Override
+    void setEnergy(long energy);
+
     @NotNull
     ItemStack getContainer();
 }
