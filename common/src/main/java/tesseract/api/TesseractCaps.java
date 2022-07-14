@@ -8,10 +8,6 @@ import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 
 public class TesseractCaps {
-    @ExpectPlatform
-    public static Capability<IEnergyHandlerItem> getENERGY_HANDLER_ITEM_CAPABILITY(){
-        return null;
-    }
 
     @ExpectPlatform
     public static Capability<IEnergyHandler> getENERGY_HANDLER_CAPABILITY(){
@@ -26,6 +22,5 @@ public class TesseractCaps {
     public static void register(RegisterCapabilitiesEvent ev) {
         ev.register(IEnergyHandler.class);
         ev.register(IHeatHandler.class);
-        ev.register(IEnergyHandlerItem.class);
     }
 }

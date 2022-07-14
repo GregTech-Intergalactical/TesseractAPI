@@ -55,6 +55,11 @@ public interface IGTNode {
      */
     long getCapacity();
 
+    void setEnergy(long energy);
+
+    default void setCapacity(long capacity){
+    }
+
     /**
      * @return Gets the maximum amount of amperage that can be output.
      */
