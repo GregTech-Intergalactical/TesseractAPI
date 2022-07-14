@@ -67,7 +67,10 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
         return 0;
     }
 
-    
+    @Override
+    public void setEnergy(long energy) {
+
+    }
 
     @Override
     public long availableAmpsInput() {
