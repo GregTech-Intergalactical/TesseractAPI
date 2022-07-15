@@ -9,7 +9,10 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import tesseract.Tesseract;
+import tesseract.TesseractConfig;
 import tesseract.api.GraphWrapper;
 import tesseract.api.TesseractCaps;
 import tesseract.api.fluid.FluidTransaction;
@@ -42,7 +45,7 @@ public class TesseractImpl {
         MinecraftForge.EVENT_BUS.addListener(this::worldUnloadEvent);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
         MinecraftForge.EVENT_BUS.addListener(TesseractCaps::register);
-
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onModConfigEvent);
     }
 
     public static boolean hadFirstTick(LevelAccessor world) {
@@ -79,5 +82,9 @@ public class TesseractImpl {
         if (Tesseract.HEALTH_CHECK_TIME > 0 && event.world.getGameTime() % Tesseract.HEALTH_CHECK_TIME == 0) {
             GraphWrapper.getWrappers().forEach(GraphWrapper::healthCheck);
         }
+    }
+
+    public void onModConfigEvent(final ModConfigEvent e) {
+        TesseractConfig.onModConfigEvent(e.getConfig());
     }
 }

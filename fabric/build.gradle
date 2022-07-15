@@ -23,8 +23,11 @@ dependencies {
     modImplementation(include("com.github.FeltMC.Fabricated-Forge-API:fabricated-forge-caps:${rootProject.fabricated_forge_hash}")){
         transitive = false
     }
+    implementation(include("com.github.Trinsdar:forgeconfigapiport-fabric:abc19f9a99")){
+        transitive = false
+    }
     modCompileOnly("com.github.FeltMC:Porting-Lib:${rootProject.port_lib_hash}"){ transitive(false) }
-    modApi("teamreborn:energy:${project.energy_version}") {
+    modApi(include("teamreborn:energy:${project.energy_version}")) {
         transitive = false
     }
 }

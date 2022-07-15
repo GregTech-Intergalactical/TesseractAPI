@@ -11,8 +11,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraftforge.api.fml.event.config.ModConfigEvent;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import tesseract.Tesseract;
+import tesseract.TesseractConfig;
 import tesseract.api.GraphWrapper;
 import tesseract.api.TesseractCaps;
 import tesseract.api.fabric.TesseractCapsImpl;
@@ -89,5 +91,7 @@ public class TesseractImpl implements ModInitializer {
         ServerTickEvents.START_WORLD_TICK.register(TesseractImpl::onStartTick);
         ServerTickEvents.END_WORLD_TICK.register(TesseractImpl::onEndTick);
         ServerWorldEvents.UNLOAD.register((TesseractImpl::onWorldUnload));
+        ModConfigEvent.LOADING.register(TesseractConfig::onModConfigEvent);
+        ModConfigEvent.RELOADING.register(TesseractConfig::onModConfigEvent);
     }
 }

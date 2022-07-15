@@ -4,11 +4,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.energy.IEnergyStorage;
+import tesseract.TesseractConfig;
 import tesseract.api.gt.GTConsumer;
 import tesseract.api.gt.GTTransaction;
+import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTNode;
 
-public class EnergyTileWrapper implements IGTNode {
+public class EnergyTileWrapper implements IEnergyHandler {
 
     private final BlockEntity tile;
     private final IEnergyStorage storage;
@@ -22,7 +24,7 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public boolean insert(GTTransaction transaction) {
-        if (storage.getEnergyStored() >= transaction.voltageOut /4) {
+        if (storage.getEnergyStored() >= transaction.voltageOut * TesseractConfig.COMMON.EU_TO_FE_RATIO) {
             transaction.addData(1, 0, this::extractEnergy);
             return true;
         }
@@ -31,12 +33,12 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public boolean extractEnergy(GTTransaction.TransferData data) {
-        return storage.extractEnergy((int) (data.getEnergy(1, false) /4), false) > 0;
+        return storage.extractEnergy((int) (data.getEnergy(1, false) * TesseractConfig.COMMON.EU_TO_FE_RATIO), false) > 0;
     }
 
     @Override
     public boolean addEnergy(GTTransaction.TransferData data) {
-        return storage.receiveEnergy((int) (data.getEnergy(1, true)  /4), false) > 0;
+        return storage.receiveEnergy((int) (data.getEnergy(1, true) * TesseractConfig.COMMON.EU_TO_FE_RATIO), false) > 0;
     }
 
     @Override
@@ -47,22 +49,22 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public long getEnergy() {
-        return (long) (storage.getEnergyStored() /4);
+        return (long) (storage.getEnergyStored() / TesseractConfig.COMMON.EU_TO_FE_RATIO);
     }
 
     @Override
     public long getCapacity() {
-        return (long) (storage.getMaxEnergyStored() * 4);
+        return (long) (storage.getMaxEnergyStored() / TesseractConfig.COMMON.EU_TO_FE_RATIO);
     }
 
     @Override
     public long getOutputAmperage() {
-        return 0;
+        return 1;
     }
 
     @Override
     public long getOutputVoltage() {
-        return 0;
+        return 32;
     }
 
     @Override
@@ -77,7 +79,7 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public boolean canOutput() {
-        return false;
+        return TesseractConfig.COMMON.ENABLE_FE_OR_TRE_INPUT && storage.canExtract();
     }
 
     @Override
@@ -92,7 +94,7 @@ public class EnergyTileWrapper implements IGTNode {
 
     @Override
     public boolean canOutput(Direction direction) {
-        return false;
+        return canOutput();
     }
 
     @Override
@@ -103,5 +105,15 @@ public class EnergyTileWrapper implements IGTNode {
     @Override
     public void tesseractTick() {
         getState().onTick();
+    }
+
+    @Override
+    public CompoundTag serializeNBT() {
+        return null;
+    }
+
+    @Override
+    public void deserializeNBT(CompoundTag arg) {
+
     }
 }
