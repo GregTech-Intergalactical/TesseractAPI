@@ -55,7 +55,7 @@ public class TesseractPlatformUtilsImpl {
         if (capability.isPresent()) {
             if (invalidate != null) capability.addListener(t -> invalidate.run());
             return capability.resolve().get();
-        } else if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")){
+        } else {
             EnergyStorage storage = EnergyStorage.SIDED.find(level, BlockPos.of(pos), level.getBlockState(BlockPos.of(pos)), tile, direction);
             if (storage != null) {
                 return new EnergyTileWrapper(tile, storage);
