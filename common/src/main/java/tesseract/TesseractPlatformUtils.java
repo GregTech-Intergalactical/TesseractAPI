@@ -21,6 +21,11 @@ public class TesseractPlatformUtils {
     public static IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
         return null;
     }
+    @ExpectPlatform
+    public static LazyOptional<IEnergyHandler> getWrappedHandler(BlockEntity be, @Nullable Direction side){
+        return LazyOptional.empty();
+    }
+
 
     @ExpectPlatform
     public static LazyOptional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){

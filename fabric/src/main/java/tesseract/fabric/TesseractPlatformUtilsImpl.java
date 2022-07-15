@@ -56,12 +56,23 @@ public class TesseractPlatformUtilsImpl {
             if (invalidate != null) capability.addListener(t -> invalidate.run());
             return capability.resolve().get();
         } else {
-            EnergyStorage storage = EnergyStorage.SIDED.find(level, BlockPos.of(pos), level.getBlockState(BlockPos.of(pos)), tile, direction);
-            if (storage != null) {
-                return new EnergyTileWrapper(tile, storage);
+            capability = getWrappedHandler(tile, direction);
+            if (capability.isPresent()) {
+                if (invalidate != null) capability.addListener(t -> invalidate.run());
+                return capability.resolve().get();
             }
         }
         return null;
+    }
+
+    public static LazyOptional<IEnergyHandler> getWrappedHandler(BlockEntity be, @Nullable Direction side){
+        Level l = be.getLevel();
+        BlockPos pos = be.getBlockPos();
+        BlockState state = be.getBlockState();
+        EnergyStorage storage = EnergyStorage.SIDED.find(l, pos, state, be, side);
+        if (storage == null) return LazyOptional.empty();
+        if (storage instanceof IEnergyHandlerStorage handlerStorage) return LazyOptional.of(handlerStorage::getEnergyHandler);
+        return LazyOptional.of(() -> new EnergyTileWrapper(be, storage));
     }
 
     //TODO
