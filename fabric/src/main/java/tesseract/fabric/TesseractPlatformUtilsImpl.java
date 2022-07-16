@@ -23,6 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
@@ -65,10 +66,16 @@ public class TesseractPlatformUtilsImpl {
         return null;
     }
 
+    public static boolean isFeCap(Capability<?> cap){
+        return false;
+    }
+
     public static LazyOptional<IEnergyHandler> getWrappedHandler(BlockEntity be, @Nullable Direction side){
         Level l = be.getLevel();
         BlockPos pos = be.getBlockPos();
         BlockState state = be.getBlockState();
+        IEnergyHandler energyHandler = TesseractCapsImpl.ENERGY_HANDLER_SIDED.find(l, pos, state, be, side);
+        if (energyHandler != null) return LazyOptional.of(() -> energyHandler);
         EnergyStorage storage = EnergyStorage.SIDED.find(l, pos, state, be, side);
         if (storage == null) return LazyOptional.empty();
         if (storage instanceof IEnergyHandlerStorage handlerStorage) return LazyOptional.of(handlerStorage::getEnergyHandler);

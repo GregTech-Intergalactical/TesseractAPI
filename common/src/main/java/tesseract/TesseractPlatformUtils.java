@@ -26,6 +26,11 @@ public class TesseractPlatformUtils {
         return LazyOptional.empty();
     }
 
+    @ExpectPlatform
+    public static boolean isFeCap(Capability<?> cap){
+        return false;
+    }
+
 
     @ExpectPlatform
     public static LazyOptional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){

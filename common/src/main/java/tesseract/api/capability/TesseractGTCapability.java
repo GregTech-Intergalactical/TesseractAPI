@@ -7,12 +7,13 @@ import net.minecraftforge.common.util.INBTSerializable;
 import tesseract.Tesseract;
 import tesseract.api.gt.GTConsumer;
 import tesseract.api.gt.GTTransaction;
+import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTCable;
 import tesseract.api.gt.IGTNode;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
-public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends TesseractBaseCapability<T> implements IGTNode, INBTSerializable<CompoundTag> {
+public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends TesseractBaseCapability<T> implements IEnergyHandler {
 
     private final IGTCable cable;
 
