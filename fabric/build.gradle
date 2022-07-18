@@ -27,7 +27,7 @@ dependencies {
         transitive = false
     }
     modCompileOnly("com.github.FeltMC:Porting-Lib:${rootProject.port_lib_hash}"){ transitive(false) }
-    modApi(include("teamreborn:energy:${project.energy_version}")) {
+    modApi(include("teamreborn:energy:${rootProject.energy_version}")) {
         transitive = false
     }
 }
