@@ -9,41 +9,41 @@ import net.minecraftforge.fluids.FluidStack;
 public class FluidPlatformUtils {
     @ExpectPlatform
     public static FluidStack createFluidStack(Fluid fluid, long amount){
-        return null;
+        throw new AssertionError();
     }
 
     @ExpectPlatform
     public static ResourceLocation getStillTexture(Fluid fluid){
-        return null;
+        throw new AssertionError();
     }
 
     @ExpectPlatform
     public static ResourceLocation getFlowingTexture(Fluid fluid){
-        return null;
+        throw new AssertionError();
     }
 
     @ExpectPlatform
     public static ResourceLocation getFluidId(Fluid fluid){
-        return null;
+        throw new AssertionError();
     }
 
     @ExpectPlatform
     public static int getFluidTemperature(Fluid fluid){
-        return 0;
+        throw new AssertionError();
     }
 
     @ExpectPlatform
     public static boolean isFluidGaseous(Fluid fluid){
-        return false;
+        throw new AssertionError();
     }
 
     @ExpectPlatform
     public static int getFluidColor(Fluid fluid){
-        return 0;
+        throw new AssertionError();
     }
 
     @ExpectPlatform
     public static SoundEvent getFluidSound(Fluid fluid, boolean fill){
-        return null;
+        throw new AssertionError();
     }
 }

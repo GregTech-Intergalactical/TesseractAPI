@@ -19,27 +19,27 @@ import javax.annotation.Nullable;
 public class TesseractPlatformUtils {
     @ExpectPlatform
     public static IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
-        return null;
+        throw new AssertionError();
     }
     @ExpectPlatform
     public static LazyOptional<IEnergyHandler> getWrappedHandler(BlockEntity be, @Nullable Direction side){
-        return LazyOptional.empty();
+        throw new AssertionError();
     }
 
     @ExpectPlatform
     public static boolean isFeCap(Capability<?> cap){
-        return false;
+        throw new AssertionError();
     }
 
 
     @ExpectPlatform
     public static LazyOptional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){
-        return LazyOptional.empty();
+        throw new AssertionError();
     }
 
     @ExpectPlatform
     public static boolean isForge(){
-        return false;
+        throw new AssertionError();
     }
 
 }

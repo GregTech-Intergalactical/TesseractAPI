@@ -49,11 +49,11 @@ public class Tesseract {
 
     @ExpectPlatform
     public static boolean hadFirstTick(LevelAccessor world) {
-        return false;
+        throw new AssertionError();
     }
 
     @ExpectPlatform
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> getGT_ENERGY(){
-        return null;
+        throw new AssertionError();
     }
 }
