@@ -6,6 +6,7 @@
     "IFluidHandlerMixin",
     "IFluidTankMixin",
     "FluidStackMixin",
+    "IFluidTankMixin",
     "TesseractGTCapabilityMixin"
   ],
   "minVersion": "0.8"

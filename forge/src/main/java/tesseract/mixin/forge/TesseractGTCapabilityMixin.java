@@ -5,7 +5,7 @@ import tesseract.api.capability.TesseractGTCapability;
 import tesseract.api.forge.wrapper.IEnergyHandlerStorage;
 import tesseract.api.gt.IEnergyHandler;
 
-@Mixin(TesseractGTCapability.class)
+@Mixin(value = TesseractGTCapability.class, remap = false)
 public class TesseractGTCapabilityMixin implements IEnergyHandlerStorage {
     @Override
     public IEnergyHandler getEnergyHandler() {

@@ -6,7 +6,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin(IFluidTank.class)
+@Mixin(value = IFluidTank.class, remap = false)
 public interface IFluidTankMixin {
     default long getFluidAmountInDroplets(){
         return getFluidAmount();

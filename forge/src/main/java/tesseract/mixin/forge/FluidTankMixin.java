@@ -6,7 +6,7 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin(FluidTank.class)
+@Mixin(value = FluidTank.class, remap = false)
 public abstract class FluidTankMixin {
     public long getFluidAmountInDroplets(){
         return getFluidAmount();

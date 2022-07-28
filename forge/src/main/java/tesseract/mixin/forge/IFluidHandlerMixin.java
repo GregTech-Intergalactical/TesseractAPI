@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import javax.annotation.Nonnull;
 
-@Mixin(IFluidHandler.class)
+@Mixin(value = IFluidHandler.class, remap = false)
 public interface IFluidHandlerMixin {
     @Shadow
     int getTankCapacity(int tank);
