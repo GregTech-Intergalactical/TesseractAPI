@@ -3,7 +3,7 @@
   "package": "tesseract.mixin.forge",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "TesseractGTCapabilityMixin"
+    "IEnergyHandlerMixin"
   ],
   "minVersion": "0.8"
 }
