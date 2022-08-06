@@ -73,6 +73,14 @@ public class TesseractPlatformUtilsImpl {
         return false;
     }
 
+    public static boolean tileHasFEOrTRE(BlockEntity be, Direction side){
+        Level l = be.getLevel();
+        BlockPos pos = be.getBlockPos();
+        BlockState state = be.getBlockState();
+        EnergyStorage storage = EnergyStorage.SIDED.find(l, pos, state, be, side);
+        return storage != null;
+    }
+
     public static LazyOptional<IEnergyHandler> getWrappedHandler(BlockEntity be, @Nullable Direction side){
         Level l = be.getLevel();
         BlockPos pos = be.getBlockPos();

@@ -1,5 +1,8 @@
 package tesseract.fabric;
 
+import aztech.modern_industrialization.api.energy.EnergyApi;
+import aztech.modern_industrialization.api.energy.EnergyMoveable;
+import it.unimi.dsi.fastutil.Function;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -7,12 +10,16 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.event.server.ServerStopCallback;
 import net.fabricmc.fabric.api.event.world.WorldTickCallback;
+import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.fml.event.config.ModConfigEvent;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import team.reborn.energy.api.EnergyStorage;
 import tesseract.Tesseract;
 import tesseract.TesseractConfig;
 import tesseract.api.GraphWrapper;
@@ -22,6 +29,7 @@ import tesseract.api.fluid.FluidTransaction;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
 import tesseract.api.gt.GTTransaction;
+import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTCable;
 import tesseract.api.gt.IGTNode;
 import tesseract.api.item.IItemNode;
@@ -32,6 +40,7 @@ import tesseract.controller.Energy;
 import tesseract.controller.Fluid;
 
 import java.util.Set;
+import java.util.function.BiFunction;
 
 public class TesseractImpl implements ModInitializer {
     private final static Set<LevelAccessor> firstTick = new ObjectOpenHashSet<>();
@@ -93,5 +102,13 @@ public class TesseractImpl implements ModInitializer {
         ServerWorldEvents.UNLOAD.register((TesseractImpl::onWorldUnload));
         ModConfigEvent.LOADING.register(TesseractConfig::onModConfigEvent);
         ModConfigEvent.RELOADING.register(TesseractConfig::onModConfigEvent);
+    }
+
+    public static <T extends BlockEntity> void registerMITile(BiFunction<T, Direction, IEnergyHandler> function, BlockEntityType<T> type){
+        EnergyApi.MOVEABLE.registerForBlockEntity((blockEntity, direction) -> (EnergyMoveable) function.apply(blockEntity, direction), type);
+    }
+
+    public static <T extends BlockEntity> void registerTRETile(BiFunction<T, Direction, IEnergyHandler> function, BlockEntityType<T> type){
+        EnergyStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> (EnergyStorage) function.apply(blockEntity, direction), type);
     }
 }

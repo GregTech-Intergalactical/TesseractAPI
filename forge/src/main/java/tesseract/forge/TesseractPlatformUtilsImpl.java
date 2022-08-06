@@ -51,6 +51,10 @@ public class TesseractPlatformUtilsImpl {
         return cap == CapabilityEnergy.ENERGY;
     }
 
+    public static boolean tileHasFEOrTRE(BlockEntity entity, Direction side){
+        return entity.getCapability(CapabilityEnergy.ENERGY, side).isPresent();
+    }
+
     public static LazyOptional<IEnergyHandler> getWrappedHandler(BlockEntity be, @Nullable Direction side){
         IEnergyStorage storage = be.getCapability(CapabilityEnergy.ENERGY, side).map(i -> i).orElse(null);
         if (storage == null) return LazyOptional.empty();

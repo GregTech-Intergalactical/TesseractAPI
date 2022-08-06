@@ -42,4 +42,8 @@ public class TesseractPlatformUtils {
         throw new AssertionError();
     }
 
+    @ExpectPlatform
+    public static boolean tileHasFEOrTRE(BlockEntity entity, Direction side){
+        throw new AssertionError();
+    }
 }
