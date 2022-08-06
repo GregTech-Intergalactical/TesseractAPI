@@ -26,7 +26,7 @@ dependencies {
     implementation(include("com.github.Trinsdar:forgeconfigapiport-fabric:abc19f9a99")){
         transitive = false
     }
-    modCompileOnly("com.github.FeltMC:Porting-Lib:${rootProject.port_lib_hash}"){ transitive(false) }
+    modCompileOnly("io.github.fabricators_of_create:Porting-Lib:1.1.310-beta+1.18.2-dev.${rootProject.port_lib_hash}"){ transitive(false) }
     modApi(include("teamreborn:energy:${rootProject.energy_version}")) {
         transitive = false
     }
