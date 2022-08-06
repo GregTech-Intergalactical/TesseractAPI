@@ -12,6 +12,9 @@ loom {
 
 repositories {
     maven { url = "https://mvn.devos.one/snapshots/" }
+    maven {
+        url "https://cursemaven.com"
+    }
 }
 
 dependencies {
@@ -30,6 +33,7 @@ dependencies {
     modApi(include("teamreborn:energy:${rootProject.energy_version}")) {
         transitive = false
     }
+    modCompileOnly("curse.maven:modern_industrialization-405388:3866891")
 }
 
 processResources {

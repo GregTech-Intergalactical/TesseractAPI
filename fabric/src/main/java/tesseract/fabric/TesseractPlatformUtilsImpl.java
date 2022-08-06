@@ -1,6 +1,8 @@
 package tesseract.fabric;
 
 
+import aztech.modern_industrialization.api.energy.EnergyApi;
+import aztech.modern_industrialization.api.energy.EnergyMoveable;
 import net.fabricatedforgeapi.transfer.fluid.FluidStorageHandler;
 import net.fabricatedforgeapi.transfer.fluid.FluidStorageHandlerItem;
 import net.fabricatedforgeapi.transfer.fluid.IFluidHandlerStorage;
@@ -32,6 +34,7 @@ import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import team.reborn.energy.api.EnergyStorage;
+import tesseract.TesseractConfig;
 import tesseract.api.TesseractCaps;
 import tesseract.api.fabric.TesseractCapsImpl;
 import tesseract.api.fabric.wrapper.*;
@@ -76,10 +79,26 @@ public class TesseractPlatformUtilsImpl {
         BlockState state = be.getBlockState();
         IEnergyHandler energyHandler = TesseractCapsImpl.ENERGY_HANDLER_SIDED.find(l, pos, state, be, side);
         if (energyHandler != null) return LazyOptional.of(() -> energyHandler);
-        EnergyStorage storage = EnergyStorage.SIDED.find(l, pos, state, be, side);
-        if (storage == null) return LazyOptional.empty();
-        if (storage instanceof IEnergyHandlerStorage handlerStorage) return LazyOptional.of(handlerStorage::getEnergyHandler);
-        return LazyOptional.of(() -> new EnergyTileWrapper(be, storage));
+        if (FabricLoader.getInstance().isModLoaded("modern_industrialization") && TesseractConfig.COMMON.ENABLE_MI_COMPAT){
+            IEnergyHandler handler = getEnergyMoveable(l, pos, state, be, side);
+            if (handler != null) return LazyOptional.of(() -> handler);
+        }
+        IEnergyHandler storage = getEnergyStorage(l, pos, state, be, side);
+        return storage == null ? LazyOptional.empty() : LazyOptional.of(() -> storage);
+    }
+
+    private static IEnergyHandler getEnergyStorage(Level level, BlockPos pos, BlockState state, BlockEntity be, Direction side){
+        EnergyStorage storage = EnergyStorage.SIDED.find(level, pos, state, be, side);
+        if (storage == null) return null;
+        if (storage instanceof IEnergyHandlerStorage handlerStorage) return handlerStorage.getEnergyHandler();
+        return new EnergyTileWrapper(be, storage);
+    }
+
+    private static IEnergyHandler getEnergyMoveable(Level level, BlockPos pos, BlockState state, BlockEntity be, Direction side){
+        EnergyMoveable moveable = EnergyApi.MOVEABLE.find(level, pos, state, be, side);
+        if (moveable == null) return null;
+        if (moveable instanceof IEnergyHandlerMoveable moveable1) return moveable1.getEnergyHandler();
+        return new EnergyMoveableWrapper(be, moveable);
     }
 
     //TODO
