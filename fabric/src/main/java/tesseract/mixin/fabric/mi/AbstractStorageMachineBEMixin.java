@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import tesseract.api.fabric.wrapper.IEnergyMoveableTiers;
 
-@Mixin(AbstractStorageMachineBlockEntity.class)
+@Mixin(value = AbstractStorageMachineBlockEntity.class, remap = false)
 public class AbstractStorageMachineBEMixin implements IEnergyMoveableTiers {
     @Shadow @Final protected CableTier to;
 
