@@ -38,14 +38,30 @@ sourcesJar {
 
 publishing {
     publications {
-        mavenForge(MavenPublication) {
-            artifactId = rootProject.tesseract_archive_base_name + "-" + project.name
-            from components.java
+        mavenJava(org.gradle.api.publish.maven.MavenPublication) {
+            artifact(sourcesJar) {
+                builtBy remapSourcesJar
+            }
+
+            afterEvaluate {
+                artifact remapJar
+            }
         }
     }
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
-        // Add repositories to publish to here.
+        def isCI = System.getenv("GITHUB_ACTION")
+        def isRELEASE = System.getenv("GITHUB_RELEASE")
+        if (isCI && isRELEASE) {
+            maven {
+                url = "https://repo.repsy.io/mvn/trinsdar/gregtech-intergalactical/"
+                credentials {
+                    username = System.getenv("MAVEN_USERNAME")
+                    password = System.getenv("MAVEN_PASSWORD")
+                }
+            }
+        } else {
+            maven { url "file:///${project.projectDir}/mcmodsrepo"}
+        }
     }
 }
