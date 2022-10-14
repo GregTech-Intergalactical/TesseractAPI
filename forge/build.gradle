@@ -6,11 +6,32 @@ architectury {
     forge()
 }
 
+sourceSets {
+    test {
+        compileClasspath += main.compileClasspath
+        runtimeClasspath += main.runtimeClasspath
+    }
+}
+
 loom {
     forge{
         mixinConfigs = [
                 "tesseract-forge.mixins.json", "fluidhandler-extras.mixins.json"
         ]
+    }
+    runs {
+        testClient {
+            client()
+            ideConfigGenerated project.rootProject == project
+            name = "Testmod Client"
+            source sourceSets.test
+        }
+        testServer {
+            server()
+            ideConfigGenerated project.rootProject == project
+            name = "Testmod Server"
+            source sourceSets.test
+        }
     }
 }
 

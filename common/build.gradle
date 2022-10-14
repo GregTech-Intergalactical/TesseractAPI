@@ -1,6 +1,30 @@
 archivesBaseName = rootProject.tesseract_archive_base_name
 version = "${rootProject.minecraft_version}-${project.mod_version}"
 
+sourceSets {
+    test {
+        compileClasspath += main.compileClasspath
+        runtimeClasspath += main.runtimeClasspath
+    }
+}
+
+loom {
+    runs {
+        testClient {
+            client()
+            ideConfigGenerated project.rootProject == project
+            name = "Testmod Client"
+            source sourceSets.test
+        }
+        testServer {
+            server()
+            ideConfigGenerated project.rootProject == project
+            name = "Testmod Server"
+            source sourceSets.test
+        }
+    }
+}
+
 dependencies{
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modImplementation("com.github.FeltMC.Fabricated-Forge-API:fabricated-forge-caps:${rootProject.fabricated_forge_hash}"){
