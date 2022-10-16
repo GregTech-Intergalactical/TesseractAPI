@@ -42,16 +42,11 @@ import tesseract.controller.Fluid;
 import java.util.Set;
 import java.util.function.BiFunction;
 
-public class TesseractImpl implements ModInitializer {
-    private final static Set<LevelAccessor> firstTick = new ObjectOpenHashSet<>();
+public class TesseractImpl extends Tesseract implements ModInitializer {
     //public static GraphWrapper<Integer, IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
 
     public TesseractImpl(){
-    }
-
-    public static boolean hadFirstTick(LevelAccessor world) {
-        return firstTick.contains(world);
     }
 
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> getGT_ENERGY(){

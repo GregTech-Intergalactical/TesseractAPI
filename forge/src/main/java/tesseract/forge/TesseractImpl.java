@@ -33,9 +33,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 @Mod(Tesseract.API_ID)
-public class TesseractImpl {
-
-    private final static Set<LevelAccessor> firstTick = new ObjectOpenHashSet<>();
+public class TesseractImpl extends Tesseract {
     //public static GraphWrapper<Integer, IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
 
@@ -46,10 +44,6 @@ public class TesseractImpl {
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
         MinecraftForge.EVENT_BUS.addListener(TesseractCaps::register);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onModConfigEvent);
-    }
-
-    public static boolean hadFirstTick(LevelAccessor world) {
-        return firstTick.contains(world);
     }
 
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> getGT_ENERGY(){

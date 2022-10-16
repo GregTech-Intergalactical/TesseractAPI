@@ -1,6 +1,7 @@
 package tesseract;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.world.level.LevelAccessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,8 +22,12 @@ import tesseract.api.item.ItemController;
 import tesseract.api.item.ItemTransaction;
 import tesseract.controller.Fluid;
 
+import java.util.Set;
+
 
 public class Tesseract {
+
+    protected final static Set<LevelAccessor> firstTick = new ObjectOpenHashSet<>();
 
     public static final long dropletMultiplier = TesseractPlatformUtils.isForge() ? 1L : 81L;
     public static final GraphWrapper<HeatTransaction, IHeatPipe, IHeatNode> HEAT_CONTROLLER = new GraphWrapper<>(HeatController::new, IHeatNode.GETTER);
@@ -47,9 +52,8 @@ public class Tesseract {
     public Tesseract() {
     }
 
-    @ExpectPlatform
     public static boolean hadFirstTick(LevelAccessor world) {
-        throw new AssertionError();
+        return firstTick.contains(world);
     }
 
     @ExpectPlatform
