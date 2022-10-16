@@ -29,7 +29,7 @@ public class Tesseract {
 
     protected final static Set<LevelAccessor> firstTick = new ObjectOpenHashSet<>();
 
-    public static final long dropletMultiplier = TesseractPlatformUtils.isForge() ? 1L : 81L;
+    public static long dropletMultiplier;
     public static final GraphWrapper<HeatTransaction, IHeatPipe, IHeatNode> HEAT_CONTROLLER = new GraphWrapper<>(HeatController::new, IHeatNode.GETTER);
     public static final GraphWrapper<FluidTransaction, IFluidPipe, IFluidNode> FLUID = new GraphWrapper<>(Fluid::new, IFluidNode.GETTER);
     public static final GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new, IItemNode.GETTER);
@@ -46,7 +46,7 @@ public class Tesseract {
     public static final int HEALTH_CHECK_TIME = 1000;
 
     public static void init() {
-
+        dropletMultiplier = TesseractPlatformUtils.isForge() ? 1L : 81L;
     }
 
     public Tesseract() {
