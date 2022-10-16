@@ -79,11 +79,6 @@ public class Group<T, C extends IConnectable, N> implements INode {
         return () -> this.grids.values().stream().flatMap(t -> t.getConnectors().long2ObjectEntrySet().stream()).distinct().iterator();
     }
 
-    public LongStream pipeNodes() {
-        return this.connectors.long2IntEntrySet().stream().mapToLong(t -> this.grids.get(t.getIntValue()).getConnectors().get(t.getLongKey()).pathing() ? t.getLongKey() : Long.MIN_VALUE).filter(l -> l != Long.MIN_VALUE);
-    }
-
-
     @Override
     public boolean contains(long pos) {
         return nodes.containsKey(pos) || connectors.containsKey(pos);

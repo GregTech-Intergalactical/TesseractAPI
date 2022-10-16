@@ -94,8 +94,6 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 handleInput(e.getLongKey(), e.getValue());
             }
 
-            this.group.pipeNodes().forEach(t -> handleInput(t, new NodeCache<>(t, getter)));
-
             for (Map<Direction, List<FluidConsumer>> map : data.values()) {
                 for (List<FluidConsumer> consumers : map.values()) {
                     consumers.sort(Consumer.COMPARATOR);

@@ -8,51 +8,50 @@ import tesseract.api.IConnectable;
  */
 public class Cache<T extends IConnectable> {
 
-    private final byte connectivity;
-    private final T value;
-    private NodeCache<?> cache;
+  private final byte connectivity;
+  private final T value;
 
-    /**
-     * Creates a cache instance.
-     */
-    public Cache(T value) {
-        this.value = value;
-        this.connectivity = Connectivity.of(value);
-    }
+  /**
+   * Creates a cache instance.
+   */
+  public Cache(T value) {
+    this.value = value;
+    this.connectivity = Connectivity.of(value);
+  }
 
-    /**
-     * @param direction The direction index.
-     * @return True when connect, false otherwise.
-     */
-    public boolean connects(Direction direction) {
-        return Connectivity.has(connectivity, direction.get3DDataValue());
-    }
+  public static <T extends IConnectable> Cache<T> of(T value) {
+    return new Cache<>(value);
+  }
 
-    /**
-     * @return Gets the connection state.
-     */
-    public byte connectivity() {
-        return connectivity;
-    }
+  /**
+   * @param direction The direction index.
+   * @return True when connect, false otherwise.
+   */
+  public boolean connects(Direction direction) {
+    return Connectivity.has(connectivity, direction.get3DDataValue());
+  }
 
-    /**
-     * @return Gets the cache.
-     */
-    public T value() {
-        return value;
-    }
+  /**
+   * @return Gets the connection state.
+   */
+  public byte connectivity() {
+    return connectivity;
+  }
 
-    public boolean pathing() {
-        return value.path();
-    }
+  /**
+   * @return Gets the cache.
+   */
+  public T value() {
+    return value;
+  }
 
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Cache && ((Cache<?>)obj).value == this.value;
-    }
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof Cache && ((Cache<?>) obj).value == this.value;
+  }
 
-    @Override
-    public int hashCode() {
-        return value.hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return value.hashCode();
+  }
 }

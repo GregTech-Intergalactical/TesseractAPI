@@ -37,6 +37,8 @@ dependencies{
     implementation("com.github.Trinsdar:forgeconfigapiport-fabric:abc19f9a99"){
         transitive = false
     }
+    testImplementation('junit:junit:4.11')
+    testImplementation(sourceSets.main.output)
 }
 
 architectury {

@@ -130,8 +130,8 @@ public class GraphWrapper<T, C extends IConnectable, N> {
         NodeCache<N> cache = group.getNodes().get(pos);
         INodeGetter<N> get = (a, b, c) -> getter.get(dim, a, b, c);
         if (cache == null) {
-            cache = new NodeCache<>(pos, get, (a, b) -> this.validate(graph, a, b), (a, b) -> this.update(dim, b, a, true));
-            graph.addNode(pos, cache);
+            cache = new NodeCache<>(pos, get, a -> this.validate(graph, a.direction(), a.position()), a -> this.update(dim, a.position(), a.direction(), true));
+            graph.addNode(cache);
         } else {
             if (isInvalidate) {
                 if (cache.updateSide(side)) {
@@ -153,8 +153,8 @@ public class GraphWrapper<T, C extends IConnectable, N> {
         INodeGetter<N> get = (a, b, c) -> getter.get(dim, a, b, c);
         for (Direction dir : Graph.DIRECTIONS) {
             final long nodePos = Pos.offset(pos, dir);
-            NodeCache<N> cache = new NodeCache<>(nodePos, get, (a, b) -> this.validate(graph, a, b), (a, b) -> this.update(dim, b, a, true));
-            graph.addNode(nodePos, cache);
+            NodeCache<N> cache = new NodeCache<>(nodePos, get, a -> this.validate(graph, a.direction(), a.position()), a -> this.update(dim, a.position(), a.direction(), true));
+            graph.addNode(cache);
         }
     }
 
@@ -177,7 +177,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
         if ((cache.count() != count) || cache.count() == 0) {
             graph.removeAt(nodePos);
             if (ok) {
-                graph.addNode(nodePos, cache);
+                graph.addNode(cache);
             }
         } else {
             group.getController().change();
@@ -219,7 +219,6 @@ public class GraphWrapper<T, C extends IConnectable, N> {
         if (conn != null) {
             return conn.value().validate(side.getOpposite());
         }
-        //NodeCache<N> cache = group.getNodes().get(Pos.offset(pos, side));
         return false;
     }
 

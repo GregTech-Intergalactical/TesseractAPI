@@ -33,6 +33,7 @@ subprojects {
             officialMojangMappings()
             parchment("org.parchmentmc.data:parchment-${rootProject.minecraft_version}:${rootProject.mappings_version}@zip")
         }
+
         // The following line declares the yarn mappings you may select this one as well.
         // mappings "net.fabricmc:yarn:1.17.1+build.32:v2"
     }
