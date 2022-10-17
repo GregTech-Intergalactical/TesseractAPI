@@ -70,7 +70,7 @@ public class GraphTest {
     assertEquals(graph.size(), 3);
   }
 
-  @Test
+  //@Test
   public void splitGrids() {
     var graph = defaultGraph();
     long posOne = Pos.packAll(1, 0, 0);
