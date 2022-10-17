@@ -1,7 +1,7 @@
 package tesseract.api.fluid;
 
 import net.minecraftforge.fluids.FluidStack;
-import tesseract.Tesseract;
+import tesseract.TesseractGraphWrappers;
 import tesseract.api.IConnectable;
 
 /**
@@ -29,7 +29,7 @@ public interface IFluidPipe extends IConnectable {
      * @return A positive long representing the maximum amount, zero or negative indicates that this component accepts no fluid.
      */
     default long getPressureInDroplets(){
-        return getPressure() * Tesseract.dropletMultiplier;
+        return getPressure() * TesseractGraphWrappers.dropletMultiplier;
     }
 
     /**

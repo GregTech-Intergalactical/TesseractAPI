@@ -4,7 +4,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.fluids.FluidStack;
 import org.jetbrains.annotations.NotNull;
-import tesseract.Tesseract;
+import tesseract.TesseractGraphWrappers;
 import tesseract.api.fluid.FluidTransaction;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
@@ -33,7 +33,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
 
     @Override
     public long getTankCapacityInDroplets(int tank) {
-        return Integer.MAX_VALUE * Tesseract.dropletMultiplier;
+        return Integer.MAX_VALUE * TesseractGraphWrappers.dropletMultiplier;
     }
 
     @Override
@@ -57,11 +57,11 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
             FluidTransaction transaction = new FluidTransaction(resource.copy(), a -> {
             });
             if (!this.isNode) {
-                Tesseract.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
+                TesseractGraphWrappers.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             } else {
                 for (Direction dir : Graph.DIRECTIONS) {
                     if (dir == side || !this.tile.connects(dir)) continue;
-                    Tesseract.FLUID.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
+                    TesseractGraphWrappers.FLUID.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
                 }
             }
             this.old = transaction;
@@ -71,7 +71,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     }
 
     public int fill(FluidStack resource, FluidAction action){
-        return (int) (fillDroplets(resource, action) / Tesseract.dropletMultiplier);
+        return (int) (fillDroplets(resource, action) / TesseractGraphWrappers.dropletMultiplier);
     }
 
     @NotNull

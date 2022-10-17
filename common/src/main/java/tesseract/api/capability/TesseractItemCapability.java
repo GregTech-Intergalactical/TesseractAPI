@@ -4,7 +4,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
-import tesseract.Tesseract;
+import tesseract.TesseractGraphWrappers;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
 import tesseract.api.item.ItemTransaction;
@@ -42,11 +42,11 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
             ItemTransaction transaction = new ItemTransaction(stack, a -> {});
             long pos = tile.getBlockPos().asLong();
             if (!isNode) {
-                Tesseract.ITEM.getController(tile.getLevel(), pos).insert(pos, this.side, transaction, callback);
+                TesseractGraphWrappers.ITEM.getController(tile.getLevel(), pos).insert(pos, this.side, transaction, callback);
             } else {
                 for (Direction dir : Graph.DIRECTIONS) {
                     if (dir == this.side || !this.tile.connects(dir)) continue;
-                    Tesseract.ITEM.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
+                    TesseractGraphWrappers.ITEM.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
                 }
             }
             this.old = transaction;
