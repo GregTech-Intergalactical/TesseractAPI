@@ -67,7 +67,6 @@ public abstract class Transaction<T> {
         }
     }
 
-
     public void cancel() {
         this.cancelled = true;
     }

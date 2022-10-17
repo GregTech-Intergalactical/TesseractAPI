@@ -38,19 +38,6 @@ abstract public class Consumer<C extends IConnectable, N> {
             cross = path.getCross();
         }
         int fullSize = full.size();
-        if (producer instanceof TesseractBaseCapability cap) {
-            long pos = cap.tile.getBlockPos().asLong();
-            if (full.size() == 0) {
-                full = Long2ObjectMaps.singleton(pos, (C) cap.tile);
-            } else {
-                full.put(pos, (C) cap.tile);
-            }
-            if (cross.size() == 0) {
-                cross = Long2ObjectMaps.singleton(pos, (C) cap.tile);
-            } else {
-                cross.put(pos, (C) cap.tile);
-            }
-        }
         int crossSize = cross.size();
 
         if (crossSize == 0) {

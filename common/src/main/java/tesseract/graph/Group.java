@@ -163,14 +163,14 @@ public class Group<T, C extends IConnectable, N> implements INode {
     public void addNode(long pos, NodeCache<N> node, Controller<T, C, N> controller) {
         nodes.put(pos, node);
 
-        Pos position = new Pos(pos);
         for (Direction direction : Graph.DIRECTIONS) {
-            int connector = connectors.get(position.offset(direction).asLong());
+            long off = Pos.offset(pos, direction);
+            int connector = connectors.get(off);
             if (connector == CID.INVALID) {
                 continue;
             }
             Grid<C> grid = grids.get(connector);
-            if (!grid.connects(position.offset(direction).asLong(), direction.getOpposite())) {
+            if (!grid.connects(off, direction.getOpposite())) {
                 continue;
             }
 
@@ -196,13 +196,12 @@ public class Group<T, C extends IConnectable, N> implements INode {
 
         int bestId = CID.INVALID;
 
-        Pos position = new Pos(pos);
         for (Direction direction : Graph.DIRECTIONS) {
             if (!connector.connects(direction)) {
                 continue;
             }
 
-            long side = position.offset(direction).asLong();
+            long side = Pos.offset(pos, direction);
             int id = connectors.get(side);
 
             if (id == CID.INVALID) {
@@ -332,9 +331,8 @@ public class Group<T, C extends IConnectable, N> implements INode {
         int bestColor = divider.divide(
                 removed -> removed.add(pos),
                 roots -> {
-                    Pos position = new Pos(pos);
                     for (Direction direction : Graph.DIRECTIONS) {
-                        long side = position.offset(direction).asLong();
+                        long side = Pos.offset(pos, direction);
 
                         if (linked(pos, direction, side)) {
                             roots.add(side);
@@ -463,9 +461,8 @@ public class Group<T, C extends IConnectable, N> implements INode {
         }
 
         // Clear removing node from nearest grid
-        Pos position = new Pos(pos);
         for (Direction direction : Graph.DIRECTIONS) {
-            long side = position.offset(direction).asLong();
+            long side = Pos.offset(pos, direction);
             int id = connectors.get(side);
 
             if (id != CID.INVALID) {
@@ -544,9 +541,8 @@ public class Group<T, C extends IConnectable, N> implements INode {
         }
 
         int neighbors = 0;
-        Pos position = new Pos(pos);
         for (Direction direction : Graph.DIRECTIONS) {
-            long side = position.offset(direction).asLong();
+            long side = Pos.offset(pos, direction);
 
             if (contains(side)) {
                 neighbors++;
@@ -577,9 +573,8 @@ public class Group<T, C extends IConnectable, N> implements INode {
         if (pairing != CID.INVALID) {
             Grid<C> currentGrid = grids.get(pairing);
 
-            Pos position = new Pos(pos);
             for (Direction direction : Graph.DIRECTIONS) {
-                long side = position.offset(direction).asLong();
+                long side = Pos.offset(pos, direction);
 
                 if (!currentGrid.connects(pos, direction)) {
                     continue;

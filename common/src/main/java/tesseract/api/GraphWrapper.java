@@ -30,7 +30,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
     protected final Object2ObjectMap<LevelAccessor, Graph<T, C, N>> graph = new Object2ObjectOpenHashMap<>();
     protected final BiFunction<Level, INodeGetter<N>, Controller<T, C, N>> supplier;
     protected final ICapabilityGetter<N> getter;
-    private final Map<Level, LongSet> PENDING_NODES = new Object2ObjectOpenHashMap<>();
+    private final Map<Level, LongSet> pendingConnectors = new Object2ObjectOpenHashMap<>();
 
     /**
      * Creates a graph wrapper.
@@ -64,18 +64,18 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param connector The connector object.
      */
     public void registerConnector(Level dim, long pos, C connector, boolean regular) {
-        if (dim.isClientSide())
+        if (!Tesseract.TEST && dim.isClientSide())
             return;
-        getGraph(dim).addConnector(pos, new Cache<>(connector));
+        getGraph(dim).addConnector(pos, Cache.of(connector));
         if (!Tesseract.hadFirstTick(dim)) {
-            PENDING_NODES.computeIfAbsent(dim, d -> new LongOpenHashSet()).add(pos);
+            pendingConnectors.computeIfAbsent(dim, d -> new LongOpenHashSet()).add(pos);
         } else {
-            addNodes(dim, pos);
+            addAdjacentNodes(dim, pos);
         }
     }
 
     public void blockUpdate(Level dim, long connector, long node) {
-        if (dim.isClientSide()) return;
+        //if (dimdim.isClientSide()) return;
         update(dim, node, Pos.subToDir(connector, node), false);
     }
 
@@ -87,7 +87,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @return The graph instance for the world.
      */
     public Graph<T, C, N> getGraph(LevelAccessor dim) {
-        assert !dim.isClientSide();
+        assert Tesseract.TEST || !dim.isClientSide();
         INodeGetter<N> get = (a,b,c) -> getter.get((Level)dim,a,b,c);
         return graph.computeIfAbsent(dim, k -> new Graph<>(() -> supplier.apply((Level) dim, get)));
     }
@@ -101,7 +101,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      */
     @NotNull
     public ITickingController<T, C, N> getController(Level dim, long pos) {
-        if (dim.isClientSide()) {
+        if (!Tesseract.TEST && dim.isClientSide()) {
             throw new IllegalStateException("Call to GraphWrapper::getController on client side!");
         }
         Group<T, C, N> group = getGraph(dim).getGroupAt(pos);
@@ -148,7 +148,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      *
      * @param pos The position at which the node will be added.
      */
-    public void addNodes(Level dim, long pos) {
+    public void addAdjacentNodes(Level dim, long pos) {
         Graph<T, C, N> graph = getGraph(dim);
         INodeGetter<N> get = (a, b, c) -> getter.get(dim, a, b, c);
         for (Direction dir : Graph.DIRECTIONS) {
@@ -160,8 +160,8 @@ public class GraphWrapper<T, C extends IConnectable, N> {
 
 
     public void onFirstTick(Level dim) {
-        LongSet set = PENDING_NODES.remove(dim);
-        if (set != null) set.forEach(l -> this.addNodes(dim, l));
+        LongSet set = pendingConnectors.remove(dim);
+        if (set != null) set.forEach(l -> this.addAdjacentNodes(dim, l));
     }
 
 
@@ -172,9 +172,9 @@ public class GraphWrapper<T, C extends IConnectable, N> {
         }
         NodeCache<N> cache = group.getNodes().get(nodePos);
         if (cache == null) return;
-        int count = cache.count();
+        int count = cache.capCount();
         boolean ok = updateNodeSides(cache);
-        if ((cache.count() != count) || cache.count() == 0) {
+        if ((cache.capCount() != count) || cache.capCount() == 0) {
             graph.removeAt(nodePos);
             if (ok) {
                 graph.addNode(cache);
@@ -208,7 +208,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
         for (int i = 0; i < Graph.DIRECTIONS.length; i++) {
             node.updateSide(Graph.DIRECTIONS[i]);
         }
-        return node.count() > 0;
+        return node.capCount() > 0;
     }
 
 
@@ -230,7 +230,7 @@ public class GraphWrapper<T, C extends IConnectable, N> {
      * @param pos The position at which the electric component will be added.
      */
     public boolean remove(Level dim, long pos) {
-        if (dim.isClientSide())
+        if (!Tesseract.TEST && dim.isClientSide())
             return false;
         return removeAt(getGraph(dim), pos);
     }

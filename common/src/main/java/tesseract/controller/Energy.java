@@ -7,7 +7,6 @@ import tesseract.api.gt.GTController;
 import tesseract.api.gt.IGTNode;
 import tesseract.graph.Graph;
 
-// TODO: Make explosions depend on voltage, amp
 public class Energy extends GTController {
 
     /**

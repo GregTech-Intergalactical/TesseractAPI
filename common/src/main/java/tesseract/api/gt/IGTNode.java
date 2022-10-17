@@ -130,7 +130,7 @@ public interface IGTNode {
     default long availableAmpsInput() {
         if (!canInput()) return 0;
         if (getInputVoltage() == 0) return 0;
-        long out = Math.min(getInputAmperage(), (int) (getCapacity() - getEnergy()) / getInputVoltage());
+        long out = Math.min(getInputAmperage(), (long) (getCapacity() - getEnergy()) / getInputVoltage());
         if (out == -1) out = getInputAmperage();
         out = Math.min(out, getState().receive(true, out));
         return out;

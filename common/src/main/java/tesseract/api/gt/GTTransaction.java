@@ -134,6 +134,33 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
             }
         }
 
+        public long consumeForNode(IGTNode node) {
+            if (this.transaction.mode == GTTransaction.Mode.TRANSMIT) {
+                long amps = Math.min(getAmps(true), node.availableAmpsInput());
+                amps = Math.min(amps, (node.getCapacity() - node.getEnergy()) / node.getInputVoltage());
+                useAmps(true, amps);
+                node.getState().receive(false, amps);
+                return getEnergy(amps, true);
+            } else {
+                long toAdd = Math.min(getEu(), node.getCapacity() - node.getEnergy());
+                return drainEu(toAdd);
+            }
+        }
+
+        public long extractForNode(IGTNode node) {
+            if (transaction.mode == GTTransaction.Mode.TRANSMIT) {
+                long amps = Math.min(getAmps(false), node.availableAmpsOutput());
+                amps = Math.min(amps, node.getEnergy() / node.getOutputVoltage());
+                node.getState().extract(false, amps);
+                useAmps(false, amps);
+                return getEnergy(amps, false);
+            } else {
+                long toDrain = Math.min(getEu(), node.getEnergy());
+                return drainEu(toDrain);
+            }
+    
+        }
+
         public long getVoltage() {
             return voltage;
         }

@@ -77,7 +77,7 @@ public class NodeCache<T> implements IConnectable {
 
   public boolean clearSide(Direction side) {
     value.remove(side);
-    return count() > 0;
+    return capCount() > 0;
   }
 
   public T value(Direction side) {
@@ -88,7 +88,7 @@ public class NodeCache<T> implements IConnectable {
     return value.entrySet();
   }
 
-  public int count() {
+  public int capCount() {
     return value.size();
   }
 

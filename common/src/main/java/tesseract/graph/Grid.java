@@ -227,9 +227,8 @@ public class Grid<C extends IConnectable> implements INode {
         int bestColor = divider.divide(
                 removed -> removed.add(pos),
                 roots -> {
-                    Pos position = new Pos(pos);
                     for (Direction direction : Graph.DIRECTIONS) {
-                        long side = position.offset(direction).asLong();
+                        long side = Pos.offset(pos, direction);
 
                         if (linked(pos, direction, side)) {
                             roots.add(side);

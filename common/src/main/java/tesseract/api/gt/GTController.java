@@ -201,12 +201,12 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
      */
 
     for (GTConsumer consumer : list) {
-      long voltage = voltage_out - consumer.getLoss();
-      if (voltage <= 0) {
+      long loss = consumer.getLoss();
+      if (loss < 0 || loss > voltage_out) {
         continue;
       }
 
-      long amperage = consumer.getRequiredAmperage(voltage);
+      long amperage = consumer.getRequiredAmperage(loss);
       if (amperage <= 0) { // if this consumer received all the energy from the other producers
         continue;
       }
@@ -215,7 +215,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
       amperage = Math.min(amperage_in, amperage);
       // If we are here, then path had some invalid cables which not suits the limits
       // of amps/voltage
-      stack.addData(amperage, voltage_out - voltage, a -> dataCommit(consumer, a));
+      stack.addData(amperage, loss, a -> dataCommit(consumer, a));
     }
   }
 

@@ -171,9 +171,6 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getCross().long2ObjectEntrySet()) {
                     final long finalAmount = amount;
                     pressureData.compute(p.getLongKey(), (k, v) -> v == null ? finalAmount : v + finalAmount);
-                    if (p.getValue() instanceof TesseractBaseCapability cap) {
-                        cap.callback.modify(data,cap.side, side, true);
-                    }
                 }
             }
             transaction.addData(data.copy(), a -> dataCommit(consumer, a));
@@ -230,15 +227,8 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                     onPipeOverCapacity(getWorld(), pathHolderEntry.getLongKey(), amount, stack);
                     return;
                 }
-                if (pathHolderEntry.getValue() instanceof TesseractBaseCapability cap) {
-                    cap.callback.modify(data,cap.side, consumer.input, false);
-                }
             }
         }
-        /*consumer.getFull().keySet().forEach(l -> {
-            int pressure = amount + this.sentPressure.get(l);
-            this.sentPressure.put(l, pressure);
-        });*/
         maxTemperature = Math.max(temperature, maxTemperature);
         totalPressure += amount;
         consumer.insert(stack, false);
@@ -247,7 +237,6 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
     @Override
     public void tick() {
         super.tick();
-      //  sentPressure.clear();
         for (Cache<IFluidPipe> pipe : this.group.connectors()) {
             pipe.value().getHolder().tick(getWorld().getGameTime());
         }

@@ -62,7 +62,7 @@ public class Graph<T, C extends IConnectable, N> implements INode {
   }
 
   public void addNode(NodeCache<N> cache) {
-    if (cache.count() == 0)
+    if (cache.capCount() == 0)
       return;
     Group<T, C, N> group = add(cache.pos, () -> Group.singleNode(cache.pos, cache, controller.get()));
     if (group != null)

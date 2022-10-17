@@ -1,3 +1,5 @@
+package tests;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -70,7 +72,7 @@ public class GraphTest {
     assertEquals(graph.size(), 3);
   }
 
-  //@Test
+  @Test
   public void splitGrids() {
     var graph = defaultGraph();
     long posOne = Pos.packAll(1, 0, 0);
@@ -83,7 +85,6 @@ public class GraphTest {
 
     assertEquals(graph.size(), 4);
     assertEquals(graph.getGroupAt(0).getGrids().size(), 1);
-
     graph.removeAt(posOne);
     var conn = defaultConnector();
     conn.clearSide(Direction.EAST);
@@ -117,7 +118,7 @@ public class GraphTest {
 
       @Override
       public boolean connects(Direction direction) {
-        return true;
+        return Connectivity.has(connections, direction.get3DDataValue());
       }
 
       @Override
