@@ -38,7 +38,7 @@ loom {
 dependencies {
     forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
 
-    modImplementation(include("io.github.feltmc:fluidhandler-extras:1.0.0"))
+    modImplementation(include("io.github.feltmc:fluidhandler-extras:1.0.1"))
     common(project(path: ":tesseract-common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":tesseract-common", configuration: "transformProductionForge")) { transitive = false }
     testImplementation('junit:junit:4.11')
