@@ -1,5 +1,6 @@
 package tesseract.forge;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.material.Fluid;
@@ -35,5 +36,9 @@ public class FluidPlatformUtilsImpl {
 
     public static SoundEvent getFluidSound(Fluid fluid, boolean fill){
         return fill ? fluid.getAttributes().getFillSound() : fluid.getAttributes().getEmptySound();
+    }
+
+    public static Component getFluidDisplayName(FluidStack fluid){
+        return fluid.getFluid().getAttributes().getDisplayName(fluid);
     }
 }

@@ -1,6 +1,7 @@
 package tesseract;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.material.Fluid;
@@ -44,6 +45,11 @@ public class FluidPlatformUtils {
 
     @ExpectPlatform
     public static SoundEvent getFluidSound(Fluid fluid, boolean fill){
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static Component getFluidDisplayName(FluidStack fluid){
         throw new AssertionError();
     }
 }
