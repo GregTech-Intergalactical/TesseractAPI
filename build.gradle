@@ -57,10 +57,10 @@ allprojects {
             url = 'https://maven.parchmentmc.org'
         }
         maven { url = "https://mvn.devos.one/snapshots/" }
-        maven { url 'https://jitpack.io' }
         maven {
             url "https://repo.repsy.io/mvn/distant/feltmc"
         }
+        maven { url 'https://jitpack.io' }
     }
 
     java {

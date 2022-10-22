@@ -47,7 +47,7 @@ dependencies {
     //todo figure this out
     //testcommon(project(path: ":tesseract-common", configuration: "namedElements").sourceSets.test.output) { transitive false }
     //testshadowCommon(project(path: ":tesseract-common", configuration: "transformProductionFabric").sourceSets.test.output) { transitive false }
-    modImplementation(include("com.github.FeltMC.Fabricated-Forge-API:fabricated-forge-caps:${rootProject.fabricated_forge_hash}")){
+    modImplementation(include("io.github.feltmc:fabricated-forge-caps:${rootProject.fabricated_forge_hash}")){
         transitive = false
     }
     implementation(include("com.github.Trinsdar:forgeconfigapiport-fabric:abc19f9a99")){
