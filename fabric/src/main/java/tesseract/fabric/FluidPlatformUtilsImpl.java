@@ -7,6 +7,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import tesseract.FluidPlatformUtils;
 
 public class FluidPlatformUtilsImpl {
@@ -43,5 +45,9 @@ public class FluidPlatformUtilsImpl {
 
     public static Component getFluidDisplayName(FluidStack fluid){
         return fluid.getFluid().getAttributes().getDisplayName(fluid.toPortingLibStack());
+    }
+
+    public static FluidStack tryFluidTransfer(IFluidHandler fluidDestination, IFluidHandler fluidSource, long maxAmount, boolean doTransfer){
+        return FluidUtil.tryFluidTransfer(fluidDestination, fluidSource, maxAmount, doTransfer);
     }
 }

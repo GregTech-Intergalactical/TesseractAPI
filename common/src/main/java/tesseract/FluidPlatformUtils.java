@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 public class FluidPlatformUtils {
     @ExpectPlatform
@@ -50,6 +51,11 @@ public class FluidPlatformUtils {
 
     @ExpectPlatform
     public static Component getFluidDisplayName(FluidStack fluid){
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static FluidStack tryFluidTransfer(IFluidHandler fluidDestination, IFluidHandler fluidSource, long maxAmount, boolean doTransfer){
         throw new AssertionError();
     }
 }
