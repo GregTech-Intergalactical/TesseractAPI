@@ -25,6 +25,12 @@ public class ItemTransaction extends Transaction<ItemStack> {
         this.onCommit(consumer);
     }
 
+    public void addData(int count, Consumer<ItemStack> consumer) {
+        var st = this.stack.copy();
+        st.setCount(count);
+        addData(st, consumer);
+    }
+
     @Override
     public boolean canContinue() {
         return !stack.isEmpty();

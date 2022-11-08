@@ -1,8 +1,11 @@
 package tesseract.api.capability;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import tesseract.TesseractGraphWrappers;
 import tesseract.api.fluid.FluidTransaction;
@@ -54,20 +57,42 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
             old.commit();
         } else {
             long pos = tile.getBlockPos().asLong();
-            FluidTransaction transaction = new FluidTransaction(resource.copy(), a -> {
-            });
+            FluidTransaction transaction = new FluidTransaction(resource.copy(), a -> {});
             if (!this.isNode) {
                 TesseractGraphWrappers.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             } else {
-                for (Direction dir : Graph.DIRECTIONS) {
-                    if (dir == side || !this.tile.connects(dir)) continue;
-                    TesseractGraphWrappers.FLUID.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
-                }
+                transferAroundPipe(transaction, pos);
             }
             this.old = transaction;
         }
         this.isSending = false;
         return resource.getRealAmount() - this.old.stack.getRealAmount();
+    }
+
+
+    private void transferAroundPipe(FluidTransaction transaction, long pos) {
+        for (Direction dir : Graph.DIRECTIONS) {
+            if (dir == this.side || !this.tile.connects(dir)) continue;
+            BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
+            if (otherTile != null) {
+                FluidStack stack = transaction.stack.copy();
+                this.callback.modify(stack, this.side, dir, true);
+                //Check the handler.
+                var cap = otherTile.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, dir.getOpposite());
+                if (!cap.isPresent()) continue;
+                //Perform insertion, and add to the transaction.
+                var handler = cap.resolve().get();
+                long amount = handler.fillDroplets(stack,  IFluidHandler.FluidAction.SIMULATE);
+                if (amount > 0) {
+                    stack.setAmount(amount);
+                    transaction.addData(stack, a -> {
+                        this.callback.modify(a, this.side, dir, false);
+                        handler.fillDroplets(a, FluidAction.EXECUTE);
+                    });
+                }
+                if (transaction.stack.isEmpty()) break;
+            }
+        }
     }
 
     public int fill(FluidStack resource, FluidAction action){

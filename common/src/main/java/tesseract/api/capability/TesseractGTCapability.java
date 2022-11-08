@@ -1,15 +1,15 @@
 package tesseract.api.capability;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.INBTSerializable;
 import tesseract.Tesseract;
+import tesseract.api.TesseractCaps;
 import tesseract.api.gt.GTConsumer;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTCable;
-import tesseract.api.gt.IGTNode;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
@@ -24,7 +24,7 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
 
     @Override
     public boolean insert(GTTransaction transaction) {
-        boolean flag = false;
+        boolean flag;
         if (this.isSending) return false;
         this.isSending = true;
         long pos = tile.getBlockPos().asLong();
@@ -33,15 +33,34 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
             Tesseract.getGT_ENERGY().getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             flag = transaction.getAvailableAmps() < old;
         } else {
-            for (Direction dir : Graph.DIRECTIONS) {
-                if (dir == side || !this.tile.connects(dir)) continue;
-                Tesseract.getGT_ENERGY().getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
-            }
+            flag = transferAroundPipe(transaction, pos);
         }
         this.isSending = false;
         return flag;
     }
-
+    private boolean transferAroundPipe(GTTransaction transaction, long pos) {
+        boolean flag = false;
+        for (Direction dir : Graph.DIRECTIONS) {
+            if (dir == this.side || !this.tile.connects(dir)) continue;
+            //First, perform cover modifications.
+            BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
+            if (otherTile != null) {
+                //Check the handler.
+                var cap = otherTile.getCapability(TesseractCaps.getENERGY_HANDLER_CAPABILITY(), dir.getOpposite());
+                if (!cap.isPresent()) continue;
+                //Perform insertion, and add to the transaction.
+                var handler = cap.resolve().get();
+                var prev = transaction.getData().size();
+                if (!handler.insert(transaction)) continue;
+                flag = true;
+                for (var data : transaction.getOffset(prev)) {
+                    this.callback.modify(data, this.side, dir, true);
+                }
+                transaction.withCallbackBefore(prev, a -> this.callback.modify(a, this.side, dir, false));
+            }
+        }
+        return flag;
+    }
     @Override
     public boolean extractEnergy(GTTransaction.TransferData data) {
         return false;

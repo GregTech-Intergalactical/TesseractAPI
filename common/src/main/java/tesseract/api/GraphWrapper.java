@@ -66,11 +66,13 @@ public class GraphWrapper<T, C extends IConnectable, N> {
     public void registerConnector(Level dim, long pos, C connector, boolean regular) {
         if (!Tesseract.TEST && dim.isClientSide())
             return;
-        getGraph(dim).addConnector(pos, Cache.of(connector));
-        if (!Tesseract.hadFirstTick(dim)) {
-            pendingConnectors.computeIfAbsent(dim, d -> new LongOpenHashSet()).add(pos);
-        } else {
-            addAdjacentNodes(dim, pos);
+        if (regular) {
+            getGraph(dim).addConnector(pos, Cache.of(connector));
+            if (!Tesseract.hadFirstTick(dim)) {
+                pendingConnectors.computeIfAbsent(dim, d -> new LongOpenHashSet()).add(pos);
+            } else {
+                addAdjacentNodes(dim, pos);
+            }
         }
     }
 

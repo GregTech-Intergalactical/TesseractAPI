@@ -1,8 +1,11 @@
 package tesseract.api.capability;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
 import org.jetbrains.annotations.NotNull;
 import tesseract.TesseractGraphWrappers;
 import tesseract.api.item.IItemNode;
@@ -33,26 +36,53 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
 
     @NotNull
     @Override
-    public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+    public ItemStack insertItem(int slot, @NotNull ItemStack stackIn, boolean simulate) {
         if (!simulate) {
             old.commit();
         } else {
-            if (this.isSending) return stack;
+            if (this.isSending) {
+                return stackIn;
+            }
             this.isSending = true;
-            ItemTransaction transaction = new ItemTransaction(stack, a -> {});
+            ItemTransaction transaction = new ItemTransaction(stackIn, a -> {});
             long pos = tile.getBlockPos().asLong();
             if (!isNode) {
                 TesseractGraphWrappers.ITEM.getController(tile.getLevel(), pos).insert(pos, this.side, transaction, callback);
             } else {
-                for (Direction dir : Graph.DIRECTIONS) {
-                    if (dir == this.side || !this.tile.connects(dir)) continue;
-                    TesseractGraphWrappers.ITEM.getController(tile.getLevel(), pos).insert(Pos.offset(pos, dir), dir.getOpposite(), transaction, callback);
-                }
+                transferAroundPipe(transaction, pos);
             }
             this.old = transaction;
         }
         this.isSending = false;
         return old.stack.copy();
+    }
+
+    private void transferAroundPipe(ItemTransaction transaction, long pos) {
+        ItemStack stackIn = transaction.stack.copy();
+        for (Direction dir : Graph.DIRECTIONS) {
+            if (dir == this.side || !this.tile.connects(dir)) continue;
+            ItemStack stack = stackIn.copy();
+            //First, perform cover modifications.
+            this.callback.modify(stack, this.side, dir, true);
+            if (stack.isEmpty()) continue;
+            BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
+            if (otherTile != null) {
+                //Check the handler.
+                var cap = otherTile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, dir.getOpposite());
+                if (!cap.isPresent()) continue;
+                //Perform insertion, and add to the transaction.
+                var handler = cap.resolve().get();
+                var newStack = ItemHandlerHelper.insertItem(handler, stack, true);
+                if (newStack.getCount() < stack.getCount()) {
+                    transaction.addData(stack.getCount() - newStack.getCount(), a -> {
+                        this.callback.modify(a, this.side, dir, false);
+                        ItemHandlerHelper.insertItem(handler, a, false);
+                    });
+                    stackIn = newStack;
+                }
+                if (stackIn.isEmpty()) break;
+            }
+        }
     }
 
     @NotNull
