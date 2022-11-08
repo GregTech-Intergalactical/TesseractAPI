@@ -1,5 +1,7 @@
 package tesseract.api.gt;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
 
@@ -18,6 +20,8 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
 
     // Way of the sorting by the loss and the distance to the node
     public static final Comparator<GTConsumer> COMPARATOR = (t1, t2) -> (t1.getDistance() == t2.getDistance()) ? compare(t1.getLoss(), t2.getLoss()) : compare(t1.getDistance(), t2.getDistance());
+
+    public final LongSet uninsulatedCables = new LongOpenHashSet();
 
     /**
      * Creates instance of the consumer.
@@ -84,10 +88,13 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
     }
 
     @Override
-    protected void onConnectorCatch(IGTCable cable) {
+    protected void onConnectorCatch(long pos, IGTCable cable) {
         loss += cable.getLoss();
         minVoltage = Math.min(minVoltage, cable.getVoltage());
         minAmperage = Math.min(minAmperage, cable.getAmps());
+        if (!cable.insulated()) {
+            this.uninsulatedCables.add(pos);
+        }
     }
 
     public static class State {

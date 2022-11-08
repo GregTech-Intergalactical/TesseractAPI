@@ -55,7 +55,7 @@ public class FEConsumer extends Consumer<IFECable, IFENode> {
     }
 
     @Override
-    protected void onConnectorCatch(IFECable cable) {
+    protected void onConnectorCatch(long pos, IFECable cable) {
         minCapacity = Math.min(minCapacity, cable.getCapacity());
     }
 }

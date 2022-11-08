@@ -53,8 +53,8 @@ abstract public class Consumer<C extends IConnectable, N> {
     public void init() {
         if (full != null) {
             distance = full.size();
-            for (C connector : full.values()) {
-                onConnectorCatch(connector);
+            for (var tuple : full.long2ObjectEntrySet()) {
+                onConnectorCatch(tuple.getLongKey(), tuple.getValue());
             }
         }
 
@@ -100,7 +100,7 @@ abstract public class Consumer<C extends IConnectable, N> {
      *
      * @param connector The connector object.
      */
-    protected abstract void onConnectorCatch(C connector);
+    protected abstract void onConnectorCatch(long connectorPos, C connector);
 
     /**
      * @return Returns the priority of this node as a number.

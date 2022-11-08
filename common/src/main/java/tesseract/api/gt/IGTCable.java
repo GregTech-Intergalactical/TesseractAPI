@@ -29,6 +29,12 @@ public interface IGTCable extends IConnectable {
     int getVoltage();
 
     /**
+     *
+     * @return if the cable is insulated
+     */
+    boolean insulated();
+
+    /**
      * @param voltage  The current voltage.
      * @param amperage The current amperage.
      * @return Checks that the cable is able to handle single packet.

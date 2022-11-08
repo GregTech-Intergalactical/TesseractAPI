@@ -70,7 +70,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
     }
 
     @Override
-    protected void onConnectorCatch(IItemPipe pipe) {
+    protected void onConnectorCatch(long pos, IItemPipe pipe) {
         minCapacity = Math.min(minCapacity, pipe.getCapacity());
     }
 }

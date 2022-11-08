@@ -75,7 +75,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
     }
 
     @Override
-    protected void onConnectorCatch(IFluidPipe pipe) {
+    protected void onConnectorCatch(long pos, IFluidPipe pipe) {
         isProof = Math.min(isProof, pipe.isGasProof() ? 1 : 0);
         minTemperature = Math.min(minTemperature, pipe.getTemperature());
         minCapacity = Math.min(minCapacity, pipe.getCapacity());

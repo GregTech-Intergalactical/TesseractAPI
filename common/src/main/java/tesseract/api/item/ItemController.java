@@ -4,6 +4,8 @@ import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -22,6 +24,7 @@ import tesseract.graph.Path;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +33,7 @@ import java.util.Map;
  * Class acts as a controller in the group of an item components.
  */
 public class ItemController extends Controller<ItemTransaction, IItemPipe, IItemNode> {
+
     private int transferred;
     private final Long2ObjectMap<Map<Direction, List<ItemConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
 
@@ -44,18 +48,22 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
 
     @Override
     protected void onFrame() {
-        this.group.connectors().forEach(t -> t.value().setHolder(0));
+        for (var connector : this.group.connectors()) {
+            connector.value().setHolder(0);
+        }
     }
 
-    protected void handleInput(long pos, NodeCache<IItemNode> cache) {
-        // if (data.containsKey(pos)) return;
-        for (Map.Entry<Direction, IItemNode> tup : cache.values()) {
-            IItemNode producer = tup.getValue();
-            Direction direction = tup.getKey();
-            if (producer.canOutput()) {
+    @Override
+    public void change() {
+        data.clear();
+        for (Long2ObjectMap.Entry<NodeCache<IItemNode>> e : group.getNodes().long2ObjectEntrySet()) {
+            for (Map.Entry<Direction, IItemNode> tup : e.getValue().values()) {
+                IItemNode producer = tup.getValue();
+                long pos = e.getLongKey();
+                Direction direction = tup.getKey();
                 if (producer.canOutput(direction)) {
                     List<ItemConsumer> consumers = new ObjectArrayList<>();
-                    long side = Pos.offset(pos, direction);// position.offset(direction).asLong();
+                    long side = Pos.offset(pos, direction);
                     Grid<IItemPipe> grid = group.getGridAt(side, direction);
                     if (grid != null) {
                         for (Path<IItemPipe> path : grid.getPaths(pos)) {
@@ -76,15 +84,6 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
                 }
             }
         }
-    }
-
-    @Override
-    public void change() {
-        data.clear();
-
-        for (Long2ObjectMap.Entry<NodeCache<IItemNode>> e : group.getNodes().long2ObjectEntrySet()) {
-            handleInput(e.getLongKey(), e.getValue());
-        }
 
         for (Map<Direction, List<ItemConsumer>> map : data.values()) {
             for (List<ItemConsumer> consumers : map.values()) {
@@ -94,7 +93,6 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
     }
 
     @Override
-
     public void tick() {
         super.tick();
     }
@@ -121,19 +119,13 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             }
             int actual = stack.getCount() - amount;
 
-            if (consumer.getConnection() == ConnectionType.SINGLE) {
-                actual = actual;//Math.min(actual, consumer.getMinCapacity());
-            } else {
-                // Verify cross chain.
-                for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
-                    long pos = p.getLongKey();
-                    IItemPipe pipe = p.getValue();
-                    int stacksUsed = pipe.getHolder() + tempHolders.get(pos);
-                    if (pipe.getCapacity() == stacksUsed) {
-                        actual = 0;
-                        break;
-                    }
-
+            for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
+                long pos = p.getLongKey();
+                IItemPipe pipe = p.getValue();
+                int stacksUsed = pipe.getHolder() + tempHolders.get(pos);
+                if (pipe.getCapacity() == stacksUsed) {
+                    actual = 0;
+                    break;
                 }
             }
 
@@ -156,21 +148,22 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
                     return b + 1;
                 });
             }
-            transaction.addData(insert, t -> dataCommit(consumer, t, side, modifier, act));
-            // stack.setCount(stack.getCount() - actual);
+            transaction.addData(insert, t -> transferItem(consumer, t, side, modifier, act));
             if (transaction.stack.getCount() == 0)
                 return;
         }
     }
 
-    public void dataCommit(ItemConsumer consumer, ItemStack stack, Direction side, ITransactionModifier modifier, int transferred) {
+    public void transferItem(ItemConsumer consumer, ItemStack stack, Direction side, ITransactionModifier modifier,
+                             int transferred) {
+        modifier.modify(stack, null, side, true);
         consumer.insert(stack, false);
         this.transferred += transferred;
         if (consumer.getConnection() == ConnectionType.VARIATE) {
             for (Long2ObjectMap.Entry<IItemPipe> entry : consumer.getCross().long2ObjectEntrySet()) {
-                entry.getValue().setHolder(entry.getValue().getHolder()+1);
+                entry.getValue().setHolder(entry.getValue().getHolder() + 1);
             }
-            modifier.modify(stack, null, side, true);
+
         }
     }
 
@@ -182,10 +175,11 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
      * @param dir       The added dir.
      * @param pos       The position of the producer.
      */
-    private void onCheck(IItemNode producer, List<ItemConsumer> consumers, Path<IItemPipe> path, Direction dir, long pos) {
+    private void onCheck(IItemNode producer, List<ItemConsumer> consumers, Path<IItemPipe> path, Direction dir,
+                         long pos) {
         IItemNode node = group.getNodes().get(pos).value(dir);
         if (node != null && node.canInput(dir))
-            consumers.add(new ItemConsumer(node,producer, path, dir));
+            consumers.add(new ItemConsumer(node, producer, path, dir));
     }
 
     @Override
