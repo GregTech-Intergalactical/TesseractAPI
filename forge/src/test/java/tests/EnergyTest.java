@@ -103,6 +103,11 @@ public class EnergyTest {
         }
 
         @Override
+        public boolean insulated() {
+            return false;
+        }
+
+        @Override
         public long getHolder() {
             return holder;
         }
