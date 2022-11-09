@@ -42,7 +42,11 @@ public abstract class Transaction<T> {
     }
 
     public List<T> getData() {
-        return committed ? Collections.emptyList() : transmitted;
+        return transmitted;
+    }
+
+    public boolean commitSuccessfull() {
+        return this.committed && this.transmitted.size() > 0;
     }
 
     public void onCommit(Consumer<T> consumer) {
