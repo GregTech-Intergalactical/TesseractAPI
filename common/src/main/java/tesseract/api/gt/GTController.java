@@ -206,7 +206,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
      * @param data     the transfer data.
      */
     public void dataCommit(GTConsumer consumer, GTTransaction.TransferData data) {
-        if (!consumer.canHandle(data.getVoltage()) || (consumer.getConnection() == ConnectionType.SINGLE
+        if (!consumer.canHandle(data.getVoltage()) || !consumer.canHandleAmp(data.getTotalAmperage()) || (consumer.getConnection() == ConnectionType.SINGLE
                 && !(consumer.canHandleAmp(data.getTotalAmperage())))) {
             for (Long2ObjectMap.Entry<IGTCable> c : consumer.getFull().long2ObjectEntrySet()) {
                 long pos = c.getLongKey();
