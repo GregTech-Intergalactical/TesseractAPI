@@ -36,12 +36,12 @@ public class TesseractPlatformUtilsImpl {
         LazyOptional<IEnergyHandler> capability = tile.getCapability(TesseractCapsImpl.ENERGY_HANDLER_CAPABILITY, direction);
         if (capability.isPresent()) {
             if (invalidate != null) capability.addListener(t -> invalidate.run());
-            return capability.resolve().get();
+            return capability.orElse(null);
         } else {
             LazyOptional<IEnergyHandler> cap = getWrappedHandler(tile, direction);
             if (cap.isPresent()) {
                 if (invalidate != null )cap.addListener(o -> invalidate.run());
-                return capability.resolve().get();
+                return capability.orElse(null);
             }
         }
         return null;
