@@ -50,9 +50,9 @@ dependencies {
     modImplementation(include("io.github.feltmc:fabricated-forge-caps:${rootProject.fabricated_forge_hash}")){
         transitive = false
     }
-    implementation(include("com.github.Trinsdar:forgeconfigapiport-fabric:abc19f9a99")){
-        transitive = false
-    }
+    implementation("com.electronwill.night-config:toml:${rootProject.nightconfig_version}")
+    implementation("com.electronwill.night-config:core:${rootProject.nightconfig_version}")
+    modImplementation(include("net.minecraftforge:forgeconfigapiport-fabric:3.2.4"))
     modImplementation("io.github.fabricators_of_create:Porting-Lib:1.1.310-beta+1.18.2-dev.${rootProject.port_lib_hash}"){ transitive(false) }
     modApi(include("teamreborn:energy:${rootProject.energy_version}")) {
         transitive = false
