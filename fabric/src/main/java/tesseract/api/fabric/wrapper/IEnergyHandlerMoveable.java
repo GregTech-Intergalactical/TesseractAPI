@@ -13,7 +13,6 @@ public interface IEnergyHandlerMoveable extends EnergyExtractable, EnergyInserta
         GTTransaction transaction = getEnergyHandler().extract(GTTransaction.Mode.INTERNAL);
         transaction.addData(maxExtract, getEnergyHandler()::extractEnergy);
         if (simulation.isActing()) transaction.commit();
-        transaction.commit();
         return transaction.isValid() ? (int) transaction.getData().stream().mapToLong(t -> t.getEnergy(t.getAmps(false), false)).sum() : 0;
     }
 

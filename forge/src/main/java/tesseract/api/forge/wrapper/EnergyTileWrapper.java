@@ -74,7 +74,7 @@ public class EnergyTileWrapper implements IEnergyHandler {
 
     @Override
     public long getInputVoltage() {
-        return Integer.MAX_VALUE;
+        return 32;
     }
 
     @Override

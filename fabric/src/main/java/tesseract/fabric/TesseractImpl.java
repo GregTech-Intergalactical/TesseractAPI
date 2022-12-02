@@ -17,8 +17,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraftforge.api.ModLoadingContext;
 import net.minecraftforge.api.fml.event.config.ModConfigEvent;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.fml.config.ModConfig;
 import team.reborn.energy.api.EnergyStorage;
 import tesseract.Tesseract;
 import tesseract.TesseractConfig;
@@ -90,6 +92,7 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
     @Override
     public void onInitialize() {
         Tesseract.init();
+        ModLoadingContext.registerConfig(Tesseract.API_ID, ModConfig.Type.COMMON, TesseractConfig.COMMON_SPEC);
         RegisterCapabilitiesEvent.REGISTER_CAPS.register(TesseractCaps::register);
         ServerLifecycleEvents.SERVER_STOPPING.register(TesseractImpl::onServerStopping);
         ServerTickEvents.START_WORLD_TICK.register(TesseractImpl::onStartTick);

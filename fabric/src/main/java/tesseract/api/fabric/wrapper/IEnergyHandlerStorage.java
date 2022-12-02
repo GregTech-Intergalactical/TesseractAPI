@@ -15,16 +15,23 @@ public interface IEnergyHandlerStorage extends EnergyStorage {
         GTTransaction transaction = new GTTransaction((long) (maxReceive / TesseractConfig.COMMON.EU_TO_TRE_RATIO), a -> {
         });
         getEnergyHandler().insert(transaction);
-        transaction.commit();
+        context.addCloseCallback((t, r) -> {
+            if (r.wasCommitted()){
+                transaction.commit();
+            }
+        });
         return transaction.isValid() ? (int) transaction.getData().stream().mapToLong(t -> t.getEnergy((long) (t.getAmps(true) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), true)).sum() : 0;
     }
 
     @Override
-    default long extract(long maxExtract, TransactionContext simulate) {
+    default long extract(long maxExtract, TransactionContext context) {
         GTTransaction transaction = getEnergyHandler().extract(GTTransaction.Mode.INTERNAL);
         transaction.addData((long) (maxExtract / TesseractConfig.COMMON.EU_TO_TRE_RATIO), getEnergyHandler()::extractEnergy);
-        //if (!simulate) transaction.commit();
-        transaction.commit();
+        context.addCloseCallback((t, r) -> {
+            if (r.wasCommitted()){
+                transaction.commit();
+            }
+        });
         return transaction.isValid() ? (int) transaction.getData().stream().mapToLong(t -> t.getEnergy((long) (t.getAmps(false) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), false)).sum() : 0;
     }
 

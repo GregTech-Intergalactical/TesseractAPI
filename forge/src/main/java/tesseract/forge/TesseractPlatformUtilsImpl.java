@@ -38,9 +38,9 @@ public class TesseractPlatformUtilsImpl {
             if (invalidate != null) capability.addListener(t -> invalidate.run());
             return capability.orElse(null);
         } else {
-            LazyOptional<IEnergyHandler> cap = getWrappedHandler(tile, direction);
-            if (cap.isPresent()) {
-                if (invalidate != null )cap.addListener(o -> invalidate.run());
+            capability = getWrappedHandler(tile, direction);
+            if (capability.isPresent()) {
+                if (invalidate != null )capability.addListener(o -> invalidate.run());
                 return capability.orElse(null);
             }
         }

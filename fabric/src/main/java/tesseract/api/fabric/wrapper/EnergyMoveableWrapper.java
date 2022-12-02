@@ -103,7 +103,7 @@ public class EnergyMoveableWrapper implements IEnergyHandler {
     @Override
     public long getInputVoltage() {
         if (blockEntity instanceof IEnergyMoveableTiers tiers) return tiers.getInputVoltage();
-        return Integer.MAX_VALUE;
+        return 32;
     }
 
     @Override

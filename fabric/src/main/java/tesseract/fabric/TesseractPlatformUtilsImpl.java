@@ -98,6 +98,7 @@ public class TesseractPlatformUtilsImpl {
     private static IEnergyHandler getEnergyStorage(Level level, BlockPos pos, BlockState state, BlockEntity be, Direction side){
         EnergyStorage storage = EnergyStorage.SIDED.find(level, pos, state, be, side);
         if (storage == null) return null;
+        if (storage instanceof IEnergyHandler moveable1) return moveable1;
         if (storage instanceof IEnergyHandlerStorage handlerStorage) return handlerStorage.getEnergyHandler();
         return new EnergyTileWrapper(be, storage);
     }
@@ -105,6 +106,7 @@ public class TesseractPlatformUtilsImpl {
     private static IEnergyHandler getEnergyMoveable(Level level, BlockPos pos, BlockState state, BlockEntity be, Direction side){
         EnergyMoveable moveable = EnergyApi.MOVEABLE.find(level, pos, state, be, side);
         if (moveable == null) return null;
+        if (moveable instanceof IEnergyHandler moveable1) return moveable1;
         if (moveable instanceof IEnergyHandlerMoveable moveable1) return moveable1.getEnergyHandler();
         return new EnergyMoveableWrapper(be, moveable);
     }

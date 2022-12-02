@@ -164,6 +164,10 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
         public long getVoltage() {
             return voltage;
         }
+
+        public GTTransaction getTransaction() {
+            return transaction;
+        }
     }
 
     public enum Mode {

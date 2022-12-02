@@ -36,12 +36,18 @@ public class EnergyTileWrapper implements IEnergyHandler {
 
     @Override
     public boolean extractEnergy(GTTransaction.TransferData data) {
-        return storage.extract((long) (data.getEnergy(1, false) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), Transaction.openNested(null)) > 0;
+        Transaction transaction = Transaction.openOuter();
+        boolean extract = storage.extract((long) (data.getEnergy(1, false) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction) > 0;
+        if (extract) transaction.commit();
+        return extract;
     }
 
     @Override
     public boolean addEnergy(GTTransaction.TransferData data) {
-        return storage.insert((long) (data.getEnergy(1, true) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), Transaction.openNested(null)) > 0;
+        Transaction transaction = Transaction.openOuter();
+        boolean insert = storage.insert((long) (data.getEnergy(1, true) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), Transaction.openNested(null)) > 0;
+        if (insert) transaction.commit();
+        return insert;
     }
 
     @Override
@@ -81,9 +87,9 @@ public class EnergyTileWrapper implements IEnergyHandler {
     @Override
     public long getInputVoltage() {
         if (storage instanceof SimpleSidedEnergyContainer limitingEnergyStorage){
-            return limitingEnergyStorage.getMaxExtract(null);
+            return limitingEnergyStorage.getMaxInsert(null);
         }
-        return Integer.MAX_VALUE;
+        return 32;
     }
 
     @Override
