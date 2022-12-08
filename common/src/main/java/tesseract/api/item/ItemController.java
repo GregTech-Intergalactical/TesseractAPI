@@ -4,8 +4,6 @@ import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -24,7 +22,6 @@ import tesseract.graph.Path;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;

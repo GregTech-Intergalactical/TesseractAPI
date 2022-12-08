@@ -6,10 +6,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import tesseract.TesseractCapUtils;
-import tesseract.TesseractPlatformUtils;
 import tesseract.api.GraphWrapper;
 import tesseract.api.wrapper.FluidTileWrapper;
 

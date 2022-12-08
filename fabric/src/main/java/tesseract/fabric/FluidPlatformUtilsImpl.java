@@ -1,6 +1,5 @@
 package tesseract.fabric;
 
-import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -9,7 +8,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import tesseract.FluidPlatformUtils;
 
 public class FluidPlatformUtilsImpl {
     public static FluidStack createFluidStack(Fluid fluid, long amount){

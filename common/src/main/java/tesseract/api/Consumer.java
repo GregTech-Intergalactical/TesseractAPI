@@ -2,7 +2,6 @@ package tesseract.api;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
-import tesseract.api.capability.TesseractBaseCapability;
 import tesseract.graph.Path;
 
 import java.util.Comparator;

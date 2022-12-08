@@ -8,7 +8,6 @@ import tesseract.TesseractConfig;
 import tesseract.api.gt.GTConsumer;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
-import tesseract.api.gt.IGTNode;
 
 public class EnergyTileWrapper implements IEnergyHandler {
 

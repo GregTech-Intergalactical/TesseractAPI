@@ -1,23 +1,13 @@
 package tesseract.fabric;
 
 
-import aztech.modern_industrialization.api.energy.EnergyApi;
-import aztech.modern_industrialization.api.energy.EnergyMoveable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.util.LazyOptional;
-import team.reborn.energy.api.EnergyStorage;
-import tesseract.api.TesseractCaps;
-import tesseract.api.fabric.TesseractCapsImpl;
-import tesseract.api.fabric.wrapper.*;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTNode;
-
-import javax.annotation.Nullable;
 
 @SuppressWarnings("UnstableApiUsage")
 public class TesseractPlatformUtilsImpl {

@@ -6,7 +6,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import tesseract.FluidPlatformUtils;
-import tesseract.Tesseract;
 
 import java.util.Set;
 

@@ -1,30 +1,28 @@
 package tests;
 
 
-import org.junit.Test;
-
 import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-
-import static org.junit.Assert.assertEquals;
+import net.minecraft.core.Direction;
+import org.junit.Test;
+import tesseract.Tesseract;
+import tesseract.api.GraphWrapper;
+import tesseract.api.GraphWrapper.ICapabilityGetter;
+import tesseract.api.gt.GTConsumer.State;
+import tesseract.api.gt.GTHolder;
+import tesseract.api.gt.GTTransaction;
+import tesseract.api.gt.GTTransaction.TransferData;
+import tesseract.api.gt.IGTCable;
+import tesseract.api.gt.IGTNode;
+import tesseract.controller.Energy;
+import tesseract.util.Pos;
+import tests.GraphTest.TestGraph;
 
 import java.util.function.Function;
 
-import net.minecraft.core.Direction;
-import tesseract.api.gt.GTConsumer.State;
-import tesseract.api.gt.GTTransaction.TransferData;
-import tesseract.controller.Energy;
-import tesseract.util.Pos;
-import tesseract.api.GraphWrapper;
-import tesseract.api.GraphWrapper.ICapabilityGetter;
-import tests.GraphTest.TestGraph;
-import tesseract.Tesseract;
-import tesseract.api.gt.GTHolder;
-import tesseract.api.gt.IGTCable;
-import tesseract.api.gt.IGTNode;
-import tesseract.api.gt.GTTransaction;
+import static org.junit.Assert.assertEquals;
 
 public class EnergyTest {
 

@@ -6,10 +6,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import tesseract.TesseractCapUtils;
-import tesseract.TesseractPlatformUtils;
 import tesseract.api.GraphWrapper;
 import tesseract.api.wrapper.ItemTileWrapper;
 

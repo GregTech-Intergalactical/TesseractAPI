@@ -9,8 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import tesseract.api.context.TesseractItemContext;
 
-import java.util.function.Supplier;
-
 public class ContainerItemContextWrapper implements TesseractItemContext {
     private final ContainerItemContext context;
     public ContainerItemContextWrapper(ContainerItemContext context){

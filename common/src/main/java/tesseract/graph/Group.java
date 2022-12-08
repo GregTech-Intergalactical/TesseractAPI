@@ -26,7 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.LongStream;
 
 /**
  * Group provides the functionality of a set of adjacent nodes that may or may not be linked.

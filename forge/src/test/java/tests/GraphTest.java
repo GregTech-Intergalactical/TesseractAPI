@@ -1,17 +1,8 @@
 package tests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-import java.util.function.Supplier;
-
-import javax.annotation.Nonnull;
-
-import org.junit.Test;
-
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import org.junit.Test;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
 import tesseract.api.ITickingController;
@@ -19,10 +10,17 @@ import tesseract.api.capability.ITransactionModifier;
 import tesseract.graph.Cache;
 import tesseract.graph.Connectivity;
 import tesseract.graph.Graph;
+import tesseract.graph.Graph.INodeGetter;
 import tesseract.graph.INode;
 import tesseract.graph.NodeCache;
-import tesseract.graph.Graph.INodeGetter;
 import tesseract.util.Pos;
+
+import javax.annotation.Nonnull;
+import java.util.List;
+import java.util.function.Supplier;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class GraphTest {
 

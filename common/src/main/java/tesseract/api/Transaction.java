@@ -2,7 +2,6 @@ package tesseract.api;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;

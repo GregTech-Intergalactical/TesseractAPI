@@ -1,7 +1,6 @@
 package tesseract.api.fabric.wrapper;
 
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -11,7 +10,6 @@ import tesseract.TesseractConfig;
 import tesseract.api.gt.GTConsumer;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
-import tesseract.api.gt.IGTNode;
 
 public class EnergyTileWrapper implements IEnergyHandler {
 

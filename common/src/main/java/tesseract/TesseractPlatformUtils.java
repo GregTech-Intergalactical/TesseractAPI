@@ -3,12 +3,7 @@ package tesseract;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.LazyOptional;
-import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTNode;
-
-import javax.annotation.Nullable;
 
 public class TesseractPlatformUtils {
     @ExpectPlatform
