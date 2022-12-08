@@ -1,10 +1,7 @@
 package tesseract.forge;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -16,23 +13,10 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import tesseract.Tesseract;
 import tesseract.TesseractConfig;
 import tesseract.api.GraphWrapper;
-import tesseract.api.TesseractCaps;
-import tesseract.api.fluid.FluidTransaction;
-import tesseract.api.fluid.IFluidNode;
-import tesseract.api.fluid.IFluidPipe;
-import tesseract.api.forge.TesseractCapsImpl;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IGTCable;
 import tesseract.api.gt.IGTNode;
-import tesseract.api.item.IItemNode;
-import tesseract.api.item.IItemPipe;
-import tesseract.api.item.ItemController;
-import tesseract.api.item.ItemTransaction;
 import tesseract.controller.Energy;
-import tesseract.controller.Fluid;
-
-import java.util.Set;
-import java.util.function.Consumer;
 
 @Mod(Tesseract.API_ID)
 public class TesseractImpl extends Tesseract {
@@ -45,7 +29,6 @@ public class TesseractImpl extends Tesseract {
         MinecraftForge.EVENT_BUS.addListener(this::serverStoppedEvent);
         MinecraftForge.EVENT_BUS.addListener(this::worldUnloadEvent);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
-        MinecraftForge.EVENT_BUS.addListener(TesseractCaps::register);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onModConfigEvent);
     }
 

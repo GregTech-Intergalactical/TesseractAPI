@@ -20,7 +20,7 @@ import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import team.reborn.energy.api.EnergyStorage;
 import tesseract.TesseractConfig;
-import tesseract.api.fabric.TesseractCapsImpl;
+import tesseract.api.fabric.TesseractLookups;
 import tesseract.api.fabric.wrapper.EnergyMoveableWrapper;
 import tesseract.api.fabric.wrapper.EnergyTileWrapper;
 import tesseract.api.fabric.wrapper.IEnergyHandlerMoveable;
@@ -32,7 +32,7 @@ import java.util.Optional;
 
 public class TesseractCapUtilsImpl {
     public static Optional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){
-        IEnergyHandler energyHandler = ContainerItemContext.withInitial(stack).find(TesseractCapsImpl.ENERGY_HANDLER_ITEM);
+        IEnergyHandler energyHandler = ContainerItemContext.withInitial(stack).find(TesseractLookups.ENERGY_HANDLER_ITEM);
         if (energyHandler == null){
             EnergyStorage storage = ContainerItemContext.withInitial(stack).find(EnergyStorage.ITEM);
             if (storage instanceof IEnergyHandler e){
@@ -43,7 +43,7 @@ public class TesseractCapUtilsImpl {
     }
 
     public static Optional<IEnergyHandler> getEnergyHandler(@NotNull BlockEntity entity, Direction side){
-        IEnergyHandler energyHandler = TesseractCapsImpl.ENERGY_HANDLER_SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
+        IEnergyHandler energyHandler = TesseractLookups.ENERGY_HANDLER_SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
         if (energyHandler == null) {
             if (FabricLoader.getInstance().isModLoaded("modern_industrialization") && TesseractConfig.COMMON.ENABLE_MI_COMPAT){
                 energyHandler = getEnergyMoveable(entity, side);
@@ -55,7 +55,7 @@ public class TesseractCapUtilsImpl {
     }
 
     public static Optional<IHeatHandler> getHeatHandler(BlockEntity entity, Direction side){
-        IHeatHandler heatHandler = TesseractCapsImpl.HEAT_HANDLER_SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
+        IHeatHandler heatHandler = TesseractLookups.HEAT_HANDLER_SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
         return Optional.ofNullable(heatHandler);
     }
 

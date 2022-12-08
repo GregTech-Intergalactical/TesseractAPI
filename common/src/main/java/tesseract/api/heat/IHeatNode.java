@@ -2,11 +2,9 @@ package tesseract.api.heat;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import tesseract.TesseractCapUtils;
 import tesseract.api.GraphWrapper;
-import tesseract.api.TesseractCaps;
 
 public interface IHeatNode {
     HeatTransaction extract();
