@@ -69,7 +69,7 @@ public class TesseractPlatformUtilsImpl {
         return null;
     }
 
-    public static boolean isFeCap(Capability<?> cap){
+    public static boolean isFeCap(Class<?> cap){
         return false;
     }
 

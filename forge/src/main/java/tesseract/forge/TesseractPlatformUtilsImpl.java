@@ -47,8 +47,8 @@ public class TesseractPlatformUtilsImpl {
         return null;
     }
 
-    public static boolean isFeCap(Capability<?> cap){
-        return cap == CapabilityEnergy.ENERGY;
+    public static boolean isFeCap(Class<?> cap){
+        return cap == IEnergyStorage.class;
     }
 
     public static boolean tileHasFEOrTRE(BlockEntity entity, Direction side){

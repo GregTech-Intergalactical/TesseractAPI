@@ -5,8 +5,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
@@ -27,7 +25,7 @@ public class TesseractPlatformUtils {
     }
 
     @ExpectPlatform
-    public static boolean isFeCap(Capability<?> cap){
+    public static boolean isFeCap(Class<?> cap){
         throw new AssertionError();
     }
 
