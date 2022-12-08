@@ -33,38 +33,16 @@ import javax.annotation.Nullable;
 public class TesseractPlatformUtilsImpl {
     public static IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        LazyOptional<IEnergyHandler> capability = tile.getCapability(TesseractCapsImpl.ENERGY_HANDLER_CAPABILITY, direction);
+        LazyOptional<IEnergyHandler> capability = TesseractCapUtilsImpl.getEnergyHandler(tile, direction).map(e -> LazyOptional.of(() -> e)).orElse(LazyOptional.empty());
         if (capability.isPresent()) {
-            if (invalidate != null) capability.addListener(t -> invalidate.run());
-            return capability.orElse(null);
-        } else {
-            capability = getWrappedHandler(tile, direction);
-            if (capability.isPresent()) {
-                if (invalidate != null )capability.addListener(o -> invalidate.run());
-                return capability.orElse(null);
-            }
+            if (invalidate != null )capability.addListener(o -> invalidate.run());
+            return capability.resolve().get();
         }
         return null;
     }
 
     public static boolean isFeCap(Class<?> cap){
         return cap == IEnergyStorage.class;
-    }
-
-    public static boolean tileHasFEOrTRE(BlockEntity entity, Direction side){
-        return entity.getCapability(CapabilityEnergy.ENERGY, side).isPresent();
-    }
-
-    public static LazyOptional<IEnergyHandler> getWrappedHandler(BlockEntity be, @Nullable Direction side){
-        IEnergyStorage storage = be.getCapability(CapabilityEnergy.ENERGY, side).map(i -> i).orElse(null);
-        if (storage == null) return LazyOptional.empty();
-        if (storage instanceof IEnergyHandlerStorage handlerStorage) return LazyOptional.of(handlerStorage::getEnergyHandler);
-        return LazyOptional.of(() -> new EnergyTileWrapper(be, storage));
-    }
-
-    public static LazyOptional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){
-        if (stack == null || stack.isEmpty()) return LazyOptional.empty();
-        return stack.getCapability(TesseractCapsImpl.ENERGY_HANDLER_CAPABILITY);
     }
 
     public static boolean isForge(){

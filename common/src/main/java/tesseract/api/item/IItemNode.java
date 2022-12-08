@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import tesseract.TesseractCapUtils;
 import tesseract.TesseractPlatformUtils;
 import tesseract.api.GraphWrapper;
 import tesseract.api.wrapper.ItemTileWrapper;
@@ -82,7 +83,7 @@ public interface IItemNode extends IItemHandler {
         if (tile == null) {
             return null;
         }
-        LazyOptional<IItemHandler> h = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, capSide);
+        LazyOptional<IItemHandler> h = TesseractCapUtils.getLazyItemHandler(tile, capSide);
         if (h.isPresent()) {
             if (capCallback != null) h.addListener(t -> capCallback.run());
             if (h.map(t -> t instanceof IItemNode).orElse(false)) {

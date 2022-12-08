@@ -8,6 +8,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import tesseract.TesseractCapUtils;
 import tesseract.TesseractPlatformUtils;
 import tesseract.api.GraphWrapper;
 import tesseract.api.wrapper.FluidTileWrapper;
@@ -94,10 +95,10 @@ public interface IFluidNode extends IFluidHandler {
         if (tile == null) {
             return null;
         }
-        LazyOptional<IFluidHandler> capability = tile.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, capSide);
+        LazyOptional<IFluidHandler> capability = TesseractCapUtils.getLazyFluidHandler(tile, capSide);
         if (capability.isPresent()) {
             if (capCallback != null) capability.addListener(o -> capCallback.run());
-            IFluidHandler handler = capability.orElse(null);
+            IFluidHandler handler = capability.map(f -> f).orElse(null);
             return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);
         } else {
             return null;

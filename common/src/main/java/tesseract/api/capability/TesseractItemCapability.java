@@ -7,6 +7,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import org.jetbrains.annotations.NotNull;
+import tesseract.TesseractCapUtils;
 import tesseract.TesseractGraphWrappers;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
@@ -68,10 +69,10 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
             BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
             if (otherTile != null) {
                 //Check the handler.
-                var cap = otherTile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, dir.getOpposite());
-                if (!cap.isPresent()) continue;
+                var cap = TesseractCapUtils.getItemHandler(otherTile, dir.getOpposite());
+                if (cap.isEmpty()) continue;
                 //Perform insertion, and add to the transaction.
-                var handler = cap.resolve().get();
+                var handler = cap.get();
                 var newStack = ItemHandlerHelper.insertItem(handler, stack, true);
                 if (newStack.getCount() < stack.getCount()) {
                     transaction.addData(stack.getCount() - newStack.getCount(), a -> {

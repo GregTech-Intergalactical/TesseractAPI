@@ -7,6 +7,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
+import tesseract.TesseractCapUtils;
 import tesseract.TesseractGraphWrappers;
 import tesseract.api.fluid.FluidTransaction;
 import tesseract.api.fluid.IFluidNode;
@@ -78,10 +79,10 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
                 FluidStack stack = transaction.stack.copy();
                 this.callback.modify(stack, this.side, dir, true);
                 //Check the handler.
-                var cap = otherTile.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, dir.getOpposite());
-                if (!cap.isPresent()) continue;
+                var cap = TesseractCapUtils.getFluidHandler(otherTile, dir.getOpposite());
+                if (cap.isEmpty()) continue;
                 //Perform insertion, and add to the transaction.
-                var handler = cap.resolve().get();
+                var handler = cap.get();
                 long amount = handler.fillDroplets(stack,  IFluidHandler.FluidAction.SIMULATE);
                 if (amount > 0) {
                     stack.setAmount(amount);

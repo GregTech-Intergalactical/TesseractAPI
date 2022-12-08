@@ -5,6 +5,7 @@
   "plugin": "tesseract.mixin.fabric.TesseractMixinPlugin",
   "mixins": [
     "IEnergyHandlerMixin",
+    "SimpleItemEnergyStorageImplMixin",
     "mi.AbstractStorageMachineBEMixin",
     "mi.IEnergyHandlerMixin"
   ],

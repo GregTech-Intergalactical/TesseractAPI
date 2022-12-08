@@ -5,6 +5,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import tesseract.Tesseract;
+import tesseract.TesseractCapUtils;
 import tesseract.api.TesseractCaps;
 import tesseract.api.gt.GTConsumer;
 import tesseract.api.gt.GTTransaction;
@@ -46,10 +47,10 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
             BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
             if (otherTile != null) {
                 //Check the handler.
-                var cap = otherTile.getCapability(TesseractCaps.getENERGY_HANDLER_CAPABILITY(), dir.getOpposite());
+                var cap = TesseractCapUtils.getEnergyHandler(otherTile, dir.getOpposite());
                 if (!cap.isPresent()) continue;
                 //Perform insertion, and add to the transaction.
-                var handler = cap.resolve().get();
+                var handler = cap.get();
                 var prev = transaction.getData().size();
                 if (!handler.insert(transaction)) continue;
                 flag = true;

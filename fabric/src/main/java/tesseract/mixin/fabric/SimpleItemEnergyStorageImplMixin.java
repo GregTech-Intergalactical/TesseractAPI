@@ -1,0 +1,147 @@
+package tesseract.mixin.fabric;
+
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import team.reborn.energy.impl.SimpleItemEnergyStorageImpl;
+import tesseract.api.gt.GTConsumer;
+import tesseract.api.gt.GTTransaction;
+import tesseract.api.gt.IEnergyHandler;
+
+@Mixin(SimpleItemEnergyStorageImpl.class)
+public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandler {
+    @Shadow public abstract long getAmount();
+
+    @Shadow public abstract boolean supportsExtraction();
+
+    @Shadow public abstract boolean supportsInsertion();
+
+    @Shadow @Final private long maxInsert;
+    @Shadow @Final private long maxExtract;
+
+    @Shadow public abstract long getCapacity();
+
+    @Shadow public abstract long extract(long maxAmount, TransactionContext transaction);
+
+    @Shadow public abstract long insert(long maxAmount, TransactionContext transaction);
+
+    @Unique
+    protected GTConsumer.State state = new GTConsumer.State(this);
+
+    @Override
+    public CompoundTag serializeNBT() {
+        return new CompoundTag();
+    }
+
+    @Override
+    public void deserializeNBT(CompoundTag nbt) {
+
+    }
+
+    @Override
+    public boolean extractEnergy(GTTransaction.TransferData data) {
+        if (data.transaction.mode == GTTransaction.Mode.TRANSMIT) {
+            long amps = Math.min(data.getAmps(false), this.availableAmpsOutput());
+            amps = Math.min(amps, this.getEnergy() / this.getOutputVoltage());
+            long toDrain = data.getEnergy(amps, false);
+            Transaction transaction = Transaction.openOuter();
+            long drained = this.extract(toDrain, transaction);
+            if (drained > 0){
+                transaction.commit();
+                this.getState().extract(false, amps);
+                data.useAmps(false, amps);
+            }
+            return amps > 0;
+        } else {
+            long toDrain = Math.min(data.getEu(), this.getEnergy());
+            Transaction transaction = Transaction.openOuter();
+            long extracted = this.extract(toDrain, transaction);
+            if (extracted > 0) {
+                data.drainEu(toDrain);
+                transaction.commit();
+            }
+            return extracted > 0;
+        }
+    }
+
+    @Override
+    public boolean addEnergy(GTTransaction.TransferData data) {
+        if (data.transaction.mode == GTTransaction.Mode.TRANSMIT) {
+            long amps = Math.min(data.getAmps(true), this.availableAmpsInput());
+            amps = Math.min(amps, (this.getCapacity() - this.getAmount()) / this.getInputVoltage());
+            long toAdd = data.getEnergy(amps, true);
+            Transaction transaction = Transaction.openOuter();
+            long added = this.insert(toAdd, transaction);
+            if (added > 0){
+                transaction.commit();
+                data.useAmps(true, amps);
+                this.getState().receive(false, amps);
+            }
+            return amps > 0;
+        } else {
+            long toAdd = Math.min(data.getEu(), this.getCapacity() - this.getAmount());
+            Transaction transaction = Transaction.openOuter();
+            long inserted = this.insert(toAdd, transaction);
+            if (inserted > 0) {
+                data.drainEu(toAdd);
+                transaction.commit();
+            }
+            return inserted > 0;
+        }
+    }
+
+    @Override
+    public long getEnergy() {
+        return getAmount();
+    }
+
+    @Override
+    public long getOutputAmperage() {
+        return 1;
+    }
+
+    @Override
+    public long getOutputVoltage() {
+        return this.maxExtract;
+    }
+
+    @Override
+    public long getInputAmperage() {
+        return 2;
+    }
+
+    @Override
+    public long getInputVoltage() {
+        return this.maxInsert;
+    }
+
+    @Override
+    public boolean canOutput() {
+        return supportsExtraction();
+    }
+
+    @Override
+    public boolean canInput() {
+        return supportsInsertion();
+    }
+
+    @Override
+    public boolean canInput(Direction direction) {
+        return supportsInsertion();
+    }
+
+    @Override
+    public boolean canOutput(Direction direction) {
+        return supportsExtraction();
+    }
+
+    @Override
+    public GTConsumer.State getState() {
+        return state;
+    }
+}
