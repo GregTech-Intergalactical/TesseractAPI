@@ -6,9 +6,13 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.ModLoadingContext;
@@ -89,5 +93,9 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
 
     public static <T extends BlockEntity> void registerTRETile(BiFunction<T, Direction, IEnergyHandler> function, BlockEntityType<T> type){
         EnergyStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> (EnergyStorage) function.apply(blockEntity, direction), type);
+    }
+
+    public static void registerTREItem(BiFunction<ItemStack, ContainerItemContext, IEnergyHandler> function, Item type){
+        EnergyStorage.ITEM.registerForItems((stack, context) -> (EnergyStorage) function.apply(stack, context), type);
     }
 }
