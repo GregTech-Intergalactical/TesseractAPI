@@ -15,6 +15,12 @@ public interface TesseractItemContext {
 
     void setItemStack(ItemStack stack);
 
+    default ItemStack getItemStack(){
+        ItemStack stack = new ItemStack(getItem(), getCount());
+        stack.setTag(getTag());
+        return stack;
+    }
+
     default CompoundTag getOrCreateTagElement(String key) {
         if (this.getTag().contains(key, 10)) {
             return this.getTag().getCompound(key);

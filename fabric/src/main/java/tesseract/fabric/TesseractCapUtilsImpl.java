@@ -26,16 +26,17 @@ import tesseract.api.fabric.wrapper.EnergyTileWrapper;
 import tesseract.api.fabric.wrapper.IEnergyHandlerMoveable;
 import tesseract.api.fabric.wrapper.IEnergyHandlerStorage;
 import tesseract.api.gt.IEnergyHandler;
+import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 
 import java.util.Optional;
 
 public class TesseractCapUtilsImpl {
-    public static Optional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){
-        IEnergyHandler energyHandler = ContainerItemContext.withInitial(stack).find(TesseractLookups.ENERGY_HANDLER_ITEM);
+    public static Optional<IEnergyHandlerItem> getEnergyHandlerItem(ItemStack stack){
+        IEnergyHandlerItem energyHandler = ContainerItemContext.withInitial(stack).find(TesseractLookups.ENERGY_HANDLER_ITEM);
         if (energyHandler == null){
             EnergyStorage storage = ContainerItemContext.withInitial(stack).find(EnergyStorage.ITEM);
-            if (storage instanceof IEnergyHandler e){
+            if (storage instanceof IEnergyHandlerItem e){
                 energyHandler = e;
             }
         }

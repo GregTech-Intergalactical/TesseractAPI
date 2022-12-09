@@ -22,8 +22,11 @@ import team.reborn.energy.api.EnergyStorage;
 import tesseract.Tesseract;
 import tesseract.TesseractConfig;
 import tesseract.api.GraphWrapper;
+import tesseract.api.fabric.TesseractLookups;
+import tesseract.api.fabric.wrapper.ContainerItemContextWrapper;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
+import tesseract.api.gt.IEnergyItem;
 import tesseract.api.gt.IGTCable;
 import tesseract.api.gt.IGTNode;
 import tesseract.controller.Energy;
@@ -85,6 +88,12 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
         ServerWorldEvents.UNLOAD.register((TesseractImpl::onWorldUnload));
         ModConfigEvent.LOADING.register(TesseractConfig::onModConfigEvent);
         ModConfigEvent.RELOADING.register(TesseractConfig::onModConfigEvent);
+        TesseractLookups.ENERGY_HANDLER_ITEM.registerFallback((s, c) -> {
+            if (s.getItem() instanceof IEnergyItem energyItem){
+                return energyItem.createEnergyHandler(new ContainerItemContextWrapper(c));
+            }
+            return null;
+        });
     }
 
     public static <T extends BlockEntity> void registerMITile(BiFunction<T, Direction, IEnergyHandler> function, BlockEntityType<T> type){

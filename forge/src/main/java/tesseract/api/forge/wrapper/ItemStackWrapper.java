@@ -31,4 +31,9 @@ public class ItemStackWrapper implements TesseractItemContext {
     public void setItemStack(ItemStack stack) {
 
     }
+
+    @Override
+    public ItemStack getItemStack() {
+        return stack;
+    }
 }

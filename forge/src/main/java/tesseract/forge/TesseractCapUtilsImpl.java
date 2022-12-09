@@ -14,14 +14,15 @@ import tesseract.api.forge.TesseractCaps;
 import tesseract.api.forge.wrapper.EnergyTileWrapper;
 import tesseract.api.forge.wrapper.IEnergyHandlerStorage;
 import tesseract.api.gt.IEnergyHandler;
+import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class TesseractCapUtilsImpl {
-    public static Optional<IEnergyHandler> getEnergyHandlerItem(ItemStack stack){
-        return stack.getCapability(TesseractCaps.ENERGY_HANDLER_CAPABILITY).map(e -> e);
+    public static Optional<IEnergyHandlerItem> getEnergyHandlerItem(ItemStack stack){
+        return stack.getCapability(TesseractCaps.ENERGY_HANDLER_CAPABILITY_ITEM).map(e -> e);
     }
 
     public static Optional<IEnergyHandler> getEnergyHandler(BlockEntity entity, Direction side){

@@ -8,23 +8,19 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import tesseract.Tesseract;
 import tesseract.api.gt.IEnergyHandler;
+import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 
 @Mod.EventBusSubscriber(modid = Tesseract.API_ID)
 public class TesseractCaps {
     public static final Capability<IEnergyHandler> ENERGY_HANDLER_CAPABILITY = CapabilityManager.get(new CapabilityToken<>(){});
+    public static final Capability<IEnergyHandlerItem> ENERGY_HANDLER_CAPABILITY_ITEM = CapabilityManager.get(new CapabilityToken<>(){});
     public static final Capability<IHeatHandler> HEAT_CAPABILITY = CapabilityManager.get(new CapabilityToken<>(){});
-
-    public static Capability<IEnergyHandler> getENERGY_HANDLER_CAPABILITY(){
-        return ENERGY_HANDLER_CAPABILITY;
-    }
-    public static Capability<IHeatHandler> getHEAT_CAPABILITY(){
-        return HEAT_CAPABILITY;
-    }
 
     @SubscribeEvent
     public static void register(RegisterCapabilitiesEvent ev) {
         ev.register(IEnergyHandler.class);
+        ev.register(IEnergyHandlerItem.class);
         ev.register(IHeatHandler.class);
     }
 }

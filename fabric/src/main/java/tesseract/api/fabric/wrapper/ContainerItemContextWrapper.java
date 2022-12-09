@@ -40,6 +40,8 @@ public class ContainerItemContextWrapper implements TesseractItemContext {
 
     @Override
     public void setItemStack(ItemStack stack) {
-        context.exchange(ItemVariant.of(stack), stack.getCount(), Transaction.openOuter());
+        Transaction transaction = Transaction.openOuter();
+        context.exchange(ItemVariant.of(stack), stack.getCount(), transaction);
+        transaction.commit();
     }
 }

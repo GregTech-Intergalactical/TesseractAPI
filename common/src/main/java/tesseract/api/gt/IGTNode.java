@@ -55,19 +55,6 @@ public interface IGTNode {
      */
     long getCapacity();
 
-    default void setEnergy(long energy) {
-        GTTransaction transaction = extract(GTTransaction.Mode.INTERNAL);
-        transaction.addData(this.getEnergy(), a -> {
-        });
-        transaction.commit();
-        transaction = new GTTransaction(energy, a -> {
-        });
-        insert(transaction);
-        transaction.commit();
-    }
-    default void setCapacity(long capacity){
-    }
-
     /**
      * @return Gets the maximum amount of amperage that can be output.
      */

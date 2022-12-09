@@ -1,20 +1,27 @@
 package tesseract.mixin.fabric;
 
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import team.reborn.energy.api.base.SimpleBatteryItem;
 import team.reborn.energy.impl.SimpleItemEnergyStorageImpl;
+import tesseract.api.context.TesseractItemContext;
+import tesseract.api.fabric.wrapper.ContainerItemContextWrapper;
 import tesseract.api.gt.GTConsumer;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
+import tesseract.api.gt.IEnergyHandlerItem;
 
 @Mixin(SimpleItemEnergyStorageImpl.class)
-public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandler {
+public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandlerItem {
     @Shadow public abstract long getAmount();
 
     @Shadow public abstract boolean supportsExtraction();
@@ -30,8 +37,15 @@ public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandler
 
     @Shadow public abstract long insert(long maxAmount, TransactionContext transaction);
 
+    @Shadow @Final private ContainerItemContext ctx;
+
+    @Shadow protected abstract boolean trySetEnergy(long energyAmountPerCount, long count, TransactionContext transaction);
+
     @Unique
     protected GTConsumer.State state = new GTConsumer.State(this);
+
+    @Unique
+    private TesseractItemContext tesseractContext;
 
     @Override
     public CompoundTag serializeNBT() {
@@ -143,5 +157,24 @@ public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandler
     @Override
     public GTConsumer.State getState() {
         return state;
+    }
+
+    @Override
+    public void setEnergy(long energy) {
+        if (energy < 0) return;
+        ItemStack newStack = ctx.getItemVariant().toStack((int) ctx.getAmount());
+        SimpleBatteryItem.setStoredEnergyUnchecked(newStack, energy);
+        getContainer().setItemStack(newStack);
+    }
+
+    @Override
+    public void setCapacity(long capacity) {
+        // nothing cause the capacity is not mutable.
+    }
+
+    @Override
+    public @NotNull TesseractItemContext getContainer() {
+        if (tesseractContext == null) tesseractContext = new ContainerItemContextWrapper(ctx);
+        return tesseractContext;
     }
 }
