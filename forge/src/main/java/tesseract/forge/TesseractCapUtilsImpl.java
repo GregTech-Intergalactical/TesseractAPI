@@ -8,6 +8,7 @@ import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import tesseract.api.forge.TesseractCaps;
@@ -23,6 +24,10 @@ import java.util.Optional;
 public class TesseractCapUtilsImpl {
     public static Optional<IEnergyHandlerItem> getEnergyHandlerItem(ItemStack stack){
         return stack.getCapability(TesseractCaps.ENERGY_HANDLER_CAPABILITY_ITEM).map(e -> e);
+    }
+
+    public static Optional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack){
+        return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).map(f -> f);
     }
 
     public static Optional<IEnergyHandler> getEnergyHandler(BlockEntity entity, Direction side){
