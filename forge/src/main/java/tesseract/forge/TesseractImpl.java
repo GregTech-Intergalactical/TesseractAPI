@@ -19,6 +19,7 @@ import tesseract.TesseractConfig;
 import tesseract.api.GraphWrapper;
 import tesseract.api.context.TesseractItemContext;
 import tesseract.api.forge.Provider;
+import tesseract.api.forge.TesseractCaps;
 import tesseract.api.forge.wrapper.ItemStackWrapper;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyItem;
@@ -46,7 +47,7 @@ public class TesseractImpl extends Tesseract {
     public void onAttachCapabilitiesEventItemStack(AttachCapabilitiesEvent<ItemStack> event){
         if (event.getObject().getItem() instanceof IEnergyItem energyItem){
             TesseractItemContext context = new ItemStackWrapper(event.getObject());
-            event.addCapability(new ResourceLocation(Tesseract.API_ID, "energy_items"), new Provider(energyItem.canCreate(context) ? () -> energyItem.createEnergyHandler(context) : null));
+            event.addCapability(new ResourceLocation(Tesseract.API_ID, "energy_items"), new Provider<>(TesseractCaps.ENERGY_HANDLER_CAPABILITY_ITEM, energyItem.canCreate(context) ? () -> energyItem.createEnergyHandler(context) : null));
         }
     }
 
