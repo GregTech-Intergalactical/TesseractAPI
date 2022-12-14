@@ -13,15 +13,17 @@ displayURL="https://github.com/GregTech-Intergalactical/TesseractAPI"
 authors="coderbot16, qubka, repolainen, mitchej123, Muramasa, abbe, Trinsdar"
 credits="Rongmario - cheerleading from the side"
 description='''Powerful framework for energy, item, and fluid transport'''
+[custom.mc-publish]
+curseforge=462718
 [[dependencies.tesseractapi]]
     modId="forge"
     mandatory=true
-    versionRange="[39,)"
+    versionRange="[40.1.73,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.tesseractapi]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.18,]"
+    versionRange="[1.18.2,]"
     ordering="NONE"
     side="BOTH"
