@@ -11,6 +11,8 @@ jobs:
         os: [ubuntu-20.04]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Checkout Tesseract
+        uses: actions/checkout@v2
       - name: Fetch tags
         run: git fetch --tags
       - name: Validate Gradle wrapper
