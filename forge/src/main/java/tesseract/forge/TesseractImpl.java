@@ -6,8 +6,8 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -61,24 +61,24 @@ public class TesseractImpl extends Tesseract {
         GraphWrapper.getWrappers().forEach(GraphWrapper::clear);
     }
 
-    public void worldUnloadEvent(WorldEvent.Unload e) {
-        if (!(e.getWorld() instanceof Level) || ((Level) e.getWorld()).isClientSide) return;
+    public void worldUnloadEvent(LevelEvent.Unload e) {
+        if (!(e.getLevel() instanceof Level) || ((Level) e.getLevel()).isClientSide) return;
         //FE_ENERGY.removeWorld((World) e.getWorld());
-        GraphWrapper.getWrappers().forEach(g -> g.removeWorld((Level)e.getWorld()));
-        firstTick.remove(e.getWorld());
+        GraphWrapper.getWrappers().forEach(g -> g.removeWorld((Level)e.getLevel()));
+        firstTick.remove(e.getLevel());
     }
 
-    public void onServerTick(TickEvent.WorldTickEvent event) {
+    public void onServerTick(TickEvent.LevelTickEvent event) {
         if (event.side.isClient()) return;
-        Level dim = event.world;
+        Level dim = event.level;
         if (!hadFirstTick(dim)) {
-            firstTick.add(event.world);
+            firstTick.add(event.level);
             GraphWrapper.getWrappers().forEach(t -> t.onFirstTick(dim));
         }
         if (event.phase == TickEvent.Phase.START) {
             GraphWrapper.getWrappers().forEach(t -> t.tick(dim));
         }
-        if (Tesseract.HEALTH_CHECK_TIME > 0 && event.world.getGameTime() % Tesseract.HEALTH_CHECK_TIME == 0) {
+        if (Tesseract.HEALTH_CHECK_TIME > 0 && event.level.getGameTime() % Tesseract.HEALTH_CHECK_TIME == 0) {
             GraphWrapper.getWrappers().forEach(GraphWrapper::healthCheck);
         }
     }
