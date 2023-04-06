@@ -44,6 +44,12 @@ dependencies {
     testImplementation('junit:junit:4.11')
 }
 
+shadowJar {
+    configurations = [project.configurations.shadowCommon]
+    classifier "dev-shadow"
+    exclude "io/github/feltmc/fluidhandler_extras/Main.class"
+}
+
 processResources {
     inputs.property "version", project.version
 
