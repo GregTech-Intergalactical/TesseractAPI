@@ -17,6 +17,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.IItemHandler;
@@ -47,13 +48,18 @@ public class TesseractCapUtilsImpl {
     }
 
     public static Optional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack){
-        Storage<FluidVariant> storage = ContainerItemContext.withInitial(stack).find(FluidStorage.ITEM);
+        ContainerItemContext ctx = ContainerItemContext.withInitial(stack);
+        Storage<FluidVariant> fluidStorage = FluidStorage.ITEM.find(stack, ctx);
+        if (fluidStorage instanceof IFluidHandlerItem handlerItem) return Optional.of(handlerItem);
+        return fluidStorage == null ? Optional.empty() : Optional.of(new FluidStorageHandlerItem(ctx, fluidStorage));
+        /*Storage<FluidVariant> storage = ContainerItemContext.withInitial(stack).find(FluidStorage.ITEM);
         if (storage instanceof IFluidHandlerItem fluidHandlerItem) return Optional.of(fluidHandlerItem);
+        FluidUtil.getFluidHandler()
         if (storage instanceof SingleVariantItemStorage<FluidVariant> singleVariantStorage) {
             //TODO fix in fabricated-forge-api
-            //return new FluidStorageHandlerItem(singleVariantStorage);
+            return new FluidStorageHandlerItem(singleVariantStorage);
         }
-        return Optional.empty();
+        return Optional.empty();*/
     }
 
     public static Optional<IEnergyHandler> getEnergyHandler(@NotNull BlockEntity entity, Direction side){
