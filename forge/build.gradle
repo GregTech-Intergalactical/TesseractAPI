@@ -16,7 +16,7 @@ sourceSets {
 loom {
     forge{
         mixinConfigs = [
-                "tesseract-forge.mixins.json", "fluidhandler-extras.mixins.json"
+                "tesseract-forge.mixins.json"
         ]
     }
     runs {
