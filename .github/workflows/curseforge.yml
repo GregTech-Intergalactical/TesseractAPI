@@ -4,11 +4,11 @@ on:
     inputs:
       fabric:
         type: boolean
-        description: Whether to publish fabric jars
+        description: Publish fabric jar
         default: true
       forge:
         type: boolean
-        description: Whether to publish forge jars
+        description: Publish forge jar
         default: true
 jobs:
   curseforge:
