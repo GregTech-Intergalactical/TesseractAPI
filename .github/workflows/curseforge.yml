@@ -1,6 +1,15 @@
 name: Publish To Curseforge
 on:
   workflow_dispatch:
+    inputs:
+      fabric:
+        type: boolean
+        description: Whether to publish fabric jars
+        default: true
+      forge:
+        type: boolean
+        description: Whether to publish forge jars
+        default: true
 jobs:
   release:
     strategy:
@@ -31,6 +40,7 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           GITHUB_RELEASE: true
       - name: Publish forge jar to curseforge
+        if: ${{ github.event.inputs.forge }}
         uses: Kir-Antipov/mc-publish@v3.2
         with:
           # You don't need this section if you don't want to publish
@@ -42,6 +52,7 @@ jobs:
           files-primary: forge/build/libs/!(*-@(dev-shadow|sources|javadoc)).jar
           files-secondary: forge/build/libs/*-@(dev-shadow|sources|javadoc).jar
       - name: Publish fabric jar to curseforge
+        if: ${{ github.event.inputs.fabric }}
         uses: Kir-Antipov/mc-publish@v3.2
         with:
           # You don't need this section if you don't want to publish
