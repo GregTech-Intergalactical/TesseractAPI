@@ -11,7 +11,7 @@ on:
         description: Whether to publish forge jars
         default: true
 jobs:
-  release:
+  curseforge:
     strategy:
       matrix:
         # Use these Java versions
@@ -47,6 +47,7 @@ jobs:
           # your assets to CurseForge
           curseforge-id: 462718
           curseforge-token: ${{ secrets.CURSEFORGE_API_TOKEN }}
+          name: ""
           version-type: beta
           changelog-file: CHANGELOG.md
           files-primary: forge/build/libs/!(*-@(dev-shadow|sources|javadoc)).jar
@@ -59,6 +60,7 @@ jobs:
           # your assets to CurseForge
           curseforge-id: 462718
           curseforge-token: ${{ secrets.CURSEFORGE_API_TOKEN }}
+          name: ""
           version-type: beta
           changelog-file: CHANGELOG.md
           files-primary: fabric/build/libs/!(*-@(dev-shadow|sources|javadoc)).jar
