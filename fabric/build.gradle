@@ -4,7 +4,7 @@ architectury {
 }
 
 archivesBaseName = "${rootProject.tesseract_archive_base_name}-fabric"
-version = "${rootProject.minecraft_version}-${project.mod_version}"
+version = "${project.mod_version}-${rootProject.minecraft_version}"
 
 sourceSets {
     test {
