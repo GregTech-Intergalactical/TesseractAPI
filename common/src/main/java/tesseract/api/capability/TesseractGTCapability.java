@@ -143,12 +143,12 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
     }
 
     @Override
-    public CompoundTag serializeNBT() {
+    public CompoundTag serialize(CompoundTag nbt) {
         return null;
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserialize(CompoundTag nbt) {
 
     }
 }

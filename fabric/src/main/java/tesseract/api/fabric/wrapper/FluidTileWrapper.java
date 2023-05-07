@@ -1,12 +1,16 @@
 package tesseract.api.fabric.wrapper;
 
-import earth.terrarium.botarium.api.fluid.FluidHolder;
-import earth.terrarium.botarium.fabric.fluid.FabricFluidHolder;
+
+import earth.terrarium.botarium.common.fluid.base.FluidContainer;
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
+import earth.terrarium.botarium.common.fluid.base.FluidSnapshot;
+import earth.terrarium.botarium.fabric.fluid.holder.FabricFluidHolder;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import tesseract.api.fluid.IFluidNode;
 
@@ -23,13 +27,18 @@ public record FluidTileWrapper(BlockEntity tile,
     }
 
     @Override
-    public boolean supportsExtraction() {
+    public boolean allowsExtraction() {
         return storage().supportsExtraction();
     }
 
     @Override
-    public boolean supportsInsertion() {
-        return supportsInsertion();
+    public FluidSnapshot createSnapshot() {
+        return null;
+    }
+
+    @Override
+    public boolean allowsInsertion() {
+        return storage.supportsInsertion();
     }
 
     @Override
@@ -48,33 +57,56 @@ public record FluidTileWrapper(BlockEntity tile,
     }
 
     @Override
-    public int getTankAmount() {
+    public int getSize() {
         int size = 0;
-        for (StorageView<FluidVariant> ignored : storage) {
-            size++;
+        try (Transaction transaction = Transaction.openOuter()) {
+            for (StorageView<FluidVariant> ignored : storage.iterable(transaction)) {
+                size++;
+            }
+            transaction.abort();
         }
+
         return size;
     }
 
-    @Nonnull
     @Override
-    public FluidHolder getFluidInTank(int tank) {
-        List<FluidHolder> fluids = new ArrayList<>();
-        storage.iterator().forEachRemaining(variant -> fluids.add(FabricFluidHolder.of(variant.getResource(), variant.getAmount())));
-        return fluids.get(tank);
+    public boolean isEmpty() {
+        return getFluids().isEmpty() || getFluids().stream().allMatch(FluidHolder::isEmpty);
+    }
+
+    @Override
+    public FluidContainer copy() {
+        return null;
     }
 
     @Override
     public long getTankCapacity(int tank) {
         List<StorageView<FluidVariant>> fluids = new ArrayList<>();
-        storage.iterator().forEachRemaining(fluids::add);
+        try (Transaction transaction = Transaction.openOuter()) {
+            storage.iterator(transaction).forEachRemaining(fluids::add);
+            transaction.abort();
+        }
+
         return fluids.get(tank).getCapacity();
     }
 
     @Override
-    public List<FluidHolder> getFluidTanks() {
+    public void fromContainer(FluidContainer container) {
+
+    }
+
+    @Override
+    public long extractFromSlot(FluidHolder fluidHolder, FluidHolder toInsert, Runnable snapshot) {
+        return 0;
+    }
+
+    @Override
+    public List<FluidHolder> getFluids() {
         List<FluidHolder> fluids = new ArrayList<>();
-        storage.iterator().forEachRemaining(variant -> fluids.add(FabricFluidHolder.of(variant.getResource(), variant.getAmount())));
+        try (Transaction transaction = Transaction.openOuter()) {
+            storage.iterator(transaction).forEachRemaining(variant -> fluids.add(FabricFluidHolder.of(variant.getResource(), variant.getAmount())));
+            transaction.abort();
+        }
         return fluids;
     }
 
@@ -105,5 +137,25 @@ public record FluidTileWrapper(BlockEntity tile,
             }
             return extracted == 0 ? FabricFluidHolder.of(fabricFluidHolder.toVariant(), extracted) : fluid;
         }
+    }
+
+    @Override
+    public void setFluid(int slot, FluidHolder fluid) {
+
+    }
+
+    @Override
+    public void deserialize(CompoundTag nbt) {
+
+    }
+
+    @Override
+    public CompoundTag serialize(CompoundTag nbt) {
+        return null;
+    }
+
+    @Override
+    public void clearContent() {
+
     }
 }

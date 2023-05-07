@@ -1,7 +1,7 @@
 package tesseract.api.fluid;
 
-import earth.terrarium.botarium.api.fluid.FluidHolder;
-import earth.terrarium.botarium.api.fluid.PlatformFluidHandler;
+import earth.terrarium.botarium.common.fluid.base.FluidContainer;
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import net.minecraft.core.Direction;
 import tesseract.TesseractCapUtils;
 import tesseract.api.GraphWrapper;
@@ -14,7 +14,7 @@ import tesseract.api.GraphWrapper;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IFluidNode extends PlatformFluidHandler {
+public interface IFluidNode extends FluidContainer {
     /**
      * @param direction Direction to the proceed.
      * @return Returns the priority of this node as a number.
@@ -57,6 +57,10 @@ public interface IFluidNode extends PlatformFluidHandler {
     }
 
     default boolean isFluidValid(int tank, FluidHolder stack) { return true; }
+
+    default FluidHolder getFluidInTank(int tank){
+        return getFluids().get(tank);
+    }
 
     GraphWrapper.ICapabilityGetter<IFluidNode> GETTER = (TesseractCapUtils::getFluidNode);
 }

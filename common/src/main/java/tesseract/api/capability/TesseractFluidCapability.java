@@ -1,9 +1,13 @@
 package tesseract.api.capability;
 
-import earth.terrarium.botarium.api.fluid.FluidHolder;
-import earth.terrarium.botarium.api.fluid.FluidHooks;
+
+import earth.terrarium.botarium.common.fluid.base.FluidContainer;
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
+import earth.terrarium.botarium.common.fluid.base.FluidSnapshot;
+import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import tesseract.TesseractCapUtils;
@@ -26,8 +30,18 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     }
 
     @Override
-    public int getTankAmount() {
+    public int getSize() {
         return 1;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return false;
+    }
+
+    @Override
+    public FluidContainer copy() {
+        return null;
     }
 
     @NotNull
@@ -37,7 +51,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     }
 
     @Override
-    public List<FluidHolder> getFluidTanks() {
+    public List<FluidHolder> getFluids() {
         return List.of(FluidHooks.emptyFluid());
     }
 
@@ -47,13 +61,28 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     }
 
     @Override
-    public boolean supportsInsertion() {
+    public void fromContainer(FluidContainer container) {
+
+    }
+
+    @Override
+    public long extractFromSlot(FluidHolder fluidHolder, FluidHolder toInsert, Runnable snapshot) {
+        return 0;
+    }
+
+    @Override
+    public boolean allowsInsertion() {
         return true;
     }
 
     @Override
-    public boolean supportsExtraction() {
+    public boolean allowsExtraction() {
         return true;
+    }
+
+    @Override
+    public FluidSnapshot createSnapshot() {
+        return null;
     }
 
     @Override
@@ -109,6 +138,11 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     }
 
     @Override
+    public void setFluid(int slot, FluidHolder fluid) {
+
+    }
+
+    @Override
     public int getPriority(Direction direction) {
         return 0;
     }
@@ -126,5 +160,20 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     @Override
     public boolean canInput(FluidHolder fluid, Direction direction) {
         return true;
+    }
+
+    @Override
+    public void deserialize(CompoundTag nbt) {
+
+    }
+
+    @Override
+    public CompoundTag serialize(CompoundTag nbt) {
+        return null;
+    }
+
+    @Override
+    public void clearContent() {
+
     }
 }

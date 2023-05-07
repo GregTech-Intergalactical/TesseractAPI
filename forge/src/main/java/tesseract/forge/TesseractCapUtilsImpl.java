@@ -1,6 +1,6 @@
 package tesseract.forge;
 
-import earth.terrarium.botarium.api.fluid.FluidContainer;
+import earth.terrarium.botarium.common.fluid.base.FluidContainer;
 import earth.terrarium.botarium.forge.fluid.ForgeFluidContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

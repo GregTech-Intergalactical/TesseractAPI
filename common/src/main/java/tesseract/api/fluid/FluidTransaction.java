@@ -1,20 +1,21 @@
 package tesseract.api.fluid;
 
-import earth.terrarium.botarium.api.fluid.FluidHolder;
+
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import tesseract.api.Transaction;
 
 import java.util.function.Consumer;
 
-public class FluidTransaction extends Transaction<earth.terrarium.botarium.api.fluid.FluidHolder> {
+public class FluidTransaction extends Transaction<FluidHolder> {
 
-    public final earth.terrarium.botarium.api.fluid.FluidHolder stack;
+    public final FluidHolder stack;
 
-    public FluidTransaction(earth.terrarium.botarium.api.fluid.FluidHolder stack, Consumer<earth.terrarium.botarium.api.fluid.FluidHolder> consumer) {
+    public FluidTransaction(FluidHolder stack, Consumer<FluidHolder> consumer) {
         super(consumer);
         this.stack = stack;
     }
 
-    public void addData(earth.terrarium.botarium.api.fluid.FluidHolder stack, Consumer<FluidHolder> consumer) {
+    public void addData(FluidHolder stack, Consumer<FluidHolder> consumer) {
         this.addData(stack);
         this.stack.setAmount(this.stack.getFluidAmount() - stack.getFluidAmount());
         this.onCommit(consumer);

@@ -1,7 +1,7 @@
 package tesseract;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import earth.terrarium.botarium.api.fluid.FluidHolder;
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;

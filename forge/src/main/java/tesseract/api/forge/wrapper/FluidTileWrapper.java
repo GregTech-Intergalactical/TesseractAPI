@@ -1,10 +1,12 @@
 package tesseract.api.forge.wrapper;
 
-import earth.terrarium.botarium.api.fluid.FluidHolder;
+import earth.terrarium.botarium.common.fluid.base.FluidContainer;
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
+import earth.terrarium.botarium.common.fluid.base.FluidSnapshot;
 import earth.terrarium.botarium.forge.fluid.ForgeFluidHolder;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import tesseract.api.fluid.IFluidNode;
 
@@ -21,13 +23,18 @@ public record FluidTileWrapper(BlockEntity tile,
     }
 
     @Override
-    public boolean supportsExtraction() {
-        return (!(handler instanceof IFluidNode) || ((IFluidNode) handler).supportsExtraction());
+    public boolean allowsExtraction() {
+        return (!(handler instanceof IFluidNode) || ((IFluidNode) handler).allowsExtraction());
     }
 
     @Override
-    public boolean supportsInsertion() {
-        return (!(handler instanceof IFluidNode) || ((IFluidNode) handler).supportsInsertion());
+    public FluidSnapshot createSnapshot() {
+        return null;
+    }
+
+    @Override
+    public boolean allowsInsertion() {
+        return (!(handler instanceof IFluidNode) || ((IFluidNode) handler).allowsInsertion());
     }
 
     @Override
@@ -46,8 +53,18 @@ public record FluidTileWrapper(BlockEntity tile,
     }
 
     @Override
-    public int getTankAmount() {
+    public int getSize() {
         return handler.getTanks();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return getFluids().isEmpty() || getFluids().stream().allMatch(FluidHolder::isEmpty);
+    }
+
+    @Override
+    public FluidContainer copy() {
+        return null;
     }
 
     @Nonnull
@@ -62,7 +79,17 @@ public record FluidTileWrapper(BlockEntity tile,
     }
 
     @Override
-    public List<FluidHolder> getFluidTanks() {
+    public void fromContainer(FluidContainer container) {
+
+    }
+
+    @Override
+    public long extractFromSlot(FluidHolder fluidHolder, FluidHolder toInsert, Runnable snapshot) {
+        return 0;
+    }
+
+    @Override
+    public List<FluidHolder> getFluids() {
         List<FluidHolder> fluids = new ArrayList<>();
         for (int i = 0; i < handler.getTanks(); i++) {
             fluids.add(getFluidInTank(i));
@@ -83,5 +110,25 @@ public record FluidTileWrapper(BlockEntity tile,
     @Override
     public FluidHolder extractFluid(FluidHolder fluid, boolean simulate) {
         return new ForgeFluidHolder(handler.drain(new ForgeFluidHolder(fluid).getFluidStack(), simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE));
+    }
+
+    @Override
+    public void setFluid(int slot, FluidHolder fluid) {
+
+    }
+
+    @Override
+    public void deserialize(CompoundTag nbt) {
+
+    }
+
+    @Override
+    public CompoundTag serialize(CompoundTag nbt) {
+        return null;
+    }
+
+    @Override
+    public void clearContent() {
+        getFluids().forEach(f -> this.drainInput(f, false));
     }
 }

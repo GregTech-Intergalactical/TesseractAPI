@@ -11,7 +11,7 @@ import java.util.Set;
 /**
  * A class that acts as holder of the fluid that has passed thought pipes.
  */
-public class FluidHolder {
+public class PipeFluidHolder {
 
     private long pressureAvailable;
     public long tickPressure;
@@ -23,7 +23,7 @@ public class FluidHolder {
      *
      * @param pipe The pipe connector.
      */
-    public FluidHolder(IFluidPipe pipe) {
+    public PipeFluidHolder(IFluidPipe pipe) {
         this.maxCapacity = pipe.getCapacity();
         this.tickPressure = pipe.getPressureInDroplets();
 
@@ -115,7 +115,7 @@ public class FluidHolder {
             if (obj instanceof Fluid f) {
                 return FluidPlatformUtils.getFluidId(f).equals(compare);
             }
-            if (obj instanceof earth.terrarium.botarium.api.fluid.FluidHolder s) {
+            if (obj instanceof earth.terrarium.botarium.common.fluid.base.FluidHolder s) {
                 return FluidPlatformUtils.getFluidId(s.getFluid()).equals(compare);
             }
             if (obj instanceof ResourceLocation r) {

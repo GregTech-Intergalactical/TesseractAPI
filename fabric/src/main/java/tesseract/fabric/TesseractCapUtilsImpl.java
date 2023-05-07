@@ -2,8 +2,9 @@ package tesseract.fabric;
 
 import aztech.modern_industrialization.api.energy.EnergyApi;
 import aztech.modern_industrialization.api.energy.EnergyMoveable;
-import earth.terrarium.botarium.fabric.fluid.FabricBlockFluidContainer;
-import net.fabricatedforgeapi.transfer.fluid.FluidStorageHandlerItem;
+import earth.terrarium.botarium.common.fluid.base.BotariumFluidBlock;
+import earth.terrarium.botarium.common.fluid.base.FluidAttachment;
+import earth.terrarium.botarium.common.fluid.base.FluidContainer;
 import net.fabricatedforgeapi.transfer.item.ItemStorageHandler;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
@@ -93,26 +94,15 @@ public class TesseractCapUtilsImpl {
         if (tile == null) {
             return null;
         }
+        if(tile instanceof FluidAttachment attachment && attachment.getFluidHolderType() == BlockEntity.class) {
+            FluidContainer container = attachment.getFluidContainer(tile).getContainer(capSide);
+            if (container instanceof IFluidNode node) return node;
+            else return new FluidContainerWrapper(container);
+        }
         Storage<FluidVariant> storage = FluidStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, capSide);
         if (storage != null){
-            if (storage instanceof FabricBlockFluidContainer fluidContainer){
-                //UpdatingFluidContainer container = fluidContainer.getContainer();
-                //if (container instanceof IFluidNode node) return node;
-            }
             return storage instanceof IFluidNode node ? node : new FluidTileWrapper(tile, storage);
         }
-        /*LazyOptional<IFluidHandler> capability = tile.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, capSide);
-        if (capability.isPresent()) {
-            if (capCallback != null) capability.addListener(o -> capCallback.run());
-            IFluidHandler handler = capability.map(f -> f).orElse(null);
-            if (handler instanceof ForgeFluidContainer container){
-                FluidContainer container1 = container.container().getContainer(capSide);
-                if (container1 instanceof IFluidNode node) return node;
-            }
-            return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);
-        } else {
-            return null;
-        }*/
         return null;
     }
 }

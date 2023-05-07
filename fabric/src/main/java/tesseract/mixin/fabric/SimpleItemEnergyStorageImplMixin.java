@@ -48,12 +48,12 @@ public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandler
     private TesseractItemContext tesseractContext;
 
     @Override
-    public CompoundTag serializeNBT() {
+    public CompoundTag serialize(CompoundTag tag) {
         return new CompoundTag();
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserialize(CompoundTag nbt) {
 
     }
 

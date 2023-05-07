@@ -41,8 +41,12 @@ dependencies {
     modImplementation("io.github.feltmc:fluidhandler-extras:1.0.1")
     common(project(path: ":tesseract-common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":tesseract-common", configuration: "transformProductionForge")) { transitive = false }
-    modApi "earth.terrarium:botarium-forge-$rootProject.minecraft_version:$rootProject.botarium_version"
-    include "earth.terrarium:botarium-forge-$rootProject.minecraft_version:$rootProject.botarium_version"
+    modApi("earth.terrarium:botarium-forge-1.19.3:$rootProject.botarium_version"){
+        transitive = false
+    }
+    include("earth.terrarium:botarium-forge-1.19.3:$rootProject.botarium_version"){
+        transitive = false
+    }
     testImplementation('junit:junit:4.11')
 }
 
