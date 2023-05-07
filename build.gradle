@@ -63,7 +63,18 @@ allprojects {
         maven {
             url "https://repo.repsy.io/mvn/distant/feltmc"
         }
+        maven {
+            url "https://cursemaven.com"
+            content {
+                includeGroup "curse.maven"
+            }
+        }
         maven { url 'https://jitpack.io' }
+        maven {
+            // Location of the maven that hosts Mine and Team Resourceful's files.
+            name = "Resourceful Bees Maven"
+            url = "https://nexus.resourcefulbees.com/repository/maven-public/"
+        }
     }
 
     java {

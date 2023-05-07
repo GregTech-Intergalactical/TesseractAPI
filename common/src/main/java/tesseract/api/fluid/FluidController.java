@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fluids.FluidStack;
 import tesseract.FluidPlatformUtils;
 import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
@@ -31,7 +30,7 @@ import java.util.Map;
  * Class acts as a controller in the group of a fluid components.
  */
 public class FluidController extends Controller<FluidTransaction, IFluidPipe, IFluidNode>
-        implements IFluidEvent<FluidStack> {
+        implements IFluidEvent<earth.terrarium.botarium.api.fluid.FluidHolder> {
 
     public final static boolean HARDCORE_PIPES = false;
     public final static boolean SLOOSH = false;
@@ -105,7 +104,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
      */
     private void onCheck(IFluidNode producer, List<FluidConsumer> consumers, Path<IFluidPipe> path, Direction dir, long pos) {
         IFluidNode node = group.getNodes().get(pos).value(dir);
-        if (node != null && node.canInput())
+        if (node != null && node.supportsInsertion())
             consumers.add(new FluidConsumer(node,producer, path, dir));
     }
 
@@ -122,7 +121,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
         pressureData.clear();
 
         loop: for (FluidConsumer consumer : list) {
-            FluidStack data = transaction.stack.copy();
+            earth.terrarium.botarium.api.fluid.FluidHolder data = transaction.stack.copyHolder();
             if (!consumer.canHold(data)) {
                 continue;
             }
@@ -163,15 +162,15 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                     pressureData.compute(p.getLongKey(), (k, v) -> v == null ? finalAmount : v + finalAmount);
                 }
             }
-            transaction.addData(data.copy(), a -> commitFluid(consumer, a));
+            transaction.addData(data.copyHolder(), a -> commitFluid(consumer, a));
 
             if (transaction.stack.isEmpty())
                 break;
         }
     }
-    public void commitFluid(FluidConsumer consumer, FluidStack stack) {
+    public void commitFluid(FluidConsumer consumer, earth.terrarium.botarium.api.fluid.FluidHolder stack) {
         int temperature = FluidPlatformUtils.getFluidTemperature(stack.getFluid());
-        long amount = stack.getRealAmount();
+        long amount = stack.getFluidAmount();
         boolean isGaseous = FluidPlatformUtils.isFluidGaseous(stack.getFluid());
         boolean cantHandle = !consumer.canHandle(temperature, isGaseous);
         if (!cantHandle) {
@@ -206,9 +205,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
         consumer.insert(stack, false);
     }
 
-    private boolean checkCommitPipe(long pos, long amount, FluidStack stack) {
+    private boolean checkCommitPipe(long pos, long amount, earth.terrarium.botarium.api.fluid.FluidHolder stack) {
         FluidHolder holder = this.group.getConnector(pos).value().getHolder();
-        holder.use(stack.getRealAmount(), stack.getFluid(), getWorld().getGameTime());
+        holder.use(stack.getFluidAmount(), stack.getFluid(), getWorld().getGameTime());
         if (holder.isOverPressure()) {
             onPipeOverPressure(getWorld(), pos, amount, stack);
             return false;

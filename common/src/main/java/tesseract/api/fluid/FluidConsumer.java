@@ -1,8 +1,7 @@
 package tesseract.api.fluid;
 
+import earth.terrarium.botarium.api.fluid.FluidHolder;
 import net.minecraft.core.Direction;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
@@ -46,15 +45,15 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
      * @param simulate If true, the fill will only be simulated.
      * @return Amount of fluid that was accepted (or would be, if simulated) by the tank.
      */
-    public long insert(FluidStack data, boolean simulate) {
-        return node.fillDroplets(data, simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
+    public long insert(FluidHolder data, boolean simulate) {
+        return node.insertFluid(data, simulate);
     }
 
     /**
      * @param fluid The Fluid to be queried.
      * @return If the tank can hold the fluid (EVER, not at the time of query).
      */
-    public boolean canHold(FluidStack fluid) {
+    public boolean canHold(FluidHolder fluid) {
         return node.canInput(fluid, input);
     }
 
@@ -79,7 +78,7 @@ public class FluidConsumer extends Consumer<IFluidPipe, IFluidNode> {
         isProof = Math.min(isProof, pipe.isGasProof() ? 1 : 0);
         minTemperature = Math.min(minTemperature, pipe.getTemperature());
         minCapacity = Math.min(minCapacity, pipe.getCapacity());
-        if (pipe.getPressureInDroplets() < minPressure && connection == ConnectionType.SINGLE) {
+        if (pipe.getPressure() < minPressure && connection == ConnectionType.SINGLE) {
             lowestPipePosition = this.getFull().long2ObjectEntrySet().stream().filter(t -> t.getValue() == pipe).findFirst().get().getLongKey();
         }
         minPressure = Math.min(minPressure, pipe.getPressureInDroplets());

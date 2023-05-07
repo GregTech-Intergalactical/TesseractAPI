@@ -1,10 +1,10 @@
 package tesseract.api.capability;
 
+import earth.terrarium.botarium.api.fluid.FluidHolder;
+import earth.terrarium.botarium.api.fluid.FluidHooks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import tesseract.TesseractCapUtils;
 import tesseract.TesseractGraphWrappers;
@@ -13,6 +13,8 @@ import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
+
+import java.util.List;
 
 
 public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extends TesseractBaseCapability<T> implements IFluidNode {
@@ -24,40 +26,45 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     }
 
     @Override
-    public int getTanks() {
+    public int getTankAmount() {
         return 1;
     }
 
     @NotNull
     @Override
-    public FluidStack getFluidInTank(int tank) {
-        return FluidStack.EMPTY;
+    public FluidHolder getFluidInTank(int tank) {
+        return FluidHooks.emptyFluid();
     }
 
     @Override
-    public long getTankCapacityInDroplets(int tank) {
+    public List<FluidHolder> getFluidTanks() {
+        return List.of(FluidHooks.emptyFluid());
+    }
+
+    @Override
+    public long getTankCapacity(int tank) {
         return Integer.MAX_VALUE * TesseractGraphWrappers.dropletMultiplier;
     }
 
     @Override
-    public int getTankCapacity(int tank) {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
+    public boolean supportsInsertion() {
         return true;
     }
 
     @Override
-    public long fillDroplets(FluidStack resource, FluidAction action) {
+    public boolean supportsExtraction() {
+        return true;
+    }
+
+    @Override
+    public long insertFluid(FluidHolder resource, boolean simulate) {
         if (this.isSending) return 0;
         this.isSending = true;
-        if (action.execute()) {
+        if (!simulate) {
             old.commit();
         } else {
             long pos = tile.getBlockPos().asLong();
-            FluidTransaction transaction = new FluidTransaction(resource.copy(), a -> {});
+            FluidTransaction transaction = new FluidTransaction(resource.copyHolder(), a -> {});
             if (!this.isNode) {
                 TesseractGraphWrappers.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             } else {
@@ -66,7 +73,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
             this.old = transaction;
         }
         this.isSending = false;
-        return resource.getRealAmount() - this.old.stack.getRealAmount();
+        return resource.getFluidAmount() - this.old.stack.getFluidAmount();
     }
 
 
@@ -75,19 +82,19 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
             if (dir == this.side || !this.tile.connects(dir)) continue;
             BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
             if (otherTile != null) {
-                FluidStack stack = transaction.stack.copy();
+                FluidHolder stack = transaction.stack.copyHolder();
                 this.callback.modify(stack, this.side, dir, true);
                 //Check the handler.
-                var cap = TesseractCapUtils.getFluidHandler(otherTile, dir.getOpposite());
+                var cap = FluidHooks.safeGetBlockFluidManager(otherTile, dir.getOpposite());
                 if (cap.isEmpty()) continue;
                 //Perform insertion, and add to the transaction.
                 var handler = cap.get();
-                long amount = handler.fillDroplets(stack,  IFluidHandler.FluidAction.SIMULATE);
+                long amount = handler.insertFluid(stack,  true);
                 if (amount > 0) {
                     stack.setAmount(amount);
                     transaction.addData(stack, a -> {
                         this.callback.modify(a, this.side, dir, false);
-                        handler.fillDroplets(a, FluidAction.EXECUTE);
+                        handler.insertFluid(a, false);
                     });
                 }
                 if (transaction.stack.isEmpty()) break;
@@ -95,40 +102,15 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
         }
     }
 
-    public int fill(FluidStack resource, FluidAction action){
-        return (int) (fillDroplets(resource, action) / TesseractGraphWrappers.dropletMultiplier);
-    }
-
     @NotNull
     @Override
-    public FluidStack drain(FluidStack resource, FluidAction action) {
-        return FluidStack.EMPTY;
-    }
-
-    @NotNull
-    @Override
-    public FluidStack drain(long maxDrain, FluidAction action) {
-        return FluidStack.EMPTY;
-    }
-
-    @Override
-    public FluidStack drain(int maxDrain, FluidAction action){
-        return FluidStack.EMPTY;
+    public FluidHolder extractFluid(FluidHolder resource, boolean simulate) {
+        return FluidHooks.emptyFluid();
     }
 
     @Override
     public int getPriority(Direction direction) {
         return 0;
-    }
-
-    @Override
-    public boolean canOutput() {
-        return true;
-    }
-
-    @Override
-    public boolean canInput() {
-        return true;
     }
 
     @Override
@@ -142,7 +124,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     }
 
     @Override
-    public boolean canInput(FluidStack fluid, Direction direction) {
+    public boolean canInput(FluidHolder fluid, Direction direction) {
         return true;
     }
 }

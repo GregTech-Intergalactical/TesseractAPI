@@ -1,7 +1,6 @@
 package tesseract.api.heat;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.util.INBTSerializable;
+import earth.terrarium.botarium.api.Serializable;
 
-public interface IHeatHandler extends IHeatNode, INBTSerializable<CompoundTag> {
+public interface IHeatHandler extends IHeatNode, Serializable {
 }

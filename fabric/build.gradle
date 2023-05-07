@@ -57,6 +57,8 @@ dependencies {
     modApi(include("teamreborn:energy:${rootProject.energy_version}")) {
         transitive = false
     }
+    modApi "earth.terrarium:botarium-fabric-$rootProject.minecraft_version:$rootProject.botarium_version"
+    include "earth.terrarium:botarium-fabric-$rootProject.minecraft_version:$rootProject.botarium_version"
     modCompileOnly("curse.maven:modern_industrialization-405388:3866891")
 }
 

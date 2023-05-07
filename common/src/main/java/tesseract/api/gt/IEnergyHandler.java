@@ -1,8 +1,7 @@
 package tesseract.api.gt;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.util.INBTSerializable;
+import earth.terrarium.botarium.api.Serializable;
 
-public interface IEnergyHandler extends IGTNode, INBTSerializable<CompoundTag> {
+public interface IEnergyHandler extends IGTNode, Serializable {
 
 }

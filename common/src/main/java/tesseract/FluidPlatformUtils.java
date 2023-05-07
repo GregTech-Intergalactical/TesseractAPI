@@ -1,6 +1,7 @@
 package tesseract;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import earth.terrarium.botarium.api.fluid.FluidHolder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
@@ -8,18 +9,13 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidActionResult;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class FluidPlatformUtils {
     @ExpectPlatform
-    public static FluidStack createFluidStack(Fluid fluid, long amount){
+    public static FluidHolder createFluidStack(Fluid fluid, long amount){
         throw new AssertionError();
     }
 
@@ -59,14 +55,14 @@ public class FluidPlatformUtils {
     }
 
     @ExpectPlatform
-    public static Component getFluidDisplayName(FluidStack fluid){
+    public static Component getFluidDisplayName(FluidHolder fluid){
         throw new AssertionError();
     }
 
-    @ExpectPlatform
+    /*@ExpectPlatform
     public static FluidStack tryFluidTransfer(IFluidHandler fluidDestination, IFluidHandler fluidSource, long maxAmount, boolean doTransfer){
         throw new AssertionError();
-    }
+    }*/
 
     /**
      * Fill a container from the given fluidSource.
@@ -80,7 +76,7 @@ public class FluidPlatformUtils {
      * @param doFill      true if the container should actually be filled, false if it should be simulated.
      * @return a {@link FluidActionResult} holding the filled container if successful.
      */
-    @Nonnull
+    /*@Nonnull
     public static FluidActionResult tryFillContainer(@Nonnull ItemStack container, IFluidHandler fluidSource, long maxAmount, @Nullable Player player, boolean doFill)
     {
         ItemStack containerCopy = ItemHandlerHelper.copyStackWithSize(container, 1); // do not modify the input
@@ -110,7 +106,7 @@ public class FluidPlatformUtils {
                     return FluidActionResult.FAILURE;
                 })
                 .orElse(FluidActionResult.FAILURE);
-    }
+    }*/
 
     /**
      * Takes a filled container and tries to empty it into the given tank.
@@ -125,7 +121,7 @@ public class FluidPlatformUtils {
      * @return a {@link FluidActionResult} holding the empty container if the fluid handler was filled.
      *         NOTE If the container is consumable, the empty container will be null on success.
      */
-    @Nonnull
+    /*@Nonnull
     public static FluidActionResult tryEmptyContainer(@Nonnull ItemStack container, IFluidHandler fluidDestination, long maxAmount, @Nullable Player player, boolean doDrain)
     {
         ItemStack containerCopy = ItemHandlerHelper.copyStackWithSize(container, 1); // do not modify the input
@@ -148,5 +144,5 @@ public class FluidPlatformUtils {
                     return new FluidActionResult(resultContainer);
                 })
                 .orElse(FluidActionResult.FAILURE);
-    }
+    }*/
 }
