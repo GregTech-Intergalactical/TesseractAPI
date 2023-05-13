@@ -5,18 +5,20 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.LazyOptional;
+import tesseract.api.fabric.TileListeners;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTNode;
+
+import java.util.Optional;
 
 @SuppressWarnings("UnstableApiUsage")
 public class TesseractPlatformUtilsImpl {
     public static IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        LazyOptional<IEnergyHandler> capability = TesseractCapUtilsImpl.getEnergyHandler(tile, direction).map(e -> LazyOptional.of(() -> e)).orElse(LazyOptional.empty());
+        Optional<IEnergyHandler> capability = TesseractCapUtilsImpl.getEnergyHandler(tile, direction);
         if (capability.isPresent()) {
-            if (invalidate != null) capability.addListener(t -> invalidate.run());
-            return capability.resolve().get();
+            if (invalidate != null) ((TileListeners)tile).addListener(() -> invalidate.run());
+            return capability.get();
         }
         return null;
     }

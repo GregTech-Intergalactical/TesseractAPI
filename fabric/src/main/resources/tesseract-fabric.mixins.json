@@ -1,13 +1,14 @@
 {
-  "required": true,
-  "package": "tesseract.mixin.fabric",
-  "compatibilityLevel": "JAVA_17",
-  "plugin": "tesseract.mixin.fabric.TesseractMixinPlugin",
-  "mixins": [
+  "required" : true,
+  "package" : "tesseract.mixin.fabric",
+  "compatibilityLevel" : "JAVA_17",
+  "plugin" : "tesseract.mixin.fabric.TesseractMixinPlugin",
+  "mixins" : [
+    "BlockEntityMixin",
     "IEnergyHandlerMixin",
     "SimpleItemEnergyStorageImplMixin",
     "mi.AbstractStorageMachineBEMixin",
     "mi.IEnergyHandlerMixin"
   ],
-  "minVersion": "0.8"
+  "minVersion" : "0.8"
 }
