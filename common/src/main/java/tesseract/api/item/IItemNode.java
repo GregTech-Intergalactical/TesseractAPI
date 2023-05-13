@@ -74,21 +74,5 @@ public interface IItemNode extends IItemHandler {
         return true;
     }
 
-    GraphWrapper.ICapabilityGetter<IItemNode> GETTER = (IItemNode::getItemNode);
-
-    static IItemNode getItemNode(Level level, long pos, Direction capSide, Runnable capCallback){
-        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        if (tile == null) {
-            return null;
-        }
-        LazyOptional<IItemHandler> h = TesseractCapUtils.getLazyItemHandler(tile, capSide);
-        if (h.isPresent()) {
-            if (capCallback != null) h.addListener(t -> capCallback.run());
-            if (h.map(t -> t instanceof IItemNode).orElse(false)) {
-                return (IItemNode) h.resolve().get();
-            }
-            return new ItemTileWrapper(tile, h.orElse(null));
-        }
-        return null;
-    }
+    GraphWrapper.ICapabilityGetter<IItemNode> GETTER = (TesseractCapUtils::getItemNode);
 }

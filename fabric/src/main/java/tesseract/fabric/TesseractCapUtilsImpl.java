@@ -13,8 +13,10 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantItemStorage;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidUtil;
@@ -23,15 +25,21 @@ import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import team.reborn.energy.api.EnergyStorage;
+import tesseract.TesseractCapUtils;
 import tesseract.TesseractConfig;
 import tesseract.api.fabric.TesseractLookups;
+import tesseract.api.fabric.TileListeners;
 import tesseract.api.fabric.wrapper.EnergyMoveableWrapper;
 import tesseract.api.fabric.wrapper.EnergyTileWrapper;
 import tesseract.api.fabric.wrapper.IEnergyHandlerMoveable;
 import tesseract.api.fabric.wrapper.IEnergyHandlerStorage;
+import tesseract.api.fluid.IFluidNode;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
+import tesseract.api.item.IItemNode;
+import tesseract.api.wrapper.FluidTileWrapper;
+import tesseract.api.wrapper.ItemTileWrapper;
 
 import java.util.Optional;
 
@@ -81,23 +89,46 @@ public class TesseractCapUtilsImpl {
 
     //TODO figure out better abstraction method
     public static Optional<IItemHandler> getItemHandler(BlockEntity entity, Direction side){
-        return getLazyItemHandler(entity, side).map(i -> i);
+        Storage<ItemVariant> storage = ItemStorage.SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
+        if (storage instanceof IItemHandler itemHandler) return Optional.of(itemHandler);
+        return storage == null ? Optional.empty() : Optional.of(new ItemStorageHandler(storage));
     }
 
     public static Optional<IFluidHandler> getFluidHandler(BlockEntity entity, Direction side){
-        return getLazyFluidHandler(entity, side).map(f -> f);
-    }
-
-    public static LazyOptional<IItemHandler> getLazyItemHandler(BlockEntity entity, Direction side){
-        Storage<ItemVariant> storage = ItemStorage.SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
-        if (storage instanceof IItemHandler itemHandler) return LazyOptional.of(() -> itemHandler);
-        return storage == null ? LazyOptional.empty() : LazyOptional.of(() -> new ItemStorageHandler(storage));
-    }
-
-    public static LazyOptional<IFluidHandler> getLazyFluidHandler(BlockEntity entity, Direction side){
         Storage<FluidVariant> storage = FluidStorage.SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
-        if (storage instanceof IFluidHandler fluidHandler) return LazyOptional.of(() -> fluidHandler);
-        return storage == null ? LazyOptional.empty() : LazyOptional.of(() -> new FluidStorageHandler(storage));
+        if (storage instanceof IFluidHandler fluidHandler) return Optional.of(fluidHandler);
+        return storage == null ? Optional.empty() : Optional.of(new FluidStorageHandler(storage));
+    }
+
+    public static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
+        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
+        if (tile == null) {
+            return null;
+        }
+        Optional<IFluidHandler> capability = getFluidHandler(tile, capSide);
+        if (capability.isPresent()) {
+            if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
+            IFluidHandler handler = capability.get();
+            return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);
+        } else {
+            return null;
+        }
+    }
+
+    public static IItemNode getItemNode(Level level, long pos, Direction capSide, Runnable capCallback){
+        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
+        if (tile == null) {
+            return null;
+        }
+        Optional<IItemHandler> h = getItemHandler(tile, capSide);
+        if (h.isPresent()) {
+            if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
+            if (h.map(t -> t instanceof IItemNode).orElse(false)) {
+                return (IItemNode) h.get();
+            }
+            return new ItemTileWrapper(tile, h.get());
+        }
+        return null;
     }
 
     private static IEnergyHandler getEnergyStorage(BlockEntity be, Direction direction){

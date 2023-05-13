@@ -86,20 +86,5 @@ public interface IFluidNode extends IFluidHandler {
         return drain(stack, sim ? FluidAction.SIMULATE : FluidAction.EXECUTE);
     }
 
-    GraphWrapper.ICapabilityGetter<IFluidNode> GETTER = (IFluidNode::getFluidNode);
-
-    static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
-        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        if (tile == null) {
-            return null;
-        }
-        LazyOptional<IFluidHandler> capability = TesseractCapUtils.getLazyFluidHandler(tile, capSide);
-        if (capability.isPresent()) {
-            if (capCallback != null) capability.addListener(o -> capCallback.run());
-            IFluidHandler handler = capability.map(f -> f).orElse(null);
-            return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);
-        } else {
-            return null;
-        }
-    }
+    GraphWrapper.ICapabilityGetter<IFluidNode> GETTER = (TesseractCapUtils::getFluidNode);
 }
