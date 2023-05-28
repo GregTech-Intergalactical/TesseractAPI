@@ -41,6 +41,9 @@ dependencies {
     modImplementation("io.github.feltmc:fluidhandler-extras:1.0.1")
     common(project(path: ":tesseract-common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":tesseract-common", configuration: "transformProductionForge")) { transitive = false }
+    modImplementation(include("com.github.Trinsdar.Botarium:botarium-forge-1.18.2:2.0.5")){
+        exclude(group: "curse.maven")
+    }
     testImplementation('junit:junit:4.11')
 }
 

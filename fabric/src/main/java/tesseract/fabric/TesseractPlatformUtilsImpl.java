@@ -1,13 +1,21 @@
 package tesseract.fabric;
 
 
+import earth.terrarium.botarium.common.energy.base.EnergyAttachment;
+import earth.terrarium.botarium.common.energy.base.EnergyContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.util.LazyOptional;
+import team.reborn.energy.api.EnergyStorage;
 import tesseract.api.fabric.TileListeners;
+import tesseract.api.fabric.wrapper.RFWrapper;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTNode;
+import tesseract.api.rf.IRFNode;
+
+import java.util.Optional;
 
 import java.util.Optional;
 
@@ -19,6 +27,26 @@ public class TesseractPlatformUtilsImpl {
         if (capability.isPresent()) {
             if (invalidate != null) ((TileListeners)tile).addListener(() -> invalidate.run());
             return capability.get();
+        }
+        return null;
+    }
+
+    public static IRFNode getRFNode(Level level, long pos, Direction capSide, Runnable capCallback){
+        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
+        if (tile == null) {
+            return null;
+        }
+        if(tile instanceof EnergyAttachment attachment && attachment.getEnergyHolderType() == BlockEntity.class) {
+            EnergyContainer container = attachment.getEnergyStorage(tile).getContainer(capSide);
+            if (container instanceof IRFNode node) {
+                ((TileListeners)tile).addListener(capCallback);
+                return node;
+            }
+        }
+        EnergyStorage storage = EnergyStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, capSide);
+        if (storage != null){
+            ((TileListeners)tile).addListener(capCallback);
+            return storage instanceof IRFNode node ? node : new RFWrapper(storage);
         }
         return null;
     }

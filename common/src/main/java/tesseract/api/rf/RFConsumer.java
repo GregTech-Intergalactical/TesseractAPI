@@ -1,4 +1,4 @@
-package tesseract.api.fe;
+package tesseract.api.rf;
 
 import tesseract.api.Consumer;
 import tesseract.graph.Path;
@@ -10,13 +10,13 @@ import static java.lang.Integer.compare;
 /**
  * A class that acts as a container for a item consumer.
  */
-public class FEConsumer extends Consumer<IFECable, IFENode> {
+public class RFConsumer extends Consumer<IRFCable, IRFNode> {
 
     private long minCapacity = Long.MAX_VALUE;
 
     // Way of the sorting by the distance to the node
     @SuppressWarnings("ComparatorCombinators")
-    public static final Comparator<FEConsumer> COMPARATOR = (t1, t2) -> compare(t1.getDistance(), t2.getDistance());
+    public static final Comparator<RFConsumer> COMPARATOR = (t1, t2) -> compare(t1.getDistance(), t2.getDistance());
 
     /**
      * Creates instance of the consumer.
@@ -24,8 +24,8 @@ public class FEConsumer extends Consumer<IFECable, IFENode> {
      * @param consumer The consumer node.
      * @param path     The path information.
      */
-    protected FEConsumer(IFENode consumer, Path<IFECable> path) {
-        super(consumer, null, path);
+    protected RFConsumer(IRFNode consumer, IRFNode producer, Path<IRFCable> path) {
+        super(consumer, producer, path);
         init();
     }
 
@@ -37,7 +37,7 @@ public class FEConsumer extends Consumer<IFECable, IFENode> {
      * @return Amount of energy that was (or would have been, if simulated) accepted by the storage.
      */
     public long insert(long maxReceive, boolean simulate) {
-        return node.insert(maxReceive, simulate);
+        return node.insertEnergy(maxReceive, simulate);
     }
 
     /**
@@ -55,7 +55,7 @@ public class FEConsumer extends Consumer<IFECable, IFENode> {
     }
 
     @Override
-    protected void onConnectorCatch(long pos, IFECable cable) {
+    protected void onConnectorCatch(long pos, IRFCable cable) {
         minCapacity = Math.min(minCapacity, cable.getCapacity());
     }
 }

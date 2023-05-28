@@ -57,6 +57,7 @@ dependencies {
     modApi(include("teamreborn:energy:${rootProject.energy_version}")) {
         transitive = false
     }
+    modImplementation(include("com.github.Trinsdar.Botarium:botarium-fabric-1.18.2:2.0.5"))
     modCompileOnly("curse.maven:modern_industrialization-405388:3866891")
 }
 

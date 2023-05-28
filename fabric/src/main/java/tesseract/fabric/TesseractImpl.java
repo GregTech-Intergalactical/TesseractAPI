@@ -12,7 +12,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.ModLoadingContext;
@@ -21,6 +20,7 @@ import net.minecraftforge.fml.config.ModConfig;
 import team.reborn.energy.api.EnergyStorage;
 import tesseract.Tesseract;
 import tesseract.TesseractConfig;
+import tesseract.TesseractGraphWrappers;
 import tesseract.api.GraphWrapper;
 import tesseract.api.fabric.TesseractLookups;
 import tesseract.api.fabric.wrapper.ContainerItemContextWrapper;
@@ -29,19 +29,12 @@ import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyItem;
 import tesseract.api.gt.IGTCable;
 import tesseract.api.gt.IGTNode;
-import tesseract.controller.Energy;
 
 import java.util.function.BiFunction;
 
 public class TesseractImpl extends Tesseract implements ModInitializer {
-    //public static GraphWrapper<Integer, IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
-    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
 
     public TesseractImpl(){
-    }
-
-    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> getGT_ENERGY(){
-        return GT_ENERGY;
     }
 
     private static void onWorldUnload(MinecraftServer server, ServerLevel world) {
