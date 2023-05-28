@@ -107,12 +107,12 @@ public class EnergyTileWrapper implements IEnergyHandler {
     }
 
     @Override
-    public CompoundTag serializeNBT() {
+    public CompoundTag serialize(CompoundTag tag) {
         return null;
     }
 
     @Override
-    public void deserializeNBT(CompoundTag arg) {
+    public void deserialize(CompoundTag arg) {
 
     }
 }
