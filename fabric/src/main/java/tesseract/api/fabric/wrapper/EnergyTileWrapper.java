@@ -34,18 +34,23 @@ public class EnergyTileWrapper implements IEnergyHandler {
 
     @Override
     public boolean extractEnergy(GTTransaction.TransferData data) {
-        Transaction transaction = Transaction.openOuter();
-        boolean extract = storage.extract((long) (data.getEnergy(1, false) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction) > 0;
-        if (extract) transaction.commit();
-        return extract;
+        try(Transaction transaction = Transaction.openOuter()) {
+            boolean extract = storage.extract((long) (data.getEnergy(1, false) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction) > 0;
+            if (extract) transaction.commit();
+            else transaction.abort();
+            return extract;
+        }
+
     }
 
     @Override
     public boolean addEnergy(GTTransaction.TransferData data) {
-        Transaction transaction = Transaction.openOuter();
-        boolean insert = storage.insert((long) (data.getEnergy(1, true) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), Transaction.openNested(null)) > 0;
-        if (insert) transaction.commit();
-        return insert;
+        try(Transaction transaction = Transaction.openOuter()) {
+            boolean insert = storage.insert((long) (data.getEnergy(1, true) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction) > 0;
+            if (insert) transaction.commit();
+            else transaction.abort();
+            return insert;
+        }
     }
 
     @Override
