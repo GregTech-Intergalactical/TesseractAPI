@@ -13,7 +13,6 @@ public record RFWrapper(EnergyStorage storage) implements IRFNode {
         try (Transaction txn = Transaction.openOuter()) {
             long extract = storage.extract(amount, txn);
             if(simulate) txn.abort();
-            else txn.commit();
             return extract;
         }
     }
@@ -23,7 +22,6 @@ public record RFWrapper(EnergyStorage storage) implements IRFNode {
         try (Transaction txn = Transaction.openOuter()) {
             long insert = storage.insert(amount, txn);
             if(simulate) txn.abort();
-            else txn.commit();
             return insert;
         }
     }

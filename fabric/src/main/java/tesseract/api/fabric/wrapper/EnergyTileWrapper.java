@@ -37,7 +37,6 @@ public class EnergyTileWrapper implements IEnergyHandler {
         try(Transaction transaction = Transaction.openOuter()) {
             boolean extract = storage.extract((long) (data.getEnergy(1, false) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction) > 0;
             if (extract) transaction.commit();
-            else transaction.abort();
             return extract;
         }
 
@@ -48,7 +47,6 @@ public class EnergyTileWrapper implements IEnergyHandler {
         try(Transaction transaction = Transaction.openOuter()) {
             boolean insert = storage.insert((long) (data.getEnergy(1, true) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction) > 0;
             if (insert) transaction.commit();
-            else transaction.abort();
             return insert;
         }
     }
