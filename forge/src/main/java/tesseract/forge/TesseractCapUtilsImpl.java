@@ -7,6 +7,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -16,6 +17,7 @@ import net.minecraftforge.items.IItemHandler;
 import tesseract.TesseractCapUtils;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.forge.TesseractCaps;
+import tesseract.api.forge.wrapper.EnergyStackWrapper;
 import tesseract.api.forge.wrapper.EnergyTileWrapper;
 import tesseract.api.forge.wrapper.IEnergyHandlerStorage;
 import tesseract.api.gt.IEnergyHandler;
@@ -31,6 +33,19 @@ import java.util.Optional;
 public class TesseractCapUtilsImpl {
     public static Optional<IEnergyHandlerItem> getEnergyHandlerItem(ItemStack stack){
         return stack.getCapability(TesseractCaps.ENERGY_HANDLER_CAPABILITY_ITEM).map(e -> e);
+    }
+
+    public static Optional<IEnergyHandlerItem> getWrappedEnergyHandlerItem(ItemStack stack){
+        IEnergyHandlerItem energyHandler = stack.getCapability(TesseractCaps.ENERGY_HANDLER_CAPABILITY_ITEM).map(e -> e).orElse(null);
+        if (energyHandler == null){
+            IEnergyStorage storage = stack.getCapability(CapabilityEnergy.ENERGY).map(e -> e).orElse(null);
+            if (storage instanceof IEnergyHandlerItem e){
+                energyHandler = e;
+            } else if (storage != null){
+                energyHandler = new EnergyStackWrapper(stack, storage);
+            }
+        }
+        return Optional.ofNullable(energyHandler);
     }
 
     public static Optional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack){

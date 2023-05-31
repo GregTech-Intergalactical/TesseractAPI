@@ -27,6 +27,11 @@ public class TesseractCapUtils {
     }
 
     @ExpectPlatform
+    public static Optional<IEnergyHandlerItem> getWrappedEnergyHandlerItem(ItemStack stack){
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
     public static Optional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack){
         throw new AssertionError();
     }

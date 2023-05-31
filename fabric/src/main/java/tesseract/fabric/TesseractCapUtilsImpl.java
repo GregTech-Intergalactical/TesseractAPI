@@ -2,6 +2,8 @@ package tesseract.fabric;
 
 import aztech.modern_industrialization.api.energy.EnergyApi;
 import aztech.modern_industrialization.api.energy.EnergyMoveable;
+import earth.terrarium.botarium.common.energy.base.PlatformItemEnergyManager;
+import earth.terrarium.botarium.common.energy.util.EnergyHooks;
 import net.fabricatedforgeapi.transfer.fluid.FluidStorageHandler;
 import net.fabricatedforgeapi.transfer.fluid.FluidStorageHandlerItem;
 import net.fabricatedforgeapi.transfer.item.ItemStorageHandler;
@@ -25,14 +27,12 @@ import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import team.reborn.energy.api.EnergyStorage;
+import team.reborn.energy.impl.SimpleItemEnergyStorageImpl;
 import tesseract.TesseractCapUtils;
 import tesseract.TesseractConfig;
 import tesseract.api.fabric.TesseractLookups;
 import tesseract.api.fabric.TileListeners;
-import tesseract.api.fabric.wrapper.EnergyMoveableWrapper;
-import tesseract.api.fabric.wrapper.EnergyTileWrapper;
-import tesseract.api.fabric.wrapper.IEnergyHandlerMoveable;
-import tesseract.api.fabric.wrapper.IEnergyHandlerStorage;
+import tesseract.api.fabric.wrapper.*;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyHandlerItem;
@@ -46,10 +46,18 @@ import java.util.Optional;
 public class TesseractCapUtilsImpl {
     public static Optional<IEnergyHandlerItem> getEnergyHandlerItem(ItemStack stack){
         IEnergyHandlerItem energyHandler = ContainerItemContext.withInitial(stack).find(TesseractLookups.ENERGY_HANDLER_ITEM);
+        return Optional.ofNullable(energyHandler);
+    }
+
+    public static Optional<IEnergyHandlerItem> getWrappedEnergyHandlerItem(ItemStack stack){
+        IEnergyHandlerItem energyHandler = ContainerItemContext.withInitial(stack).find(TesseractLookups.ENERGY_HANDLER_ITEM);
         if (energyHandler == null){
             EnergyStorage storage = ContainerItemContext.withInitial(stack).find(EnergyStorage.ITEM);
             if (storage instanceof IEnergyHandlerItem e){
                 energyHandler = e;
+            } else if (EnergyHooks.isEnergyItem(stack)){
+                PlatformItemEnergyManager itemEnergyManager = EnergyHooks.getItemEnergyManager(stack);
+                energyHandler = new EnergyStackWrapper(stack, itemEnergyManager);
             }
         }
         return Optional.ofNullable(energyHandler);
