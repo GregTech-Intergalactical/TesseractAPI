@@ -82,7 +82,7 @@ public class EnergyTileWrapper implements IEnergyHandler {
 
     @Override
     public long getInputAmperage() {
-        return 1;
+        return 16;
     }
 
     @Override
@@ -90,7 +90,7 @@ public class EnergyTileWrapper implements IEnergyHandler {
         if (storage instanceof SimpleSidedEnergyContainer limitingEnergyStorage){
             return limitingEnergyStorage.getMaxInsert(null);
         }
-        return 32;
+        return 8192;
     }
 
     @Override
