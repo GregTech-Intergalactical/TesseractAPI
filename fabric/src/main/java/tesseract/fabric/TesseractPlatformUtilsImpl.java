@@ -3,6 +3,7 @@ package tesseract.fabric;
 
 import earth.terrarium.botarium.common.energy.base.EnergyAttachment;
 import earth.terrarium.botarium.common.energy.base.EnergyContainer;
+import earth.terrarium.botarium.fabric.energy.FabricBlockEnergyContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -14,6 +15,7 @@ import tesseract.api.fabric.wrapper.RFWrapper;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTNode;
 import tesseract.api.rf.IRFNode;
+import tesseract.mixin.fabric.FabricBlockEnergyContainerAccessor;
 
 import java.util.Optional;
 
@@ -46,6 +48,9 @@ public class TesseractPlatformUtilsImpl {
         EnergyStorage storage = EnergyStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, capSide);
         if (storage != null){
             ((TileListeners)tile).addListener(capCallback);
+            if (storage instanceof FabricBlockEnergyContainerAccessor container && container.getContainer() instanceof IRFNode node){
+                return node;
+            }
             return storage instanceof IRFNode node ? node : new RFWrapper(storage);
         }
         return null;
