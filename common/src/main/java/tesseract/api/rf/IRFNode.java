@@ -1,7 +1,9 @@
 package tesseract.api.rf;
 
 import earth.terrarium.botarium.common.energy.base.EnergyContainer;
+import earth.terrarium.botarium.util.Updatable;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import tesseract.TesseractPlatformUtils;
 import tesseract.api.GraphWrapper;
 import tesseract.api.gt.IGTNode;
@@ -14,7 +16,7 @@ import tesseract.graph.INode;
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
  * </p>
  */
-public interface IRFNode extends EnergyContainer {
+public interface IRFNode extends EnergyContainer, Updatable<BlockEntity> {
 
     /**
      * Used to determine if this storage can receive energy in the given direction.
@@ -31,6 +33,11 @@ public interface IRFNode extends EnergyContainer {
      * @return Returns true if the given direction is output side.
      */
     boolean canOutput(Direction direction);
+
+    @Override
+    default void update(BlockEntity object) {
+
+    }
 
     GraphWrapper.ICapabilityGetter<IRFNode> GETTER = TesseractPlatformUtils::getRFNode;
 }
