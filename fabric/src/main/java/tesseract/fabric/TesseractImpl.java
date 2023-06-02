@@ -2,6 +2,9 @@ package tesseract.fabric;
 
 import aztech.modern_industrialization.api.energy.EnergyApi;
 import aztech.modern_industrialization.api.energy.EnergyMoveable;
+import earth.terrarium.botarium.common.energy.base.EnergyContainer;
+import earth.terrarium.botarium.fabric.energy.FabricBlockEnergyContainer;
+import earth.terrarium.botarium.util.Updatable;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -95,6 +98,13 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
 
     public static <T extends BlockEntity> void registerTRETile(BiFunction<T, Direction, IEnergyHandler> function, BlockEntityType<T> type){
         EnergyStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> (EnergyStorage) function.apply(blockEntity, direction), type);
+    }
+
+    public static <T extends BlockEntity> void registerRFTRETile(BiFunction<T, Direction, EnergyContainer> function, BlockEntityType<T> type){
+        EnergyStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> {
+            EnergyContainer container = function.apply(blockEntity, direction);
+            return container instanceof EnergyStorage storage ? storage : container == null ? null : new FabricBlockEnergyContainer(container, (Updatable<BlockEntity>) container, blockEntity);
+        }, type);
     }
 
     public static void registerTREItem(BiFunction<ItemStack, ContainerItemContext, IEnergyHandler> function, Item type){
