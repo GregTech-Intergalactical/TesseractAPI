@@ -23,15 +23,11 @@ import net.minecraftforge.fml.config.ModConfig;
 import team.reborn.energy.api.EnergyStorage;
 import tesseract.Tesseract;
 import tesseract.TesseractConfig;
-import tesseract.TesseractGraphWrappers;
 import tesseract.api.GraphWrapper;
 import tesseract.api.fabric.TesseractLookups;
 import tesseract.api.fabric.wrapper.ContainerItemContextWrapper;
-import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyItem;
-import tesseract.api.gt.IGTCable;
-import tesseract.api.gt.IGTNode;
 
 import java.util.function.BiFunction;
 
@@ -96,14 +92,13 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
         EnergyApi.MOVEABLE.registerForBlockEntity((blockEntity, direction) -> (EnergyMoveable) function.apply(blockEntity, direction), type);
     }
 
-    public static <T extends BlockEntity> void registerTRETile(BiFunction<T, Direction, IEnergyHandler> function, BlockEntityType<T> type){
-        EnergyStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> (EnergyStorage) function.apply(blockEntity, direction), type);
-    }
-
-    public static <T extends BlockEntity> void registerRFTRETile(BiFunction<T, Direction, EnergyContainer> function, BlockEntityType<T> type){
+    public static <T extends BlockEntity> void registerTRETile(BiFunction<T, Direction, IEnergyHandler> euFunction, BiFunction<T, Direction, EnergyContainer> rfFunction, BlockEntityType<T> type){
         EnergyStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> {
-            EnergyContainer container = function.apply(blockEntity, direction);
-            return container instanceof EnergyStorage storage ? storage : container == null ? null : new FabricBlockEnergyContainer(container, (Updatable<BlockEntity>) container, blockEntity);
+            IEnergyHandler handler = euFunction.apply(blockEntity, direction);
+            if (handler != null) return (EnergyStorage) handler;
+            EnergyContainer node = rfFunction.apply(blockEntity, direction);
+            if (node != null) return node instanceof EnergyStorage storage ? storage : new FabricBlockEnergyContainer(node, node instanceof Updatable<?> ? (Updatable<BlockEntity>) node : b -> {}, blockEntity);
+            return null;
         }, type);
     }
 
