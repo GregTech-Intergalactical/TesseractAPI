@@ -18,7 +18,7 @@ curseforge=462718
 [[dependencies.tesseractapi]]
     modId="forge"
     mandatory=true
-    versionRange="[40.1.73,)"
+    versionRange="[40.2.3,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.tesseractapi]]
