@@ -100,6 +100,7 @@ publishing {
                 }
             }
         } else {
-            maven { url "file:///${project.projectDir}/mcmodsrepo"}
+            maven { url "file:///${project.projectDir}/mcmodsrepo" }
         }
     }
+}
