@@ -9,14 +9,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-import tesseract.TesseractCapUtils;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.forge.TesseractCaps;
 import tesseract.api.forge.wrapper.EnergyStackWrapper;
@@ -27,7 +24,6 @@ import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 import tesseract.api.item.IItemNode;
-import tesseract.api.wrapper.FluidTileWrapper;
 import tesseract.api.wrapper.ItemTileWrapper;
 
 import javax.annotation.Nullable;
@@ -49,10 +45,6 @@ public class TesseractCapUtilsImpl {
             }
         }
         return Optional.ofNullable(energyHandler);
-    }
-
-    public static Optional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack){
-        return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).map(f -> f);
     }
 
     public static Optional<IEnergyHandler> getEnergyHandler(BlockEntity entity, Direction side){
@@ -90,6 +82,10 @@ public class TesseractCapUtilsImpl {
         if (capability.isPresent()) {
             if (capCallback != null) capability.addListener(o -> capCallback.run());
             IFluidHandler handler = capability.map(f -> f).orElse(null);
+            if (handler instanceof ForgeFluidContainer container){
+                FluidContainer container1 = container.container().getContainer(capSide);
+                if (container1 instanceof IFluidNode node) return node;
+            }
             return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);
         } else {
             return null;

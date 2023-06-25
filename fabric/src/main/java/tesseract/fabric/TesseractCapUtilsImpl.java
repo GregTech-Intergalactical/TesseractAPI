@@ -4,8 +4,8 @@ import aztech.modern_industrialization.api.energy.EnergyApi;
 import aztech.modern_industrialization.api.energy.EnergyMoveable;
 import earth.terrarium.botarium.common.energy.base.PlatformItemEnergyManager;
 import earth.terrarium.botarium.common.energy.util.EnergyHooks;
-import net.fabricatedforgeapi.transfer.fluid.FluidStorageHandler;
-import net.fabricatedforgeapi.transfer.fluid.FluidStorageHandlerItem;
+import earth.terrarium.botarium.common.fluid.base.FluidAttachment;
+import earth.terrarium.botarium.common.fluid.base.FluidContainer;
 import net.fabricatedforgeapi.transfer.item.ItemStorageHandler;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
@@ -19,13 +19,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import team.reborn.energy.api.EnergyStorage;
-import team.reborn.energy.impl.SimpleItemEnergyStorageImpl;
-import tesseract.TesseractCapUtils;
 import tesseract.TesseractConfig;
 import tesseract.api.fabric.TesseractLookups;
 import tesseract.api.fabric.TileListeners;
@@ -35,7 +31,6 @@ import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 import tesseract.api.item.IItemNode;
-import tesseract.api.wrapper.FluidTileWrapper;
 import tesseract.api.wrapper.ItemTileWrapper;
 
 import java.util.Optional;
@@ -84,27 +79,6 @@ public class TesseractCapUtilsImpl {
         return storage == null ? Optional.empty() : Optional.of(new ItemStorageHandler(storage));
     }
 
-    public static Optional<IFluidHandler> getFluidHandler(BlockEntity entity, Direction side){
-        Storage<FluidVariant> storage = FluidStorage.SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
-        if (storage instanceof IFluidHandler fluidHandler) return Optional.of(fluidHandler);
-        return storage == null ? Optional.empty() : Optional.of(new FluidStorageHandler(storage));
-    }
-
-    public static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
-        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        if (tile == null) {
-            return null;
-        }
-        Optional<IFluidHandler> capability = getFluidHandler(tile, capSide);
-        if (capability.isPresent()) {
-            if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
-            IFluidHandler handler = capability.get();
-            return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);
-        } else {
-            return null;
-        }
-    }
-
     public static IItemNode getItemNode(Level level, long pos, Direction capSide, Runnable capCallback){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) {
@@ -144,11 +118,14 @@ public class TesseractCapUtilsImpl {
         }
         if(tile instanceof FluidAttachment attachment && attachment.getFluidHolderType() == BlockEntity.class) {
             FluidContainer container = attachment.getFluidContainer(tile).getContainer(capSide);
+            if (container == null) return null;
+            if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
             if (container instanceof IFluidNode node) return node;
             else return new FluidContainerWrapper(container);
         }
         Storage<FluidVariant> storage = FluidStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, capSide);
         if (storage != null){
+            if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
             return storage instanceof IFluidNode node ? node : new FluidTileWrapper(tile, storage);
         }
         return null;
