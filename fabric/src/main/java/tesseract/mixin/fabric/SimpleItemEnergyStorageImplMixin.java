@@ -22,24 +22,24 @@ import tesseract.api.gt.IEnergyHandlerItem;
 
 @Mixin(SimpleItemEnergyStorageImpl.class)
 public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandlerItem {
-    @Shadow public abstract long getAmount();
+    @Shadow(remap = false) public abstract long getAmount();
 
-    @Shadow public abstract boolean supportsExtraction();
+    @Shadow(remap = false) public abstract boolean supportsExtraction();
 
-    @Shadow public abstract boolean supportsInsertion();
+    @Shadow(remap = false) public abstract boolean supportsInsertion();
 
-    @Shadow @Final private long maxInsert;
-    @Shadow @Final private long maxExtract;
+    @Shadow(remap = false) @Final private long maxInsert;
+    @Shadow(remap = false) @Final private long maxExtract;
 
-    @Shadow public abstract long getCapacity();
+    @Shadow(remap = false) public abstract long getCapacity();
 
-    @Shadow public abstract long extract(long maxAmount, TransactionContext transaction);
+    @Shadow(remap = false) public abstract long extract(long maxAmount, TransactionContext transaction);
 
-    @Shadow public abstract long insert(long maxAmount, TransactionContext transaction);
+    @Shadow(remap = false) public abstract long insert(long maxAmount, TransactionContext transaction);
 
-    @Shadow @Final private ContainerItemContext ctx;
+    @Shadow(remap = false) @Final private ContainerItemContext ctx;
 
-    @Shadow protected abstract boolean trySetEnergy(long energyAmountPerCount, long count, TransactionContext transaction);
+    @Shadow(remap = false) protected abstract boolean trySetEnergy(long energyAmountPerCount, long count, TransactionContext transaction);
 
     @Unique
     protected GTConsumer.State state = new GTConsumer.State(this);
