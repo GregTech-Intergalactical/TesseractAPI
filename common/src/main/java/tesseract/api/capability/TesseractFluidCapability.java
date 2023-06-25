@@ -73,25 +73,22 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     private void transferAroundPipe(FluidTransaction transaction, long pos) {
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
-            BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
-            if (otherTile != null) {
-                FluidStack stack = transaction.stack.copy();
-                this.callback.modify(stack, this.side, dir, true);
-                //Check the handler.
-                var cap = TesseractCapUtils.getFluidHandler(otherTile, dir.getOpposite());
-                if (cap.isEmpty()) continue;
-                //Perform insertion, and add to the transaction.
-                var handler = cap.get();
-                long amount = handler.fillDroplets(stack,  IFluidHandler.FluidAction.SIMULATE);
-                if (amount > 0) {
-                    stack.setAmount(amount);
-                    transaction.addData(stack, a -> {
-                        this.callback.modify(a, this.side, dir, false);
-                        handler.fillDroplets(a, FluidAction.EXECUTE);
-                    });
-                }
-                if (transaction.stack.isEmpty()) break;
+            FluidStack stack = transaction.stack.copy();
+            this.callback.modify(stack, this.side, dir, true);
+            //Check the handler.
+            var cap = TesseractCapUtils.getFluidHandler(tile.getLevel(), BlockPos.of(Pos.offset(pos, dir)), dir.getOpposite());
+            if (cap.isEmpty()) continue;
+            //Perform insertion, and add to the transaction.
+            var handler = cap.get();
+            long amount = handler.fillDroplets(stack,  IFluidHandler.FluidAction.SIMULATE);
+            if (amount > 0) {
+                stack.setAmount(amount);
+                transaction.addData(stack, a -> {
+                    this.callback.modify(a, this.side, dir, false);
+                    handler.fillDroplets(a, FluidAction.EXECUTE);
+                });
             }
+            if (transaction.stack.isEmpty()) break;
         }
     }
 

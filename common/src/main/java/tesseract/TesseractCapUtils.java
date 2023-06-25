@@ -52,6 +52,11 @@ public class TesseractCapUtils {
     }
 
     @ExpectPlatform
+    public static Optional<IFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
     public static Optional<IFluidHandler> getFluidHandler(BlockEntity entity, Direction side){
         throw new AssertionError();
     }

@@ -102,6 +102,12 @@ public class TesseractCapUtilsImpl {
         return storage == null ? Optional.empty() : Optional.of(new ItemStorageHandler(storage));
     }
 
+    public static Optional<IFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
+        Storage<FluidVariant> storage = FluidStorage.SIDED.find(level, pos, level.getBlockState(pos), level.getBlockEntity(pos), side);
+        if (storage instanceof IFluidHandler fluidHandler) return Optional.of(fluidHandler);
+        return storage == null ? Optional.empty() : Optional.of(new FluidStorageHandler(storage));
+    }
+
     public static Optional<IFluidHandler> getFluidHandler(BlockEntity entity, Direction side){
         Storage<FluidVariant> storage = FluidStorage.SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
         if (storage instanceof IFluidHandler fluidHandler) return Optional.of(fluidHandler);
@@ -110,12 +116,9 @@ public class TesseractCapUtilsImpl {
 
     public static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        if (tile == null) {
-            return null;
-        }
-        Optional<IFluidHandler> capability = getFluidHandler(tile, capSide);
+        Optional<IFluidHandler> capability = getFluidHandler(level, BlockPos.of(pos), capSide);
         if (capability.isPresent()) {
-            if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
+            if (capCallback != null && tile != null) ((TileListeners)tile).addListener(capCallback);
             IFluidHandler handler = capability.get();
             return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);
         } else {
