@@ -4,6 +4,8 @@
   "compatibilityLevel": "JAVA_17",
   "plugin": "tesseract.mixin.fabric.TesseractMixinPlugin",
   "mixins": [
+    "BlockEntityMixin",
+    "FabricBlockEnergyContainerAccessor",
     "IEnergyHandlerMixin",
     "SimpleItemEnergyStorageImplMixin",
     "mi.AbstractStorageMachineBEMixin",

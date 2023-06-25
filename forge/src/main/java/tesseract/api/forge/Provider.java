@@ -1,5 +1,6 @@
 package tesseract.api.forge;
 
+import earth.terrarium.botarium.util.Serializable;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -26,16 +27,23 @@ public class Provider<T> implements ICapabilityProvider, INBTSerializable {
     @Override
     public Tag serializeNBT() {
         return optional.map(t -> {
-            if (!(t instanceof INBTSerializable<?> it)) return new CompoundTag();
-            return it.serializeNBT();
+            if (t instanceof INBTSerializable it){
+                return it.serializeNBT();
+            } else if (t instanceof Serializable it){
+                return it.serialize(new CompoundTag());
+            }
+            return new CompoundTag();
         }).orElse(new CompoundTag());
     }
 
     @Override
     public void deserializeNBT(Tag nbt) {
         optional.ifPresent(t -> {
-            if (!(t instanceof INBTSerializable it)) return;
-            it.deserializeNBT(nbt);
+            if (t instanceof INBTSerializable it){
+                it.deserializeNBT(nbt);
+            } else if (t instanceof Serializable it && nbt instanceof CompoundTag tag){
+                it.deserialize(tag);
+            }
         });
     }
 

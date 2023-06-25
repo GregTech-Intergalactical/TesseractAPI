@@ -68,12 +68,12 @@ public class EnergyTileWrapper implements IEnergyHandler {
 
     @Override
     public long getInputAmperage() {
-        return 1;
+        return 16;
     }
 
     @Override
     public long getInputVoltage() {
-        return 32;
+        return 8192;
     }
 
     @Override

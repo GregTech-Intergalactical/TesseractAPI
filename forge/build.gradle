@@ -16,7 +16,7 @@ sourceSets {
 loom {
     forge{
         mixinConfigs = [
-                "tesseract-forge.mixins.json", "fluidhandler-extras.mixins.json"
+                "tesseract-forge.mixins.json"
         ]
     }
     runs {
@@ -37,23 +37,14 @@ loom {
 
 dependencies {
     forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
-    shadowCommon("io.github.feltmc:fluidhandler-extras:1.0.1")
+    include("io.github.feltmc:fluidhandler-extras:1.0.1")
     modImplementation("io.github.feltmc:fluidhandler-extras:1.0.1")
     common(project(path: ":tesseract-common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":tesseract-common", configuration: "transformProductionForge")) { transitive = false }
-    modApi("earth.terrarium:botarium-forge-1.19.3:$rootProject.botarium_version"){
-        transitive = false
-    }
-    include("earth.terrarium:botarium-forge-1.19.3:$rootProject.botarium_version"){
-        transitive = false
+    modImplementation(include("com.github.Trinsdar.Botarium:botarium-forge-1.18.2:${project.botarium_version}")){
+        exclude(group: "curse.maven")
     }
     testImplementation('junit:junit:4.11')
-}
-
-shadowJar {
-    configurations = [project.configurations.shadowCommon]
-    classifier "dev-shadow"
-    exclude "io/github/feltmc/fluidhandler_extras/Main.class"
 }
 
 processResources {

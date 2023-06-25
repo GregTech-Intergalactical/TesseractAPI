@@ -1,8 +1,11 @@
 package tesseract.api.gt;
 
 
-import earth.terrarium.botarium.util.Serializable;
+import tesseract.api.rf.IEnergyHandlerRF;
 
-public interface IEnergyHandler extends IGTNode, Serializable {
-
+public interface IEnergyHandler extends IGTNode, IEnergyHandlerRF {
+    @Override
+    default IEnergyHandler getEnergyHandler(){
+        return this;
+    }
 }

@@ -137,7 +137,7 @@ public class EnergyMoveableWrapper implements IEnergyHandler {
     }
 
     @Override
-    public CompoundTag serialize(CompoundTag nbt) {
+    public CompoundTag serialize(CompoundTag tag) {
         return null;
     }
 

@@ -1,7 +1,8 @@
-package tesseract.api.fe;
+package tesseract.api.rf;
 
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
@@ -9,35 +10,37 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import tesseract.Tesseract;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.api.capability.ITransactionModifier;
-import tesseract.graph.Graph;
-import tesseract.graph.Grid;
-import tesseract.graph.INode;
-import tesseract.graph.NodeCache;
-import tesseract.graph.Path;
+import tesseract.api.gt.GTConsumer;
+import tesseract.api.gt.IGTCable;
+import tesseract.api.gt.IGTNode;
+import tesseract.graph.*;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class acts as a controller in the group of a energy components.
  */
-public class FEController extends Controller<Integer, IFECable, IFENode> {
+public class RFController extends Controller<RFTransaction, IRFCable, IRFNode> {
 
     private long totalEnergy, lastEnergy;
     private final Long2LongMap holders = new Long2LongOpenHashMap();
-    private final Object2ObjectMap<IFENode, List<FEConsumer>> data = new Object2ObjectLinkedOpenHashMap<>();
+    private final Long2ObjectMap<Map<Direction, List<RFConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
 
     /**
      * Creates instance of the controller.
      *
      * @param world The world.
      */
-    public FEController(Level world) {
-        super(world, null);
+    public RFController(Level world, Graph.INodeGetter<IRFNode> getter) {
+        super(world, getter);
         holders.defaultReturnValue(-1L);
     }
 
@@ -54,49 +57,48 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
      */
     @Override
     public void change() {
+        if (!changeInternal()) {
+            Tesseract.LOGGER.warn("Error during RFController::change.");
+        }
+    }
+
+    private boolean changeInternal() {
         data.clear();
-
-        for (Long2ObjectMap.Entry<NodeCache<IFENode>> e : group.getNodes().long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<NodeCache<IRFNode>> e : group.getNodes().long2ObjectEntrySet()) {
             long pos = e.getLongKey();
-            IFENode producer = null;//e.getValue().value();
+            for (Map.Entry<Direction, IRFNode> tup : e.getValue().values()) {
+                IRFNode producer = tup.getValue();
+                Direction direction = tup.getKey();
+                if (producer.canOutput(direction)) {
+                    long side = Pos.offset(pos, direction);
+                    List<RFConsumer> consumers = new ObjectArrayList<>();
 
-            if (producer.canOutput()) {
-                Pos position = new Pos(pos);
-                for (Direction direction : Graph.DIRECTIONS) {
-                    if (producer.canOutput(direction)) {
-                        List<FEConsumer> consumers = new ObjectArrayList<>();
-                        long side = position.offset(direction).asLong();
-
-                        if (group.getNodes().containsKey(side)) {
-                            onCheck(consumers, null, side);
-                        } else {
-                            Grid<IFECable> grid = group.getGridAt(side, direction);
-                            if (grid != null) {
-                                for (Path<IFECable> path : grid.getPaths(pos)) {
-                                    if (!path.isEmpty()) {
-                                        Node target = path.target();
-                                        assert target != null;
-                                        onCheck(consumers, path, target.asLong());
-                                    }
-                                }
+                    Grid<IRFCable> grid = group.getGridAt(side, direction);
+                    if (grid != null) {
+                        for (Path<IRFCable> path : grid.getPaths(pos)) {
+                            if (!path.isEmpty()) {
+                                Node target = path.target();
+                                assert target != null;
+                                if (!onCheck(producer, consumers, path, target.asLong(), target.getDirection()))
+                                    return false;
                             }
                         }
-
-                        if (!consumers.isEmpty()) {
-                            if (data.containsKey(producer)) {
-                                onMerge(producer, consumers);
-                            } else {
-                                data.put(producer, consumers);
-                            }
-                        }
+                    } else if (group.getNodes().containsKey(side)) {
+                        onCheck(producer, consumers, null, side, direction.getOpposite());
                     }
+                    if (!consumers.isEmpty())
+                        data.computeIfAbsent(pos, m -> new EnumMap<>(Direction.class))
+                                .put(direction.getOpposite(), consumers);
                 }
             }
         }
 
-        for (List<FEConsumer> consumers : data.values()) {
-            consumers.sort(FEConsumer.COMPARATOR);
+        for (Map<Direction, List<RFConsumer>> map : data.values()) {
+            for (List<RFConsumer> consumers : map.values()) {
+                consumers.sort(RFConsumer.COMPARATOR);
+            }
         }
+        return true;
     }
 
     /**
@@ -105,17 +107,17 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
      * @param producer  The producer node.
      * @param consumers The consumer nodes.
      */
-    private void onMerge(IFENode producer, List<FEConsumer> consumers) {
-        List<FEConsumer> existingConsumers = data.get(producer);
-        for (FEConsumer c : consumers) {
+    private void onMerge(IRFNode producer, List<RFConsumer> consumers) {
+        /*List<RFConsumer> existingConsumers = data.get(producer);
+        for (RFConsumer c : consumers) {
             boolean found = false;
-            for (FEConsumer ec : existingConsumers) {
+            for (RFConsumer ec : existingConsumers) {
                 if (ec.getNode() == c.getNode()) {
                     found = true;
                 }
                 if (!found) existingConsumers.add(c);
             }
-        }
+        }*/
     }
 
     /**
@@ -125,9 +127,12 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
      * @param path      The paths to consumers.
      * @param pos       The position of the producer.
      */
-    private void onCheck(List<FEConsumer> consumers, Path<IFECable> path, long pos) {
-        IFENode node = null;//group.getNodes().get(pos).value();
-        if (node.canInput()) consumers.add(new FEConsumer(node, path));
+    private boolean onCheck(IRFNode producer, List<RFConsumer> consumers, Path<IRFCable> path, long pos, Direction direction) {
+        IRFNode node = group.getNodes().get(pos).value(direction);
+        if (node.canInput(direction)) {
+            consumers.add(new RFConsumer(node, producer, path));
+        }
+        return true;
     }
 
     /**
@@ -145,19 +150,19 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
     @Override
     public void tick() {
         super.tick();
-        holders.clear();
+        /*holders.clear();
 
-        for (Object2ObjectMap.Entry<IFENode, List<FEConsumer>> e : data.object2ObjectEntrySet()) {
-            IFENode producer = e.getKey();
+        for (Object2ObjectMap.Entry<IRFNode, List<RFConsumer>> e : data.object2ObjectEntrySet()) {
+            IRFNode producer = e.getKey();
 
-            long outputEnergy = Math.min(producer.getEnergy(), producer.getOutputEnergy());
+            long outputEnergy = Math.min(producer.getStoredEnergy(), producer.maxExtract());
             if (outputEnergy <= 0L) {
                 continue;
             }
 
-            for (FEConsumer consumer : e.getValue()) {
+            for (RFConsumer consumer : e.getValue()) {
 
-                long extracted = producer.extract(outputEnergy, true);
+                long extracted = producer.extractEnergy(outputEnergy, true);
                 if (extracted <= 0L) {
                     break;
                 }
@@ -178,9 +183,9 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
 
                     case VARIATE:
                         long limit = inserted;
-                        for (Long2ObjectMap.Entry<IFECable> p : consumer.getCross().long2ObjectEntrySet()) {
+                        for (Long2ObjectMap.Entry<IRFCable> p : consumer.getCross().long2ObjectEntrySet()) {
                             long pos = p.getLongKey();
-                            IFECable cable = p.getValue();
+                            IRFCable cable = p.getValue();
 
                             long capacity = holders.get(pos);
                             if (capacity == -1L) {
@@ -204,7 +209,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
                     continue;
                 }
 
-                extracted = producer.extract(inserted, false);
+                extracted = producer.extractEnergy(inserted, false);
 
                 consumer.insert(extracted, false);
 
@@ -215,7 +220,7 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
                     break;
                 }
             }
-        }
+        }*/
     }
 
     // @Override
@@ -242,12 +247,22 @@ public class FEController extends Controller<Integer, IFECable, IFENode> {
 
     @Override
     public ITickingController clone(INode group) {
-        return new FEController(dim).set(group);
+        return new RFController(dim, getter).set(group);
     }
 
     @Override
-    public void insert(long producerPos, Direction side, Integer transaction, ITransactionModifier modifier) {
-        // TODO Auto-generated method stub
-        
+    public void insert(long pipePos, Direction side, RFTransaction transaction, ITransactionModifier modifier) {
+        Map<Direction, List<RFConsumer>> map = this.data.get(Pos.offset(pipePos, side));
+        if (map == null)
+            return;
+        List<RFConsumer> list = map.get(side);
+        if (list == null)
+            return;
+
+        for (RFConsumer consumer : list) {
+            long added = consumer.insert(Math.min(transaction.rf, consumer.getNode().maxInsert()), true);
+            if (added <= 0) continue;
+            transaction.addData(added, rf -> consumer.insert(rf, true));
+        }
     }
 }

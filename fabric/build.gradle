@@ -57,12 +57,7 @@ dependencies {
     modApi(include("teamreborn:energy:${rootProject.energy_version}")) {
         transitive = false
     }
-    modApi("earth.terrarium:botarium-fabric-1.19.3:$rootProject.botarium_version"){
-        transitive = false
-    }
-    include("earth.terrarium:botarium-fabric-1.19.3:$rootProject.botarium_version"){
-        transitive = false
-    }
+    modImplementation(include("com.github.Trinsdar.Botarium:botarium-fabric-1.18.2:${project.botarium_version}"))
     modCompileOnly("curse.maven:modern_industrialization-405388:3866891")
 }
 
@@ -108,4 +103,3 @@ publishing {
             maven { url "file:///${project.projectDir}/mcmodsrepo"}
         }
     }
-}

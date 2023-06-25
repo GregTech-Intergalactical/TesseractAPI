@@ -1,31 +1,32 @@
 package tesseract.api.fabric.wrapper;
 
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import earth.terrarium.botarium.common.energy.base.PlatformItemEnergyManager;
+import earth.terrarium.botarium.common.item.ItemStackHolder;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import team.reborn.energy.api.EnergyStorage;
-import team.reborn.energy.api.base.SimpleSidedEnergyContainer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import tesseract.TesseractConfig;
+import tesseract.api.context.TesseractItemContext;
 import tesseract.api.gt.GTConsumer;
 import tesseract.api.gt.GTTransaction;
-import tesseract.api.gt.IEnergyHandler;
+import tesseract.api.gt.IEnergyHandlerItem;
 
-public class EnergyTileWrapper implements IEnergyHandler {
-
-    private final BlockEntity tile;
-    private final EnergyStorage storage;
+public class EnergyStackWrapper implements IEnergyHandlerItem {
+    private final ItemStackHolder holder;
+    private final PlatformItemEnergyManager storage;
 
     private final GTConsumer.State state = new GTConsumer.State(this);
 
-    public EnergyTileWrapper(BlockEntity tile, EnergyStorage storage) {
-        this.tile = tile;
+    public EnergyStackWrapper(ItemStack stack, PlatformItemEnergyManager storage) {
+        this.holder = new ItemStackHolder(stack);
         this.storage = storage;
     }
 
     @Override
     public boolean insert(GTTransaction transaction) {
-        if (storage.getAmount() >= transaction.voltageOut * TesseractConfig.COMMON.EU_TO_TRE_RATIO) {
+        if (storage.getStoredEnergy() >= transaction.voltageOut * TesseractConfig.COMMON.EU_TO_TRE_RATIO) {
             transaction.addData(1, 0, this::extractEnergy);
             return true;
         }
@@ -34,21 +35,12 @@ public class EnergyTileWrapper implements IEnergyHandler {
 
     @Override
     public boolean extractEnergy(GTTransaction.TransferData data) {
-        try(Transaction transaction = Transaction.openOuter()) {
-            boolean extract = storage.extract((long) (data.getEnergy(1, false) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction) > 0;
-            if (extract) transaction.commit();
-            return extract;
-        }
-
+        return storage.extract(holder, (int) (data.getEnergy(1, false) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), false) > 0;
     }
 
     @Override
     public boolean addEnergy(GTTransaction.TransferData data) {
-        try(Transaction transaction = Transaction.openOuter()) {
-            boolean insert = storage.insert((long) (data.getEnergy(1, true) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction) > 0;
-            if (insert) transaction.commit();
-            return insert;
-        }
+        return storage.insert(holder, (int) (data.getEnergy(1, true) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), false) > 0;
     }
 
     @Override
@@ -59,7 +51,7 @@ public class EnergyTileWrapper implements IEnergyHandler {
 
     @Override
     public long getEnergy() {
-        return (long) (storage.getAmount() / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        return (long) (storage.getStoredEnergy() / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
     }
 
     @Override
@@ -74,23 +66,17 @@ public class EnergyTileWrapper implements IEnergyHandler {
 
     @Override
     public long getOutputVoltage() {
-        if (storage instanceof SimpleSidedEnergyContainer limitingEnergyStorage){
-            return limitingEnergyStorage.getMaxExtract(null);
-        }
         return 32;
     }
 
     @Override
     public long getInputAmperage() {
-        return 16;
+        return 1;
     }
 
     @Override
     public long getInputVoltage() {
-        if (storage instanceof SimpleSidedEnergyContainer limitingEnergyStorage){
-            return limitingEnergyStorage.getMaxInsert(null);
-        }
-        return 8192;
+        return 32;
     }
 
     @Override
@@ -129,7 +115,42 @@ public class EnergyTileWrapper implements IEnergyHandler {
     }
 
     @Override
-    public void deserialize(CompoundTag nbt) {
+    public void deserialize(CompoundTag arg) {
 
+    }
+
+    @Override
+    public void setCapacity(long capacity) {
+
+    }
+
+    @Override
+    public void setEnergy(long energy) {
+
+    }
+
+    @Override
+    public @NotNull TesseractItemContext getContainer() {
+        return new TesseractItemContext() {
+            @Override
+            public Item getItem() {
+                return holder.getStack().getItem();
+            }
+
+            @Override
+            public @NotNull CompoundTag getTag() {
+                return holder.getStack().getTag();
+            }
+
+            @Override
+            public int getCount() {
+                return holder.getStack().getCount();
+            }
+
+            @Override
+            public void setItemStack(ItemStack stack) {
+
+            }
+        };
     }
 }
