@@ -117,8 +117,10 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
         Map<Direction, List<FluidConsumer>> map = this.data.get(Pos.offset(producerPos, side));
         if (map == null)
             return;
-        
+
         List<FluidConsumer> list = map.get(side);
+        if (list == null) return; //TODO figure out how this becomes null
+
         pressureData.clear();
 
         loop: for (FluidConsumer consumer : list) {
