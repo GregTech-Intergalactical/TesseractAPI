@@ -21,7 +21,7 @@ public interface IGTNode {
     default boolean insert(GTTransaction transaction) {
         if (transaction.mode == GTTransaction.Mode.TRANSMIT) {
             if (!canInput()) return false;
-            return transaction.addData(Math.min(transaction.getAvailableAmps(), availableAmpsInput()), 0, this::addEnergy).getAmps(true) > 0;
+            return transaction.addData(Math.min(transaction.getAvailableAmps(), availableAmpsInput(transaction.voltageOut)), 0, this::addEnergy).getAmps(true) > 0;
         } else {
             return transaction.addData(this.getCapacity() - this.getEnergy(), this::addEnergy).getEu() > 0;
         }
@@ -114,10 +114,12 @@ public interface IGTNode {
         return out;
     }
 
-    default long availableAmpsInput() {
+    default long availableAmpsInput(long voltage) {
         if (!canInput()) return 0;
         if (getInputVoltage() == 0) return 0;
-        long out = Math.min(getInputAmperage(), (long) (getCapacity() - getEnergy()) / getInputVoltage());
+        long availableEnergy = getCapacity() - getEnergy();
+        long availableInputAmps = availableEnergy / getInputVoltage();
+        long out = Math.min(getInputAmperage(), availableInputAmps);
         if (out == -1) out = getInputAmperage();
         out = Math.min(out, getState().receive(true, out));
         return out;

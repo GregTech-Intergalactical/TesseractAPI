@@ -89,7 +89,7 @@ public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandler
     @Override
     public boolean addEnergy(GTTransaction.TransferData data) {
         if (data.transaction.mode == GTTransaction.Mode.TRANSMIT) {
-            long amps = Math.min(data.getAmps(true), this.availableAmpsInput());
+            long amps = Math.min(data.getAmps(true), this.availableAmpsInput(data.getVoltage()));
             amps = Math.min(amps, (this.getCapacity() - this.getAmount()) / this.getInputVoltage());
             long toAdd = data.getEnergy(amps, true);
             try(Transaction transaction = Transaction.openOuter()) {
@@ -113,6 +113,17 @@ public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandler
                 return inserted > 0;
             }
         }
+    }
+
+
+    @Override
+    public long availableAmpsInput(long voltage) {
+        long added = 0;
+        try(Transaction transaction = Transaction.openOuter()) {
+            added = this.insert(voltage, transaction);
+        }
+        if (added == voltage) return 1;
+        return 0;
     }
 
     @Override

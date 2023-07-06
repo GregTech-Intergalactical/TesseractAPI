@@ -57,6 +57,13 @@ public class EnergyTileWrapper implements IEnergyHandler {
     }
 
     @Override
+    public long availableAmpsInput(long voltage) {
+        if (!canInput()) return 0;
+        int inserted = storage.receiveEnergy((int) (voltage * TesseractConfig.COMMON.EU_TO_FE_RATIO), false);
+        return inserted == voltage ? 1 : 0;
+    }
+
+    @Override
     public long getOutputAmperage() {
         return 1;
     }
@@ -73,7 +80,7 @@ public class EnergyTileWrapper implements IEnergyHandler {
 
     @Override
     public long getInputVoltage() {
-        return 8192;
+        return 32;
     }
 
     @Override

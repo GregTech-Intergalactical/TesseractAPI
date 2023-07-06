@@ -2,6 +2,7 @@ package tesseract.api.fabric.wrapper;
 
 import earth.terrarium.botarium.common.energy.base.PlatformItemEnergyManager;
 import earth.terrarium.botarium.common.item.ItemStackHolder;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
@@ -57,6 +58,13 @@ public class EnergyStackWrapper implements IEnergyHandlerItem {
     @Override
     public long getCapacity() {
         return (long) (storage.getCapacity() / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+    }
+
+    @Override
+    public long availableAmpsInput(long voltage) {
+        if (!canInput()) return 0;
+        long inserted = storage.insert(holder, (long) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), false);
+        return inserted == voltage ? 1 : 0;
     }
 
     @Override
