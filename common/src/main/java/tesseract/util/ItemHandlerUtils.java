@@ -2,7 +2,6 @@ package tesseract.util;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
 import tesseract.api.item.PlatformItemHandler;
 
 import javax.annotation.Nonnull;
