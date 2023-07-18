@@ -80,6 +80,13 @@ public class EnergyStackWrapper implements IEnergyHandlerItem {
     }
 
     @Override
+    public long availableAmpsInput(long voltage) {
+        if (!canInput()) return 0;
+        int inserted = storage.receiveEnergy((int) (voltage * TesseractConfig.COMMON.EU_TO_FE_RATIO), false);
+        return inserted == voltage ? 1 : 0;
+    }
+
+    @Override
     public boolean canOutput() {
         return TesseractConfig.COMMON.ENABLE_FE_OR_TRE_INPUT && storage.canExtract();
     }

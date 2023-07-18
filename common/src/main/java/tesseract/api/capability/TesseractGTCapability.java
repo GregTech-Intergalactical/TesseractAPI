@@ -89,7 +89,7 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
     }
 
     @Override
-    public long availableAmpsInput() {
+    public long availableAmpsInput(long voltage) {
         return Long.MAX_VALUE;
     }
 

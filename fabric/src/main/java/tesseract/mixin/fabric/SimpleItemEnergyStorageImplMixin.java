@@ -22,24 +22,24 @@ import tesseract.api.gt.IEnergyHandlerItem;
 
 @Mixin(SimpleItemEnergyStorageImpl.class)
 public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandlerItem {
-    @Shadow public abstract long getAmount();
+    @Shadow(remap = false) public abstract long getAmount();
 
-    @Shadow public abstract boolean supportsExtraction();
+    @Shadow(remap = false) public abstract boolean supportsExtraction();
 
-    @Shadow public abstract boolean supportsInsertion();
+    @Shadow(remap = false) public abstract boolean supportsInsertion();
 
-    @Shadow @Final private long maxInsert;
-    @Shadow @Final private long maxExtract;
+    @Shadow(remap = false) @Final private long maxInsert;
+    @Shadow(remap = false) @Final private long maxExtract;
 
-    @Shadow public abstract long getCapacity();
+    @Shadow(remap = false) public abstract long getCapacity();
 
-    @Shadow public abstract long extract(long maxAmount, TransactionContext transaction);
+    @Shadow(remap = false) public abstract long extract(long maxAmount, TransactionContext transaction);
 
-    @Shadow public abstract long insert(long maxAmount, TransactionContext transaction);
+    @Shadow(remap = false) public abstract long insert(long maxAmount, TransactionContext transaction);
 
-    @Shadow @Final private ContainerItemContext ctx;
+    @Shadow(remap = false) @Final private ContainerItemContext ctx;
 
-    @Shadow protected abstract boolean trySetEnergy(long energyAmountPerCount, long count, TransactionContext transaction);
+    @Shadow(remap = false) protected abstract boolean trySetEnergy(long energyAmountPerCount, long count, TransactionContext transaction);
 
     @Unique
     protected GTConsumer.State state = new GTConsumer.State(this);
@@ -89,7 +89,7 @@ public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandler
     @Override
     public boolean addEnergy(GTTransaction.TransferData data) {
         if (data.transaction.mode == GTTransaction.Mode.TRANSMIT) {
-            long amps = Math.min(data.getAmps(true), this.availableAmpsInput());
+            long amps = Math.min(data.getAmps(true), this.availableAmpsInput(data.getVoltage()));
             amps = Math.min(amps, (this.getCapacity() - this.getAmount()) / this.getInputVoltage());
             long toAdd = data.getEnergy(amps, true);
             try(Transaction transaction = Transaction.openOuter()) {
@@ -113,6 +113,17 @@ public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandler
                 return inserted > 0;
             }
         }
+    }
+
+
+    @Override
+    public long availableAmpsInput(long voltage) {
+        long added = 0;
+        try(Transaction transaction = Transaction.openOuter()) {
+            added = this.insert(voltage, transaction);
+        }
+        if (added == voltage) return 1;
+        return 0;
     }
 
     @Override

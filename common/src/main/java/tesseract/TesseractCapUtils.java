@@ -3,10 +3,13 @@ package tesseract;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
 import earth.terrarium.botarium.common.fluid.base.PlatformFluidItemHandler;
+import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.gt.IEnergyHandler;
@@ -39,6 +42,11 @@ public class TesseractCapUtils {
 
     @ExpectPlatform
     public static Optional<IItemHandler> getItemHandler(BlockEntity entity, Direction side){
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
         throw new AssertionError();
     }
 

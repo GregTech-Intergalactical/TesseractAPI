@@ -136,7 +136,7 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
 
         public long consumeForNode(IGTNode node) {
             if (this.transaction.mode == GTTransaction.Mode.TRANSMIT) {
-                long amps = Math.min(getAmps(true), node.availableAmpsInput());
+                long amps = Math.min(getAmps(true), node.availableAmpsInput(this.getVoltage()));
                 amps = Math.min(amps, (node.getCapacity() - node.getEnergy()) / node.getInputVoltage());
                 useAmps(true, amps);
                 node.getState().receive(false, amps);

@@ -94,6 +94,16 @@ public class EnergyTileWrapper implements IEnergyHandler {
     }
 
     @Override
+    public long availableAmpsInput(long voltage) {
+        long added = 0;
+        try(Transaction transaction = Transaction.openOuter()) {
+            added = storage.insert(voltage, transaction);
+        }
+        if (added == voltage) return 1;
+        return 0;
+    }
+
+    @Override
     public boolean canOutput() {
         return TesseractConfig.COMMON.ENABLE_FE_OR_TRE_INPUT && storage.supportsExtraction();
     }

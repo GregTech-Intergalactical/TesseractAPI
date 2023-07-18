@@ -1,12 +1,19 @@
 package tesseract.forge;
 
 import earth.terrarium.botarium.common.fluid.base.FluidContainer;
+import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
+import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
 import earth.terrarium.botarium.forge.fluid.ForgeFluidContainer;
+import earth.terrarium.botarium.forge.fluid.ForgeFluidHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.AbstractCauldronBlock;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CauldronBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
@@ -16,6 +23,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.forge.TesseractCaps;
+import tesseract.api.forge.wrapper.CauldronWrapper;
 import tesseract.api.forge.wrapper.EnergyStackWrapper;
 import tesseract.api.forge.wrapper.EnergyTileWrapper;
 import tesseract.api.forge.wrapper.FluidTileWrapper;
@@ -68,17 +76,31 @@ public class TesseractCapUtilsImpl {
     public static Optional<IItemHandler> getItemHandler(BlockEntity entity, Direction side){
         return entity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).resolve();
     }
-
-    public static Optional<IFluidHandler> getFluidHandler(BlockEntity entity, Direction side){
-        return entity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side).resolve();
+    public static Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
+        BlockEntity entity = level.getBlockEntity(pos);
+        if (entity == null){
+            BlockState state = level.getBlockState(pos);
+            if (state.getBlock() instanceof AbstractCauldronBlock){
+                return Optional.of(new ForgeFluidHandler(new CauldronWrapper(state, level, pos)));
+            }
+            return Optional.empty();
+        }
+        return FluidHooks.safeGetBlockFluidManager(entity, side);
     }
 
     public static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        if (tile == null) {
-            return null;
+        LazyOptional<IFluidHandler> capability;
+        if (tile == null){
+            BlockState state = level.getBlockState(BlockPos.of(pos));
+            if (state.getBlock() instanceof AbstractCauldronBlock cauldronBlock){
+                capability = LazyOptional.of(() -> new CauldronWrapper(state, level, BlockPos.of(pos)));
+            } else {
+                return null;
+            }
+        } else {
+            capability = tile.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, capSide);
         }
-        LazyOptional<IFluidHandler> capability = tile.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, capSide);
         if (capability.isPresent()) {
             if (capCallback != null) capability.addListener(o -> capCallback.run());
             IFluidHandler handler = capability.map(f -> f).orElse(null);

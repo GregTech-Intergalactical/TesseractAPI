@@ -6,6 +6,10 @@ import earth.terrarium.botarium.common.energy.base.PlatformItemEnergyManager;
 import earth.terrarium.botarium.common.energy.util.EnergyHooks;
 import earth.terrarium.botarium.common.fluid.base.FluidAttachment;
 import earth.terrarium.botarium.common.fluid.base.FluidContainer;
+import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
+import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
+import earth.terrarium.botarium.fabric.fluid.storage.FabricFluidHandler;
+import net.fabricatedforgeapi.transfer.fluid.FluidStorageHandler;
 import net.fabricatedforgeapi.transfer.item.ItemStorageHandler;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
@@ -19,6 +23,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import team.reborn.energy.api.EnergyStorage;
@@ -77,6 +82,13 @@ public class TesseractCapUtilsImpl {
         Storage<ItemVariant> storage = ItemStorage.SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
         if (storage instanceof IItemHandler itemHandler) return Optional.of(itemHandler);
         return storage == null ? Optional.empty() : Optional.of(new ItemStorageHandler(storage));
+    }
+
+    public static Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity != null) return FluidHooks.safeGetBlockFluidManager(blockEntity, side);
+        Storage<FluidVariant> storage = FluidStorage.SIDED.find(level, pos, side);
+        return storage == null ? Optional.empty() : Optional.of(new FabricFluidHandler(storage));
     }
 
     public static IItemNode getItemNode(Level level, long pos, Direction capSide, Runnable capCallback){
