@@ -9,10 +9,16 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
+import tesseract.TesseractCapUtils;
+import tesseract.api.forge.TesseractCaps;
 import tesseract.api.forge.wrapper.RFWrapper;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IGTNode;
+import tesseract.api.heat.IHeatHandler;
+import tesseract.api.heat.IHeatNode;
 import tesseract.api.rf.IRFNode;
+
+import java.util.Optional;
 
 public class TesseractPlatformUtilsImpl {
     public static IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
@@ -42,6 +48,17 @@ public class TesseractPlatformUtilsImpl {
         } else {
             return null;
         }
+    }
+
+    public static IHeatNode getHeatNode(Level level, long pos, Direction direction, Runnable invalidate){
+        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
+        if (tile == null) return null;
+        LazyOptional<IHeatHandler> capability = tile.getCapability(TesseractCaps.HEAT_CAPABILITY, direction);
+        if (capability.isPresent()) {
+            if (invalidate != null) capability.addListener(t -> invalidate.run());
+            return capability.resolve().get();
+        }
+        return null;
     }
 
     public static boolean isFeCap(Class<?> cap){
