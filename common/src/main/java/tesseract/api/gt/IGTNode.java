@@ -114,11 +114,6 @@ public interface IGTNode {
         return out;
     }
 
-    @Deprecated
-    default long availableAmpsInput(){
-        return availableAmpsInput(32L);
-    }
-
     default long availableAmpsInput(long voltage) {
         if (!canInput()) return 0;
         if (getInputVoltage() == 0) return 0;
