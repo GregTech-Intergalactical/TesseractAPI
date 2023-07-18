@@ -16,6 +16,7 @@ import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 import tesseract.api.item.IItemNode;
+import tesseract.api.item.PlatformItemHandler;
 
 import java.util.Optional;
 
@@ -41,7 +42,7 @@ public class TesseractCapUtils {
     }
 
     @ExpectPlatform
-    public static Optional<IItemHandler> getItemHandler(BlockEntity entity, Direction side){
+    public static Optional<PlatformItemHandler> getItemHandler(BlockEntity entity, Direction side){
         throw new AssertionError();
     }
 

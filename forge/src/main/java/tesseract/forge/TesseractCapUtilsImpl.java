@@ -21,17 +21,16 @@ import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.wrapper.InvWrapper;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.forge.TesseractCaps;
-import tesseract.api.forge.wrapper.CauldronWrapper;
-import tesseract.api.forge.wrapper.EnergyStackWrapper;
-import tesseract.api.forge.wrapper.EnergyTileWrapper;
-import tesseract.api.forge.wrapper.FluidTileWrapper;
-import tesseract.api.forge.wrapper.IEnergyHandlerStorage;
+import tesseract.api.forge.wrapper.*;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 import tesseract.api.item.IItemNode;
+import tesseract.api.item.PlatformItemHandler;
 import tesseract.api.wrapper.ItemTileWrapper;
 
 import javax.annotation.Nullable;
@@ -73,8 +72,8 @@ public class TesseractCapUtilsImpl {
         return entity.getCapability(TesseractCaps.HEAT_CAPABILITY, side).map(e -> e);
     }
 
-    public static Optional<IItemHandler> getItemHandler(BlockEntity entity, Direction side){
-        return entity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).resolve();
+    public static Optional<PlatformItemHandler> getItemHandler(BlockEntity entity, Direction side){
+        return entity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).map(ForgePlatformItemHandler::new);
     }
     public static Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
         BlockEntity entity = level.getBlockEntity(pos);
@@ -122,10 +121,14 @@ public class TesseractCapUtilsImpl {
         LazyOptional<IItemHandler> h = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, capSide);
         if (h.isPresent()) {
             if (capCallback != null) h.addListener(t -> capCallback.run());
-            if (h.map(t -> t instanceof IItemNode).orElse(false)) {
-                return (IItemNode) h.resolve().get();
+            IItemHandler handler = h.resolve().get();
+            if (handler instanceof IItemNode node){
+                return node;
             }
-            return new ItemTileWrapper(tile, h.orElse(null));
+            if (handler instanceof InvWrapper wrapper){
+                if (wrapper.getInv() instanceof IItemNode node) return node;
+            }
+            return new ItemHandlerWrapper(handler);
         }
         return null;
     }

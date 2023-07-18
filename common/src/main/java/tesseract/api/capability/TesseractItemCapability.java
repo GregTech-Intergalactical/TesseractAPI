@@ -2,6 +2,8 @@ package tesseract.api.capability;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -12,6 +14,7 @@ import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
 import tesseract.api.item.ItemTransaction;
 import tesseract.graph.Graph;
+import tesseract.util.ItemHandlerUtils;
 import tesseract.util.Pos;
 
 
@@ -24,14 +27,37 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
     }
 
     @Override
-    public int getSlots() {
+    public int getContainerSize() {
         return 1;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return false;
     }
 
     @NotNull
     @Override
-    public ItemStack getStackInSlot(int slot) {
+    public ItemStack getItem(int slot) {
         return ItemStack.EMPTY;
+    }
+
+    @Override
+    public ItemStack removeItemNoUpdate(int index) {
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public void setItem(int index, ItemStack stack) {
+    }
+
+    @Override
+    public void setChanged() {
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return true;
     }
 
     @NotNull
@@ -72,11 +98,11 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
                 if (cap.isEmpty()) continue;
                 //Perform insertion, and add to the transaction.
                 var handler = cap.get();
-                var newStack = ItemHandlerHelper.insertItem(handler, stack, true);
+                var newStack = ItemHandlerUtils.insertItem(handler, stack, true);
                 if (newStack.getCount() < stack.getCount()) {
                     transaction.addData(stack.getCount() - newStack.getCount(), a -> {
                         this.callback.modify(a, this.side, dir, false);
-                        ItemHandlerHelper.insertItem(handler, a, false);
+                        ItemHandlerUtils.insertItem(handler, a, false);
                     });
                     stackIn = newStack;
                 }
@@ -97,7 +123,7 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
     }
 
     @Override
-    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+    public boolean canPlaceItem(int slot, @NotNull ItemStack stack) {
         return true;
     }
 
@@ -129,5 +155,20 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
     @Override
     public boolean canOutput(Direction direction) {
         return true;
+    }
+
+    @Override
+    public void deserialize(CompoundTag nbt) {
+        
+    }
+
+    @Override
+    public CompoundTag serialize(CompoundTag nbt) {
+        return null;
+    }
+
+    @Override
+    public void clearContent() {
+
     }
 }

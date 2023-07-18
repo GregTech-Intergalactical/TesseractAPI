@@ -20,7 +20,7 @@ import tesseract.api.wrapper.ItemTileWrapper;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IItemNode extends IItemHandler {
+public interface IItemNode extends ExtendedItemContainer {
 
     /**
      * @param direction Direction to the proceed.
