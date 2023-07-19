@@ -6,14 +6,10 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.ItemHandlerHelper;
 import org.jetbrains.annotations.NotNull;
-import tesseract.api.gt.IGTNode;
 import tesseract.api.item.IItemNode;
-import tesseract.api.item.PlatformItemHandler;
-import tesseract.graph.INode;
+import tesseract.util.ItemHandlerUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +87,7 @@ public class ItemStorageWrapper implements IItemNode {
             return stack;
         ItemStack current = getItem(slot);
         int limit = Math.min(getSlotLimit(slot), current.getMaxStackSize());
-        if (limit <= 0 || !ItemHandlerHelper.canItemStacksStack(current, stack)) // make sure there's room
+        if (limit <= 0 || !ItemHandlerUtils.canItemStacksStack(current, stack)) // make sure there's room
             return stack;
         // finally insert
         ItemStack finalVal = ItemStack.EMPTY;
