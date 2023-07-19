@@ -2,6 +2,7 @@ package tesseract;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import earth.terrarium.botarium.common.fluid.base.FluidHolder;
+import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
@@ -14,9 +15,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class FluidPlatformUtils {
-    @ExpectPlatform
     public static FluidHolder createFluidStack(Fluid fluid, long amount){
-        throw new AssertionError();
+        return FluidHooks.newFluidHolder(fluid,amount, null);
     }
 
     @ExpectPlatform
