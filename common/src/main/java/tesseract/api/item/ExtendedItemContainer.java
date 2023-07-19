@@ -2,6 +2,7 @@ package tesseract.api.item;
 
 import earth.terrarium.botarium.common.item.SerializableContainer;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,11 +39,6 @@ public interface ExtendedItemContainer extends SerializableContainer {
     @NotNull
     ItemStack extractItem(int slot, int amount, boolean simulate);
 
-    @Override
-    default ItemStack removeItem(int index, int count){
-        return extractItem(index, count, false);
-    }
-
     /**
      * Retrieves the maximum stack size allowed to exist in the given slot.
      *
@@ -50,4 +46,43 @@ public interface ExtendedItemContainer extends SerializableContainer {
      * @return     The maximum stack size allowed in the slot.
      */
     int getSlotLimit(int slot);
+
+    //Container overrides
+
+    @Override
+    default ItemStack removeItem(int index, int count){
+        return extractItem(index, count, false);
+    }
+
+    @Override
+    default ItemStack removeItemNoUpdate(int index) {
+        return removeItem(index, getItem(index).getCount());
+    }
+
+    @Override
+    default boolean isEmpty(){
+        boolean hasStack = false;
+        for (int i = 0; i < getContainerSize(); i++) {
+            ItemStack stack = getItem(i);
+            if (!stack.isEmpty()) hasStack = true;
+        };
+        return !hasStack;
+    }
+
+    @Override
+    default boolean stillValid(Player player){
+        return true;
+    }
+
+    @Override
+    default void setChanged(){
+
+    }
+
+    @Override
+    default void clearContent(){
+        for (int i = 0; i < getContainerSize(); i++) {
+            this.removeItem(i, getItem(i).getCount());
+        }
+    }
 }

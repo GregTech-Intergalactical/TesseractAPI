@@ -18,6 +18,7 @@ import tesseract.graph.INode;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("UnstableApiUsage")
 public class ItemStorageWrapper implements IItemNode {
     protected final Storage<ItemVariant> storage;
     protected long version;
@@ -25,7 +26,7 @@ public class ItemStorageWrapper implements IItemNode {
     protected ItemStack[] stacks;
     protected Long[] capacities;
 
-    public ItemStorageWrapper(Storage<ItemVariant> storage){
+    public ItemStorageWrapper(@NotNull Storage<ItemVariant> storage){
         this.storage = storage;
         this.version = storage.getVersion();
         updateContents();
@@ -66,11 +67,6 @@ public class ItemStorageWrapper implements IItemNode {
         return slots;
     }
 
-    @Override
-    public boolean isEmpty() {
-        return false;
-    }
-
     @NotNull
     @Override
     public ItemStack getItem(int slot) {
@@ -80,11 +76,6 @@ public class ItemStorageWrapper implements IItemNode {
             return stacks[slot].copy();
         }
         return ItemStack.EMPTY;
-    }
-
-    @Override
-    public ItemStack removeItemNoUpdate(int index) {
-        return null;
     }
 
     @NotNull
@@ -178,23 +169,13 @@ public class ItemStorageWrapper implements IItemNode {
     }
 
     @Override
-    public void setChanged() {
-
-    }
-
-    @Override
-    public boolean stillValid(Player player) {
-        return false;
-    }
-
-    @Override
     public int getPriority(Direction direction) {
         return 0;
     }
 
     @Override
     public boolean isEmpty(int slot) {
-        return false;
+        return getItem(slot).isEmpty();
     }
 
     @Override
@@ -225,10 +206,5 @@ public class ItemStorageWrapper implements IItemNode {
     @Override
     public CompoundTag serialize(CompoundTag nbt) {
         return null;
-    }
-
-    @Override
-    public void clearContent() {
-
     }
 }

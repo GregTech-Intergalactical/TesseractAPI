@@ -42,21 +42,7 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
     }
 
     @Override
-    public ItemStack removeItemNoUpdate(int index) {
-        return ItemStack.EMPTY;
-    }
-
-    @Override
     public void setItem(int index, ItemStack stack) {
-    }
-
-    @Override
-    public void setChanged() {
-    }
-
-    @Override
-    public boolean stillValid(Player player) {
-        return true;
     }
 
     @NotNull

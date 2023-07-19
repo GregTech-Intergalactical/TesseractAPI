@@ -39,22 +39,12 @@ public record ItemHandlerWrapper(IItemHandler handler) implements IItemNode {
 
     @Override
     public boolean canOutput(Direction direction) {
-        return true;
+        return handler != null;
     }
 
     @Override
     public int getContainerSize() {
         return handler.getSlots();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        boolean hasStack = false;
-        for (int i = 0; i < getContainerSize(); i++) {
-            ItemStack stack = getItem(i);
-            if (!stack.isEmpty()) hasStack = true;
-        };
-        return !hasStack;
     }
 
     @NotNull
@@ -64,23 +54,8 @@ public record ItemHandlerWrapper(IItemHandler handler) implements IItemNode {
     }
 
     @Override
-    public ItemStack removeItemNoUpdate(int index) {
-        return removeItem(index, getItem(index).getCount());
-    }
-
-    @Override
     public void setItem(int index, ItemStack stack) {
         if (handler instanceof IItemHandlerModifiable modifiable) modifiable.setStackInSlot(index, stack);
-    }
-
-    @Override
-    public void setChanged() {
-
-    }
-
-    @Override
-    public boolean stillValid(Player player) {
-        return true;
     }
 
     @NotNull
@@ -113,9 +88,5 @@ public record ItemHandlerWrapper(IItemHandler handler) implements IItemNode {
     @Override
     public CompoundTag serialize(CompoundTag nbt) {
         return null;
-    }
-
-    @Override
-    public void clearContent() {
     }
 }
