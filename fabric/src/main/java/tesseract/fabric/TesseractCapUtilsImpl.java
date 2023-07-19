@@ -17,6 +17,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.impl.transfer.item.InventoryStorageImpl;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,7 +37,9 @@ import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 import tesseract.api.item.IItemNode;
+import tesseract.api.item.PlatformItemHandler;
 import tesseract.api.wrapper.ItemTileWrapper;
+import tesseract.mixin.fabric.InventoryStorageImplAccessor;
 
 import java.util.Optional;
 
@@ -78,10 +81,10 @@ public class TesseractCapUtilsImpl {
     }
 
     //TODO figure out better abstraction method
-    public static Optional<IItemHandler> getItemHandler(BlockEntity entity, Direction side){
-        Storage<ItemVariant> storage = ItemStorage.SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
-        if (storage instanceof IItemHandler itemHandler) return Optional.of(itemHandler);
-        return storage == null ? Optional.empty() : Optional.of(new ItemStorageHandler(storage));
+    public static Optional<PlatformItemHandler> getItemHandler(BlockEntity tile, Direction side){
+        Storage<ItemVariant> storage = ItemStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, side);
+        //if (storage instanceof IItemHandler itemHandler) return Optional.of(itemHandler);
+        return storage == null ? Optional.empty() : Optional.of(new FabricPlatformItemHandler(storage));
     }
 
     public static Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
@@ -96,14 +99,25 @@ public class TesseractCapUtilsImpl {
         if (tile == null) {
             return null;
         }
-        Optional<IItemHandler> h = getItemHandler(tile, capSide);
-        if (h.isPresent()) {
+        Storage<ItemVariant> storage = ItemStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, capSide);
+        if (storage != null){
             if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
+            if (storage instanceof IItemNode node) return node;
+            if (storage instanceof InventoryStorageImplAccessor accessor && accessor.getInventory() instanceof IItemNode node){
+                return node;
+            }
+            return new ItemStorageWrapper(storage);
+        }
+        /*Optional<PlatformItemHandler> h = getItemHandler(tile, capSide);
+        if (h.isPresent()) {
+
+            FabricPlatformItemHandler fh = ((FabricPlatformItemHandler) h.get());
+
             if (h.map(t -> t instanceof IItemNode).orElse(false)) {
                 return (IItemNode) h.get();
             }
             return new ItemTileWrapper(tile, h.get());
-        }
+        }*/
         return null;
     }
 

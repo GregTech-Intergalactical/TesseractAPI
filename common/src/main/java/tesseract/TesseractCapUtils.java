@@ -10,12 +10,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 import tesseract.api.item.IItemNode;
+import tesseract.api.item.PlatformItemHandler;
 
 import java.util.Optional;
 
@@ -41,7 +41,7 @@ public class TesseractCapUtils {
     }
 
     @ExpectPlatform
-    public static Optional<IItemHandler> getItemHandler(BlockEntity entity, Direction side){
+    public static Optional<PlatformItemHandler> getItemHandler(BlockEntity entity, Direction side){
         throw new AssertionError();
     }
 
