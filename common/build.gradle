@@ -31,7 +31,7 @@ dependencies{
     compileOnly("com.electronwill.night-config:toml:${rootProject.nightconfig_version}")
     compileOnly("com.electronwill.night-config:core:${rootProject.nightconfig_version}")
     modImplementation("net.minecraftforge:forgeconfigapiport-fabric:3.2.4")
-    modImplementation("com.github.Trinsdar.Botarium:botarium-common-1.18.2:${project.botarium_version}")
+    modImplementation("earth.terrarium:botarium-common-${project.minecraft_version}:${project.botarium_version}")
     testImplementation('junit:junit:4.11')
     testImplementation(sourceSets.main.output)
 }
