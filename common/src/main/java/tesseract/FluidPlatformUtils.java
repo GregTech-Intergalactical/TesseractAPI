@@ -86,7 +86,7 @@ public class FluidPlatformUtils {
                 if (inserted > 0){
                     FluidHolder fluidHolder = FluidHooks.newFluidHolder(fluid.getFluid(), Math.min(maxInsert, inserted), fluid.getCompound());
                     from.extractFluid(fluidHolder, simulate);
-                    return to.insertFluid(receiver, fluidHolder, simulate);
+                    return to.insertFluid(receiver, fluidHolder, false);
                 }
 
             }
@@ -102,7 +102,7 @@ public class FluidPlatformUtils {
                 long inserted = to.insertFluid(extracted, true);
                 if (inserted > 0){
                     FluidHolder fluidHolder = FluidHooks.newFluidHolder(fluid.getFluid(), Math.min(maxExtract, inserted), fluid.getCompound());
-                    from.extractFluid(receiver, fluidHolder, simulate);
+                    from.extractFluid(receiver, fluidHolder, false);
                     return to.insertFluid(fluidHolder, simulate);
                 }
 
