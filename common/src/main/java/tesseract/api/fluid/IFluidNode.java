@@ -2,6 +2,7 @@ package tesseract.api.fluid;
 
 import earth.terrarium.botarium.common.fluid.base.FluidContainer;
 import earth.terrarium.botarium.common.fluid.base.FluidHolder;
+import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
 import net.minecraft.core.Direction;
 import tesseract.TesseractCapUtils;
 import tesseract.api.GraphWrapper;
@@ -54,6 +55,14 @@ public interface IFluidNode extends FluidContainer {
      */
     default FluidHolder drainInput(FluidHolder stack, boolean simulate) {
         return extractFluid(stack, simulate);
+    }
+
+    default FluidHolder extractFluid(long toExtract, boolean simulate) {
+        for (int i = 0; i < getSize(); i++) {
+            FluidHolder fluid = extractFluid(getFluidInTank(i), simulate);
+            if (!fluid.isEmpty()) return fluid;
+        }
+        return FluidHooks.emptyFluid();
     }
 
     default boolean isFluidValid(int tank, FluidHolder stack) { return true; }
