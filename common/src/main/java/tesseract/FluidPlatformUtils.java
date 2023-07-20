@@ -19,6 +19,8 @@ import net.minecraft.world.level.material.Fluid;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class FluidPlatformUtils {
     public static FluidHolder createFluidStack(Fluid fluid, long amount){
@@ -70,45 +72,54 @@ public class FluidPlatformUtils {
         throw new AssertionError();
     }*/
 
-    public static long moveStandardToItemFluid(FluidContainer from, PlatformFluidItemHandler to, ItemStackHolder receiver, FluidHolder fluid) {
-        FluidHolder extracted = from.extractFluid(fluid, true);
-        long inserted = to.insertFluid(receiver.copy(), extracted, true);
-        from.extractFluid(FluidHooks.newFluidHolder(fluid.getFluid(), inserted, fluid.getCompound()), false);
-        return to.insertFluid(receiver, extracted, false);
+    public static boolean fillItemFromContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
+        return fillItemFromContainer(stack, handler, s -> true, consumer);
     }
 
-    public static long moveStandardToItemFluid(FluidContainer from, PlatformFluidItemHandler to, ItemStackHolder receiver, long maxInsert, boolean simulate) {
-        for (int i = 0; i < from.getSize(); i++) {
-            FluidHolder fluid = from.getFluids().get(i);
-            FluidHolder extracted = from.extractFluid(fluid, true);
-            if (!extracted.isEmpty()){
-                long inserted = to.insertFluid(receiver.copy(), extracted, true);
-                if (inserted > 0){
-                    FluidHolder fluidHolder = FluidHooks.newFluidHolder(fluid.getFluid(), Math.min(maxInsert, inserted), fluid.getCompound());
-                    from.extractFluid(fluidHolder, simulate);
-                    return to.insertFluid(receiver, fluidHolder, false);
-                }
-
-            }
-        }
-        return 0;
+    public static boolean emptyItemintoContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
+        return emptyItemintoContainer(stack, handler, s -> true, consumer);
     }
 
-    public static long moveItemToStandardFluid(PlatformFluidItemHandler from, FluidContainer to, ItemStackHolder receiver, long maxExtract, boolean simulate) {
-        for (int i = 0; i < from.getTankAmount(); i++) {
-            FluidHolder fluid = from.getFluidInTank(i);
-            FluidHolder extracted = from.extractFluid(receiver.copy(), fluid, true);
+    public static boolean fillItemFromContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
+        PlatformFluidItemHandler itemHandler = FluidHooks.safeGetItemFluidManager(stack).orElse(null);
+        if (itemHandler == null) return false;
+        for (int i = 0; i < handler.getTankAmount(); i++) {
+            FluidHolder fluid = handler.getFluidInTank(i);
+            FluidHolder extracted = handler.extractFluid(fluid, true);
             if (!extracted.isEmpty()){
-                long inserted = to.insertFluid(extracted, true);
-                if (inserted > 0){
-                    FluidHolder fluidHolder = FluidHooks.newFluidHolder(fluid.getFluid(), Math.min(maxExtract, inserted), fluid.getCompound());
-                    from.extractFluid(receiver, fluidHolder, false);
-                    return to.insertFluid(fluidHolder, simulate);
+                ItemStackHolder holder = new ItemStackHolder(stack.copy());
+                long inserted = itemHandler.insertFluid(holder, extracted, false);
+                if (inserted > 0 && tester.test(holder.getStack())){
+                    FluidHolder fluidHolder = FluidHooks.newFluidHolder(fluid.getFluid(), inserted, fluid.getCompound());
+                    handler.extractFluid(fluidHolder, false);
+                    long insert = itemHandler.insertFluid(holder, fluidHolder, false);
+                    consumer.accept(holder.getStack());
+                    return insert > 0;
                 }
-
             }
         }
-        return 0;
+        return false;
+    }
+
+    public static boolean emptyItemintoContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
+        PlatformFluidItemHandler itemHandler = FluidHooks.safeGetItemFluidManager(stack).orElse(null);
+        if (itemHandler == null) return false;
+        for (int i = 0; i < itemHandler.getTankAmount(); i++) {
+            FluidHolder fluid = itemHandler.getFluidInTank(i);
+            ItemStackHolder holder = new ItemStackHolder(stack.copy());
+            FluidHolder extracted = itemHandler.extractFluid(holder, fluid, false);
+            if (!extracted.isEmpty() && tester.test(holder.getStack())){
+                long inserted = handler.insertFluid(extracted, true);
+                if (inserted > 0){
+                    FluidHolder fluidHolder = FluidHooks.newFluidHolder(fluid.getFluid(), inserted, fluid.getCompound());
+                    itemHandler.extractFluid(holder, fluidHolder, false);
+                    long insert = handler.insertFluid(fluidHolder, false);
+                    consumer.accept(holder.getStack());
+                    return insert > 0;
+                }
+            }
+        }
+        return false;
     }
 
     public static void writeToPacket(FriendlyByteBuf buffer, FluidHolder holder) {
