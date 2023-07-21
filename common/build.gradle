@@ -27,7 +27,6 @@ loom {
 
 dependencies{
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modCompileOnly("net.fabricmc.fabric-api:fabric-transfer-api-v1:${rootProject.fabric_transfer_api_version}")
     compileOnly("com.electronwill.night-config:toml:${rootProject.nightconfig_version}")
     compileOnly("com.electronwill.night-config:core:${rootProject.nightconfig_version}")
     modImplementation("net.minecraftforge:forgeconfigapiport-fabric:3.2.4")
