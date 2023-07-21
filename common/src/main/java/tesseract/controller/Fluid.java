@@ -1,5 +1,6 @@
 package tesseract.controller;
 
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -7,7 +8,6 @@ import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.fluids.FluidStack;
 import tesseract.FluidPlatformUtils;
 import tesseract.api.fluid.FluidController;
 import tesseract.api.fluid.IFluidNode;
@@ -31,12 +31,12 @@ public class Fluid extends FluidController {
     }
 
     @Override
-    public void onPipeOverPressure(Level w, long pos, long pressure, FluidStack fluid) {
+    public void onPipeOverPressure(Level w, long pos, long pressure, FluidHolder fluid) {
         Utils.createExplosion(w, BlockPos.of(pos), 4.0F, Explosion.BlockInteraction.BREAK);
     }
 
     @Override
-    public void onPipeOverCapacity(Level w, long pos, long capacity, FluidStack fluid) {
+    public void onPipeOverCapacity(Level w, long pos, long capacity, FluidHolder fluid) {
         Utils.createExplosion(w, BlockPos.of(pos), 1.0F, Explosion.BlockInteraction.NONE);
     }
 
@@ -46,10 +46,10 @@ public class Fluid extends FluidController {
     }
 
     @Override
-    public FluidStack onPipeGasLeak(Level world, long pos, @Nonnull FluidStack fluid) {
+    public FluidHolder onPipeGasLeak(Level world, long pos, @Nonnull FluidHolder fluid) {
         if (fluid.isEmpty()) return fluid;
-        FluidStack stack = fluid.copy();
-        stack.setAmount((int) ((double) stack.getAmount() * PIPE_LEAK));
+        FluidHolder stack = fluid.copyHolder();
+        stack.setAmount((int) ((double) stack.getFluidAmount() * PIPE_LEAK));
         if ((world.getGameTime() - lastGasLeakSound) > GAS_WAIT_TIME) {
             world.playSound(null, BlockPos.of(pos), SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.3F, 0.9F + world.random.nextFloat() * 0.2F);
             lastGasLeakSound = world.getGameTime();

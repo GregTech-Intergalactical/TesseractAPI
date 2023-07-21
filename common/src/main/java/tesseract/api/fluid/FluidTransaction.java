@@ -1,28 +1,29 @@
 package tesseract.api.fluid;
 
-import net.minecraftforge.fluids.FluidStack;
+
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import tesseract.api.Transaction;
 
 import java.util.function.Consumer;
 
-public class FluidTransaction extends Transaction<FluidStack> {
+public class FluidTransaction extends Transaction<FluidHolder> {
 
-    public final FluidStack stack;
+    public final FluidHolder stack;
 
-    public FluidTransaction(FluidStack stack, Consumer<FluidStack> consumer) {
+    public FluidTransaction(FluidHolder stack, Consumer<FluidHolder> consumer) {
         super(consumer);
         this.stack = stack;
     }
 
-    public void addData(FluidStack stack, Consumer<FluidStack> consumer) {
+    public void addData(FluidHolder stack, Consumer<FluidHolder> consumer) {
         this.addData(stack);
-        this.stack.setAmount(this.stack.getAmount() - stack.getAmount());
+        this.stack.setAmount(this.stack.getFluidAmount() - stack.getFluidAmount());
         this.onCommit(consumer);
     }
 
     @Override
     public boolean isValid() {
-        return stack.getAmount() > 0;
+        return stack.getFluidAmount() > 0;
     }
 
     @Override

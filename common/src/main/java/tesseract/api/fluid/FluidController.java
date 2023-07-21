@@ -1,5 +1,6 @@
 package tesseract.api.fluid;
 
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
@@ -7,7 +8,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fluids.FluidStack;
 import tesseract.FluidPlatformUtils;
 import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
@@ -31,7 +31,7 @@ import java.util.Map;
  * Class acts as a controller in the group of a fluid components.
  */
 public class FluidController extends Controller<FluidTransaction, IFluidPipe, IFluidNode>
-        implements IFluidEvent<FluidStack> {
+        implements IFluidEvent<FluidHolder> {
 
     public final static boolean HARDCORE_PIPES = false;
     public final static boolean SLOOSH = false;
@@ -105,7 +105,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
      */
     private void onCheck(IFluidNode producer, List<FluidConsumer> consumers, Path<IFluidPipe> path, Direction dir, long pos) {
         IFluidNode node = group.getNodes().get(pos).value(dir);
-        if (node != null && node.canInput())
+        if (node != null && node.allowsInsertion())
             consumers.add(new FluidConsumer(node,producer, path, dir));
     }
 
@@ -124,7 +124,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
         pressureData.clear();
 
         loop: for (FluidConsumer consumer : list) {
-            FluidStack data = transaction.stack.copy();
+            FluidHolder data = transaction.stack.copyHolder();
             if (!consumer.canHold(data)) {
                 continue;
             }
@@ -143,7 +143,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                 } else {
                     for (Long2ObjectMap.Entry<IFluidPipe> entry : consumer.getCross()
                             .long2ObjectEntrySet()) {
-                        FluidHolder holder = entry.getValue().getHolder();
+                        PipeFluidHolder holder = entry.getValue().getHolder();
                         if (!holder.allowFluid(data.getFluid())) {
                             amount = 0;
                             break;
@@ -165,15 +165,15 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                     pressureData.compute(p.getLongKey(), (k, v) -> v == null ? finalAmount : v + finalAmount);
                 }
             }
-            transaction.addData(data.copy(), a -> commitFluid(consumer, a));
+            transaction.addData(data.copyHolder(), a -> commitFluid(consumer, a));
 
             if (transaction.stack.isEmpty())
                 break;
         }
     }
-    public void commitFluid(FluidConsumer consumer, FluidStack stack) {
+    public void commitFluid(FluidConsumer consumer, FluidHolder stack) {
         int temperature = FluidPlatformUtils.getFluidTemperature(stack.getFluid());
-        long amount = stack.getRealAmount();
+        long amount = stack.getFluidAmount();
         boolean isGaseous = FluidPlatformUtils.isFluidGaseous(stack.getFluid());
         boolean cantHandle = !consumer.canHandle(temperature, isGaseous);
         if (!cantHandle) {
@@ -208,9 +208,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
         consumer.insert(stack, false);
     }
 
-    private boolean checkCommitPipe(long pos, long amount, FluidStack stack) {
-        FluidHolder holder = this.group.getConnector(pos).value().getHolder();
-        holder.use(stack.getRealAmount(), stack.getFluid(), getWorld().getGameTime());
+    private boolean checkCommitPipe(long pos, long amount, FluidHolder stack) {
+        PipeFluidHolder holder = this.group.getConnector(pos).value().getHolder();
+        holder.use(stack.getFluidAmount(), stack.getFluid(), getWorld().getGameTime());
         if (holder.isOverPressure()) {
             onPipeOverPressure(getWorld(), pos, amount, stack);
             return false;

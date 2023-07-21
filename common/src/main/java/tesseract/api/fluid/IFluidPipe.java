@@ -1,7 +1,6 @@
 package tesseract.api.fluid;
 
-import net.minecraftforge.fluids.FluidStack;
-import tesseract.TesseractGraphWrappers;
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import tesseract.api.IConnectable;
 
 /**
@@ -21,7 +20,7 @@ public interface IFluidPipe extends IConnectable {
      *
      * @return A positive integer representing the maximum amount, zero or negative indicates that this component accepts no fluid.
      */
-    int getPressure();
+    long getPressure();
 
     /**
      * Version of {@link #getPressure} that returns a max pressure but in fabric's droplets unit of fluid measurement. 1 mb = 81 droplets
@@ -29,7 +28,7 @@ public interface IFluidPipe extends IConnectable {
      * @return A positive long representing the maximum amount, zero or negative indicates that this component accepts no fluid.
      */
     default long getPressureInDroplets(){
-        return getPressure() * TesseractGraphWrappers.dropletMultiplier;
+        return getPressure();
     }
 
     /**
@@ -44,7 +43,7 @@ public interface IFluidPipe extends IConnectable {
      */
     boolean isGasProof();
 
-    FluidHolder getHolder();
+    PipeFluidHolder getHolder();
 
     /**
      * @param stack       The current stack.
@@ -52,8 +51,8 @@ public interface IFluidPipe extends IConnectable {
      * @param isGas       True if current liquid is in a gas state.
      * @return Checks that the pipe is able to handle single packet.
      */
-    default FluidStatus getHandler(FluidStack stack, int temperature, boolean isGas) {
-        FluidHolder holder = getHolder();
+    default FluidStatus getHandler(FluidHolder stack, int temperature, boolean isGas) {
+        PipeFluidHolder holder = getHolder();
         if (getTemperature() < temperature) return FluidStatus.FAIL_TEMP;
         else if (!isGasProof() && isGas) return FluidStatus.FAIL_LEAK;
         else if (!holder.allowFluid(stack.getFluid())) return FluidStatus.FAIL_CAPACITY;

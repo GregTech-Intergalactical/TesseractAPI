@@ -47,17 +47,17 @@ dependencies {
     //todo figure this out
     //testcommon(project(path: ":tesseract-common", configuration: "namedElements").sourceSets.test.output) { transitive false }
     //testshadowCommon(project(path: ":tesseract-common", configuration: "transformProductionFabric").sourceSets.test.output) { transitive false }
-    modImplementation(include("io.github.feltmc:fabricated-forge-caps:${rootProject.fabricated_forge_hash}")){
-        transitive = false
-    }
     implementation("com.electronwill.night-config:toml:${rootProject.nightconfig_version}")
     implementation("com.electronwill.night-config:core:${rootProject.nightconfig_version}")
     modImplementation(include("net.minecraftforge:forgeconfigapiport-fabric:3.2.4"))
-    modImplementation("io.github.fabricators_of_create:Porting-Lib:1.1.310-beta+1.18.2-dev.${rootProject.port_lib_hash}"){ transitive(false) }
+    modImplementation("io.github.fabricators_of_create:Porting-Lib:${rootProject.port_lib_version}-beta+1.18.2-stable"){
+        exclude(group: "net.fabricmc.fabric-api")
+        exclude(group: "com.github.LlamaLad7")
+    }
     modApi(include("teamreborn:energy:${rootProject.energy_version}")) {
         transitive = false
     }
-    modImplementation(include("com.github.Trinsdar.Botarium:botarium-fabric-1.18.2:${project.botarium_version}"))
+    modImplementation(include("earth.terrarium:botarium-fabric-${project.minecraft_version}:${project.botarium_version}"))
     modCompileOnly("curse.maven:modern_industrialization-405388:3866891")
 }
 
@@ -100,7 +100,7 @@ publishing {
                 }
             }
         } else {
-            maven { url "file:///${project.projectDir}/mcmodsrepo"}
+            maven { url "file:///${project.projectDir}/mcmodsrepo" }
         }
     }
 }

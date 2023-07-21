@@ -4,31 +4,25 @@ import aztech.modern_industrialization.api.energy.EnergyApi;
 import aztech.modern_industrialization.api.energy.EnergyMoveable;
 import earth.terrarium.botarium.common.energy.base.PlatformItemEnergyManager;
 import earth.terrarium.botarium.common.energy.util.EnergyHooks;
-import net.fabricatedforgeapi.transfer.fluid.FluidStorageHandler;
-import net.fabricatedforgeapi.transfer.fluid.FluidStorageHandlerItem;
-import net.fabricatedforgeapi.transfer.item.ItemStorageHandler;
+import earth.terrarium.botarium.common.fluid.base.FluidAttachment;
+import earth.terrarium.botarium.common.fluid.base.FluidContainer;
+import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
+import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
+import earth.terrarium.botarium.fabric.fluid.storage.FabricFluidHandler;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantItemStorage;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import team.reborn.energy.api.EnergyStorage;
-import team.reborn.energy.impl.SimpleItemEnergyStorageImpl;
-import tesseract.TesseractCapUtils;
 import tesseract.TesseractConfig;
 import tesseract.api.fabric.TesseractLookups;
 import tesseract.api.fabric.TileListeners;
@@ -38,8 +32,8 @@ import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 import tesseract.api.item.IItemNode;
-import tesseract.api.wrapper.FluidTileWrapper;
-import tesseract.api.wrapper.ItemTileWrapper;
+import tesseract.api.item.PlatformItemHandler;
+import tesseract.mixin.fabric.FabricBlockFluidContainerAccessor;
 
 import java.util.Optional;
 
@@ -63,21 +57,6 @@ public class TesseractCapUtilsImpl {
         return Optional.ofNullable(energyHandler);
     }
 
-    public static Optional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack){
-        ContainerItemContext ctx = ContainerItemContext.withInitial(stack);
-        Storage<FluidVariant> fluidStorage = FluidStorage.ITEM.find(stack, ctx);
-        if (fluidStorage instanceof IFluidHandlerItem handlerItem) return Optional.of(handlerItem);
-        return fluidStorage == null ? Optional.empty() : Optional.of(new FluidStorageHandlerItem(ctx, fluidStorage));
-        /*Storage<FluidVariant> storage = ContainerItemContext.withInitial(stack).find(FluidStorage.ITEM);
-        if (storage instanceof IFluidHandlerItem fluidHandlerItem) return Optional.of(fluidHandlerItem);
-        FluidUtil.getFluidHandler()
-        if (storage instanceof SingleVariantItemStorage<FluidVariant> singleVariantStorage) {
-            //TODO fix in fabricated-forge-api
-            return new FluidStorageHandlerItem(singleVariantStorage);
-        }
-        return Optional.empty();*/
-    }
-
     public static Optional<IEnergyHandler> getEnergyHandler(@NotNull BlockEntity entity, Direction side){
         IEnergyHandler energyHandler = TesseractLookups.ENERGY_HANDLER_SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
         if (energyHandler == null) {
@@ -96,34 +75,17 @@ public class TesseractCapUtilsImpl {
     }
 
     //TODO figure out better abstraction method
-    public static Optional<IItemHandler> getItemHandler(BlockEntity entity, Direction side){
-        Storage<ItemVariant> storage = ItemStorage.SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
-        if (storage instanceof IItemHandler itemHandler) return Optional.of(itemHandler);
-        return storage == null ? Optional.empty() : Optional.of(new ItemStorageHandler(storage));
+    public static Optional<PlatformItemHandler> getItemHandler(BlockEntity tile, Direction side){
+        Storage<ItemVariant> storage = ItemStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, side);
+        //if (storage instanceof IItemHandler itemHandler) return Optional.of(itemHandler);
+        return storage == null ? Optional.empty() : Optional.of(new FabricPlatformItemHandler(storage));
     }
 
-    public static Optional<IFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
-        Storage<FluidVariant> storage = FluidStorage.SIDED.find(level, pos, level.getBlockState(pos), level.getBlockEntity(pos), side);
-        if (storage instanceof IFluidHandler fluidHandler) return Optional.of(fluidHandler);
-        return storage == null ? Optional.empty() : Optional.of(new FluidStorageHandler(storage));
-    }
-
-    public static Optional<IFluidHandler> getFluidHandler(BlockEntity entity, Direction side){
-        Storage<FluidVariant> storage = FluidStorage.SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
-        if (storage instanceof IFluidHandler fluidHandler) return Optional.of(fluidHandler);
-        return storage == null ? Optional.empty() : Optional.of(new FluidStorageHandler(storage));
-    }
-
-    public static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
-        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        Optional<IFluidHandler> capability = getFluidHandler(level, BlockPos.of(pos), capSide);
-        if (capability.isPresent()) {
-            if (capCallback != null && tile != null) ((TileListeners)tile).addListener(capCallback);
-            IFluidHandler handler = capability.get();
-            return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);
-        } else {
-            return null;
-        }
+    public static Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity != null) return FluidHooks.safeGetBlockFluidManager(blockEntity, side);
+        Storage<FluidVariant> storage = FluidStorage.SIDED.find(level, pos, side);
+        return storage == null ? Optional.empty() : Optional.of(new FabricFluidHandler(storage));
     }
 
     public static IItemNode getItemNode(Level level, long pos, Direction capSide, Runnable capCallback){
@@ -131,13 +93,14 @@ public class TesseractCapUtilsImpl {
         if (tile == null) {
             return null;
         }
-        Optional<IItemHandler> h = getItemHandler(tile, capSide);
-        if (h.isPresent()) {
+        Storage<ItemVariant> storage = ItemStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, capSide);
+        if (storage != null){
             if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
-            if (h.map(t -> t instanceof IItemNode).orElse(false)) {
-                return (IItemNode) h.get();
+            if (storage instanceof IItemNode node) return node;
+            if (storage instanceof ExtendedContainerWrapper wrapper && wrapper.container() instanceof IItemNode node) {
+                return node;
             }
-            return new ItemTileWrapper(tile, h.get());
+            return new ItemStorageWrapper(storage);
         }
         return null;
     }
@@ -156,5 +119,27 @@ public class TesseractCapUtilsImpl {
         if (moveable instanceof IEnergyHandler moveable1) return moveable1;
         if (moveable instanceof IEnergyHandlerMoveable moveable1) return moveable1.getEnergyHandler();
         return new EnergyMoveableWrapper(be, moveable);
+    }
+
+    public static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
+        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
+        if (tile == null) {
+            return null;
+        }
+        if(tile instanceof FluidAttachment attachment && attachment.getFluidHolderType() == BlockEntity.class) {
+            FluidContainer container = attachment.getFluidContainer(tile).getContainer(capSide);
+            if (container == null) return null;
+            if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
+            if (container instanceof IFluidNode node) return node;
+            else return new FluidContainerWrapper(container);
+        }
+        Storage<FluidVariant> storage = FluidStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, capSide);
+        if (storage != null){
+            if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
+            if (storage instanceof IFluidNode node) return node;
+            if (storage instanceof FabricBlockFluidContainerAccessor accessor && accessor.getContainer() instanceof IFluidNode node) return node;
+            return new FluidTileWrapper(tile, storage);
+        }
+        return null;
     }
 }

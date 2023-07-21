@@ -1,9 +1,6 @@
 package tesseract.api.heat;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.LazyOptional;
-import tesseract.TesseractCapUtils;
+import tesseract.TesseractPlatformUtils;
 import tesseract.api.GraphWrapper;
 
 public interface IHeatNode {
@@ -19,14 +16,5 @@ public interface IHeatNode {
         return getHeat() / 100;
     }
 
-    GraphWrapper.ICapabilityGetter<IHeatNode> GETTER = ((level, pos, capSide, invalidate) -> {
-        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        if (tile == null) return null;
-        LazyOptional<IHeatHandler> capability = TesseractCapUtils.getHeatHandler(tile, capSide).map(h -> LazyOptional.of(() -> h)).orElse(LazyOptional.empty());
-        if (capability.isPresent()) {
-            if (invalidate != null) capability.addListener(t -> invalidate.run());
-            return capability.resolve().get();
-        }
-        return null;
-    });
+    GraphWrapper.ICapabilityGetter<IHeatNode> GETTER = TesseractPlatformUtils::getHeatNode;
 }

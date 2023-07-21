@@ -4,7 +4,6 @@ package tesseract.api.fluid;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
 import tesseract.FluidPlatformUtils;
 
 import java.util.Set;
@@ -12,7 +11,7 @@ import java.util.Set;
 /**
  * A class that acts as holder of the fluid that has passed thought pipes.
  */
-public class FluidHolder {
+public class PipeFluidHolder {
 
     private long pressureAvailable;
     public long tickPressure;
@@ -24,7 +23,7 @@ public class FluidHolder {
      *
      * @param pipe The pipe connector.
      */
-    public FluidHolder(IFluidPipe pipe) {
+    public PipeFluidHolder(IFluidPipe pipe) {
         this.maxCapacity = pipe.getCapacity();
         this.tickPressure = pipe.getPressureInDroplets();
 
@@ -116,7 +115,7 @@ public class FluidHolder {
             if (obj instanceof Fluid f) {
                 return FluidPlatformUtils.getFluidId(f).equals(compare);
             }
-            if (obj instanceof FluidStack s) {
+            if (obj instanceof earth.terrarium.botarium.common.fluid.base.FluidHolder s) {
                 return FluidPlatformUtils.getFluidId(s.getFluid()).equals(compare);
             }
             if (obj instanceof ResourceLocation r) {
