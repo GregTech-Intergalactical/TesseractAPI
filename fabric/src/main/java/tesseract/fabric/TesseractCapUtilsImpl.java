@@ -34,7 +34,6 @@ import tesseract.api.heat.IHeatHandler;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.PlatformItemHandler;
 import tesseract.mixin.fabric.FabricBlockFluidContainerAccessor;
-import tesseract.mixin.fabric.InventoryStorageImplAccessor;
 
 import java.util.Optional;
 
@@ -98,7 +97,7 @@ public class TesseractCapUtilsImpl {
         if (storage != null){
             if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
             if (storage instanceof IItemNode node) return node;
-            if (storage instanceof InventoryStorageImplAccessor accessor && accessor.getInventory() instanceof IItemNode node){
+            if (storage instanceof ExtendedContainerWrapper wrapper && wrapper.container() instanceof IItemNode node) {
                 return node;
             }
             return new ItemStorageWrapper(storage);

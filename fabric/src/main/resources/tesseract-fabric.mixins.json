@@ -8,7 +8,6 @@
     "FabricBlockEnergyContainerAccessor",
     "FabricBlockFluidContainerAccessor",
     "IEnergyHandlerMixin",
-    "InventoryStorageImplAccessor",
     "SimpleItemEnergyStorageImplMixin",
     "mi.AbstractStorageMachineBEMixin",
     "mi.IEnergyHandlerMixin"
