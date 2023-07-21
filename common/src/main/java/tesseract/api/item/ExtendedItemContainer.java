@@ -6,7 +6,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-public interface ExtendedItemContainer extends SerializableContainer {
+public interface ExtendedItemContainer extends SerializableContainer, ContainerItemHandler {
+
+    @Override
+    default ExtendedItemContainer getContainer(){
+        return this;
+    }
+
     /**
      * <p>
      * Inserts an ItemStack into the given slot and return the remainder.
