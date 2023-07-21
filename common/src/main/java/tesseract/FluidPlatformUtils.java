@@ -67,10 +67,79 @@ public class FluidPlatformUtils {
         throw new AssertionError();
     }
 
-    /*@ExpectPlatform
-    public static FluidStack tryFluidTransfer(IFluidHandler fluidDestination, IFluidHandler fluidSource, long maxAmount, boolean doTransfer){
-        throw new AssertionError();
-    }*/
+    /**
+     * Fill a destination fluid handler from a source fluid handler with a max amount.
+     * To specify a fluid to transfer instead of max amount, use {@link #tryFluidTransfer(PlatformFluidHandler, PlatformFluidHandler, FluidHolder, boolean)}
+     * To transfer as much as possible, use {@link Integer#MAX_VALUE} for maxAmount.
+     *
+     * @param fluidDestination The fluid handler to be filled.
+     * @param fluidSource      The fluid handler to be drained.
+     * @param maxAmount        The largest amount of fluid that should be transferred.
+     * @param doTransfer       True if the transfer should actually be done, false if it should be simulated.
+     * @return the fluidStack that was transferred from the source to the destination. null on failure.
+     */
+    @Nonnull
+    public static FluidHolder tryFluidTransfer(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, long maxAmount, boolean doTransfer) {
+        for (int i = 0; i < fluidSource.getTankAmount(); i++) {
+            FluidHolder fluid = fluidSource.getFluidInTank(i);
+            FluidHolder transfer = tryFluidTransfer(fluidDestination, fluidSource, fluid.copyWithAmount(Math.min(fluid.getFluidAmount(), maxAmount)), doTransfer);
+            if (!transfer.isEmpty()) return transfer;
+        }
+        return FluidHooks.emptyFluid();
+    }
+
+    /**
+     * Fill a destination fluid handler from a source fluid handler using a specific fluid.
+     * To specify a max amount to transfer instead of specific fluid, use {@link #tryFluidTransfer(PlatformFluidHandler, PlatformFluidHandler, long, boolean)}
+     * To transfer as much as possible, use {@link Integer#MAX_VALUE} for resource.amount.
+     *
+     * @param fluidDestination The fluid handler to be filled.
+     * @param fluidSource      The fluid handler to be drained.
+     * @param resource         The fluid that should be transferred. Amount represents the maximum amount to transfer.
+     * @param doTransfer       True if the transfer should actually be done, false if it should be simulated.
+     * @return the FluidHolder that was transferred from the source to the destination. null on failure.
+     */
+    @Nonnull
+    public static FluidHolder tryFluidTransfer(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, FluidHolder resource, boolean doTransfer)
+    {
+        FluidHolder drainable = fluidSource.extractFluid(resource, true);
+        if (!drainable.isEmpty() && resource.matches(drainable))
+        {
+            return tryFluidTransfer_Internal(fluidDestination, fluidSource, drainable, doTransfer);
+        }
+        return FluidHooks.emptyFluid();
+    }
+
+    /**
+     * Internal method for filling a destination fluid handler from a source fluid handler using a specific fluid.
+     * Assumes that "drainable" can be drained from "fluidSource".
+     *
+     * Modders: Instead of this method, use {@link #tryFluidTransfer(PlatformFluidHandler, PlatformFluidHandler, FluidHolder, boolean)}
+     * or {@link #tryFluidTransfer(PlatformFluidHandler, PlatformFluidHandler, long, boolean)}.
+     */
+    @Nonnull
+    private static FluidHolder tryFluidTransfer_Internal(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, FluidHolder drainable, boolean doTransfer)
+    {
+        long fillableAmount = fluidDestination.insertFluid(drainable, true);
+        if (fillableAmount > 0)
+        {
+            drainable.setAmount(fillableAmount);
+            if (doTransfer)
+            {
+                FluidHolder drained = fluidSource.extractFluid(drainable, false);
+                if (!drained.isEmpty())
+                {
+                    drained.setAmount(fluidDestination.insertFluid(drained, false));
+                    return drained;
+                }
+            }
+            else
+            {
+                return drainable;
+            }
+        }
+        return FluidHooks.emptyFluid();
+    }
 
     public static boolean fillItemFromContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
         return fillItemFromContainer(stack, handler, s -> true, consumer);
