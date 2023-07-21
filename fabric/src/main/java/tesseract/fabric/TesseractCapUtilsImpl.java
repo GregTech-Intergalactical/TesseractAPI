@@ -33,6 +33,7 @@ import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.PlatformItemHandler;
+import tesseract.mixin.fabric.FabricBlockFluidContainerAccessor;
 import tesseract.mixin.fabric.InventoryStorageImplAccessor;
 
 import java.util.Optional;
@@ -102,16 +103,6 @@ public class TesseractCapUtilsImpl {
             }
             return new ItemStorageWrapper(storage);
         }
-        /*Optional<PlatformItemHandler> h = getItemHandler(tile, capSide);
-        if (h.isPresent()) {
-
-            FabricPlatformItemHandler fh = ((FabricPlatformItemHandler) h.get());
-
-            if (h.map(t -> t instanceof IItemNode).orElse(false)) {
-                return (IItemNode) h.get();
-            }
-            return new ItemTileWrapper(tile, h.get());
-        }*/
         return null;
     }
 
@@ -146,7 +137,9 @@ public class TesseractCapUtilsImpl {
         Storage<FluidVariant> storage = FluidStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, capSide);
         if (storage != null){
             if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
-            return storage instanceof IFluidNode node ? node : new FluidTileWrapper(tile, storage);
+            if (storage instanceof IFluidNode node) return node;
+            if (storage instanceof FabricBlockFluidContainerAccessor accessor && accessor.getContainer() instanceof IFluidNode node) return node;
+            return new FluidTileWrapper(tile, storage);
         }
         return null;
     }

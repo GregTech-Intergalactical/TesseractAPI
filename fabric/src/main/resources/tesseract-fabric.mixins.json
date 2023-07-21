@@ -6,6 +6,7 @@
   "mixins": [
     "BlockEntityMixin",
     "FabricBlockEnergyContainerAccessor",
+    "FabricBlockFluidContainerAccessor",
     "IEnergyHandlerMixin",
     "InventoryStorageImplAccessor",
     "SimpleItemEnergyStorageImplMixin",
