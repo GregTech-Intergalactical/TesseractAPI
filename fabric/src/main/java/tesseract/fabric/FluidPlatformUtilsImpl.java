@@ -3,6 +3,8 @@ package tesseract.fabric;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.render.fluid.v1.SimpleFluidRenderHandler;
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
+import earth.terrarium.botarium.fabric.fluid.holder.FabricFluidHolder;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import net.fabricmc.loader.api.FabricLoader;
@@ -12,14 +14,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
 public class FluidPlatformUtilsImpl {
-    public static FluidStack createFluidStack(Fluid fluid, long amount){
-        return new FluidStack(fluid, amount);
-    }
 
     public static ResourceLocation getStillTexture(Fluid fluid){
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
@@ -63,11 +59,7 @@ public class FluidPlatformUtilsImpl {
         return fill ? FluidVariantAttributes.getFillSound(FluidVariant.of(fluid)) : FluidVariantAttributes.getEmptySound(FluidVariant.of(fluid));
     }
 
-    public static Component getFluidDisplayName(FluidStack fluid){
-        return FluidVariantAttributes.getName(fluid.getType());
-    }
-
-    public static FluidStack tryFluidTransfer(IFluidHandler fluidDestination, IFluidHandler fluidSource, long maxAmount, boolean doTransfer){
-        return FluidUtil.tryFluidTransfer(fluidDestination, fluidSource, maxAmount, doTransfer);
+    public static Component getFluidDisplayName(FluidHolder fluid){
+        return FluidVariantAttributes.getName(FluidVariant.of(fluid.getFluid(), fluid.getCompound()));
     }
 }

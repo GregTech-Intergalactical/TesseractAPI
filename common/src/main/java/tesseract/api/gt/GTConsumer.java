@@ -45,7 +45,7 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
      * @return Gets the amperage required for the consumer.
      */
     public long getRequiredAmperage(long voltage) {
-        return node.availableAmpsInput();//Math.min(((node.getCapacity() - node.getEnergy())) / voltage, node.getInputAmperage());
+        return node.availableAmpsInput(voltage);//Math.min(((node.getCapacity() - node.getEnergy())) / voltage, node.getInputAmperage());
     }
 
     /**

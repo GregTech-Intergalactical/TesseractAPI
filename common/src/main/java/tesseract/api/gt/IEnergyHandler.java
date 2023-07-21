@@ -1,8 +1,11 @@
 package tesseract.api.gt;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.util.INBTSerializable;
 
-public interface IEnergyHandler extends IGTNode, INBTSerializable<CompoundTag> {
+import tesseract.api.rf.IEnergyHandlerRF;
 
+public interface IEnergyHandler extends IGTNode, IEnergyHandlerRF {
+    @Override
+    default IEnergyHandler getEnergyHandler(){
+        return this;
+    }
 }

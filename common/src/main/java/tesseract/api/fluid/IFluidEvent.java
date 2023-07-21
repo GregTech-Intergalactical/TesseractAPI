@@ -1,7 +1,7 @@
 package tesseract.api.fluid;
 
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fluids.FluidStack;
 
 /**
  * Interface for handling a fluid events. (Controller will handle them)
@@ -15,7 +15,7 @@ public interface IFluidEvent<T> {
      * @param pos      The pipe position.
      * @param pressure The current pressure.
      */
-    default void onPipeOverPressure(Level world, long pos, long pressure, FluidStack fluid) {
+    default void onPipeOverPressure(Level world, long pos, long pressure, FluidHolder fluid) {
         //NOOP
     }
 
@@ -26,7 +26,7 @@ public interface IFluidEvent<T> {
      * @param pos      The pipe position.
      * @param capacity The current capacity.
      */
-    default void onPipeOverCapacity(Level world, long pos, long capacity, FluidStack fluid) {
+    default void onPipeOverCapacity(Level world, long pos, long capacity, FluidHolder fluid) {
         //NOOP
     }
 
@@ -49,7 +49,7 @@ public interface IFluidEvent<T> {
      * @param pos   The pipe position.
      * @param fluid FluidData holding the Fluid to be queried.
      */
-    default FluidStack onPipeGasLeak(Level world, long pos, FluidStack fluid) {
+    default FluidHolder onPipeGasLeak(Level world, long pos, FluidHolder fluid) {
         return fluid;
     }
 }

@@ -2,6 +2,9 @@ package tesseract.fabric;
 
 import aztech.modern_industrialization.api.energy.EnergyApi;
 import aztech.modern_industrialization.api.energy.EnergyMoveable;
+import earth.terrarium.botarium.common.energy.base.EnergyContainer;
+import earth.terrarium.botarium.fabric.energy.FabricBlockEnergyContainer;
+import earth.terrarium.botarium.util.Updatable;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -12,7 +15,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.ModLoadingContext;
@@ -24,24 +26,14 @@ import tesseract.TesseractConfig;
 import tesseract.api.GraphWrapper;
 import tesseract.api.fabric.TesseractLookups;
 import tesseract.api.fabric.wrapper.ContainerItemContextWrapper;
-import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyItem;
-import tesseract.api.gt.IGTCable;
-import tesseract.api.gt.IGTNode;
-import tesseract.controller.Energy;
 
 import java.util.function.BiFunction;
 
 public class TesseractImpl extends Tesseract implements ModInitializer {
-    //public static GraphWrapper<Integer, IFECable, IFENode> FE_ENERGY = new GraphWrapper<>(FEController::new);
-    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
 
     public TesseractImpl(){
-    }
-
-    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> getGT_ENERGY(){
-        return GT_ENERGY;
     }
 
     private static void onWorldUnload(MinecraftServer server, ServerLevel world) {
@@ -100,8 +92,14 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
         EnergyApi.MOVEABLE.registerForBlockEntity((blockEntity, direction) -> (EnergyMoveable) function.apply(blockEntity, direction), type);
     }
 
-    public static <T extends BlockEntity> void registerTRETile(BiFunction<T, Direction, IEnergyHandler> function, BlockEntityType<T> type){
-        EnergyStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> (EnergyStorage) function.apply(blockEntity, direction), type);
+    public static <T extends BlockEntity> void registerTRETile(BiFunction<T, Direction, IEnergyHandler> euFunction, BiFunction<T, Direction, EnergyContainer> rfFunction, BlockEntityType<T> type){
+        EnergyStorage.SIDED.registerForBlockEntity((blockEntity, direction) -> {
+            IEnergyHandler handler = euFunction.apply(blockEntity, direction);
+            if (handler != null) return (EnergyStorage) handler;
+            EnergyContainer node = rfFunction.apply(blockEntity, direction);
+            if (node != null) return node instanceof EnergyStorage storage ? storage : new FabricBlockEnergyContainer(node, node instanceof Updatable<?> ? (Updatable<BlockEntity>) node : b -> {}, blockEntity);
+            return null;
+        }, type);
     }
 
     public static void registerTREItem(BiFunction<ItemStack, ContainerItemContext, IEnergyHandler> function, Item type){

@@ -1,15 +1,9 @@
 package tesseract.api.item;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
 import tesseract.TesseractCapUtils;
 import tesseract.api.GraphWrapper;
-import tesseract.api.wrapper.ItemTileWrapper;
 
 
 /**
@@ -20,7 +14,7 @@ import tesseract.api.wrapper.ItemTileWrapper;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IItemNode extends IItemHandler {
+public interface IItemNode extends ExtendedItemContainer {
 
     /**
      * @param direction Direction to the proceed.
@@ -74,21 +68,5 @@ public interface IItemNode extends IItemHandler {
         return true;
     }
 
-    GraphWrapper.ICapabilityGetter<IItemNode> GETTER = (IItemNode::getItemNode);
-
-    static IItemNode getItemNode(Level level, long pos, Direction capSide, Runnable capCallback){
-        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        if (tile == null) {
-            return null;
-        }
-        LazyOptional<IItemHandler> h = TesseractCapUtils.getLazyItemHandler(tile, capSide);
-        if (h.isPresent()) {
-            if (capCallback != null) h.addListener(t -> capCallback.run());
-            if (h.map(t -> t instanceof IItemNode).orElse(false)) {
-                return (IItemNode) h.resolve().get();
-            }
-            return new ItemTileWrapper(tile, h.orElse(null));
-        }
-        return null;
-    }
+    GraphWrapper.ICapabilityGetter<IItemNode> GETTER = (TesseractCapUtils::getItemNode);
 }

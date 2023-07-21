@@ -1,15 +1,11 @@
 package tesseract.api.fluid;
 
-import net.minecraft.core.BlockPos;
+import earth.terrarium.botarium.common.fluid.base.FluidContainer;
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
+import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 import tesseract.TesseractCapUtils;
 import tesseract.api.GraphWrapper;
-import tesseract.api.wrapper.FluidTileWrapper;
 
 /**
  * An fluid node is the unit of interaction with fluid inventories.
@@ -19,26 +15,12 @@ import tesseract.api.wrapper.FluidTileWrapper;
  * DO NOT ASSUME that these objects are used internally in all cases.
  * </p>
  */
-public interface IFluidNode extends IFluidHandler {
+public interface IFluidNode extends FluidContainer {
     /**
      * @param direction Direction to the proceed.
      * @return Returns the priority of this node as a number.
      */
     int getPriority(Direction direction);
-
-    /**
-     * Gets if this storage can have fluid extracted.
-     *
-     * @return If this is false, then any calls to extractEnergy will return 0.
-     */
-    boolean canOutput();
-
-    /**
-     * Used to determine if this storage can receive fluid.
-     *
-     * @return If this is false, then any calls to receiveEnergy will return 0.
-     */
-    boolean canInput();
 
     /**
      * Used to determine if this storage can receive fluid.
@@ -62,44 +44,32 @@ public interface IFluidNode extends IFluidHandler {
      * @param direction Direction to the input.
      * @return If the tank can input the fluid (EVER, not at the time of query).
      */
-    boolean canInput(FluidStack fluid, Direction direction);
+    boolean canInput(FluidHolder fluid, Direction direction);
 
     /**
      * Drains from the input tanks rather than output tanks. Useful for recipes.
      *
      * @param stack  stack to drain.
-     * @param action execute/simulate
+     * @param simulate execute/simulate
      * @return the drained stack
      */
-    default FluidStack drainInput(FluidStack stack, IFluidHandler.FluidAction action) {
-        return drain(stack, action);
+    default FluidHolder drainInput(FluidHolder stack, boolean simulate) {
+        return extractFluid(stack, simulate);
     }
 
-    /**
-     * Drains from the input tanks rather than output tanks. Useful for recipes.
-     *
-     * @param stack  stack to drain.
-     * @param sim execute/simulate
-     * @return the drained stack
-     */
-    default FluidStack drainInput(FluidStack stack, boolean sim) {
-        return drain(stack, sim ? FluidAction.SIMULATE : FluidAction.EXECUTE);
-    }
-
-    GraphWrapper.ICapabilityGetter<IFluidNode> GETTER = (IFluidNode::getFluidNode);
-
-    static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
-        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        if (tile == null) {
-            return null;
+    default FluidHolder extractFluid(long toExtract, boolean simulate) {
+        for (int i = 0; i < getSize(); i++) {
+            FluidHolder fluid = extractFluid(getFluidInTank(i), simulate);
+            if (!fluid.isEmpty()) return fluid;
         }
-        LazyOptional<IFluidHandler> capability = TesseractCapUtils.getLazyFluidHandler(tile, capSide);
-        if (capability.isPresent()) {
-            if (capCallback != null) capability.addListener(o -> capCallback.run());
-            IFluidHandler handler = capability.map(f -> f).orElse(null);
-            return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);
-        } else {
-            return null;
-        }
+        return FluidHooks.emptyFluid();
     }
+
+    default boolean isFluidValid(int tank, FluidHolder stack) { return true; }
+
+    default FluidHolder getFluidInTank(int tank){
+        return getFluids().get(tank);
+    }
+
+    GraphWrapper.ICapabilityGetter<IFluidNode> GETTER = (TesseractCapUtils::getFluidNode);
 }

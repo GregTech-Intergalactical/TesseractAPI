@@ -38,7 +38,7 @@ public class ItemConsumer extends Consumer<IItemPipe, IItemNode> {
      **/
     public int insert(ItemStack stack, boolean simulate) {
         int count = stack.getCount();
-        for (int i = 0; i < node.getSlots(); i++) {
+        for (int i = 0; i < node.getContainerSize(); i++) {
             ItemStack inserted = node.insertItem(i, stack, simulate);
             if (inserted.getCount() < stack.getCount()) {
                 return inserted.getCount();

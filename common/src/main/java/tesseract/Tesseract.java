@@ -40,9 +40,4 @@ public class Tesseract {
     public static boolean hadFirstTick(LevelAccessor world) {
         return TEST || firstTick.contains(world);
     }
-
-    @ExpectPlatform
-    public static GraphWrapper<GTTransaction, IGTCable, IGTNode> getGT_ENERGY(){
-        throw new AssertionError();
-    }
 }

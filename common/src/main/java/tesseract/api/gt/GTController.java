@@ -185,7 +185,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
                 continue;
             }
 
-            long amperage = consumer.getRequiredAmperage(loss);
+            long amperage = consumer.getRequiredAmperage(voltage_out - loss);
             if (amperage <= 0) { // if this consumer received all the energy from the other producers
                 continue;
             }

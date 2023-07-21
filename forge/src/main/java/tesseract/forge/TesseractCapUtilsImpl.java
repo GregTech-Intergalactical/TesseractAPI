@@ -1,22 +1,37 @@
 package tesseract.forge;
 
+import earth.terrarium.botarium.common.fluid.base.FluidContainer;
+import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
+import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
+import earth.terrarium.botarium.forge.fluid.ForgeFluidContainer;
+import earth.terrarium.botarium.forge.fluid.ForgeFluidHandler;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.AbstractCauldronBlock;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CauldronBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.wrapper.InvWrapper;
+import tesseract.api.fluid.IFluidNode;
 import tesseract.api.forge.TesseractCaps;
-import tesseract.api.forge.wrapper.EnergyTileWrapper;
-import tesseract.api.forge.wrapper.IEnergyHandlerStorage;
+import tesseract.api.forge.wrapper.*;
 import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
+import tesseract.api.item.IItemNode;
+import tesseract.api.item.PlatformItemHandler;
+import tesseract.api.wrapper.ItemTileWrapper;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -26,8 +41,17 @@ public class TesseractCapUtilsImpl {
         return stack.getCapability(TesseractCaps.ENERGY_HANDLER_CAPABILITY_ITEM).map(e -> e);
     }
 
-    public static Optional<IFluidHandlerItem> getFluidHandlerItem(ItemStack stack){
-        return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).map(f -> f);
+    public static Optional<IEnergyHandlerItem> getWrappedEnergyHandlerItem(ItemStack stack){
+        IEnergyHandlerItem energyHandler = stack.getCapability(TesseractCaps.ENERGY_HANDLER_CAPABILITY_ITEM).map(e -> e).orElse(null);
+        if (energyHandler == null){
+            IEnergyStorage storage = stack.getCapability(CapabilityEnergy.ENERGY).map(e -> e).orElse(null);
+            if (storage instanceof IEnergyHandlerItem e){
+                energyHandler = e;
+            } else if (storage != null){
+                energyHandler = new EnergyStackWrapper(stack, storage);
+            }
+        }
+        return Optional.ofNullable(energyHandler);
     }
 
     public static Optional<IEnergyHandler> getEnergyHandler(BlockEntity entity, Direction side){
@@ -48,19 +72,64 @@ public class TesseractCapUtilsImpl {
         return entity.getCapability(TesseractCaps.HEAT_CAPABILITY, side).map(e -> e);
     }
 
-    public static Optional<IItemHandler> getItemHandler(BlockEntity entity, Direction side){
-        return getLazyItemHandler(entity, side).map(i -> i);
+    public static Optional<PlatformItemHandler> getItemHandler(BlockEntity entity, Direction side){
+        return entity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).map(ForgePlatformItemHandler::new);
+    }
+    public static Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
+        BlockEntity entity = level.getBlockEntity(pos);
+        if (entity == null){
+            BlockState state = level.getBlockState(pos);
+            if (state.getBlock() instanceof AbstractCauldronBlock){
+                return Optional.of(new ForgeFluidHandler(new CauldronWrapper(state, level, pos)));
+            }
+            return Optional.empty();
+        }
+        return FluidHooks.safeGetBlockFluidManager(entity, side);
     }
 
-    public static Optional<IFluidHandler> getFluidHandler(BlockEntity entity, Direction side){
-        return getLazyFluidHandler(entity, side).map(f -> f);
+    public static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
+        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
+        LazyOptional<IFluidHandler> capability;
+        if (tile == null){
+            BlockState state = level.getBlockState(BlockPos.of(pos));
+            if (state.getBlock() instanceof AbstractCauldronBlock cauldronBlock){
+                capability = LazyOptional.of(() -> new CauldronWrapper(state, level, BlockPos.of(pos)));
+            } else {
+                return null;
+            }
+        } else {
+            capability = tile.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, capSide);
+        }
+        if (capability.isPresent()) {
+            if (capCallback != null) capability.addListener(o -> capCallback.run());
+            IFluidHandler handler = capability.map(f -> f).orElse(null);
+            if (handler instanceof ForgeFluidContainer container){
+                FluidContainer container1 = container.container().getContainer(capSide);
+                if (container1 instanceof IFluidNode node) return node;
+            }
+            return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);
+        } else {
+            return null;
+        }
     }
 
-    public static LazyOptional<IItemHandler> getLazyItemHandler(BlockEntity entity, Direction side){
-        return entity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side);
-    }
-
-    public static LazyOptional<IFluidHandler> getLazyFluidHandler(BlockEntity entity, Direction side){
-        return entity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side);
+    public static IItemNode getItemNode(Level level, long pos, Direction capSide, Runnable capCallback){
+        BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
+        if (tile == null) {
+            return null;
+        }
+        LazyOptional<IItemHandler> h = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, capSide);
+        if (h.isPresent()) {
+            if (capCallback != null) h.addListener(t -> capCallback.run());
+            IItemHandler handler = h.resolve().get();
+            if (handler instanceof IItemNode node){
+                return node;
+            }
+            if (handler instanceof InvWrapper wrapper){
+                if (wrapper.getInv() instanceof IItemNode node) return node;
+            }
+            return new ItemHandlerWrapper(handler);
+        }
+        return null;
     }
 }

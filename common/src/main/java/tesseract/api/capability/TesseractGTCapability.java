@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import tesseract.Tesseract;
 import tesseract.TesseractCapUtils;
+import tesseract.TesseractGraphWrappers;
 import tesseract.api.gt.GTConsumer;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
@@ -30,7 +31,7 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
         long pos = tile.getBlockPos().asLong();
         if (!this.isNode) {
             long old = transaction.getAvailableAmps();
-            Tesseract.getGT_ENERGY().getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
+            TesseractGraphWrappers.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             flag = transaction.getAvailableAmps() < old;
         } else {
             flag = transferAroundPipe(transaction, pos);
@@ -88,7 +89,7 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
     }
 
     @Override
-    public long availableAmpsInput() {
+    public long availableAmpsInput(long voltage) {
         return Long.MAX_VALUE;
     }
 
@@ -143,12 +144,12 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
     }
 
     @Override
-    public CompoundTag serializeNBT() {
+    public CompoundTag serialize(CompoundTag tag) {
         return null;
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserialize(CompoundTag nbt) {
 
     }
 }

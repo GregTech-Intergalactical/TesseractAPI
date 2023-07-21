@@ -22,24 +22,24 @@ import tesseract.api.gt.IEnergyHandlerItem;
 
 @Mixin(SimpleItemEnergyStorageImpl.class)
 public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandlerItem {
-    @Shadow public abstract long getAmount();
+    @Shadow(remap = false) public abstract long getAmount();
 
-    @Shadow public abstract boolean supportsExtraction();
+    @Shadow(remap = false) public abstract boolean supportsExtraction();
 
-    @Shadow public abstract boolean supportsInsertion();
+    @Shadow(remap = false) public abstract boolean supportsInsertion();
 
-    @Shadow @Final private long maxInsert;
-    @Shadow @Final private long maxExtract;
+    @Shadow(remap = false) @Final private long maxInsert;
+    @Shadow(remap = false) @Final private long maxExtract;
 
-    @Shadow public abstract long getCapacity();
+    @Shadow(remap = false) public abstract long getCapacity();
 
-    @Shadow public abstract long extract(long maxAmount, TransactionContext transaction);
+    @Shadow(remap = false) public abstract long extract(long maxAmount, TransactionContext transaction);
 
-    @Shadow public abstract long insert(long maxAmount, TransactionContext transaction);
+    @Shadow(remap = false) public abstract long insert(long maxAmount, TransactionContext transaction);
 
-    @Shadow @Final private ContainerItemContext ctx;
+    @Shadow(remap = false) @Final private ContainerItemContext ctx;
 
-    @Shadow protected abstract boolean trySetEnergy(long energyAmountPerCount, long count, TransactionContext transaction);
+    @Shadow(remap = false) protected abstract boolean trySetEnergy(long energyAmountPerCount, long count, TransactionContext transaction);
 
     @Unique
     protected GTConsumer.State state = new GTConsumer.State(this);
@@ -48,12 +48,12 @@ public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandler
     private TesseractItemContext tesseractContext;
 
     @Override
-    public CompoundTag serializeNBT() {
+    public CompoundTag serialize(CompoundTag tag) {
         return new CompoundTag();
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserialize(CompoundTag nbt) {
 
     }
 
@@ -63,50 +63,67 @@ public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandler
             long amps = Math.min(data.getAmps(false), this.availableAmpsOutput());
             amps = Math.min(amps, this.getEnergy() / this.getOutputVoltage());
             long toDrain = data.getEnergy(amps, false);
-            Transaction transaction = Transaction.openOuter();
-            long drained = this.extract(toDrain, transaction);
-            if (drained > 0){
-                transaction.commit();
-                this.getState().extract(false, amps);
-                data.useAmps(false, amps);
+            try(Transaction transaction = Transaction.openOuter()) {
+                long drained = this.extract(toDrain, transaction);
+                if (drained > 0){
+                    transaction.commit();
+                    this.getState().extract(false, amps);
+                    data.useAmps(false, amps);
+                }
+                return amps > 0;
             }
-            return amps > 0;
+
         } else {
             long toDrain = Math.min(data.getEu(), this.getEnergy());
-            Transaction transaction = Transaction.openOuter();
-            long extracted = this.extract(toDrain, transaction);
-            if (extracted > 0) {
-                data.drainEu(toDrain);
-                transaction.commit();
+            try(Transaction transaction = Transaction.openOuter()) {
+                long extracted = this.extract(toDrain, transaction);
+                if (extracted > 0) {
+                    data.drainEu(toDrain);
+                    transaction.commit();
+                }
+                return extracted > 0;
             }
-            return extracted > 0;
         }
     }
 
     @Override
     public boolean addEnergy(GTTransaction.TransferData data) {
         if (data.transaction.mode == GTTransaction.Mode.TRANSMIT) {
-            long amps = Math.min(data.getAmps(true), this.availableAmpsInput());
+            long amps = Math.min(data.getAmps(true), this.availableAmpsInput(data.getVoltage()));
             amps = Math.min(amps, (this.getCapacity() - this.getAmount()) / this.getInputVoltage());
             long toAdd = data.getEnergy(amps, true);
-            Transaction transaction = Transaction.openOuter();
-            long added = this.insert(toAdd, transaction);
-            if (added > 0){
-                transaction.commit();
-                data.useAmps(true, amps);
-                this.getState().receive(false, amps);
+            try(Transaction transaction = Transaction.openOuter()) {
+                long added = this.insert(toAdd, transaction);
+                if (added > 0){
+                    transaction.commit();
+                    data.useAmps(true, amps);
+                    this.getState().receive(false, amps);
+                }
+                return amps > 0;
             }
-            return amps > 0;
+
         } else {
             long toAdd = Math.min(data.getEu(), this.getCapacity() - this.getAmount());
-            Transaction transaction = Transaction.openOuter();
-            long inserted = this.insert(toAdd, transaction);
-            if (inserted > 0) {
-                data.drainEu(toAdd);
-                transaction.commit();
+            try(Transaction transaction = Transaction.openOuter()) {
+                long inserted = this.insert(toAdd, transaction);
+                if (inserted > 0) {
+                    data.drainEu(toAdd);
+                    transaction.commit();
+                }
+                return inserted > 0;
             }
-            return inserted > 0;
         }
+    }
+
+
+    @Override
+    public long availableAmpsInput(long voltage) {
+        long added = 0;
+        try(Transaction transaction = Transaction.openOuter()) {
+            added = this.insert(voltage, transaction);
+        }
+        if (added == voltage) return 1;
+        return 0;
     }
 
     @Override
