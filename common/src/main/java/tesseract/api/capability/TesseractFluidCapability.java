@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import tesseract.TesseractCapUtils;
 import tesseract.TesseractGraphWrappers;
+import tesseract.api.fluid.FluidContainerHandler;
 import tesseract.api.fluid.FluidTransaction;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
@@ -21,7 +22,7 @@ import tesseract.util.Pos;
 import java.util.List;
 
 
-public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extends TesseractBaseCapability<T> implements IFluidNode {
+public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extends TesseractBaseCapability<T> implements IFluidNode, FluidContainerHandler {
 
     private FluidTransaction old;
 
@@ -83,6 +84,11 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     @Override
     public FluidSnapshot createSnapshot() {
         return null;
+    }
+
+    @Override
+    public FluidContainer getFluidContainer() {
+        return this;
     }
 
     @Override
