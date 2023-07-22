@@ -1,15 +1,14 @@
 package tesseract.forge;
 
-import earth.terrarium.botarium.common.energy.base.EnergyContainer;
+import earth.terrarium.botarium.api.energy.EnergyContainer;
 import earth.terrarium.botarium.forge.energy.ForgeEnergyContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
-import tesseract.TesseractCapUtils;
 import tesseract.api.forge.TesseractCaps;
 import tesseract.api.forge.wrapper.RFWrapper;
 import tesseract.api.gt.IEnergyHandler;
@@ -17,8 +16,6 @@ import tesseract.api.gt.IGTNode;
 import tesseract.api.heat.IHeatHandler;
 import tesseract.api.heat.IHeatNode;
 import tesseract.api.rf.IRFNode;
-
-import java.util.Optional;
 
 public class TesseractPlatformUtilsImpl {
     public static IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
@@ -36,11 +33,11 @@ public class TesseractPlatformUtilsImpl {
         if (tile == null) {
             return null;
         }
-        LazyOptional<IEnergyStorage> capability = tile.getCapability(CapabilityEnergy.ENERGY, capSide);
+        LazyOptional<IEnergyStorage> capability = tile.getCapability(ForgeCapabilities.ENERGY, capSide);
         if (capability.isPresent()) {
             if (capCallback != null) capability.addListener(o -> capCallback.run());
             IEnergyStorage handler = capability.map(f -> f).orElse(null);
-            if (handler instanceof ForgeEnergyContainer<?> container){
+            if (handler instanceof ForgeEnergyContainer container){
                 EnergyContainer container1 = container.container().getContainer(capSide);
                 if (container1 instanceof IRFNode node) return node;
             }

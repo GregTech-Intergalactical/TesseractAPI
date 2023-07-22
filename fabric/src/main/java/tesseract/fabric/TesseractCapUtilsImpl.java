@@ -2,13 +2,15 @@ package tesseract.fabric;
 
 import aztech.modern_industrialization.api.energy.EnergyApi;
 import aztech.modern_industrialization.api.energy.EnergyMoveable;
-import earth.terrarium.botarium.common.energy.base.PlatformItemEnergyManager;
-import earth.terrarium.botarium.common.energy.util.EnergyHooks;
-import earth.terrarium.botarium.common.fluid.base.FluidAttachment;
-import earth.terrarium.botarium.common.fluid.base.FluidContainer;
-import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
-import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
-import earth.terrarium.botarium.fabric.fluid.storage.FabricFluidHandler;
+
+
+import earth.terrarium.botarium.api.energy.EnergyHooks;
+import earth.terrarium.botarium.api.energy.PlatformItemEnergyManager;
+import earth.terrarium.botarium.api.fluid.FluidContainer;
+import earth.terrarium.botarium.api.fluid.FluidHoldingBlock;
+import earth.terrarium.botarium.api.fluid.FluidHooks;
+import earth.terrarium.botarium.api.fluid.PlatformFluidHandler;
+import earth.terrarium.botarium.fabric.fluid.FabricFluidHandler;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -126,8 +128,8 @@ public class TesseractCapUtilsImpl {
         if (tile == null) {
             return null;
         }
-        if(tile instanceof FluidAttachment attachment && attachment.getFluidHolderType() == BlockEntity.class) {
-            FluidContainer container = attachment.getFluidContainer(tile).getContainer(capSide);
+        if(tile instanceof FluidHoldingBlock attachment) {
+            FluidContainer container = attachment.getFluidContainer().getContainer(capSide);
             if (container == null) return null;
             if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
             if (container instanceof IFluidNode node) return node;

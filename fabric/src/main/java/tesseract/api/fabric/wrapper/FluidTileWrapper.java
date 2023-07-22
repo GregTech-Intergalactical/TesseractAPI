@@ -1,10 +1,11 @@
 package tesseract.api.fabric.wrapper;
 
 
-import earth.terrarium.botarium.common.fluid.base.FluidContainer;
-import earth.terrarium.botarium.common.fluid.base.FluidHolder;
-import earth.terrarium.botarium.common.fluid.base.FluidSnapshot;
-import earth.terrarium.botarium.fabric.fluid.holder.FabricFluidHolder;
+
+import earth.terrarium.botarium.api.fluid.FluidContainer;
+import earth.terrarium.botarium.api.fluid.FluidHolder;
+import earth.terrarium.botarium.api.fluid.FluidSnapshot;
+import earth.terrarium.botarium.fabric.fluid.FabricFluidHolder;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
@@ -60,7 +61,7 @@ public record FluidTileWrapper(BlockEntity tile,
     public int getSize() {
         int size = 0;
         try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<FluidVariant> ignored : storage.iterable(transaction)) {
+            for (StorageView<FluidVariant> ignored : storage) {
                 size++;
             }
             transaction.abort();
@@ -83,7 +84,7 @@ public record FluidTileWrapper(BlockEntity tile,
     public long getTankCapacity(int tank) {
         List<StorageView<FluidVariant>> fluids = new ArrayList<>();
         try (Transaction transaction = Transaction.openOuter()) {
-            storage.iterator(transaction).forEachRemaining(fluids::add);
+            storage.iterator().forEachRemaining(fluids::add);
             transaction.abort();
         }
 
@@ -104,7 +105,7 @@ public record FluidTileWrapper(BlockEntity tile,
     public List<FluidHolder> getFluids() {
         List<FluidHolder> fluids = new ArrayList<>();
         try (Transaction transaction = Transaction.openOuter()) {
-            storage.iterator(transaction).forEachRemaining(variant -> fluids.add(FabricFluidHolder.of(variant.getResource(), variant.getAmount())));
+            storage.iterator().forEachRemaining(variant -> fluids.add(FabricFluidHolder.of(variant.getResource(), variant.getAmount())));
             transaction.abort();
         }
         return fluids;
@@ -152,10 +153,5 @@ public record FluidTileWrapper(BlockEntity tile,
     @Override
     public CompoundTag serialize(CompoundTag nbt) {
         return null;
-    }
-
-    @Override
-    public void clearContent() {
-
     }
 }

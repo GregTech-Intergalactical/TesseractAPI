@@ -1,9 +1,9 @@
 package tesseract.api.rf;
 
-import earth.terrarium.botarium.common.energy.base.EnergyContainer;
-import earth.terrarium.botarium.common.energy.base.EnergySnapshot;
-import earth.terrarium.botarium.common.energy.impl.SimpleEnergySnapshot;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+
+import earth.terrarium.botarium.api.energy.EnergyContainer;
+import earth.terrarium.botarium.api.energy.EnergySnapshot;
+import earth.terrarium.botarium.api.energy.SimpleEnergySnapshot;
 import tesseract.TesseractConfig;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
@@ -68,10 +68,5 @@ public interface IEnergyHandlerRF extends EnergyContainer {
     @Override
     default EnergySnapshot createSnapshot(){
         return new SimpleEnergySnapshot(this);
-    }
-
-    @Override
-    default void clearContent(){
-        extractEnergy(getStoredEnergy(), false);
     }
 }

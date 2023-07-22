@@ -1,8 +1,10 @@
 package tesseract.api.fluid;
 
-import earth.terrarium.botarium.common.fluid.base.FluidContainer;
-import earth.terrarium.botarium.common.fluid.base.FluidHolder;
-import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
+
+
+import earth.terrarium.botarium.api.fluid.FluidContainer;
+import earth.terrarium.botarium.api.fluid.FluidHolder;
+import earth.terrarium.botarium.api.fluid.PlatformFluidHandler;
 
 import java.util.List;
 

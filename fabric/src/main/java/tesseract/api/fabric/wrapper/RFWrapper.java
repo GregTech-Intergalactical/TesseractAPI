@@ -1,6 +1,7 @@
 package tesseract.api.fabric.wrapper;
 
-import earth.terrarium.botarium.common.energy.base.EnergySnapshot;
+
+import earth.terrarium.botarium.api.energy.EnergySnapshot;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -84,10 +85,5 @@ public record RFWrapper(EnergyStorage storage) implements IRFNode {
     @Override
     public boolean canOutput(Direction direction) {
         return storage.supportsExtraction();
-    }
-
-    @Override
-    public void clearContent() {
-
     }
 }

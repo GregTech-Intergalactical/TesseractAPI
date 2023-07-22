@@ -1,7 +1,8 @@
 package tesseract.api.capability;
 
-import earth.terrarium.botarium.common.energy.base.EnergySnapshot;
-import earth.terrarium.botarium.common.energy.util.EnergyHooks;
+
+import earth.terrarium.botarium.api.energy.EnergyHooks;
+import earth.terrarium.botarium.api.energy.EnergySnapshot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -127,10 +128,5 @@ public class TesseractRFCapability<T extends BlockEntity & IRFCable> extends Tes
     @Override
     public CompoundTag serialize(CompoundTag nbt) {
         return null;
-    }
-
-    @Override
-    public void clearContent() {
-
     }
 }

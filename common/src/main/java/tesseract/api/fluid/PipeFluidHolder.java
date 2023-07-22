@@ -1,6 +1,7 @@
 package tesseract.api.fluid;
 
 
+import earth.terrarium.botarium.api.fluid.FluidHolder;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.material.Fluid;
@@ -115,7 +116,7 @@ public class PipeFluidHolder {
             if (obj instanceof Fluid f) {
                 return FluidPlatformUtils.getFluidId(f).equals(compare);
             }
-            if (obj instanceof earth.terrarium.botarium.common.fluid.base.FluidHolder s) {
+            if (obj instanceof FluidHolder s) {
                 return FluidPlatformUtils.getFluidId(s.getFluid()).equals(compare);
             }
             if (obj instanceof ResourceLocation r) {

@@ -1,8 +1,9 @@
 package tesseract.forge;
 
-import earth.terrarium.botarium.common.fluid.base.FluidContainer;
-import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
-import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
+
+import earth.terrarium.botarium.api.fluid.FluidContainer;
+import earth.terrarium.botarium.api.fluid.FluidHooks;
+import earth.terrarium.botarium.api.fluid.PlatformFluidHandler;
 import earth.terrarium.botarium.forge.fluid.ForgeFluidContainer;
 import earth.terrarium.botarium.forge.fluid.ForgeFluidHandler;
 import net.minecraft.core.BlockPos;
@@ -10,18 +11,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AbstractCauldronBlock;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.CauldronBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.forge.TesseractCaps;
@@ -31,7 +27,6 @@ import tesseract.api.gt.IEnergyHandlerItem;
 import tesseract.api.heat.IHeatHandler;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.PlatformItemHandler;
-import tesseract.api.wrapper.ItemTileWrapper;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -44,7 +39,7 @@ public class TesseractCapUtilsImpl {
     public static Optional<IEnergyHandlerItem> getWrappedEnergyHandlerItem(ItemStack stack){
         IEnergyHandlerItem energyHandler = stack.getCapability(TesseractCaps.ENERGY_HANDLER_CAPABILITY_ITEM).map(e -> e).orElse(null);
         if (energyHandler == null){
-            IEnergyStorage storage = stack.getCapability(CapabilityEnergy.ENERGY).map(e -> e).orElse(null);
+            IEnergyStorage storage = stack.getCapability(ForgeCapabilities.ENERGY).map(e -> e).orElse(null);
             if (storage instanceof IEnergyHandlerItem e){
                 energyHandler = e;
             } else if (storage != null){
@@ -62,7 +57,7 @@ public class TesseractCapUtilsImpl {
     }
 
     public static LazyOptional<IEnergyHandler> getWrappedHandler(BlockEntity be, @Nullable Direction side){
-        IEnergyStorage storage = be.getCapability(CapabilityEnergy.ENERGY, side).map(i -> i).orElse(null);
+        IEnergyStorage storage = be.getCapability(ForgeCapabilities.ENERGY, side).map(i -> i).orElse(null);
         if (storage == null) return LazyOptional.empty();
         if (storage instanceof IEnergyHandlerStorage handlerStorage) return LazyOptional.of(handlerStorage::getEnergyHandler);
         return LazyOptional.of(() -> new EnergyTileWrapper(be, storage));
@@ -73,7 +68,7 @@ public class TesseractCapUtilsImpl {
     }
 
     public static Optional<PlatformItemHandler> getItemHandler(BlockEntity entity, Direction side){
-        return entity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).map(ForgePlatformItemHandler::new);
+        return entity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).map(ForgePlatformItemHandler::new);
     }
     public static Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
         BlockEntity entity = level.getBlockEntity(pos);
@@ -98,7 +93,7 @@ public class TesseractCapUtilsImpl {
                 return null;
             }
         } else {
-            capability = tile.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, capSide);
+            capability = tile.getCapability(ForgeCapabilities.FLUID_HANDLER, capSide);
         }
         if (capability.isPresent()) {
             if (capCallback != null) capability.addListener(o -> capCallback.run());
@@ -118,7 +113,7 @@ public class TesseractCapUtilsImpl {
         if (tile == null) {
             return null;
         }
-        LazyOptional<IItemHandler> h = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, capSide);
+        LazyOptional<IItemHandler> h = tile.getCapability(ForgeCapabilities.ITEM_HANDLER, capSide);
         if (h.isPresent()) {
             if (capCallback != null) h.addListener(t -> capCallback.run());
             IItemHandler handler = h.resolve().get();

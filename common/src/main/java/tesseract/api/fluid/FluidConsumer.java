@@ -1,6 +1,7 @@
 package tesseract.api.fluid;
 
-import earth.terrarium.botarium.common.fluid.base.FluidHolder;
+
+import earth.terrarium.botarium.api.fluid.FluidHolder;
 import net.minecraft.core.Direction;
 import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;

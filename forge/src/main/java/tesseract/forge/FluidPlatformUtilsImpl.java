@@ -1,6 +1,7 @@
 package tesseract.forge;
 
-import earth.terrarium.botarium.common.fluid.base.FluidHolder;
+
+import earth.terrarium.botarium.api.fluid.FluidHolder;
 import earth.terrarium.botarium.forge.fluid.ForgeFluidHolder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -45,6 +46,6 @@ public class FluidPlatformUtilsImpl {
     }
 
     public static Component getFluidDisplayName(FluidHolder fluid){
-        return fluid.getFluid().getFluidType().getDescription(fluid);
+        return fluid.getFluid().getFluidType().getDescription(ForgeFluidHolder.toStack(fluid));
     }
 }

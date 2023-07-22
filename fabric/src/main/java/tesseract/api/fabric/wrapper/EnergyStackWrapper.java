@@ -1,7 +1,8 @@
 package tesseract.api.fabric.wrapper;
 
-import earth.terrarium.botarium.common.energy.base.PlatformItemEnergyManager;
-import earth.terrarium.botarium.common.item.ItemStackHolder;
+
+import earth.terrarium.botarium.api.energy.PlatformItemEnergyManager;
+import earth.terrarium.botarium.api.item.ItemStackHolder;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;

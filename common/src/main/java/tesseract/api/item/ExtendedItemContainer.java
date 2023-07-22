@@ -1,7 +1,7 @@
 package tesseract.api.item;
 
-import earth.terrarium.botarium.common.item.SerializableContainer;
-import net.minecraft.world.Container;
+
+import earth.terrarium.botarium.api.item.SerializableContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;

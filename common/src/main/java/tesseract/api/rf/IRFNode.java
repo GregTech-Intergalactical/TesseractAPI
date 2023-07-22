@@ -1,13 +1,11 @@
 package tesseract.api.rf;
 
-import earth.terrarium.botarium.common.energy.base.EnergyContainer;
-import earth.terrarium.botarium.util.Updatable;
+
+import earth.terrarium.botarium.api.Updatable;
+import earth.terrarium.botarium.api.energy.EnergyContainer;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import tesseract.TesseractPlatformUtils;
 import tesseract.api.GraphWrapper;
-import tesseract.api.gt.IGTNode;
-import tesseract.graph.INode;
 
 /**
  * A flux node is the unit of interaction with flux inventories.
@@ -16,7 +14,7 @@ import tesseract.graph.INode;
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
  * </p>
  */
-public interface IRFNode extends EnergyContainer, Updatable<BlockEntity> {
+public interface IRFNode extends EnergyContainer, Updatable {
 
     /**
      * Used to determine if this storage can receive energy in the given direction.
@@ -35,7 +33,7 @@ public interface IRFNode extends EnergyContainer, Updatable<BlockEntity> {
     boolean canOutput(Direction direction);
 
     @Override
-    default void update(BlockEntity object) {
+    default void update() {
 
     }
 

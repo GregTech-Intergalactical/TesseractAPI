@@ -1,10 +1,11 @@
 package tesseract.api.capability;
 
 
-import earth.terrarium.botarium.common.fluid.base.FluidContainer;
-import earth.terrarium.botarium.common.fluid.base.FluidHolder;
-import earth.terrarium.botarium.common.fluid.base.FluidSnapshot;
-import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
+
+import earth.terrarium.botarium.api.fluid.FluidContainer;
+import earth.terrarium.botarium.api.fluid.FluidHolder;
+import earth.terrarium.botarium.api.fluid.FluidHooks;
+import earth.terrarium.botarium.api.fluid.FluidSnapshot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -167,10 +168,5 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     @Override
     public CompoundTag serialize(CompoundTag nbt) {
         return null;
-    }
-
-    @Override
-    public void clearContent() {
-
     }
 }
