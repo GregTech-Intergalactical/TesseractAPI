@@ -6,8 +6,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import tesseract.TesseractCapUtils;
 import tesseract.api.forge.TesseractCaps;
@@ -36,7 +36,7 @@ public class TesseractPlatformUtilsImpl {
         if (tile == null) {
             return null;
         }
-        LazyOptional<IEnergyStorage> capability = tile.getCapability(CapabilityEnergy.ENERGY, capSide);
+        LazyOptional<IEnergyStorage> capability = tile.getCapability(ForgeCapabilities.ENERGY, capSide);
         if (capability.isPresent()) {
             if (capCallback != null) capability.addListener(o -> capCallback.run());
             IEnergyStorage handler = capability.map(f -> f).orElse(null);

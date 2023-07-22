@@ -3,7 +3,6 @@ package tesseract.api.rf;
 import earth.terrarium.botarium.common.energy.base.EnergyContainer;
 import earth.terrarium.botarium.common.energy.base.EnergySnapshot;
 import earth.terrarium.botarium.common.energy.impl.SimpleEnergySnapshot;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import tesseract.TesseractConfig;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;

@@ -36,12 +36,9 @@ public class FabricPlatformItemHandler implements PlatformItemHandler {
     private void updateContents() {
         List<ItemStack> stacks = new ArrayList<>();
         List<Long> capacities = new ArrayList<>();
-        try (Transaction t = Transaction.openOuter()) {
-            for (StorageView<ItemVariant> view : storage.iterable(t)) {
-                stacks.add(view.getResource().toStack((int) view.getAmount()));
-                capacities.add(view.getCapacity());
-            }
-            t.abort();
+        for (StorageView<ItemVariant> view : storage) {
+            stacks.add(view.getResource().toStack((int) view.getAmount()));
+            capacities.add(view.getCapacity());
         }
         this.stacks = stacks.toArray(ItemStack[]::new);
         this.capacities = capacities.toArray(Long[]::new);
@@ -118,7 +115,7 @@ public class FabricPlatformItemHandler implements PlatformItemHandler {
         ItemStack finalVal = ItemStack.EMPTY;
         try (Transaction t = Transaction.openOuter()) {
             int index = 0;
-            for (StorageView<ItemVariant> view : storage.iterable(t)) {
+            for (StorageView<ItemVariant> view : storage) {
                 if (index == slot) {
                     ItemVariant variant = view.getResource();
                     long extracted = view.isResourceBlank() ? 0 : view.extract(variant, amount, t);

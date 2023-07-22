@@ -22,7 +22,7 @@ public class ItemHandlerUtils {
 
 
     public static boolean canItemStacksStack(@Nonnull ItemStack a, @Nonnull ItemStack b) {
-        if (a.isEmpty() || !a.sameItem(b) || a.hasTag() != b.hasTag())
+        if (a.isEmpty() || !a.is(b.getItem()) || a.hasTag() != b.hasTag())
             return false;
         return (!a.hasTag() || a.getTag().equals(b.getTag())) && areCapsCompatible(a, b);
     }

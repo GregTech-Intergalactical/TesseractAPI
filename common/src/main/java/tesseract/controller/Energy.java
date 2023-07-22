@@ -20,7 +20,7 @@ public class Energy extends GTController {
 
     @Override
     public void onNodeOverVoltage(Level w, long pos, long voltage) {
-        Utils.createExplosion(w, BlockPos.of(pos), 4.0F, Explosion.BlockInteraction.BREAK);
+        Utils.createExplosion(w, BlockPos.of(pos), 4.0F, Level.ExplosionInteraction.BLOCK);
     }
 
     @Override

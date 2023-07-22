@@ -8,6 +8,7 @@ import earth.terrarium.botarium.common.fluid.base.PlatformFluidItemHandler;
 import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
 import earth.terrarium.botarium.common.item.ItemStackHolder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -198,7 +199,7 @@ public class FluidPlatformUtils {
             buffer.writeBoolean(false);
         } else {
             buffer.writeBoolean(true);
-            buffer.writeVarInt(Registry.FLUID.getId(holder.getFluid()));
+            buffer.writeVarInt(BuiltInRegistries.FLUID.getId(holder.getFluid()));
             buffer.writeVarLong(holder.getFluidAmount());
             buffer.writeNbt(holder.getCompound());
         }
@@ -206,7 +207,7 @@ public class FluidPlatformUtils {
 
     public static FluidHolder readFromPacket(FriendlyByteBuf buffer) {
         if (!buffer.readBoolean()) return FluidHooks.emptyFluid();
-        Fluid fluid = Registry.FLUID.byId(buffer.readVarInt());
+        Fluid fluid = BuiltInRegistries.FLUID.byId(buffer.readVarInt());
         long amount = buffer.readVarLong();
         return FluidHooks.newFluidHolder(fluid, amount, buffer.readNbt());
     }

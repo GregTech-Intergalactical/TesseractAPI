@@ -10,10 +10,10 @@ import net.minecraft.world.level.block.Blocks;
 
 public class Utils {
 
-    public static void createExplosion(Level world, BlockPos pos, float explosionRadius, Explosion.BlockInteraction modeIn) {
+    public static void createExplosion(Level world, BlockPos pos, float explosionRadius, Level.ExplosionInteraction modeIn) {
         if (world instanceof ServerLevel) {
             ServerLevel w = (ServerLevel) world;
-            w.explode(null, pos.getX(), pos.getY() + 0.0625D, pos.getZ(), explosionRadius, true, modeIn);
+            w.explode(null, (double)pos.getX(), pos.getY() + 0.0625D, (double)pos.getZ(), explosionRadius, true, modeIn);
             w.sendParticles(ParticleTypes.SMOKE, pos.getX(), pos.getY() + 0.5D, pos.getZ(), 1, 0, 0, 0, 0.0D);
         }
     }

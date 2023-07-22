@@ -49,7 +49,7 @@ dependencies {
     //testshadowCommon(project(path: ":tesseract-common", configuration: "transformProductionFabric").sourceSets.test.output) { transitive false }
     implementation("com.electronwill.night-config:toml:${rootProject.nightconfig_version}")
     implementation("com.electronwill.night-config:core:${rootProject.nightconfig_version}")
-    modImplementation(include("net.minecraftforge:forgeconfigapiport-fabric:4.2.11"))
+    modImplementation(include("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:8.0.0"))
     modApi(include("teamreborn:energy:${rootProject.energy_version}")) {
         transitive = false
     }

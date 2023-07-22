@@ -1,8 +1,5 @@
 package tesseract.fabric;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.fabric.api.client.render.fluid.v1.SimpleFluidRenderHandler;
-import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.render.fluid.v1.SimpleFluidRenderHandler;
@@ -11,7 +8,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
@@ -24,7 +21,7 @@ public class FluidPlatformUtilsImpl {
             FluidVariant variant = FluidVariant.of(fluid);
             TextureAtlasSprite[] sprites = FluidVariantRendering.getSprites(variant);
 
-            return sprites[0] == null ? SimpleFluidRenderHandler.WATER_STILL : sprites[0].getName();
+            return sprites[0] == null ? SimpleFluidRenderHandler.WATER_STILL : sprites[0].atlasLocation();
         }
         return new ResourceLocation("block/water_still");
     }
@@ -34,12 +31,12 @@ public class FluidPlatformUtilsImpl {
             FluidVariant variant = FluidVariant.of(fluid);
             TextureAtlasSprite[] sprites = FluidVariantRendering.getSprites(variant);
 
-            return sprites[1] == null ? SimpleFluidRenderHandler.WATER_STILL : sprites[1].getName();
+            return sprites[1] == null ? SimpleFluidRenderHandler.WATER_STILL : sprites[1].atlasLocation();
         }
         return new ResourceLocation("block/water_still");
     }
     public static ResourceLocation getFluidId(Fluid fluid){
-        return Registry.FLUID.getKey(fluid);
+        return BuiltInRegistries.FLUID.getKey(fluid);
     }
 
     public static int getFluidTemperature(Fluid fluid){

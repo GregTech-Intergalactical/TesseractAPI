@@ -32,12 +32,12 @@ public class Fluid extends FluidController {
 
     @Override
     public void onPipeOverPressure(Level w, long pos, long pressure, FluidHolder fluid) {
-        Utils.createExplosion(w, BlockPos.of(pos), 4.0F, Explosion.BlockInteraction.BREAK);
+        Utils.createExplosion(w, BlockPos.of(pos), 4.0F, Level.ExplosionInteraction.BLOCK);
     }
 
     @Override
     public void onPipeOverCapacity(Level w, long pos, long capacity, FluidHolder fluid) {
-        Utils.createExplosion(w, BlockPos.of(pos), 1.0F, Explosion.BlockInteraction.NONE);
+        Utils.createExplosion(w, BlockPos.of(pos), 1.0F, Level.ExplosionInteraction.NONE);
     }
 
     @Override

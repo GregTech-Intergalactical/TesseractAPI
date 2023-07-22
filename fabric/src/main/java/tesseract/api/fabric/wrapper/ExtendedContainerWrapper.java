@@ -55,8 +55,8 @@ public record ExtendedContainerWrapper(ExtendedItemContainer container) implemen
     }
 
     @Override
-    public Iterator<? extends StorageView<ItemVariant>> iterator(TransactionContext transaction) {
-        return IntStream.range(0, container.getContainerSize()).mapToObj(i -> container.getItem(i)).map(StackStorageView::new).iterator();
+    public Iterator<StorageView<ItemVariant>> iterator() {
+        return (Iterator<StorageView<ItemVariant>>) (Object) IntStream.range(0, container.getContainerSize()).mapToObj(i -> container.getItem(i)).map(StackStorageView::new).iterator();
     }
 
     record StackStorageView(ItemStack stack) implements StorageView<ItemVariant>{

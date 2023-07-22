@@ -59,13 +59,9 @@ public record FluidTileWrapper(BlockEntity tile,
     @Override
     public int getSize() {
         int size = 0;
-        try (Transaction transaction = Transaction.openOuter()) {
-            for (StorageView<FluidVariant> ignored : storage.iterable(transaction)) {
-                size++;
-            }
-            transaction.abort();
+        for (StorageView<FluidVariant> ignored : storage) {
+            size++;
         }
-
         return size;
     }
 
@@ -83,7 +79,7 @@ public record FluidTileWrapper(BlockEntity tile,
     public long getTankCapacity(int tank) {
         List<StorageView<FluidVariant>> fluids = new ArrayList<>();
         try (Transaction transaction = Transaction.openOuter()) {
-            storage.iterator(transaction).forEachRemaining(fluids::add);
+            storage.iterator().forEachRemaining(fluids::add);
             transaction.abort();
         }
 
@@ -104,7 +100,7 @@ public record FluidTileWrapper(BlockEntity tile,
     public List<FluidHolder> getFluids() {
         List<FluidHolder> fluids = new ArrayList<>();
         try (Transaction transaction = Transaction.openOuter()) {
-            storage.iterator(transaction).forEachRemaining(variant -> fluids.add(FabricFluidHolder.of(variant.getResource(), variant.getAmount())));
+            storage.iterator().forEachRemaining(variant -> fluids.add(FabricFluidHolder.of(variant.getResource(), variant.getAmount())));
             transaction.abort();
         }
         return fluids;

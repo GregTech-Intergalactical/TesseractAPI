@@ -45,6 +45,6 @@ public class FluidPlatformUtilsImpl {
     }
 
     public static Component getFluidDisplayName(FluidHolder fluid){
-        return fluid.getFluid().getFluidType().getDescription(fluid);
+        return fluid.getFluid().getFluidType().getDescription(ForgeFluidHolder.toStack(fluid));
     }
 }

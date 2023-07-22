@@ -75,11 +75,11 @@ public class Pos {
     // Returns a direction from value -> other.
     public static Direction subToDir(long value, long other) {
         long direction = sub(value, other);
-        return Direction.fromNormal(unpackX(direction), unpackY(direction), unpackZ(direction));
+        return Direction.fromDelta(unpackX(direction), unpackY(direction), unpackZ(direction));
     }
 
     public static Direction blockPosToDir(BlockPos value, BlockPos other) {
-        return Direction.fromNormal(value.getX() - other.getX(), value.getY() - other.getY(), value.getZ() - other.getZ());
+        return Direction.fromDelta(value.getX() - other.getX(), value.getY() - other.getY(), value.getZ() - other.getZ());
     }
 
     /**
