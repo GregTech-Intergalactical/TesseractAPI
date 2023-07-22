@@ -50,10 +50,6 @@ dependencies {
     implementation("com.electronwill.night-config:toml:${rootProject.nightconfig_version}")
     implementation("com.electronwill.night-config:core:${rootProject.nightconfig_version}")
     modImplementation(include("net.minecraftforge:forgeconfigapiport-fabric:4.2.11"))
-    modImplementation("io.github.fabricators_of_create:Porting-Lib:${rootProject.port_lib_version}-beta+1.18.2-stable"){
-        exclude(group: "net.fabricmc.fabric-api")
-        exclude(group: "com.github.LlamaLad7")
-    }
     modApi(include("teamreborn:energy:${rootProject.energy_version}")) {
         transitive = false
     }
