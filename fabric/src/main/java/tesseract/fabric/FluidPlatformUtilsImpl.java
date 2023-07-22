@@ -40,11 +40,11 @@ public class FluidPlatformUtilsImpl {
     }
 
     public static int getFluidTemperature(Fluid fluid){
-        return FluidVariantAttributes.getHandler(fluid).getTemperature(FluidVariant.of(fluid));
+        return FluidVariantAttributes.getTemperature(FluidVariant.of(fluid));
     }
 
     public static boolean isFluidGaseous(Fluid fluid){
-        return FluidVariantAttributes.getHandler(fluid).isLighterThanAir(FluidVariant.of(fluid));
+        return FluidVariantAttributes.isLighterThanAir(FluidVariant.of(fluid));
     }
 
     public static int getFluidColor(Fluid fluid){
