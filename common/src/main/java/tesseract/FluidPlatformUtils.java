@@ -1,7 +1,6 @@
 package tesseract;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import earth.terrarium.botarium.common.fluid.base.FluidContainer;
 import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
 import earth.terrarium.botarium.common.fluid.base.PlatformFluidItemHandler;
@@ -13,13 +12,10 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -146,8 +142,8 @@ public class FluidPlatformUtils {
         return fillItemFromContainer(stack, handler, s -> true, consumer);
     }
 
-    public static boolean emptyItemintoContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
-        return emptyItemintoContainer(stack, handler, s -> true, consumer);
+    public static boolean emptyItemIntoContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
+        return emptyItemIntoContainer(stack, handler, s -> true, consumer);
     }
 
     public static boolean fillItemFromContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
@@ -172,7 +168,7 @@ public class FluidPlatformUtils {
         return false;
     }
 
-    public static boolean emptyItemintoContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
+    public static boolean emptyItemIntoContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
         PlatformFluidItemHandler itemHandler = FluidHooks.safeGetItemFluidManager(stack.copy()).orElse(null);
         if (itemHandler == null) return false;
         for (int i = 0; i < itemHandler.getTankAmount(); i++) {
