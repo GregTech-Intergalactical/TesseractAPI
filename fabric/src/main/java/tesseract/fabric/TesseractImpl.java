@@ -1,7 +1,5 @@
 package tesseract.fabric;
 
-import aztech.modern_industrialization.api.energy.EnergyApi;
-import aztech.modern_industrialization.api.energy.EnergyMoveable;
 import earth.terrarium.botarium.common.energy.base.EnergyContainer;
 import earth.terrarium.botarium.fabric.energy.FabricBlockEnergyContainer;
 import earth.terrarium.botarium.util.Updatable;
@@ -90,10 +88,6 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
             }
             return null;
         });
-    }
-
-    public static <T extends BlockEntity> void registerMITile(BiFunction<T, Direction, IEnergyHandler> function, BlockEntityType<T> type){
-        EnergyApi.MOVEABLE.registerForBlockEntity((blockEntity, direction) -> (EnergyMoveable) function.apply(blockEntity, direction), type);
     }
 
     public static <T extends BlockEntity> void registerTRETile(BiFunction<T, Direction, IEnergyHandler> euFunction, BiFunction<T, Direction, EnergyContainer> rfFunction, BlockEntityType<T> type){

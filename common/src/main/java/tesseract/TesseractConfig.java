@@ -28,7 +28,7 @@ public class TesseractConfig {
 
     public static class  Common {
         public double EU_TO_FE_RATIO, EU_TO_TRE_RATIO;
-        public boolean ENABLE_FE_OR_TRE_INPUT, ENABLE_MI_COMPAT;
+        public boolean ENABLE_FE_OR_TRE_INPUT;
     }
 
 
@@ -36,7 +36,7 @@ public class TesseractConfig {
 
         public final ForgeConfigSpec.DoubleValue EU_TO_FE_RATIO, EU_TO_TRE_RATIO;
 
-        public final ForgeConfigSpec.BooleanValue ENABLE_FE_OR_TRE_INPUT, ENABLE_MI_COMPAT;
+        public final ForgeConfigSpec.BooleanValue ENABLE_FE_OR_TRE_INPUT;
 
         public CommonConfig(ForgeConfigSpec.Builder builder) {
 
@@ -52,10 +52,6 @@ public class TesseractConfig {
                             "Please do not enable unless you have balanced the fe compat to not be broken due to power creep. - Default: false")
                     .translation(Tesseract.API_ID + ".config.enable_fe_or_tre_input")
                     .define("ENABLE_FE_OR_TRE_INPUT", false);
-
-            ENABLE_MI_COMPAT = builder.comment("Enables Tesseract energy having compat with MI energy. - Default: false")
-                    .translation(Tesseract.API_ID + ".config.enable_mi_compat")
-                    .define("ENABLE_MI_COMPAT", true);
         }
 
     }
@@ -64,6 +60,5 @@ public class TesseractConfig {
         COMMON.EU_TO_FE_RATIO = COMMON_CONFIG.EU_TO_FE_RATIO.get();
         COMMON.EU_TO_TRE_RATIO = COMMON_CONFIG.EU_TO_TRE_RATIO.get();
         COMMON.ENABLE_FE_OR_TRE_INPUT = COMMON_CONFIG.ENABLE_FE_OR_TRE_INPUT.get();
-        COMMON.ENABLE_MI_COMPAT = COMMON_CONFIG.ENABLE_MI_COMPAT.get();
     }
 }
