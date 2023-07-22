@@ -1,9 +1,5 @@
 package tesseract.fabric;
 
-import aztech.modern_industrialization.api.energy.EnergyApi;
-import aztech.modern_industrialization.api.energy.EnergyMoveable;
-
-
 import earth.terrarium.botarium.api.energy.EnergyHooks;
 import earth.terrarium.botarium.api.energy.PlatformItemEnergyManager;
 import earth.terrarium.botarium.api.fluid.FluidContainer;
@@ -62,10 +58,6 @@ public class TesseractCapUtilsImpl {
     public static Optional<IEnergyHandler> getEnergyHandler(@NotNull BlockEntity entity, Direction side){
         IEnergyHandler energyHandler = TesseractLookups.ENERGY_HANDLER_SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
         if (energyHandler == null) {
-            if (FabricLoader.getInstance().isModLoaded("modern_industrialization") && TesseractConfig.COMMON.ENABLE_MI_COMPAT){
-                energyHandler = getEnergyMoveable(entity, side);
-                if (energyHandler != null) return Optional.of(energyHandler);
-            }
             energyHandler = getEnergyStorage(entity, side);
         }
         return Optional.ofNullable(energyHandler);
@@ -113,14 +105,6 @@ public class TesseractCapUtilsImpl {
         if (storage instanceof IEnergyHandler moveable1) return moveable1;
         if (storage instanceof IEnergyHandlerStorage handlerStorage) return handlerStorage.getEnergyHandler();
         return new EnergyTileWrapper(be, storage);
-    }
-
-    private static IEnergyHandler getEnergyMoveable(BlockEntity be, Direction direction){
-        EnergyMoveable moveable = EnergyApi.MOVEABLE.find(be.getLevel(), be.getBlockPos(), be.getBlockState(), be, direction);
-        if (moveable == null) return null;
-        if (moveable instanceof IEnergyHandler moveable1) return moveable1;
-        if (moveable instanceof IEnergyHandlerMoveable moveable1) return moveable1.getEnergyHandler();
-        return new EnergyMoveableWrapper(be, moveable);
     }
 
     public static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
