@@ -29,7 +29,7 @@ public record ForgePlatformItemHandler(IItemHandler handler) implements Platform
 
     @Override
     public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
-        return extractItem(slot, amount, simulate);
+        return handler.extractItem(slot, amount, simulate);
     }
 
     @Override
