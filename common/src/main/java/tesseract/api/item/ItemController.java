@@ -25,6 +25,7 @@ import tesseract.util.Pos;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * Class acts as a controller in the group of an item components.
@@ -89,9 +90,12 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
         }
     }
 
+    Long2IntMap pipeMap;
     @Override
     public void tick() {
         super.tick();
+        pipeMap = new Long2IntOpenHashMap();
+
     }
 
     @Override
@@ -105,7 +109,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             return;
 
         // Here the verification starts.
-        Long2IntMap tempHolders = new Long2IntOpenHashMap();
+        Long2ObjectMap<IItemPipe> pipes = new Long2ObjectLinkedOpenHashMap<>();
         for (ItemConsumer consumer : list) {
             if (!consumer.canAccept(stack)) {
                 continue;
@@ -119,7 +123,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
                 long pos = p.getLongKey();
                 IItemPipe pipe = p.getValue();
-                int stacksUsed = pipe.getHolder() + tempHolders.get(pos);
+                int stacksUsed = pipe.getHolder() + pipeMap.get(pos);
                 if (pipe.getCapacity() == stacksUsed) {
                     actual = 0;
                     break;
@@ -138,16 +142,19 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             if (act == 0)
                 continue;
             for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
-                tempHolders.compute(p.getLongKey(), (a, b) -> {
-                    if (b == null) {
-                        return 1;
-                    }
-                    return b + 1;
-                });
+                pipes.putIfAbsent(p.getLongKey(), p.getValue());
             }
             transaction.addData(insert, t -> transferItem(consumer, t, side, modifier, act));
             if (transaction.stack.getCount() == 0)
-                return;
+                break;
+        }
+        for (Long2ObjectMap.Entry<IItemPipe> p : pipes.long2ObjectEntrySet()) {
+            pipeMap.compute(p.getLongKey(), (a, b) -> {
+                if (b == null) {
+                    return 1;
+                }
+                return b + 1;
+            });
         }
     }
 
