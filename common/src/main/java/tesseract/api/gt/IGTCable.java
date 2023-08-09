@@ -26,7 +26,7 @@ public interface IGTCable extends IConnectable {
      *
      * @return A positive integer representing the maximum accepted energy, zero or negative indicates that this component accepts no energy.
      */
-    int getVoltage();
+    long getVoltage();
 
     /**
      *

@@ -96,7 +96,7 @@ public class EnergyTest {
         }
 
         @Override
-        public int getVoltage() {
+        public long getVoltage() {
             return voltage;
         }
 

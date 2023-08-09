@@ -15,7 +15,7 @@ import static java.lang.Integer.compare;
 public class GTConsumer extends Consumer<IGTCable, IGTNode> {
 
     private int loss;
-    private int minVoltage = Integer.MAX_VALUE;
+    private long minVoltage = Integer.MAX_VALUE;
     private int minAmperage = Integer.MAX_VALUE;
 
     // Way of the sorting by the loss and the distance to the node
