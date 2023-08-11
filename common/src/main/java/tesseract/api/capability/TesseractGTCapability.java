@@ -40,6 +40,7 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
             }
             this.old = transaction;
         }
+        this.isSending = false;
         return amps - old.getAvailableAmps();
     }
 
