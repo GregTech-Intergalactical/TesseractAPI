@@ -24,37 +24,48 @@ public class EnergyTileWrapper implements IEnergyHandler {
     }
 
     @Override
-    public boolean insert(GTTransaction transaction) {
-        if (storage.getAmount() >= transaction.voltageOut * TesseractConfig.COMMON.EU_TO_TRE_RATIO) {
-            transaction.addData(1, 0, this::extractEnergy);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean extractEnergy(GTTransaction.TransferData data) {
+    public long insertAmps(long voltage, long amps, boolean simulate) {
         try(Transaction transaction = Transaction.openOuter()) {
-            boolean extract = storage.extract((long) (data.getEnergy(1, false) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction) > 0;
-            if (extract) transaction.commit();
-            return extract;
+            long inserted = storage.insert((long) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction);
+            if (inserted == voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO){
+                if (!simulate) transaction.commit();
+                return 1;
+            }
+            return 0;
         }
 
     }
 
     @Override
-    public boolean addEnergy(GTTransaction.TransferData data) {
+    public long extractAmps(long voltage, long amps, boolean simulate) {
         try(Transaction transaction = Transaction.openOuter()) {
-            boolean insert = storage.insert((long) (data.getEnergy(1, true) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction) > 0;
-            if (insert) transaction.commit();
-            return insert;
+            long inserted = storage.extract((long) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction);
+            if (inserted == voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO){
+                if (!simulate) transaction.commit();
+                return 1;
+            }
+            return 0;
         }
+
     }
 
     @Override
-    public GTTransaction extract(GTTransaction.Mode mode) {
-        return new GTTransaction(0, 0, a -> {
-        });
+    public long insertEu(long voltage, boolean simulate) {
+        try(Transaction transaction = Transaction.openOuter()) {
+            long inserted = (long) (storage.insert((long) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction) / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+            if (!simulate) transaction.commit();
+            return inserted;
+        }
+
+    }
+
+    @Override
+    public long extractEu(long voltage, boolean simulate) {
+        try(Transaction transaction = Transaction.openOuter()) {
+            long inserted = (long) (storage.extract((long) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction) / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+            if (!simulate) transaction.commit();
+            return inserted;
+        }
     }
 
     @Override
@@ -97,9 +108,9 @@ public class EnergyTileWrapper implements IEnergyHandler {
     public long availableAmpsInput(long voltage) {
         long added = 0;
         try(Transaction transaction = Transaction.openOuter()) {
-            added = storage.insert(voltage, transaction);
+            added = storage.insert((long) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), transaction);
         }
-        if (added == voltage) return 1;
+        if (added == voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO) return 1;
         return 0;
     }
 

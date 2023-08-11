@@ -25,34 +25,41 @@ public class EnergyMoveableWrapper implements IEnergyHandler {
     }
 
     @Override
-    public boolean insert(GTTransaction transaction) {
-        if (getEnergy() >= transaction.voltageOut) {
-            transaction.addData(1, 0, this::extractEnergy);
-            return true;
+    public long extractAmps(long voltage, long amps, boolean simulate) {
+        if (storage instanceof EnergyExtractable extractable && extractable.canExtract(getTier(voltage))){
+            if (extractable.extractEnergy(voltage, Simulation.SIMULATE) == voltage){
+                if (!simulate) extractable.extractEnergy(voltage, Simulation.ACT);
+                return 1;
+            }
         }
-        return false;
+        return 0;
     }
 
     @Override
-    public boolean extractEnergy(GTTransaction.TransferData data) {
-        if (storage instanceof EnergyExtractable insertable){
-            return insertable.canExtract(getTier(data.getVoltage())) && insertable.extractEnergy(data.getEnergy(1, true), Simulation.ACT) > 0;
+    public long extractEu(long voltage, boolean simulate) {
+        if (storage instanceof EnergyExtractable extractable && extractable.canExtract(getTier(voltage))){
+            return extractable.extractEnergy(voltage, simulate ? Simulation.SIMULATE : Simulation.ACT);
         }
-        return false;
+        return 0;
     }
 
     @Override
-    public boolean addEnergy(GTTransaction.TransferData data) {
-        if (storage instanceof EnergyInsertable insertable){
-            return insertable.canInsert(getTier(data.getVoltage())) && insertable.insertEnergy(data.getEnergy(1, true), Simulation.ACT) > 0;
+    public long insertAmps(long voltage, long amps, boolean simulate) {
+        if (storage instanceof EnergyInsertable insertable && insertable.canInsert(getTier(voltage))){
+            if (insertable.insertEnergy(voltage, Simulation.SIMULATE) == voltage){
+                if (!simulate) insertable.insertEnergy(voltage, Simulation.ACT);
+                return 1;
+            }
         }
-        return false;
+        return 0;
     }
 
     @Override
-    public GTTransaction extract(GTTransaction.Mode mode) {
-        return new GTTransaction(0, 0, a -> {
-        });
+    public long insertEu(long voltage, boolean simulate) {
+        if (storage instanceof EnergyInsertable insertable && insertable.canInsert(getTier(voltage))){
+            return insertable.insertEnergy(voltage, simulate ? Simulation.SIMULATE : Simulation.ACT);
+        }
+        return 0;
     }
 
     public CableTier getTier(long tier){

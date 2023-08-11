@@ -16,25 +16,27 @@ import tesseract.api.GraphWrapper;
 public interface IGTNode {
 
     /**
-     * Adds energy to the node. Returns quantity of energy that was accepted.
-     */
-    default boolean insert(GTTransaction transaction) {
-        if (transaction.mode == GTTransaction.Mode.TRANSMIT) {
-            if (!canInput()) return false;
-            return transaction.addData(Math.min(transaction.getAvailableAmps(), availableAmpsInput(transaction.voltageOut)), 0, this::addEnergy).getAmps(true) > 0;
-        } else {
-            return transaction.addData(this.getCapacity() - this.getEnergy(), this::addEnergy).getEu() > 0;
-        }
-    }
-
-    /**
      * Inserts x amps of y voltage into the node.
      * @param voltage The voltage to be inserted into the node.
      * @param amps    The amps to be inserted into the node.
      * @param simulate If true, the container will not be modified.
      * @return The amps that were added to the node.
      */
-    long insertAmps(long voltage, long amps, boolean simulate);
+    default long insertAmps(long voltage, long amps, boolean simulate){
+        if (voltage < 0 || amps < 0) return 0;
+        long insertedAmps = 0;
+        for (int i = 0; i < amps; i++){
+            long inserted = insertEu(voltage, true);
+            if (inserted == voltage){
+                insertedAmps++;
+                getState().receive(simulate, 1);
+                if (!simulate) insertEu(voltage, false);
+            } else {
+                break;
+            }
+        }
+        return insertedAmps;
+    }
 
     /**
      * Extracts x amps of y voltage from the node.
@@ -43,40 +45,31 @@ public interface IGTNode {
      * @param simulate If true, the container will not be modified.
      * @return The amps that were extracted from the node.
      */
-    long extractAmps(long voltage, long amps, boolean simulate);
+    default long extractAmps(long voltage, long amps, boolean simulate){
+        if (voltage < 0 || amps < 0) return 0;
+        amps = Math.min(amps, this.availableAmpsOutput());
+        amps = Math.min(amps, this.getEnergy() / this.getOutputVoltage());
+        if (!simulate){
+            extractEu(voltage * amps, false);
+        }
+        this.getState().extract(simulate, amps);
+        return amps;
+    }
 
     /**
      * Extracts a given amount of energy from the node.
-     * @param energy The amount to be extracted from the node.
+     * @param voltage The amount to be extracted from the node.
      * @param simulate If true, the container will not be modified.
      * @return The amount of energy that was removed from the node.
      */
-    long extractEu(long energy, boolean simulate);
+    long extractEu(long voltage, boolean simulate);
     /**
      * Inserts a given amount of energy into the node.
-     * @param energy The amount to be inserted into the node.
+     * @param voltage The amount to be inserted into the node.
      * @param simulate If true, the container will not be modified.
      * @return The amount of energy that was added to the node.
      */
-    long insertEu(long energy, boolean simulate);
-
-    boolean extractEnergy(GTTransaction.TransferData data);
-
-    boolean addEnergy(GTTransaction.TransferData data);
-
-    /**
-     * Removes energy from the node. Returns quantity of energy that was removed.
-     *
-     * @return Amount of energy that was (or would have been, if simulated) extracted from the storage.
-     */
-    default GTTransaction extract(GTTransaction.Mode mode) {
-        if (mode == GTTransaction.Mode.TRANSMIT) {
-            return new GTTransaction(availableAmpsOutput(), this.getOutputVoltage(), this::extractEnergy);
-        } else if (mode == GTTransaction.Mode.INTERNAL) {
-            return new GTTransaction(this.getEnergy(), this::extractEnergy);
-        }
-        throw new UnsupportedOperationException();
-    }
+    long insertEu(long voltage, boolean simulate);
 
     /**
      * @return Gets the amount of energy currently stored.

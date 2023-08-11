@@ -44,8 +44,8 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
     }
 
     @Override
-    public long insertEu(long energy, boolean simulate) {
-        return 0;
+    public long insertEu(long voltage, boolean simulate) {
+        return insertAmps(voltage, 1, simulate) == 1 ? voltage : 0;
     }
 
     @Override
@@ -54,26 +54,10 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
     }
 
     @Override
-    public long extractEu(long energy, boolean simulate) {
+    public long extractEu(long voltage, boolean simulate) {
         return 0;
     }
 
-    @Override
-    public boolean insert(GTTransaction transaction) {
-        boolean flag = false;
-        if (this.isSending) return false;
-        this.isSending = true;
-        long pos = tile.getBlockPos().asLong();
-        if (!this.isNode) {
-            long old = transaction.getAvailableAmps();
-            TesseractGraphWrappers.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
-            flag = transaction.getAvailableAmps() < old;
-        } else {
-            //flag = transferAroundPipe(transaction, pos);
-        }
-        this.isSending = false;
-        return flag;
-    }
     private void transferAroundPipe(GTTransaction transaction, long pos) {
         boolean flag = false;
         for (Direction dir : Graph.DIRECTIONS) {
@@ -100,21 +84,6 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
 
             }
         }
-    }
-    @Override
-    public boolean extractEnergy(GTTransaction.TransferData data) {
-        return false;
-    }
-
-    @Override
-    public boolean addEnergy(GTTransaction.TransferData data) {
-        return false;
-    }
-
-    @Override
-    public GTTransaction extract(GTTransaction.Mode mode) {
-        return new GTTransaction(0, 0, a -> {
-        });
     }
 
     @Override

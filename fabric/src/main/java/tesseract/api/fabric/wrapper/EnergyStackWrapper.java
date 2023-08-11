@@ -26,28 +26,13 @@ public class EnergyStackWrapper implements IEnergyHandlerItem {
     }
 
     @Override
-    public boolean insert(GTTransaction transaction) {
-        if (storage.getStoredEnergy() >= transaction.voltageOut * TesseractConfig.COMMON.EU_TO_TRE_RATIO) {
-            transaction.addData(1, 0, this::extractEnergy);
-            return true;
-        }
-        return false;
+    public long insertEu(long voltage, boolean simulate) {
+        return (long) (storage.insert(holder, (long) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), simulate) / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
     }
 
     @Override
-    public boolean extractEnergy(GTTransaction.TransferData data) {
-        return storage.extract(holder, (int) (data.getEnergy(1, false) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), false) > 0;
-    }
-
-    @Override
-    public boolean addEnergy(GTTransaction.TransferData data) {
-        return storage.insert(holder, (int) (data.getEnergy(1, true) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), false) > 0;
-    }
-
-    @Override
-    public GTTransaction extract(GTTransaction.Mode mode) {
-        return new GTTransaction(0, 0, a -> {
-        });
+    public long extractEu(long voltage, boolean simulate) {
+        return (long) (storage.extract(holder, (long) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), simulate) / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
     }
 
     @Override
