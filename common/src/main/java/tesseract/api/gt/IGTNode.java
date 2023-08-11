@@ -27,6 +27,39 @@ public interface IGTNode {
         }
     }
 
+    /**
+     * Inserts x amps of y voltage into the node.
+     * @param voltage The voltage to be inserted into the node.
+     * @param amps    The amps to be inserted into the node.
+     * @param simulate If true, the container will not be modified.
+     * @return The amps that were added to the node.
+     */
+    long insertAmps(long voltage, long amps, boolean simulate);
+
+    /**
+     * Extracts x amps of y voltage from the node.
+     * @param voltage The voltage to be extracted from the node.
+     * @param amps    The amps to be extracted from the node.
+     * @param simulate If true, the container will not be modified.
+     * @return The amps that were extracted from the node.
+     */
+    long extractAmps(long voltage, long amps, boolean simulate);
+
+    /**
+     * Extracts a given amount of energy from the node.
+     * @param energy The amount to be extracted from the node.
+     * @param simulate If true, the container will not be modified.
+     * @return The amount of energy that was removed from the node.
+     */
+    long extractEu(long energy, boolean simulate);
+    /**
+     * Inserts a given amount of energy into the node.
+     * @param energy The amount to be inserted into the node.
+     * @param simulate If true, the container will not be modified.
+     * @return The amount of energy that was added to the node.
+     */
+    long insertEu(long energy, boolean simulate);
+
     boolean extractEnergy(GTTransaction.TransferData data);
 
     boolean addEnergy(GTTransaction.TransferData data);

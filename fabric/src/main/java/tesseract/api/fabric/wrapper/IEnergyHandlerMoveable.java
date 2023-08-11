@@ -4,26 +4,23 @@ import aztech.modern_industrialization.api.energy.CableTier;
 import aztech.modern_industrialization.api.energy.EnergyExtractable;
 import aztech.modern_industrialization.api.energy.EnergyInsertable;
 import aztech.modern_industrialization.util.Simulation;
+import tesseract.TesseractConfig;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
 
 public interface IEnergyHandlerMoveable extends EnergyExtractable, EnergyInsertable {
     @Override
     default long extractEnergy(long maxExtract, Simulation simulation){
-        GTTransaction transaction = getEnergyHandler().extract(GTTransaction.Mode.INTERNAL);
-        transaction.addData(maxExtract, getEnergyHandler()::extractEnergy);
-        if (simulation.isActing()) transaction.commit();
-        return transaction.isValid() ? (int) transaction.getData().stream().mapToLong(t -> t.getEnergy(t.getAmps(false), false)).sum() : 0;
+        long euToInsert = (long) (maxExtract / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        return getEnergyHandler().extractEu(euToInsert, simulation.isSimulating());
     }
 
 
     @Override
     default long insertEnergy(long maxInsert, Simulation simulation){
-        GTTransaction transaction = new GTTransaction(maxInsert, a -> {
-        });
-        getEnergyHandler().insert(transaction);
-        if (simulation.isActing()) transaction.commit();
-        return transaction.isValid() ? (int) transaction.getData().stream().mapToLong(t -> t.getEnergy(t.getAmps(true), true)).sum() : 0;
+        long euToInsert = (long) (maxInsert / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        long amp = getEnergyHandler().insertAmps(euToInsert, 1, simulation.isSimulating());
+        return amp == 1 ? maxInsert : 0;
     }
 
     @Override
