@@ -35,13 +35,6 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
     }
 
     /**
-     * Adds energy to the node. Returns quantity of energy that was accepted.
-     */
-    public void insert(GTTransaction transaction) {
-        node.insert(transaction);
-    }
-
-    /**
      * @return Gets the amperage required for the consumer.
      */
     public long getRequiredAmperage(long voltage) {

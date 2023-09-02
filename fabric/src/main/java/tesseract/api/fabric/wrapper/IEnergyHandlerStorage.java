@@ -12,27 +12,26 @@ public interface IEnergyHandlerStorage extends EnergyStorage {
      **/
     @Override
     default long insert(long maxReceive, TransactionContext context) {
-        GTTransaction transaction = new GTTransaction((long) (maxReceive / TesseractConfig.COMMON.EU_TO_TRE_RATIO), a -> {
-        });
-        getEnergyHandler().insert(transaction);
+        long euToInsert = (long) (maxReceive / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        long amp = getEnergyHandler().insertAmps(euToInsert, 1, true);
         context.addCloseCallback((t, r) -> {
             if (r.wasCommitted()){
-                transaction.commit();
+                getEnergyHandler().insertAmps(euToInsert, 1, false);
             }
         });
-        return transaction.isValid() ? (int) transaction.getData().stream().mapToLong(t -> t.getEnergy((long) (t.getAmps(true) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), true)).sum() : 0;
+        return amp == 1 ? maxReceive : 0;
     }
 
     @Override
     default long extract(long maxExtract, TransactionContext context) {
-        GTTransaction transaction = getEnergyHandler().extract(GTTransaction.Mode.INTERNAL);
-        transaction.addData((long) (maxExtract / TesseractConfig.COMMON.EU_TO_TRE_RATIO), getEnergyHandler()::extractEnergy);
+        long euToExtract = (long) (maxExtract / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        long extracted = getEnergyHandler().extractEu(euToExtract, true);
         context.addCloseCallback((t, r) -> {
             if (r.wasCommitted()){
-                transaction.commit();
+                getEnergyHandler().extractEu(euToExtract, false);
             }
         });
-        return transaction.isValid() ? (int) transaction.getData().stream().mapToLong(t -> t.getEnergy((long) (t.getAmps(false) * TesseractConfig.COMMON.EU_TO_TRE_RATIO), false)).sum() : 0;
+        return extracted;
     }
 
     @Override

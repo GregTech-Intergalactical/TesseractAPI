@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.energy.IEnergyStorage;
 import tesseract.TesseractConfig;
+import tesseract.api.Transaction;
 import tesseract.api.gt.GTConsumer;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
@@ -22,28 +23,34 @@ public class EnergyTileWrapper implements IEnergyHandler {
     }
 
     @Override
-    public boolean insert(GTTransaction transaction) {
-        if (storage.getEnergyStored() >= transaction.voltageOut * TesseractConfig.COMMON.EU_TO_FE_RATIO) {
-            transaction.addData(1, 0, this::extractEnergy);
-            return true;
+    public long insertAmps(long voltage, long amps, boolean simulate) {
+        long inserted = storage.receiveEnergy((int) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), simulate);
+        if (inserted == voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO){
+            return 1;
         }
-        return false;
+        return 0;
+
     }
 
     @Override
-    public boolean extractEnergy(GTTransaction.TransferData data) {
-        return storage.extractEnergy((int) (data.getEnergy(1, false) * TesseractConfig.COMMON.EU_TO_FE_RATIO), false) > 0;
+    public long extractAmps(long voltage, long amps, boolean simulate) {
+        long inserted = storage.extractEnergy((int) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), simulate);
+        if (inserted == voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO){
+            return 1;
+        }
+        return 0;
+
     }
 
     @Override
-    public boolean addEnergy(GTTransaction.TransferData data) {
-        return storage.receiveEnergy((int) (data.getEnergy(1, true) * TesseractConfig.COMMON.EU_TO_FE_RATIO), false) > 0;
+    public long insertEu(long voltage, boolean simulate) {
+        return (long) (storage.receiveEnergy((int) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), simulate) / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+
     }
 
     @Override
-    public GTTransaction extract(GTTransaction.Mode mode) {
-        return new GTTransaction(0, 0, a -> {
-        });
+    public long extractEu(long voltage, boolean simulate) {
+        return (long) (storage.extractEnergy((int) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), simulate) / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
     }
 
     @Override

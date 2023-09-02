@@ -9,9 +9,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import tesseract.FluidPlatformUtils;
+import tesseract.api.ITickingController;
 import tesseract.api.fluid.FluidController;
 import tesseract.api.fluid.IFluidNode;
+import tesseract.api.gt.GTController;
 import tesseract.graph.Graph;
+import tesseract.graph.INode;
 
 import javax.annotation.Nonnull;
 
@@ -55,5 +58,10 @@ public class Fluid extends FluidController {
             lastGasLeakSound = world.getGameTime();
         }
         return stack;
+    }
+
+    @Override
+    public ITickingController clone(INode group) {
+        return new Fluid(dim, getter).set(group);
     }
 }
