@@ -2,13 +2,13 @@ package tesseract.util;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import tesseract.api.item.PlatformItemHandler;
 
-import javax.annotation.Nonnull;
 
 public class ItemHandlerUtils {
-    @Nonnull
-    public static ItemStack insertItem(PlatformItemHandler dest, @Nonnull ItemStack stack, boolean simulate) {
+    @NotNull
+    public static ItemStack insertItem(PlatformItemHandler dest, @NotNull ItemStack stack, boolean simulate) {
         if (dest == null || stack.isEmpty())
             return stack;
         for (int i = 0; i < dest.getSlots(); i++) {
@@ -21,7 +21,7 @@ public class ItemHandlerUtils {
     }
 
 
-    public static boolean canItemStacksStack(@Nonnull ItemStack a, @Nonnull ItemStack b) {
+    public static boolean canItemStacksStack(@NotNull ItemStack a, @NotNull ItemStack b) {
         if (a.isEmpty() || !a.sameItem(b) || a.hasTag() != b.hasTag())
             return false;
         return (!a.hasTag() || a.getTag().equals(b.getTag())) && areCapsCompatible(a, b);
@@ -32,7 +32,7 @@ public class ItemHandlerUtils {
         throw new AssertionError();
     }
 
-    public static ItemStack copyStackWithSize(@Nonnull ItemStack itemStack, int size) {
+    public static ItemStack copyStackWithSize(@NotNull ItemStack itemStack, int size) {
         if (size == 0) return ItemStack.EMPTY;
         ItemStack copy = itemStack.copy();
         copy.setCount(size);
