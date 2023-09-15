@@ -8,9 +8,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import org.jetbrains.annotations.NotNull;
 import tesseract.api.fluid.IFluidNode;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,7 +67,7 @@ public record FluidTileWrapper(BlockEntity tile,
         return null;
     }
 
-    @Nonnull
+    @NotNull
     @Override
     public FluidHolder getFluidInTank(int tank) {
         return new ForgeFluidHolder(handler.getFluidInTank(tank));
@@ -98,7 +98,7 @@ public record FluidTileWrapper(BlockEntity tile,
     }
 
     @Override
-    public boolean isFluidValid(int tank, @Nonnull FluidHolder stack) {
+    public boolean isFluidValid(int tank, @NotNull FluidHolder stack) {
         return handler.isFluidValid(tank, new ForgeFluidHolder(stack).getFluidStack());
     }
 
