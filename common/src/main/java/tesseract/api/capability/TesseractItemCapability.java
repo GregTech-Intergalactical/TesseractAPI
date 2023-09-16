@@ -74,8 +74,7 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
             if (dir == this.side || !this.tile.connects(dir)) continue;
             ItemStack stack = stackIn.copy();
             //First, perform cover modifications.
-            this.callback.modify(stack, this.side, dir, true);
-            if (stack.isEmpty()) continue;
+            if (this.callback.modify(stack, this.side, dir, true)) continue;
             BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
             if (otherTile != null) {
                 //Check the handler.
@@ -86,7 +85,7 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
                 var newStack = ItemHandlerUtils.insertItem(handler, stack, true);
                 if (newStack.getCount() < stack.getCount()) {
                     transaction.addData(stack.getCount() - newStack.getCount(), a -> {
-                        this.callback.modify(a, this.side, dir, false);
+                        if (this.callback.modify(a, this.side, dir, false)) return;
                         ItemHandlerUtils.insertItem(handler, a, false);
                     });
                     stackIn = newStack;

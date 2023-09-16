@@ -56,7 +56,7 @@ public class TesseractRFCapability<T extends BlockEntity & IRFCable> extends Tes
             BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
             if (otherTile != null) {
                 long rf = transaction.rf;
-                this.callback.modify(rf, this.side, dir, true);
+                if (this.callback.modify(rf, this.side, dir, true)) continue;
                 //Check the handler.
                 var cap = EnergyHooks.safeGetBlockEnergyManager(otherTile, dir.getOpposite());
                 if (cap.isEmpty()) continue;
@@ -65,7 +65,7 @@ public class TesseractRFCapability<T extends BlockEntity & IRFCable> extends Tes
                 long amount = handler.insert(rf,  true);
                 if (amount > 0) {
                     transaction.addData(rf, a -> {
-                        this.callback.modify(a, this.side, dir, false);
+                        if (this.callback.modify(a, this.side, dir, false)) return;
                         handler.insert(a, false);
                     });
                 }

@@ -136,7 +136,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             // Insert the count into the transaction.
             ItemStack insert = stack.copy();
             insert.setCount(actual);
-            modifier.modify(insert, null, side, true);
+            if (modifier.modify(insert, null, side, true)) continue;
             actual = insert.getCount();
             final int act = actual;
             if (act == 0)
@@ -160,7 +160,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
 
     public void transferItem(ItemConsumer consumer, ItemStack stack, Direction side, ITransactionModifier modifier,
                              int transferred) {
-        modifier.modify(stack, null, side, true);
+        if (modifier.modify(stack, null, side, true)) return;
         consumer.insert(stack, false);
         this.transferred += transferred;
         if (consumer.getConnection() == ConnectionType.VARIATE) {

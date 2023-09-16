@@ -116,7 +116,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
             FluidHolder stack = transaction.stack.copyHolder();
-            this.callback.modify(stack, this.side, dir, true);
+            if (this.callback.modify(stack, this.side, dir, true)) continue;
             //Check the handler.
             var cap = TesseractCapUtils.getFluidHandler(tile.getLevel(), BlockPos.of(Pos.offset(pos, dir)), dir.getOpposite());
             if (cap.isEmpty()) continue;
@@ -126,7 +126,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
             if (amount > 0) {
                 stack.setAmount(amount);
                 transaction.addData(stack, a -> {
-                    this.callback.modify(a, this.side, dir, false);
+                    if (this.callback.modify(a, this.side, dir, false)) return;
                     handler.insertFluid(a, false);
                 });
             }
