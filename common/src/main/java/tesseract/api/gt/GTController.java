@@ -3,13 +3,16 @@ package tesseract.api.gt;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Direction;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import tesseract.Tesseract;
 import tesseract.api.ConnectionType;
 import tesseract.api.Controller;
+import tesseract.api.DataHolder;
 import tesseract.api.ITickingController;
 import tesseract.api.capability.ITransactionModifier;
+import tesseract.api.rf.RFDataHolder;
 import tesseract.graph.Graph;
 import tesseract.graph.Grid;
 import tesseract.graph.INode;
@@ -165,7 +168,7 @@ public class GTController extends Controller<GTDataHolder, IGTCable, IGTNode> im
             return;
         IGTNode producer = node.value(side.getOpposite());
 
-        long voltage_out = producer.getOutputVoltage();
+        long voltageOut = producer.getOutputVoltage();
 
         /*
          * if (amperage_in <= 0) { // just for sending the last piece of energy
@@ -174,32 +177,42 @@ public class GTController extends Controller<GTDataHolder, IGTCable, IGTNode> im
          * }
          */
         inserted++;
-        long amperage_in = stack.getImmutableData().getB();
+        long voltageIn = stack.getImmutableData().getA();
+        long amperageIn = stack.getImmutableData().getB();
         long usedAmps = 0;
 
         for (GTConsumer consumer : list) {
 
-            if (amperage_in <= 0) {
+            if (amperageIn <= 0) {
                 break;
             }
             long loss = consumer.getLoss();
-            if (loss < 0 || loss > voltage_out) {
+            if (loss < 0 || loss > voltageOut) {
                 continue;
             }
 
-            long amperage = consumer.getRequiredAmperage(voltage_out - loss);
+            long amperage = consumer.getRequiredAmperage(voltageOut - loss);
             if (amperage <= 0) { // if this consumer received all the energy from the other producers
                 continue;
             }
 
             // Remember amperes stored in this consumer
-            amperage = Math.min(amperage_in, amperage);
+            amperage = Math.min(amperageIn, amperage);
             // If we are here, then path had some invalid cables which not suits the limits
             // of amps/voltage
-            if (!simulate){
-                dataCommit(consumer, stack.getImmutableData().getA() - loss, amperage, loss);
+            GTDataHolder modify = new GTDataHolder(new Tuple<>(voltageIn - loss, amperageIn), 0L);
+            if (modifier.modify(modify, null, side, simulate)) continue;
+            if (modify.getData() > 0){
+                amperageIn -= modify.getData();
+                usedAmps += modify.getData();
+                amperage -= modify.getData();
+                if (amperage <= 0) continue;
+                if (amperageIn == 0) break;
             }
-            amperage_in -= amperage;
+            if (!simulate){
+                dataCommit(consumer, voltageIn - loss, amperage, loss);
+            }
+            amperageIn -= amperage;
             usedAmps += amperage;
         }
         stack.setData(usedAmps);

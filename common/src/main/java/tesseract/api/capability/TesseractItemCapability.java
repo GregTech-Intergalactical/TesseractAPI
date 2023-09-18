@@ -3,7 +3,6 @@ package tesseract.api.capability;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
@@ -12,15 +11,12 @@ import tesseract.TesseractGraphWrappers;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
 import tesseract.api.item.ItemDataHolder;
-import tesseract.api.item.ItemTransaction;
 import tesseract.graph.Graph;
 import tesseract.util.ItemHandlerUtils;
 import tesseract.util.Pos;
 
 
 public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends TesseractBaseCapability<T> implements IItemNode {
-    
-    private ItemTransaction old;
     
     public TesseractItemCapability(T tile, Direction dir, boolean isNode, ITransactionModifier onTransaction) {
         super(tile, dir, isNode, onTransaction);

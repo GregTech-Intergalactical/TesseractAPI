@@ -4,7 +4,6 @@ import earth.terrarium.botarium.common.energy.base.EnergyContainer;
 import earth.terrarium.botarium.common.energy.base.EnergySnapshot;
 import earth.terrarium.botarium.common.energy.impl.SimpleEnergySnapshot;
 import tesseract.TesseractConfig;
-import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
 
 public interface IEnergyHandlerRF extends EnergyContainer {
