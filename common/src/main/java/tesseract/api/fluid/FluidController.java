@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Class acts as a controller in the group of a fluid components.
  */
-public class FluidController extends Controller<FluidTransaction, IFluidPipe, IFluidNode>
+public class FluidController extends Controller<FluidDataHolder, IFluidPipe, IFluidNode>
         implements IFluidEvent<FluidHolder> {
 
     public final static boolean HARDCORE_PIPES = false;
@@ -110,8 +110,8 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
     }
 
     @Override
-    public void insert(long producerPos, Direction side, FluidTransaction transaction, ITransactionModifier modifier) {
-        if (SLOOSH || !transaction.isValid())
+    public void insert(long producerPos, Direction side, FluidDataHolder transaction, ITransactionModifier modifier, boolean simulate) {
+        if (SLOOSH)
             return;
 
         Map<Direction, List<FluidConsumer>> map = this.data.get(Pos.offset(producerPos, side));
@@ -123,8 +123,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
 
         pressureData.clear();
 
+        FluidHolder returnData = transaction.getImmutableData().copyHolder();
         loop: for (FluidConsumer consumer : list) {
-            FluidHolder data = transaction.stack.copyHolder();
+            FluidHolder data = returnData.copyHolder();
             if (!consumer.canHold(data)) {
                 continue;
             }
@@ -165,11 +166,16 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
                     pressureData.compute(p.getLongKey(), (k, v) -> v == null ? finalAmount : v + finalAmount);
                 }
             }
-            transaction.addData(data.copyHolder(), a -> commitFluid(consumer, a));
+            if (!simulate){
+                commitFluid(consumer, data);
+            }
+            returnData.setAmount(returnData.getFluidAmount() - data.getFluidAmount());
 
-            if (transaction.stack.isEmpty())
+            if (returnData.isEmpty())
                 break;
         }
+
+        transaction.setData(transaction.getImmutableData().getFluidAmount() - returnData.getFluidAmount());
     }
     public void commitFluid(FluidConsumer consumer, FluidHolder stack) {
         int temperature = FluidPlatformUtils.getFluidTemperature(stack.getFluid());

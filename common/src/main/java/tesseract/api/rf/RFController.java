@@ -251,7 +251,7 @@ public class RFController extends Controller<RFTransaction, IRFCable, IRFNode> {
     }
 
     @Override
-    public void insert(long pipePos, Direction side, RFTransaction transaction, ITransactionModifier modifier) {
+    public void insert(long pipePos, Direction side, RFTransaction transaction, ITransactionModifier modifier, boolean simulate) {
         Map<Direction, List<RFConsumer>> map = this.data.get(Pos.offset(pipePos, side));
         if (map == null)
             return;

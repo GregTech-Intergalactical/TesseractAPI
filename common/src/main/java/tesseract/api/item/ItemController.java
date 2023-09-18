@@ -30,7 +30,7 @@ import java.util.WeakHashMap;
 /**
  * Class acts as a controller in the group of an item components.
  */
-public class ItemController extends Controller<ItemTransaction, IItemPipe, IItemNode> {
+public class ItemController extends Controller<ItemDataHolder, IItemPipe, IItemNode> {
 
     private int transferred;
     private final Long2ObjectMap<Map<Direction, List<ItemConsumer>>> data = new Long2ObjectLinkedOpenHashMap<>();
@@ -99,9 +99,9 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
     }
 
     @Override
-    public void insert(long producerPos, Direction side, ItemTransaction transaction, ITransactionModifier modifier) {
+    public void insert(long producerPos, Direction side, ItemDataHolder transaction, ITransactionModifier modifier, boolean simulate) {
         Map<Direction, List<ItemConsumer>> map = this.data.get(Pos.offset(producerPos, side));
-        ItemStack stack = transaction.stack;
+        ItemStack stack = transaction.getData().copy();
         if (map == null)
             return;
         List<ItemConsumer> list = map.get(side);
@@ -136,7 +136,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             // Insert the count into the transaction.
             ItemStack insert = stack.copy();
             insert.setCount(actual);
-            if (modifier.modify(insert, null, side, true)) continue;
+            if (modifier.modify(insert, null, side, simulate)) continue;
             actual = insert.getCount();
             final int act = actual;
             if (act == 0)
@@ -144,10 +144,14 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
                 pipes.putIfAbsent(p.getLongKey(), p.getValue());
             }
-            transaction.addData(insert, t -> transferItem(consumer, t, side, modifier, act));
-            if (transaction.stack.getCount() == 0)
+            if (!simulate){
+                transferItem(consumer, insert, act);
+            }
+            stack.shrink(actual);
+            if (stack.getCount() == 0)
                 break;
         }
+        transaction.setData(stack);
         for (Long2ObjectMap.Entry<IItemPipe> p : pipes.long2ObjectEntrySet()) {
             pipeMap.compute(p.getLongKey(), (a, b) -> {
                 if (b == null) {
@@ -158,9 +162,8 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
         }
     }
 
-    public void transferItem(ItemConsumer consumer, ItemStack stack, Direction side, ITransactionModifier modifier,
+    public void transferItem(ItemConsumer consumer, ItemStack stack,
                              int transferred) {
-        if (modifier.modify(stack, null, side, true)) return;
         consumer.insert(stack, false);
         this.transferred += transferred;
         if (consumer.getConnection() == ConnectionType.VARIATE) {
@@ -203,7 +206,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
     }
 
     @Override
-    public ITickingController<ItemTransaction, IItemPipe, IItemNode> clone(INode group) {
+    public ITickingController<ItemDataHolder, IItemPipe, IItemNode> clone(INode group) {
         return new ItemController(dim, getter).set(group);
     }
 }

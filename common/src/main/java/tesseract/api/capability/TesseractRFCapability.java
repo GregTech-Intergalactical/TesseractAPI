@@ -40,7 +40,7 @@ public class TesseractRFCapability<T extends BlockEntity & IRFCable> extends Tes
             long pos = tile.getBlockPos().asLong();
             RFTransaction transaction = new RFTransaction(maxAmount, a -> {});
             if (!this.isNode) {
-                TesseractGraphWrappers.RF.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
+                TesseractGraphWrappers.RF.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback, simulate);
             } else {
                 transferAroundPipe(transaction, pos);
             }
