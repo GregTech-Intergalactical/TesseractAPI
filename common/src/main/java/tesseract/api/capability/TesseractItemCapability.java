@@ -15,11 +15,16 @@ import tesseract.graph.Graph;
 import tesseract.util.ItemHandlerUtils;
 import tesseract.util.Pos;
 
+import java.util.function.Predicate;
+
 
 public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends TesseractBaseCapability<T> implements IItemNode {
     
-    public TesseractItemCapability(T tile, Direction dir, boolean isNode, ITransactionModifier onTransaction) {
+    private final Predicate<Direction> canOutput;
+    
+    public TesseractItemCapability(T tile, Direction dir, boolean isNode, ITransactionModifier onTransaction, Predicate<Direction> canOutput) {
         super(tile, dir, isNode, onTransaction);
+        this.canOutput = canOutput;
     }
 
     @Override
@@ -65,6 +70,7 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
             ItemStack stack = stackIn.copy();
+            if (!this.canOutput(dir)) continue;
             //First, perform cover modifications.
             if (this.callback.modify(stack, this.side, dir, simulate)) continue;
             BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
@@ -127,7 +133,7 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
 
     @Override
     public boolean canOutput(Direction direction) {
-        return true;
+        return canOutput.test(direction);
     }
 
     @Override
