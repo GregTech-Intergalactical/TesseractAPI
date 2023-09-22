@@ -9,12 +9,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import tesseract.TesseractGraphWrappers;
 import tesseract.api.rf.IRFCable;
 import tesseract.api.rf.IRFNode;
-import tesseract.api.rf.RFTransaction;
+import tesseract.api.rf.RFDataHolder;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
 public class TesseractRFCapability<T extends BlockEntity & IRFCable> extends TesseractBaseCapability<T> implements IRFNode {
-    private RFTransaction old;
     public TesseractRFCapability(T tile, Direction side, boolean isNode, ITransactionModifier callback) {
         super(tile, side, isNode, callback);
     }
@@ -33,43 +32,41 @@ public class TesseractRFCapability<T extends BlockEntity & IRFCable> extends Tes
     public long insertEnergy(long maxAmount, boolean simulate) {
         if (this.isSending) return 0;
         this.isSending = true;
-        if (!simulate) {
-            if (old == null) return 0;
-            old.commit();
+        RFDataHolder dataHolder = new RFDataHolder(maxAmount, 0L);
+        long pos = tile.getBlockPos().asLong();
+        if (!this.isNode) {
+            TesseractGraphWrappers.RF.getController(tile.getLevel(), pos).insert(pos, side, dataHolder, callback, simulate);
         } else {
-            long pos = tile.getBlockPos().asLong();
-            RFTransaction transaction = new RFTransaction(maxAmount, a -> {});
-            if (!this.isNode) {
-                TesseractGraphWrappers.RF.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
-            } else {
-                transferAroundPipe(transaction, pos);
-            }
-            this.old = transaction;
+            transferAroundPipe(dataHolder, pos, simulate);
         }
         this.isSending = false;
-        return maxAmount - old.rf;
+        return dataHolder.getData();
     }
 
-    private void transferAroundPipe(RFTransaction transaction, long pos) {
+    private void transferAroundPipe(RFDataHolder transaction, long pos, boolean simulate) {
+        long rf = transaction.getImmutableData();
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
             BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
             if (otherTile != null) {
-                long rf = transaction.rf;
-                if (this.callback.modify(rf, this.side, dir, true)) continue;
+                long oldRf = transaction.getData();
+                if (this.callback.modify(transaction, this.side, dir, simulate)) continue;
+                long newRF = transaction.getData();
+                if (newRF > oldRf){
+                    rf -= (newRF - oldRf);
+                }
+                if (rf<= 0) break;
                 //Check the handler.
                 var cap = EnergyHooks.safeGetBlockEnergyManager(otherTile, dir.getOpposite());
                 if (cap.isEmpty()) continue;
                 //Perform insertion, and add to the transaction.
                 var handler = cap.get();
-                long amount = handler.insert(rf,  true);
+                long amount = handler.insert(rf,  simulate);
                 if (amount > 0) {
-                    transaction.addData(rf, a -> {
-                        if (this.callback.modify(a, this.side, dir, false)) return;
-                        handler.insert(a, false);
-                    });
+                    rf -= amount;
+                    transaction.setData(transaction.getData() + amount);
                 }
-                if (transaction.rf == 0) break;
+                if (rf <= 0) break;
             }
         }
     }

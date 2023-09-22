@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Class acts as a controller in the group of a energy components.
  */
-public class RFController extends Controller<RFTransaction, IRFCable, IRFNode> {
+public class RFController extends Controller<RFDataHolder, IRFCable, IRFNode> {
 
     private long totalEnergy, lastEnergy;
     private final Long2LongMap holders = new Long2LongOpenHashMap();
@@ -251,7 +251,7 @@ public class RFController extends Controller<RFTransaction, IRFCable, IRFNode> {
     }
 
     @Override
-    public void insert(long pipePos, Direction side, RFTransaction transaction, ITransactionModifier modifier) {
+    public void insert(long pipePos, Direction side, RFDataHolder transaction, ITransactionModifier modifier, boolean simulate) {
         Map<Direction, List<RFConsumer>> map = this.data.get(Pos.offset(pipePos, side));
         if (map == null)
             return;
@@ -259,10 +259,23 @@ public class RFController extends Controller<RFTransaction, IRFCable, IRFNode> {
         if (list == null)
             return;
 
+        long remainingRF = transaction.getImmutableData();
+        if (remainingRF == 0) return;
+        long addedRf = 0;
         for (RFConsumer consumer : list) {
-            long added = consumer.insert(Math.min(transaction.rf, consumer.getNode().maxInsert()), true);
+            RFDataHolder modify = new RFDataHolder(remainingRF, 0L);
+            if (modifier.modify(modify, null, side, simulate)) continue;
+            if (modify.getData() > 0){
+                remainingRF -= modify.getData();
+                addedRf += modify.getData();
+                if (remainingRF <= 0) break;
+            }
+            long added = consumer.insert(Math.min(remainingRF, consumer.getNode().maxInsert()), simulate);
             if (added <= 0) continue;
-            transaction.addData(added, rf -> consumer.insert(rf, true));
+            remainingRF -= added;
+            addedRf += added;
+            if (remainingRF <= 0) break;
         }
+        transaction.setData(addedRf);
     }
 }

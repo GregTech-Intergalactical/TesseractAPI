@@ -3,14 +3,11 @@ package tesseract.api.forge.wrapper;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
 import tesseract.TesseractConfig;
 import tesseract.api.context.TesseractItemContext;
 import tesseract.api.gt.GTConsumer;
-import tesseract.api.gt.GTTransaction;
-import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyHandlerItem;
 
 public class EnergyStackWrapper implements IEnergyHandlerItem {

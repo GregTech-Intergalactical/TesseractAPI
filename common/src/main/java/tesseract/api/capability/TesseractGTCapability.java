@@ -3,20 +3,17 @@ package tesseract.api.capability;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import tesseract.TesseractCapUtils;
 import tesseract.TesseractGraphWrappers;
-import tesseract.api.gt.GTConsumer;
-import tesseract.api.gt.GTTransaction;
-import tesseract.api.gt.IEnergyHandler;
-import tesseract.api.gt.IGTCable;
+import tesseract.api.gt.*;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
 public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends TesseractBaseCapability<T> implements IEnergyHandler {
 
     private final IGTCable cable;
-    private GTTransaction old;
 
     public TesseractGTCapability(T tile, Direction dir, boolean isNode, ITransactionModifier modifier) {
         super(tile, dir, isNode, modifier);
@@ -27,21 +24,15 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
     public long insertAmps(long voltage, long amps, boolean simulate) {
         if (this.isSending) return 0;
         this.isSending = true;
-        if (!simulate) {
-            if (old == null) return 0;
-            old.commit();
+        GTDataHolder dataHolder = new GTDataHolder(new Tuple<>(voltage, amps), 0L);
+        long pos = tile.getBlockPos().asLong();
+        if (!this.isNode) {
+            TesseractGraphWrappers.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, dataHolder, callback, simulate);
         } else {
-            long pos = tile.getBlockPos().asLong();
-            GTTransaction transaction = new GTTransaction(amps, voltage, t -> {});
-            if (!this.isNode) {
-                TesseractGraphWrappers.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
-            } else {
-                transferAroundPipe(transaction, pos);
-            }
-            this.old = transaction;
+            transferAroundPipe(dataHolder, pos, simulate);
         }
         this.isSending = false;
-        return amps - old.getAvailableAmps();
+        return dataHolder.getData();
     }
 
     @Override
@@ -59,8 +50,9 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
         return 0;
     }
 
-    private void transferAroundPipe(GTTransaction transaction, long pos) {
+    private void transferAroundPipe(GTDataHolder transaction, long pos, boolean simulate) {
         boolean flag = false;
+        long availableAmps = transaction.getImmutableData().getB();
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
             //First, perform cover modifications.
@@ -71,17 +63,24 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
                 if (!cap.isPresent()) continue;
                 //Perform insertion, and add to the transaction.
                 var handler = cap.get();
-                long voltage = transaction.voltageOut - cable.getLoss();
+                long voltage = transaction.getImmutableData().getA() - cable.getLoss();
                 long ampsToInsert = handler.availableAmpsInput(voltage);
-                this.callback.modify(new GTTransaction.TransferData(transaction,voltage, ampsToInsert), this.side, dir, true);
-                long amps = handler.insertAmps(voltage, ampsToInsert, true);
-                if (amps > 0){
-                    transaction.addData(amps, cable.getLoss(), t -> {
-                        callback.modify(t, this.side, dir, false);
-                        handler.insertAmps(t.getVoltage(), t.getAmps(true), false);
-                    });
+                long oldAmps = transaction.getData();
+                if (this.callback.modify(transaction, this.side, dir, simulate)) continue;
+                long newAmps = transaction.getData();
+                if (newAmps > oldAmps){
+                    long used = newAmps - oldAmps;
+                    ampsToInsert -= used;
+                    availableAmps -= used;
+                    if (ampsToInsert <= 0) continue;
+                    if (availableAmps <=0) break;
                 }
-                if (transaction.getAvailableAmps() == 0) break;
+                long amps = handler.insertAmps(voltage, ampsToInsert, simulate);
+                if (amps > 0){
+                    transaction.setData(transaction.getData() + amps);
+                    availableAmps -= amps;
+                }
+                if (availableAmps <= 0) break;
 
             }
         }

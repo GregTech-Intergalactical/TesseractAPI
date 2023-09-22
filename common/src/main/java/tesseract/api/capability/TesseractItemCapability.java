@@ -3,7 +3,6 @@ package tesseract.api.capability;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +10,7 @@ import tesseract.TesseractCapUtils;
 import tesseract.TesseractGraphWrappers;
 import tesseract.api.item.IItemNode;
 import tesseract.api.item.IItemPipe;
-import tesseract.api.item.ItemTransaction;
+import tesseract.api.item.ItemDataHolder;
 import tesseract.graph.Graph;
 import tesseract.util.ItemHandlerUtils;
 import tesseract.util.Pos;
@@ -21,7 +20,6 @@ import java.util.function.Predicate;
 
 public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends TesseractBaseCapability<T> implements IItemNode {
     
-    private ItemTransaction old;
     private final Predicate<Direction> canOutput;
     
     public TesseractItemCapability(T tile, Direction dir, boolean isNode, ITransactionModifier onTransaction, Predicate<Direction> canOutput) {
@@ -52,34 +50,29 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
     @NotNull
     @Override
     public ItemStack insertItem(int slot, @NotNull ItemStack stackIn, boolean simulate) {
-        if (!simulate) {
-            old.commit();
+        if (this.isSending) {
+            return stackIn;
+        }
+        this.isSending = true;
+        ItemDataHolder dataHolder = new ItemDataHolder(stackIn);
+        long pos = tile.getBlockPos().asLong();
+        if (!isNode) {
+            TesseractGraphWrappers.ITEM.getController(tile.getLevel(), pos).insert(pos, this.side, dataHolder, callback, simulate);
         } else {
-            if (this.isSending) {
-                return stackIn;
-            }
-            this.isSending = true;
-            ItemTransaction transaction = new ItemTransaction(stackIn, a -> {});
-            long pos = tile.getBlockPos().asLong();
-            if (!isNode) {
-                TesseractGraphWrappers.ITEM.getController(tile.getLevel(), pos).insert(pos, this.side, transaction, callback);
-            } else {
-                transferAroundPipe(transaction, pos);
-            }
-            this.old = transaction;
+            transferAroundPipe(dataHolder, pos, simulate);
         }
         this.isSending = false;
-        return old.stack.copy();
+        return dataHolder.getData().copy();
     }
 
-    private void transferAroundPipe(ItemTransaction transaction, long pos) {
-        ItemStack stackIn = transaction.stack.copy();
+    private void transferAroundPipe(ItemDataHolder transaction, long pos, boolean simulate) {
+        ItemStack stackIn = transaction.getData().copy();
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
             ItemStack stack = stackIn.copy();
             if (!this.canOutput(dir)) continue;
             //First, perform cover modifications.
-            if (this.callback.modify(stack, this.side, dir, true)) continue;
+            if (this.callback.modify(stack, this.side, dir, simulate)) continue;
             BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
             if (otherTile != null) {
                 //Check the handler.
@@ -87,17 +80,14 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
                 if (cap.isEmpty()) continue;
                 //Perform insertion, and add to the transaction.
                 var handler = cap.get();
-                var newStack = ItemHandlerUtils.insertItem(handler, stack, true);
+                var newStack = ItemHandlerUtils.insertItem(handler, stack, simulate);
                 if (newStack.getCount() < stack.getCount()) {
-                    transaction.addData(stack.getCount() - newStack.getCount(), a -> {
-                        if (this.callback.modify(a, this.side, dir, false)) return;
-                        ItemHandlerUtils.insertItem(handler, a, false);
-                    });
                     stackIn = newStack;
                 }
                 if (stackIn.isEmpty()) break;
             }
         }
+        transaction.setData(stackIn);
     }
 
     @NotNull
