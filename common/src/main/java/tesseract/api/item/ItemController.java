@@ -108,6 +108,11 @@ public class ItemController extends Controller<ItemDataHolder, IItemPipe, IItemN
         if (list == null)
             return;
 
+        list = list.stream().sorted((c1, c2) -> {
+            long stepsize1 = c1.getCross().values().stream().mapToLong(IItemPipe::getStepsize).sum();
+            long stepsize2 = c2.getCross().values().stream().mapToLong(IItemPipe::getStepsize).sum();
+            return Long.compare(stepsize1, stepsize2);
+        }).toList();
         // Here the verification starts.
         Long2ObjectMap<IItemPipe> pipes = new Long2ObjectLinkedOpenHashMap<>();
         for (ItemConsumer consumer : list) {

@@ -13,6 +13,8 @@ public interface IItemPipe extends IConnectable {
      */
     int getCapacity();
 
+    int getStepsize();
+
     int getHolder();
 
     void setHolder(int holder);
