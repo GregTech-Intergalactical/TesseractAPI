@@ -11,19 +11,15 @@ public interface IEnergyHandlerStorage extends IEnergyStorage {
      **/
     @Override
     default int receiveEnergy(int maxReceive, boolean simulate) {
-        GTTransaction transaction = new GTTransaction((long) (maxReceive / TesseractConfig.COMMON.EU_TO_FE_RATIO), a -> {
-        });
-        getEnergyHandler().insert(transaction);
-        if (!simulate) transaction.commit();
-        return transaction.isValid() ? (int) transaction.getData().stream().mapToLong(t -> t.getEnergy((long) (t.getAmps(true) * TesseractConfig.COMMON.EU_TO_FE_RATIO), true)).sum() : 0;
+        long euToInsert = (long) (maxReceive / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        long amp = getEnergyHandler().insertAmps(euToInsert, 1, simulate);
+        return amp == 1 ? maxReceive : 0;
     }
 
     @Override
     default int extractEnergy(int maxExtract, boolean simulate) {
-        GTTransaction transaction = getEnergyHandler().extract(GTTransaction.Mode.INTERNAL);
-        transaction.addData((long) (maxExtract / TesseractConfig.COMMON.EU_TO_FE_RATIO), getEnergyHandler()::extractEnergy);
-        if (!simulate) transaction.commit();
-        return transaction.isValid() ? (int) transaction.getData().stream().mapToLong(t -> t.getEnergy((long) (t.getAmps(false) * TesseractConfig.COMMON.EU_TO_FE_RATIO), false)).sum() : 0;
+        long euToInsert = (long) (maxExtract / TesseractConfig.COMMON.EU_TO_FE_RATIO);
+        return Math.toIntExact(getEnergyHandler().extractEu(euToInsert, simulate));
     }
 
     @Override

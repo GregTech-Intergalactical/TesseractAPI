@@ -13,9 +13,9 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import org.jetbrains.annotations.NotNull;
 import tesseract.api.fluid.IFluidNode;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -112,7 +112,7 @@ public record FluidTileWrapper(BlockEntity tile,
     }
 
     @Override
-    public boolean isFluidValid(int tank, @Nonnull FluidHolder stack) {
+    public boolean isFluidValid(int tank, @NotNull FluidHolder stack) {
         return true;
     }
 

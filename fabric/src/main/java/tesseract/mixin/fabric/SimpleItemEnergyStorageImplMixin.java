@@ -58,60 +58,26 @@ public abstract class SimpleItemEnergyStorageImplMixin implements IEnergyHandler
     }
 
     @Override
-    public boolean extractEnergy(GTTransaction.TransferData data) {
-        if (data.transaction.mode == GTTransaction.Mode.TRANSMIT) {
-            long amps = Math.min(data.getAmps(false), this.availableAmpsOutput());
-            amps = Math.min(amps, this.getEnergy() / this.getOutputVoltage());
-            long toDrain = data.getEnergy(amps, false);
-            try(Transaction transaction = Transaction.openOuter()) {
-                long drained = this.extract(toDrain, transaction);
-                if (drained > 0){
-                    transaction.commit();
-                    this.getState().extract(false, amps);
-                    data.useAmps(false, amps);
-                }
-                return amps > 0;
+    public long insertEu(long voltage, boolean simulate) {
+        long toAdd = Math.min(voltage, this.getCapacity() - this.getAmount());
+        try(Transaction transaction = Transaction.openOuter()) {
+            long inserted = this.insert(toAdd, transaction);
+            if (inserted > 0) {
+                transaction.commit();
             }
-
-        } else {
-            long toDrain = Math.min(data.getEu(), this.getEnergy());
-            try(Transaction transaction = Transaction.openOuter()) {
-                long extracted = this.extract(toDrain, transaction);
-                if (extracted > 0) {
-                    data.drainEu(toDrain);
-                    transaction.commit();
-                }
-                return extracted > 0;
-            }
+            return inserted;
         }
     }
 
     @Override
-    public boolean addEnergy(GTTransaction.TransferData data) {
-        if (data.transaction.mode == GTTransaction.Mode.TRANSMIT) {
-            long amps = Math.min(data.getAmps(true), this.availableAmpsInput(data.getVoltage()));
-            amps = Math.min(amps, (this.getCapacity() - this.getAmount()) / this.getInputVoltage());
-            long toAdd = data.getEnergy(amps, true);
-            try(Transaction transaction = Transaction.openOuter()) {
-                long added = this.insert(toAdd, transaction);
-                if (added > 0){
-                    transaction.commit();
-                    data.useAmps(true, amps);
-                    this.getState().receive(false, amps);
-                }
-                return amps > 0;
+    public long extractEu(long voltage, boolean simulate) {
+        long toDrain = Math.min(voltage, this.getEnergy());
+        try(Transaction transaction = Transaction.openOuter()) {
+            long extracted = this.extract(toDrain, transaction);
+            if (extracted > 0) {
+                transaction.commit();
             }
-
-        } else {
-            long toAdd = Math.min(data.getEu(), this.getCapacity() - this.getAmount());
-            try(Transaction transaction = Transaction.openOuter()) {
-                long inserted = this.insert(toAdd, transaction);
-                if (inserted > 0) {
-                    data.drainEu(toAdd);
-                    transaction.commit();
-                }
-                return inserted > 0;
-            }
+            return extracted;
         }
     }
 

@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import tesseract.FluidPlatformUtils;
 import tesseract.api.ConnectionType;
 import tesseract.api.Consumer;
@@ -23,7 +24,6 @@ import tesseract.graph.Path;
 import tesseract.util.Node;
 import tesseract.util.Pos;
 
-import javax.annotation.Nonnull;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -242,7 +242,7 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
     }
 
     @Override
-    public void getInfo(long pos, @Nonnull List<String> list) {
+    public void getInfo(long pos, @NotNull List<String> list) {
         if (this.group != null) {
             this.group.getGroupInfo(pos, list);
             list.add(String.format("Fluid Data size: %d", this.data.size()));

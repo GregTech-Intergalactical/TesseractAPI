@@ -2,6 +2,7 @@ package tests;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import tesseract.api.Controller;
 import tesseract.api.IConnectable;
@@ -15,7 +16,6 @@ import tesseract.graph.INode;
 import tesseract.graph.NodeCache;
 import tesseract.util.Pos;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -144,7 +144,7 @@ public class GraphTest {
     }
 
     @Override
-    public void getInfo(long pos, @Nonnull List<String> list) {
+    public void getInfo(long pos, @NotNull List<String> list) {
 
     }
 

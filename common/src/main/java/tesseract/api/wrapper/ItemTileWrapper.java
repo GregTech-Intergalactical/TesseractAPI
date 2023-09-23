@@ -11,8 +11,6 @@ import tesseract.api.item.ExtendedItemContainer;
 import tesseract.api.item.IItemNode;
 import tesseract.util.ItemHandlerUtils;
 
-import javax.annotation.Nonnull;
-
 public record ItemTileWrapper(BlockEntity tile,
                               Container handler) implements IItemNode {
 
@@ -83,8 +81,8 @@ public record ItemTileWrapper(BlockEntity tile,
     }
 
     @Override
-    @Nonnull
-    public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+    @NotNull
+    public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
         if (handler instanceof ExtendedItemContainer extendedItemContainer) return extendedItemContainer.insertItem(slot, stack, simulate);
         if (stack.isEmpty())
             return ItemStack.EMPTY;
@@ -112,7 +110,7 @@ public record ItemTileWrapper(BlockEntity tile,
     }
 
     @Override
-    @Nonnull
+    @NotNull
     public ItemStack extractItem(int slot, int amount, boolean simulate) {
         if (handler instanceof ExtendedItemContainer extendedItemContainer) return extendedItemContainer.extractItem(slot, amount, simulate);
         if (amount == 0)

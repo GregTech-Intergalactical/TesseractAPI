@@ -9,12 +9,15 @@ import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
+import org.jetbrains.annotations.NotNull;
 import tesseract.FluidPlatformUtils;
+import tesseract.api.ITickingController;
 import tesseract.api.fluid.FluidController;
 import tesseract.api.fluid.IFluidNode;
+import tesseract.api.gt.GTController;
 import tesseract.graph.Graph;
+import tesseract.graph.INode;
 
-import javax.annotation.Nonnull;
 
 // TODO: Make explosions depend on pressure, capacity, temperature
 public class Fluid extends FluidController {
@@ -47,7 +50,7 @@ public class Fluid extends FluidController {
     }
 
     @Override
-    public FluidHolder onPipeGasLeak(Level world, long pos, @Nonnull FluidHolder fluid) {
+    public FluidHolder onPipeGasLeak(Level world, long pos, @NotNull FluidHolder fluid) {
         if (fluid.isEmpty()) return fluid;
         FluidHolder stack = fluid.copyHolder();
         stack.setAmount((int) ((double) stack.getFluidAmount() * PIPE_LEAK));
@@ -56,5 +59,10 @@ public class Fluid extends FluidController {
             lastGasLeakSound = world.getGameTime();
         }
         return stack;
+    }
+
+    @Override
+    public ITickingController clone(INode group) {
+        return new Fluid(dim, getter).set(group);
     }
 }
