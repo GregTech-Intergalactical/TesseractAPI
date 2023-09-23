@@ -14,6 +14,7 @@ import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.api.capability.ITransactionModifier;
+import tesseract.api.capability.TesseractItemCapability;
 import tesseract.graph.Graph;
 import tesseract.graph.Grid;
 import tesseract.graph.INode;
@@ -109,8 +110,10 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             return;
 
         list = list.stream().sorted((c1, c2) -> {
-            long stepsize1 = c1.getCross().values().stream().mapToLong(IItemPipe::getStepsize).sum();
-            long stepsize2 = c2.getCross().values().stream().mapToLong(IItemPipe::getStepsize).sum();
+            long stepsize1 = c1.getFull().values().stream().mapToLong(IItemPipe::getStepsize).sum();
+            if (c1.getNode() instanceof TesseractItemCapability<?> itemCapability) stepsize1 += itemCapability.tile.getStepsize();
+            long stepsize2 = c2.getFull().values().stream().mapToLong(IItemPipe::getStepsize).sum();
+            if (c2.getNode() instanceof TesseractItemCapability<?> itemCapability) stepsize2 += itemCapability.tile.getStepsize();
             return Long.compare(stepsize1, stepsize2);
         }).toList();
         // Here the verification starts.
