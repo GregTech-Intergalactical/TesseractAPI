@@ -14,6 +14,7 @@ import tesseract.api.Consumer;
 import tesseract.api.Controller;
 import tesseract.api.ITickingController;
 import tesseract.api.capability.ITransactionModifier;
+import tesseract.api.capability.TesseractItemCapability;
 import tesseract.graph.Graph;
 import tesseract.graph.Grid;
 import tesseract.graph.INode;
@@ -25,6 +26,7 @@ import tesseract.util.Pos;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * Class acts as a controller in the group of an item components.
@@ -89,9 +91,12 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
         }
     }
 
+    Long2IntMap pipeMap;
     @Override
     public void tick() {
         super.tick();
+        pipeMap = new Long2IntOpenHashMap();
+
     }
 
     @Override
@@ -104,8 +109,15 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
         if (list == null)
             return;
 
+        list = list.stream().sorted((c1, c2) -> {
+            long stepsize1 = c1.getFull().values().stream().mapToLong(IItemPipe::getStepsize).sum();
+            if (c1.getNode() instanceof TesseractItemCapability<?> itemCapability) stepsize1 += itemCapability.tile.getStepsize();
+            long stepsize2 = c2.getFull().values().stream().mapToLong(IItemPipe::getStepsize).sum();
+            if (c2.getNode() instanceof TesseractItemCapability<?> itemCapability) stepsize2 += itemCapability.tile.getStepsize();
+            return Long.compare(stepsize1, stepsize2);
+        }).toList();
         // Here the verification starts.
-        Long2IntMap tempHolders = new Long2IntOpenHashMap();
+        Long2ObjectMap<IItemPipe> pipes = new Long2ObjectLinkedOpenHashMap<>();
         for (ItemConsumer consumer : list) {
             if (!consumer.canAccept(stack)) {
                 continue;
@@ -119,7 +131,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
                 long pos = p.getLongKey();
                 IItemPipe pipe = p.getValue();
-                int stacksUsed = pipe.getHolder() + tempHolders.get(pos);
+                int stacksUsed = pipe.getHolder() + pipeMap.get(pos);
                 if (pipe.getCapacity() == stacksUsed) {
                     actual = 0;
                     break;
@@ -132,28 +144,31 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             // Insert the count into the transaction.
             ItemStack insert = stack.copy();
             insert.setCount(actual);
-            modifier.modify(insert, null, side, true);
+            if (modifier.modify(insert, null, side, true)) continue;
             actual = insert.getCount();
             final int act = actual;
             if (act == 0)
                 continue;
             for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
-                tempHolders.compute(p.getLongKey(), (a, b) -> {
-                    if (b == null) {
-                        return 1;
-                    }
-                    return b + 1;
-                });
+                pipes.putIfAbsent(p.getLongKey(), p.getValue());
             }
             transaction.addData(insert, t -> transferItem(consumer, t, side, modifier, act));
             if (transaction.stack.getCount() == 0)
-                return;
+                break;
+        }
+        for (Long2ObjectMap.Entry<IItemPipe> p : pipes.long2ObjectEntrySet()) {
+            pipeMap.compute(p.getLongKey(), (a, b) -> {
+                if (b == null) {
+                    return 1;
+                }
+                return b + 1;
+            });
         }
     }
 
     public void transferItem(ItemConsumer consumer, ItemStack stack, Direction side, ITransactionModifier modifier,
                              int transferred) {
-        modifier.modify(stack, null, side, true);
+        if (modifier.modify(stack, null, side, true)) return;
         consumer.insert(stack, false);
         this.transferred += transferred;
         if (consumer.getConnection() == ConnectionType.VARIATE) {

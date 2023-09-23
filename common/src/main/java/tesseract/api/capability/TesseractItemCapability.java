@@ -16,13 +16,17 @@ import tesseract.graph.Graph;
 import tesseract.util.ItemHandlerUtils;
 import tesseract.util.Pos;
 
+import java.util.function.Predicate;
+
 
 public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends TesseractBaseCapability<T> implements IItemNode {
     
     private ItemTransaction old;
+    private final Predicate<Direction> canOutput;
     
-    public TesseractItemCapability(T tile, Direction dir, boolean isNode, ITransactionModifier onTransaction) {
+    public TesseractItemCapability(T tile, Direction dir, boolean isNode, ITransactionModifier onTransaction, Predicate<Direction> canOutput) {
         super(tile, dir, isNode, onTransaction);
+        this.canOutput = canOutput;
     }
 
     @Override
@@ -73,9 +77,9 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
             ItemStack stack = stackIn.copy();
+            if (!this.canOutput(dir)) continue;
             //First, perform cover modifications.
-            this.callback.modify(stack, this.side, dir, true);
-            if (stack.isEmpty()) continue;
+            if (this.callback.modify(stack, this.side, dir, true)) continue;
             BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
             if (otherTile != null) {
                 //Check the handler.
@@ -86,7 +90,7 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
                 var newStack = ItemHandlerUtils.insertItem(handler, stack, true);
                 if (newStack.getCount() < stack.getCount()) {
                     transaction.addData(stack.getCount() - newStack.getCount(), a -> {
-                        this.callback.modify(a, this.side, dir, false);
+                        if (this.callback.modify(a, this.side, dir, false)) return;
                         ItemHandlerUtils.insertItem(handler, a, false);
                     });
                     stackIn = newStack;
@@ -139,7 +143,7 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
 
     @Override
     public boolean canOutput(Direction direction) {
-        return true;
+        return canOutput.test(direction);
     }
 
     @Override

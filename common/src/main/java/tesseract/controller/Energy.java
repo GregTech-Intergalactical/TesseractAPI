@@ -3,9 +3,11 @@ package tesseract.controller;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
+import tesseract.api.ITickingController;
 import tesseract.api.gt.GTController;
 import tesseract.api.gt.IGTNode;
 import tesseract.graph.Graph;
+import tesseract.graph.INode;
 
 public class Energy extends GTController {
 
@@ -31,5 +33,10 @@ public class Energy extends GTController {
     @Override
     public void onCableOverVoltage(Level w, long pos, long voltage) {
         Utils.createFireAround(w, BlockPos.of(pos));
+    }
+
+    @Override
+    public ITickingController clone(INode group) {
+        return new Energy(dim, getter).set(group);
     }
 }

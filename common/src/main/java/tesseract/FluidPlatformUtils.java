@@ -14,8 +14,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -75,7 +75,7 @@ public class FluidPlatformUtils {
      * @param doTransfer       True if the transfer should actually be done, false if it should be simulated.
      * @return the fluidStack that was transferred from the source to the destination. null on failure.
      */
-    @Nonnull
+    @NotNull
     public static FluidHolder tryFluidTransfer(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, long maxAmount, boolean doTransfer) {
         for (int i = 0; i < fluidSource.getTankAmount(); i++) {
             FluidHolder fluid = fluidSource.getFluidInTank(i);
@@ -96,7 +96,7 @@ public class FluidPlatformUtils {
      * @param doTransfer       True if the transfer should actually be done, false if it should be simulated.
      * @return the FluidHolder that was transferred from the source to the destination. null on failure.
      */
-    @Nonnull
+    @NotNull
     public static FluidHolder tryFluidTransfer(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, FluidHolder resource, boolean doTransfer)
     {
         FluidHolder drainable = fluidSource.extractFluid(resource, true);
@@ -114,7 +114,7 @@ public class FluidPlatformUtils {
      * Modders: Instead of this method, use {@link #tryFluidTransfer(PlatformFluidHandler, PlatformFluidHandler, FluidHolder, boolean)}
      * or {@link #tryFluidTransfer(PlatformFluidHandler, PlatformFluidHandler, long, boolean)}.
      */
-    @Nonnull
+    @NotNull
     private static FluidHolder tryFluidTransfer_Internal(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, FluidHolder drainable, boolean doTransfer)
     {
         long fillableAmount = fluidDestination.insertFluid(drainable, true);

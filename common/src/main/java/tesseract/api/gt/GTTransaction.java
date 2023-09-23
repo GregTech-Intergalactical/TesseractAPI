@@ -35,11 +35,11 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
 
     @Override
     public boolean canContinue() {
-        return availableAmps > usedAmps || eu > 0;
+        return availableAmps > 0 || eu > 0;
     }
 
     public long getAvailableAmps() {
-        return this.availableAmps - this.usedAmps;
+        return this.availableAmps;
     }
 
     public long addAmps(long amps) {
@@ -48,9 +48,10 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
     }
 
     public TransferData addData(long amps, long loss, Consumer<TransferData> data) {
-        TransferData td = new TransferData(this, Math.min(amps, availableAmps - usedAmps), this.voltageOut).setLoss(loss);
+        TransferData td = new TransferData(this, Math.min(amps, availableAmps), this.voltageOut).setLoss(loss);
         this.addData(td);
         this.usedAmps += amps;
+        availableAmps -= amps;
         this.onCommit(data);
         return td;
     }
