@@ -16,6 +16,8 @@ import team.reborn.energy.impl.SimpleItemEnergyStorageImpl;
 import tesseract.api.context.TesseractItemContext;
 import tesseract.api.fabric.wrapper.ContainerItemContextWrapper;
 import tesseract.api.gt.GTConsumer;
+import tesseract.api.gt.GTTransaction;
+import tesseract.api.gt.IEnergyHandler;
 import tesseract.api.gt.IEnergyHandlerItem;
 
 @Mixin(SimpleItemEnergyStorageImpl.class)

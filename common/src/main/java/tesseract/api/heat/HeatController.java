@@ -111,7 +111,7 @@ public class HeatController extends Controller<HeatTransaction,IHeatPipe,IHeatNo
     }
 
     @Override
-    public void insert(long producerPos, Direction side, HeatTransaction transaction, ITransactionModifier modifier, boolean simulate) {
+    public void insert(long producerPos, Direction side, HeatTransaction transaction, ITransactionModifier modifier) {
 
     }
 }

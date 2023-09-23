@@ -2,6 +2,7 @@ package tesseract.api.fabric.wrapper;
 
 import earth.terrarium.botarium.common.energy.base.PlatformItemEnergyManager;
 import earth.terrarium.botarium.common.item.ItemStackHolder;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import tesseract.TesseractConfig;
 import tesseract.api.context.TesseractItemContext;
 import tesseract.api.gt.GTConsumer;
+import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandlerItem;
 
 public class EnergyStackWrapper implements IEnergyHandlerItem {

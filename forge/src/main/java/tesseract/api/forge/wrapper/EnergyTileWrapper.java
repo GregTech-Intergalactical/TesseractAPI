@@ -5,7 +5,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.energy.IEnergyStorage;
 import tesseract.TesseractConfig;
+import tesseract.api.Transaction;
 import tesseract.api.gt.GTConsumer;
+import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
 
 public class EnergyTileWrapper implements IEnergyHandler {

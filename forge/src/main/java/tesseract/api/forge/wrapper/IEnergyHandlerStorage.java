@@ -2,6 +2,7 @@ package tesseract.api.forge.wrapper;
 
 import net.minecraftforge.energy.IEnergyStorage;
 import tesseract.TesseractConfig;
+import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
 
 public interface IEnergyHandlerStorage extends IEnergyStorage {

@@ -42,7 +42,7 @@ public interface ITickingController<T, C extends IConnectable, N> {
      * @param side the side at which the object was inserted into the pipe.
      * @param transaction the transaction object.
      */
-    void insert(long producerPos, Direction side, T transaction, ITransactionModifier modifier, boolean simulate);
+    void insert(long producerPos, Direction side, T transaction, ITransactionModifier modifier);
 
     /**
      * Returns the active world for this ticking controller.

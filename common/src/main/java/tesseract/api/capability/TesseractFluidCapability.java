@@ -12,7 +12,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import tesseract.TesseractCapUtils;
 import tesseract.TesseractGraphWrappers;
-import tesseract.api.fluid.*;
+import tesseract.api.fluid.FluidContainerHandler;
+import tesseract.api.fluid.FluidTransaction;
+import tesseract.api.fluid.IFluidNode;
+import tesseract.api.fluid.IFluidPipe;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
@@ -20,6 +23,8 @@ import java.util.List;
 
 
 public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extends TesseractBaseCapability<T> implements IFluidNode, FluidContainerHandler {
+
+    private FluidTransaction old;
 
     public TesseractFluidCapability(T tile, Direction dir, boolean isNode, ITransactionModifier callback) {
         super(tile, dir, isNode, callback);
@@ -90,34 +95,42 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     public long insertFluid(FluidHolder resource, boolean simulate) {
         if (this.isSending) return 0;
         this.isSending = true;
-        FluidDataHolder fluidDataHolder = new FluidDataHolder(resource.copyHolder(), 0L);
-        long pos = tile.getBlockPos().asLong();
-        if (!this.isNode) {
-            TesseractGraphWrappers.FLUID.getController(tile.getLevel(), pos).insert(pos, side, fluidDataHolder, callback, simulate);
+        if (!simulate) {
+            old.commit();
         } else {
-            transferAroundPipe(fluidDataHolder, pos, simulate);
+            long pos = tile.getBlockPos().asLong();
+            FluidTransaction transaction = new FluidTransaction(resource.copyHolder(), a -> {});
+            if (!this.isNode) {
+                TesseractGraphWrappers.FLUID.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
+            } else {
+                transferAroundPipe(transaction, pos);
+            }
+            this.old = transaction;
         }
         this.isSending = false;
-        return fluidDataHolder.getData();
+        return resource.getFluidAmount() - this.old.stack.getFluidAmount();
     }
 
 
-    private void transferAroundPipe(FluidDataHolder transaction, long pos, boolean simulate) {
+    private void transferAroundPipe(FluidTransaction transaction, long pos) {
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
-            FluidHolder stack = transaction.getImmutableData();
-            if (stack.isEmpty()) break;
-            if (this.callback.modify(stack, this.side, dir, simulate)) continue;
+            FluidHolder stack = transaction.stack.copyHolder();
+            if (this.callback.modify(stack, this.side, dir, true)) continue;
             //Check the handler.
             var cap = TesseractCapUtils.getFluidHandler(tile.getLevel(), BlockPos.of(Pos.offset(pos, dir)), dir.getOpposite());
             if (cap.isEmpty()) continue;
             //Perform insertion, and add to the transaction.
             var handler = cap.get();
-            long amount = handler.insertFluid(stack,  simulate);
+            long amount = handler.insertFluid(stack,  true);
             if (amount > 0) {
-                stack.setAmount(stack.getFluidAmount() - amount);
-                transaction.setData(transaction.getData() + amount);
+                stack.setAmount(amount);
+                transaction.addData(stack, a -> {
+                    if (this.callback.modify(a, this.side, dir, false)) return;
+                    handler.insertFluid(a, false);
+                });
             }
+            if (transaction.stack.isEmpty()) break;
         }
     }
 

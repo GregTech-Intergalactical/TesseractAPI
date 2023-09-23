@@ -1,9 +1,14 @@
 package tesseract;
 
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.world.level.LevelAccessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import tesseract.api.GraphWrapper;
+import tesseract.api.gt.GTTransaction;
+import tesseract.api.gt.IGTCable;
+import tesseract.api.gt.IGTNode;
 
 import java.util.Set;
 

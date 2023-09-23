@@ -8,6 +8,7 @@ import team.reborn.energy.api.EnergyStorage;
 import team.reborn.energy.api.base.SimpleSidedEnergyContainer;
 import tesseract.TesseractConfig;
 import tesseract.api.gt.GTConsumer;
+import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
 
 public class EnergyTileWrapper implements IEnergyHandler {

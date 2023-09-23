@@ -149,7 +149,7 @@ public class GraphTest {
     }
 
     @Override
-    public void insert(long producerPos, Direction side, Integer transaction, ITransactionModifier modifier, boolean simulate) {
+    public void insert(long producerPos, Direction side, Integer transaction, ITransactionModifier modifier) {
 
     }
 

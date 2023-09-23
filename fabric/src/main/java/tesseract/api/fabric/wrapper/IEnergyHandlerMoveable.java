@@ -5,6 +5,7 @@ import aztech.modern_industrialization.api.energy.EnergyExtractable;
 import aztech.modern_industrialization.api.energy.EnergyInsertable;
 import aztech.modern_industrialization.util.Simulation;
 import tesseract.TesseractConfig;
+import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyHandler;
 
 public interface IEnergyHandlerMoveable extends EnergyExtractable, EnergyInsertable {
