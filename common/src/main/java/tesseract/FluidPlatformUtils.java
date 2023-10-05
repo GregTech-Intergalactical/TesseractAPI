@@ -177,12 +177,14 @@ public class FluidPlatformUtils {
             if (!extracted.isEmpty() && tester.test(holder.getStack())){
                 long inserted = handler.insertFluid(extracted, true);
                 if (inserted > 0){
-                    itemHandler = FluidHooks.getItemFluidManager(stack);
+                    itemHandler = FluidHooks.getItemFluidManager(stack.copy());
                     FluidHolder fluidHolder = FluidHooks.newFluidHolder(fluid.getFluid(), inserted, fluid.getCompound());
-                    itemHandler.extractFluid(holder, fluidHolder, false);
-                    long insert = handler.insertFluid(fluidHolder, false);
-                    consumer.accept(holder.getStack());
-                    return insert > 0;
+                    long actuallyExtracted = itemHandler.extractFluid(holder, fluidHolder, false).getFluidAmount();
+                    if (actuallyExtracted == inserted){
+                        long insert = handler.insertFluid(fluidHolder, false);
+                        consumer.accept(holder.getStack());
+                        return insert > 0;
+                    }
                 }
             }
         }
