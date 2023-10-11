@@ -39,7 +39,7 @@ public class HeatController extends Controller<HeatTransaction,IHeatPipe,IHeatNo
     @Override
     protected void onFrame() {
         for (Long2ObjectMap.Entry<Cache<IHeatPipe>> entry : this.group.connectorsEntries()) {
-            long pos = entry.getLongKey();
+            /*long pos = entry.getLongKey();
             IHeatPipe value = entry.getValue().value();
             final int counts = connectedCount.get(pos);
             value.update(true);
@@ -48,7 +48,7 @@ public class HeatController extends Controller<HeatTransaction,IHeatPipe,IHeatNo
                 transaction.addData(transaction.available(), -1, a -> {});
                 transaction.commit();
                 continue;
-            }
+            }*/
             /*Connectivity.connectivityFor(value, dir -> {
                 IHeatHandler.HeatTransaction transaction = value.extract();
                 if (!transaction.isValid()) return;
@@ -76,28 +76,9 @@ public class HeatController extends Controller<HeatTransaction,IHeatPipe,IHeatNo
         }
     }
 
-    private int approximateDerivative(long pos, IHeatPipe pipe) {
-        int prev = previousTemperature.get(pos);
-        int current = pipe.getTemperature();
-        if (prev == -1) return current;
-        //1 / (1/20)
-        return 20*(current - prev);
-    }
-
     @Override
     public void tick() {
         super.tick();
-    }
-
-    private void transfer(long pos, Direction dir, HeatTransaction tx) {
-        long off = Pos.offset(pos, dir);
-        Cache<IHeatPipe> conn = this.group.getConnector(off);
-        if (conn != null) {
-            conn.value().insert(tx);
-        } else {
-            NodeCache<IHeatNode> node = this.group.getNodes().get(off);
-            if (node != null) node.value(dir.getOpposite()).insert(tx);
-        }
     }
 
     @Override

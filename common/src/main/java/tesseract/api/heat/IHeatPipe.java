@@ -3,7 +3,7 @@ package tesseract.api.heat;
 
 import tesseract.api.IConnectable;
 
-public interface IHeatPipe extends IConnectable, IHeatHandler {
+public interface IHeatPipe extends IConnectable {
 
     /**
      * Returns the heat coefficient of this heat pipes material, q = -k*delta => k
