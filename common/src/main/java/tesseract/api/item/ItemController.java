@@ -86,7 +86,13 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
 
         for (Map<Direction, List<ItemConsumer>> map : data.values()) {
             for (List<ItemConsumer> consumers : map.values()) {
-                consumers.sort(Consumer.COMPARATOR);
+                consumers.sort((c1, c2) -> {
+                    long stepsize1 = c1.getFull().values().stream().mapToLong(IItemPipe::getStepsize).sum();
+                    if (c1.getNode() instanceof TesseractItemCapability<?> itemCapability) stepsize1 += itemCapability.tile.getStepsize();
+                    long stepsize2 = c2.getFull().values().stream().mapToLong(IItemPipe::getStepsize).sum();
+                    if (c2.getNode() instanceof TesseractItemCapability<?> itemCapability) stepsize2 += itemCapability.tile.getStepsize();
+                    return Long.compare(stepsize1, stepsize2);
+                });
             }
         }
     }
@@ -109,13 +115,6 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
         if (list == null)
             return;
 
-        list = list.stream().sorted((c1, c2) -> {
-            long stepsize1 = c1.getFull().values().stream().mapToLong(IItemPipe::getStepsize).sum();
-            if (c1.getNode() instanceof TesseractItemCapability<?> itemCapability) stepsize1 += itemCapability.tile.getStepsize();
-            long stepsize2 = c2.getFull().values().stream().mapToLong(IItemPipe::getStepsize).sum();
-            if (c2.getNode() instanceof TesseractItemCapability<?> itemCapability) stepsize2 += itemCapability.tile.getStepsize();
-            return Long.compare(stepsize1, stepsize2);
-        }).toList();
         // Here the verification starts.
         Long2ObjectMap<IItemPipe> pipes = new Long2ObjectLinkedOpenHashMap<>();
         for (ItemConsumer consumer : list) {
@@ -128,7 +127,7 @@ public class ItemController extends Controller<ItemTransaction, IItemPipe, IItem
             }
             int actual = stack.getCount() - amount;
 
-            for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getCross().long2ObjectEntrySet()) {
+            for (Long2ObjectMap.Entry<IItemPipe> p : consumer.getFull().long2ObjectEntrySet()) {
                 long pos = p.getLongKey();
                 IItemPipe pipe = p.getValue();
                 int stacksUsed = pipe.getHolder() + pipeMap.get(pos);
