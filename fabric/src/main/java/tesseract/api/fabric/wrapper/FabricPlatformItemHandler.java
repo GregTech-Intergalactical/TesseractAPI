@@ -21,8 +21,6 @@ public class FabricPlatformItemHandler implements PlatformItemHandler {
 
     public FabricPlatformItemHandler(Storage<ItemVariant> storage){
         this.storage = storage;
-        this.version = storage.getVersion();
-        updateContents();
     }
 
     public Storage<ItemVariant> getStorage() {

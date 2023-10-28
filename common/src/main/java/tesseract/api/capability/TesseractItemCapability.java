@@ -1,5 +1,6 @@
 package tesseract.api.capability;
 
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -74,12 +75,17 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
 
     private void transferAroundPipe(ItemTransaction transaction, long pos) {
         ItemStack stackIn = transaction.stack.copy();
+        ItemStack stackUnmopdified = stackIn.copy();
+        if (this.callback.modify(stackIn, side, true, true)){
+            transaction.addData(stackUnmopdified.getCount() - stackIn.getCount(), a -> this.callback.modify(a, side, true, false));
+            return;
+        }
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
             ItemStack stack = stackIn.copy();
             if (!this.canOutput(dir)) continue;
             //First, perform cover modifications.
-            if (this.callback.modify(stack, this.side, dir, true)) continue;
+            if (this.callback.modify(stack, dir, false, true)) continue;
             BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
             if (otherTile != null) {
                 //Check the handler.
@@ -90,7 +96,7 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
                 var newStack = ItemHandlerUtils.insertItem(handler, stack, true);
                 if (newStack.getCount() < stack.getCount()) {
                     transaction.addData(stack.getCount() - newStack.getCount(), a -> {
-                        if (this.callback.modify(a, this.side, dir, false)) return;
+                        if (this.callback.modify(a, dir, false, false)) return;
                         ItemHandlerUtils.insertItem(handler, a, false);
                     });
                     stackIn = newStack;
