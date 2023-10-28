@@ -113,10 +113,21 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
 
 
     private void transferAroundPipe(FluidTransaction transaction, long pos) {
+        FluidHolder stack = transaction.stack.copyHolder();
+        FluidHolder stackUnmopdified = stack.copyHolder();
+        if (this.callback.modify(stack, side, true, true)){
+            if (stack.getFluidAmount() < stackUnmopdified.getFluidAmount()){
+                stack.setAmount(stackUnmopdified.getFluidAmount() - stack.getFluidAmount());
+            } else {
+                stack.setAmount(0);
+            }
+            transaction.addData(stack, a -> this.callback.modify(a, side, true, false));
+            return;
+        }
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
-            FluidHolder stack = transaction.stack.copyHolder();
-            if (this.callback.modify(stack, this.side, dir, true)) continue;
+
+            if (this.callback.modify(stack, dir, false, true)) continue;
             //Check the handler.
             var cap = TesseractCapUtils.getFluidHandler(tile.getLevel(), BlockPos.of(Pos.offset(pos, dir)), dir.getOpposite());
             if (cap.isEmpty()) continue;
@@ -126,7 +137,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
             if (amount > 0) {
                 stack.setAmount(amount);
                 transaction.addData(stack, a -> {
-                    if (this.callback.modify(a, this.side, dir, false)) return;
+                    if (this.callback.modify(a, dir, false, false)) return;
                     handler.insertFluid(a, false);
                 });
             }

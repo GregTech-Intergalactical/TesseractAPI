@@ -61,6 +61,7 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
 
     private void transferAroundPipe(GTTransaction transaction, long pos) {
         boolean flag = false;
+
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
             //First, perform cover modifications.
@@ -73,11 +74,18 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
                 var handler = cap.get();
                 long voltage = transaction.voltageOut - cable.getLoss();
                 long ampsToInsert = handler.availableAmpsInput(voltage);
-                this.callback.modify(new GTTransaction.TransferData(transaction,voltage, ampsToInsert), this.side, dir, true);
+                GTTransaction.TransferData data = new GTTransaction.TransferData(transaction,voltage, ampsToInsert);
+                if (this.callback.modify(data, dir, false, true) || this.callback.modify(data, side, true, true)){
+                    continue;
+                }
+                if (data.getAmps(true) < ampsToInsert) ampsToInsert = data.getAmps(true);
+                if (data.getLoss() > 0) voltage -= data.getLoss();
                 long amps = handler.insertAmps(voltage, ampsToInsert, true);
                 if (amps > 0){
                     transaction.addData(amps, cable.getLoss(), t -> {
-                        callback.modify(t, this.side, dir, false);
+                        if (this.callback.modify(t, dir, false, false) || this.callback.modify(data, side, true, false)){
+                            return;
+                        }
                         handler.insertAmps(t.getVoltage(), t.getAmps(true), false);
                     });
                 }
