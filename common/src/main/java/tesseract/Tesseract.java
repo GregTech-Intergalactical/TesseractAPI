@@ -1,5 +1,7 @@
 package tesseract;
 
+import carbonconfiglib.config.Config;
+import carbonconfiglib.config.ConfigHandler;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.world.level.LevelAccessor;
@@ -32,6 +34,7 @@ public class Tesseract {
 
     public static void init() {
         TesseractGraphWrappers.init();
+        TesseractConfig.createConfig();
     }
 
     public Tesseract() {
@@ -39,5 +42,10 @@ public class Tesseract {
 
     public static boolean hadFirstTick(LevelAccessor world) {
         return TEST || firstTick.contains(world);
+    }
+
+    @ExpectPlatform
+    public static ConfigHandler createConfig(Config config){
+        throw new AssertionError();
     }
 }

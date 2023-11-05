@@ -60,7 +60,7 @@ public class TesseractCapUtilsImpl {
     public static Optional<IEnergyHandler> getEnergyHandler(@NotNull BlockEntity entity, Direction side){
         IEnergyHandler energyHandler = TesseractLookups.ENERGY_HANDLER_SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
         if (energyHandler == null) {
-            if (FabricLoader.getInstance().isModLoaded("modern_industrialization") && TesseractConfig.COMMON.ENABLE_MI_COMPAT){
+            if (FabricLoader.getInstance().isModLoaded("modern_industrialization") && TesseractConfig.ENABLE_MI_COMPAT.get()){
                 energyHandler = getEnergyMoveable(entity, side);
                 if (energyHandler != null) return Optional.of(energyHandler);
             }

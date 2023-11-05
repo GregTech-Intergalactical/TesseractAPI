@@ -1,5 +1,8 @@
 package tesseract.forge;
 
+import carbonconfiglib.CarbonConfig;
+import carbonconfiglib.config.Config;
+import carbonconfiglib.config.ConfigHandler;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -36,12 +39,10 @@ public class TesseractImpl extends Tesseract {
 
     public TesseractImpl() {
         Tesseract.init();
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, TesseractConfig.COMMON_SPEC);
         MinecraftForge.EVENT_BUS.addListener(this::serverStoppedEvent);
         MinecraftForge.EVENT_BUS.addListener(this::worldUnloadEvent);
         MinecraftForge.EVENT_BUS.addListener(this::onServerTick);
         MinecraftForge.EVENT_BUS.addGenericListener(ItemStack.class, this::onAttachCapabilitiesEventItemStack);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onModConfigEvent);
     }
 
     public void onAttachCapabilitiesEventItemStack(AttachCapabilitiesEvent<ItemStack> event){
@@ -83,7 +84,7 @@ public class TesseractImpl extends Tesseract {
         }
     }
 
-    public void onModConfigEvent(final ModConfigEvent e) {
-        TesseractConfig.onModConfigEvent(e.getConfig());
+    public static ConfigHandler createConfig(Config config){
+        return CarbonConfig.CONFIGS.createConfig(config);
     }
 }

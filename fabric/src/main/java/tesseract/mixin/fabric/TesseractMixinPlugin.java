@@ -22,7 +22,7 @@ public class TesseractMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        return !mixinClassName.contains(".mi.") || (FabricLoader.getInstance().isModLoaded("modern_industrialization") && TesseractConfig.COMMON.ENABLE_MI_COMPAT);
+        return !mixinClassName.contains(".mi.") || (FabricLoader.getInstance().isModLoaded("modern_industrialization") && TesseractConfig.ENABLE_MI_COMPAT.get());
     }
 
     @Override

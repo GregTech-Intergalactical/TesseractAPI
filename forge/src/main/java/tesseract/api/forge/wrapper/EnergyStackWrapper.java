@@ -26,22 +26,22 @@ public class EnergyStackWrapper implements IEnergyHandlerItem {
 
     @Override
     public long insertEu(long voltage, boolean simulate) {
-        return (long) (storage.receiveEnergy((int) (voltage * TesseractConfig.COMMON.EU_TO_FE_RATIO), simulate) / TesseractConfig.COMMON.EU_TO_FE_RATIO);
+        return (long) (storage.receiveEnergy((int) (voltage * TesseractConfig.EU_TO_FE_RATIO.get()), simulate) / TesseractConfig.EU_TO_FE_RATIO.get());
     }
 
     @Override
     public long extractEu(long voltage, boolean simulate) {
-        return (long) (storage.extractEnergy((int) (voltage * TesseractConfig.COMMON.EU_TO_FE_RATIO), simulate) / TesseractConfig.COMMON.EU_TO_FE_RATIO);
+        return (long) (storage.extractEnergy((int) (voltage * TesseractConfig.EU_TO_FE_RATIO.get()), simulate) / TesseractConfig.EU_TO_FE_RATIO.get());
     }
 
     @Override
     public long getEnergy() {
-        return (long) (storage.getEnergyStored() / TesseractConfig.COMMON.EU_TO_FE_RATIO);
+        return (long) (storage.getEnergyStored() / TesseractConfig.EU_TO_FE_RATIO.get());
     }
 
     @Override
     public long getCapacity() {
-        return (long) (storage.getMaxEnergyStored() / TesseractConfig.COMMON.EU_TO_FE_RATIO);
+        return (long) (storage.getMaxEnergyStored() / TesseractConfig.EU_TO_FE_RATIO.get());
     }
 
     @Override
@@ -67,13 +67,13 @@ public class EnergyStackWrapper implements IEnergyHandlerItem {
     @Override
     public long availableAmpsInput(long voltage) {
         if (!canInput()) return 0;
-        int inserted = storage.receiveEnergy((int) (voltage * TesseractConfig.COMMON.EU_TO_FE_RATIO), false);
+        int inserted = storage.receiveEnergy((int) (voltage * TesseractConfig.EU_TO_FE_RATIO.get()), false);
         return inserted == voltage ? 1 : 0;
     }
 
     @Override
     public boolean canOutput() {
-        return TesseractConfig.COMMON.ENABLE_FE_OR_TRE_INPUT && storage.canExtract();
+        return TesseractConfig.ENABLE_FE_OR_TRE_INPUT.get() && storage.canExtract();
     }
 
     @Override

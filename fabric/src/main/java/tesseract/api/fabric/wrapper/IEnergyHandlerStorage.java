@@ -12,7 +12,7 @@ public interface IEnergyHandlerStorage extends EnergyStorage {
      **/
     @Override
     default long insert(long maxReceive, TransactionContext context) {
-        long euToInsert = (long) (maxReceive / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        long euToInsert = (long) (maxReceive / TesseractConfig.EU_TO_TRE_RATIO.get());
         long amp = getEnergyHandler().insertAmps(euToInsert, 1, true);
         context.addCloseCallback((t, r) -> {
             if (r.wasCommitted()){
@@ -24,7 +24,7 @@ public interface IEnergyHandlerStorage extends EnergyStorage {
 
     @Override
     default long extract(long maxExtract, TransactionContext context) {
-        long euToExtract = (long) (maxExtract / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        long euToExtract = (long) (maxExtract / TesseractConfig.EU_TO_TRE_RATIO.get());
         long extracted = getEnergyHandler().extractEu(euToExtract, true);
         context.addCloseCallback((t, r) -> {
             if (r.wasCommitted()){
@@ -36,17 +36,17 @@ public interface IEnergyHandlerStorage extends EnergyStorage {
 
     @Override
     default long getAmount() {
-        return (long) (getEnergyHandler().getEnergy() * TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        return (long) (getEnergyHandler().getEnergy() * TesseractConfig.EU_TO_TRE_RATIO.get());
     }
 
     @Override
     default long getCapacity() {
-        return (long) (getEnergyHandler().getCapacity() * TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        return (long) (getEnergyHandler().getCapacity() * TesseractConfig.EU_TO_TRE_RATIO.get());
     }
 
     @Override
     default boolean supportsInsertion() {
-        return TesseractConfig.COMMON.ENABLE_FE_OR_TRE_INPUT && getEnergyHandler().canInput();
+        return TesseractConfig.ENABLE_FE_OR_TRE_INPUT.get() && getEnergyHandler().canInput();
     }
 
     @Override
