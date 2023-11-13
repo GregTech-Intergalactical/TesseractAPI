@@ -27,7 +27,8 @@ import java.util.Map;
  */
 public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> implements IGTEvent {
 
-    private long totalVoltage, totalAmperage, lastVoltage, lastAmperage, totalLoss, lastLoss;
+    private long totalVoltage, totalAmperage, lastVoltage, lastAmperage;
+    private double totalLoss, lastLoss;
     // Cable monitoring.
     private Long2LongMap frameHolders = new Long2LongLinkedOpenHashMap();
     private Long2LongMap previousFrameHolder = new Long2LongLinkedOpenHashMap();
@@ -255,7 +256,8 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
         lastVoltage = totalVoltage;
         lastAmperage = totalAmperage;
         lastLoss = totalLoss;
-        totalAmperage = totalVoltage = totalLoss = 0L;
+        totalAmperage = totalVoltage = 0L;
+        totalLoss = 0;
         previousFrameHolder = frameHolders;
         frameHolders = new Long2LongOpenHashMap();
         cableIsActive.clear();
@@ -294,7 +296,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
         return GTHolder.getAmperage(previousFrameHolder.get(pos));
     }
 
-    public long totalLoss() {
+    public double totalLoss() {
         return lastLoss;
     }
 

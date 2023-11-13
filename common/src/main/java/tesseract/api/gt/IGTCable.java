@@ -10,9 +10,9 @@ public interface IGTCable extends IConnectable {
     /**
      * Returns the energy that this electrical component will permit to lost through or be received in a single tick.
      *
-     * @return A positive integer representing the loss energy per block, zero or negative indicates that this component doesn't have a loss.
+     * @return A positive double representing the loss energy per block, zero or negative indicates that this component doesn't have a loss. Note: partial amounts will round up to the nearest int when it reaches its destination
      */
-    int getLoss();
+    double getLoss();
 
     /**
      * Returns the maximum amount of packets that this electrical component will permit to pass through or be received in a single tick.
