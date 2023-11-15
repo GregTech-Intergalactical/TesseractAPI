@@ -248,7 +248,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
         this.totalLoss += data.getLoss();
         this.totalAmperage += data.getTotalAmperage();
         this.totalVoltage += data.getTotalAmperage() * data.getVoltage();
-        consumer.getNode().insertAmps(data.getVoltage(), data.getAmps(true), false);
+        consumer.getNode().insertAmps(data.getEnergy(1, true), data.getAmps(true), false);
     }
 
     @Override
