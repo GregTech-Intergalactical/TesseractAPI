@@ -123,7 +123,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
 
         if (node != null && node.canInput(dir)) {
             GTConsumer consumer = new GTConsumer(node, producer, path);
-            long voltage = producer.getOutputVoltage() - consumer.getLoss();
+            long voltage = producer.getOutputVoltage() - Math.round(consumer.getLoss());
             if (voltage <= 0) {
                 return true;
             }
@@ -182,7 +182,7 @@ public class GTController extends Controller<GTTransaction, IGTCable, IGTNode> i
             if (amperage_in <= 0) {
                 break;
             }
-            long loss = consumer.getLoss();
+            long loss = Math.round(consumer.getLoss());
             if (loss < 0 || loss > voltage_out) {
                 continue;
             }

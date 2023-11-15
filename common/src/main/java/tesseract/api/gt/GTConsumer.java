@@ -14,12 +14,12 @@ import static java.lang.Integer.compare;
  */
 public class GTConsumer extends Consumer<IGTCable, IGTNode> {
 
-    private int loss;
+    private double loss;
     private long minVoltage = Integer.MAX_VALUE;
     private int minAmperage = Integer.MAX_VALUE;
 
     // Way of the sorting by the loss and the distance to the node
-    public static final Comparator<GTConsumer> COMPARATOR = (t1, t2) -> (t1.getDistance() == t2.getDistance()) ? compare(t1.getLoss(), t2.getLoss()) : compare(t1.getDistance(), t2.getDistance());
+    public static final Comparator<GTConsumer> COMPARATOR = (t1, t2) -> (t1.getDistance() == t2.getDistance()) ? Double.compare(t1.getLoss(), t2.getLoss()) : compare(t1.getDistance(), t2.getDistance());
 
     public final LongSet uninsulatedCables = new LongOpenHashSet();
 
@@ -51,7 +51,7 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
     /**
      * @return Gets the total loss for the given consumer.
      */
-    public int getLoss() {
+    public double getLoss() {
         return loss;
     }
 

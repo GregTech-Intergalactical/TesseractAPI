@@ -89,7 +89,7 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
         }
 
         public long getEnergy(long amps, boolean input) {
-            return input ? (voltage - (long)(Math.ceil(loss))) * amps : voltage * amps;
+            return input ? (voltage - Math.round(loss)) * amps : voltage * amps;
         }
 
         public long getTotalAmperage() {
