@@ -141,5 +141,13 @@ public class GTConsumer extends Consumer<IGTCable, IGTNode> {
             }
             return 0;
         }
+
+        public long getAmpsReceived() {
+            return ampsReceived;
+        }
+
+        public long getAmpsSent() {
+            return ampsSent;
+        }
     }
 }

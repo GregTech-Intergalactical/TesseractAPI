@@ -23,13 +23,13 @@ public interface IGTNode {
      * @return The amps that were added to the node.
      */
     default long insertAmps(long voltage, long amps, boolean simulate){
-        if (voltage < 0 || amps < 0) return 0;
+        if (voltage <= 0 || amps <= 0) return 0;
         long insertedAmps = 0;
         for (int i = 0; i < amps; i++){
             long inserted = insertEu(voltage, true);
             if (inserted == voltage){
                 insertedAmps++;
-                getState().receive(simulate, 1);
+                getState().receive(simulate, amps);
                 if (!simulate) insertEu(voltage, false);
             } else {
                 break;
@@ -143,6 +143,7 @@ public interface IGTNode {
     default long availableAmpsInput(long voltage) {
         if (!canInput()) return 0;
         if (getInputVoltage() == 0) return 0;
+        if (getState().getAmpsReceived() >= getInputAmperage()) return 0;
         long availableEnergy = getCapacity() - getEnergy();
         long availableInputAmps = availableEnergy / getInputVoltage();
         long out = Math.min(getInputAmperage(), availableInputAmps);
