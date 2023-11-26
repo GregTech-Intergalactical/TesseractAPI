@@ -1,1 +1,6 @@
-- fixed tesseract not fully working on servers
+- Changed to Carbon config
+- Refactored energy a bit
+- changed fluid and item systems to use botarium
+- added graph system for rf, uses botarium energy system
+- Made IItemPipe have stepsize
+- to see the rest of the changes see the commits [here](https://github.com/GregTech-Intergalactical/TesseractAPI/compare/b3bf1c71d7069d7a186658d9104b34c3fa8812c8...dev-1.18)
