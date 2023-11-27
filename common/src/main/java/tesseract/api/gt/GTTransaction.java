@@ -47,7 +47,7 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
         return amps;
     }
 
-    public TransferData addData(long amps, long loss, Consumer<TransferData> data) {
+    public TransferData addData(long amps, double loss, Consumer<TransferData> data) {
         TransferData td = new TransferData(this, Math.min(amps, availableAmps), this.voltageOut).setLoss(loss);
         this.addData(td);
         this.usedAmps += amps;
@@ -70,7 +70,7 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
         private long ampsIn;
         private long ampsOut;
         private final long totalAmperage;
-        private long loss;
+        private double loss;
         public final GTTransaction transaction;
 
         public TransferData(GTTransaction transaction, long amps, long voltage) {
@@ -89,18 +89,18 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
         }
 
         public long getEnergy(long amps, boolean input) {
-            return input ? (voltage - loss) * amps : voltage * amps;
+            return input ? (voltage - Math.round(loss)) * amps : voltage * amps;
         }
 
         public long getTotalAmperage() {
             return totalAmperage;
         }
 
-        public long getLoss() {
+        public double getLoss() {
             return loss;
         }
 
-        public TransferData setLoss(long loss) {
+        public TransferData setLoss(double loss) {
             this.loss = Math.min(this.voltage, loss);
             return this;
         }

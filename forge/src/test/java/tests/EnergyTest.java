@@ -86,7 +86,7 @@ public class EnergyTest {
         }
         
         @Override
-        public int getLoss() {
+        public double getLoss() {
             return loss;
         }
 

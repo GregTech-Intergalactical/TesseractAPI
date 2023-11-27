@@ -43,6 +43,7 @@ dependencies {
         exclude(group: "curse.maven")
     }
     testImplementation('junit:junit:4.11')
+    modImplementation(include("maven.modrinth:carbon-config:l6LTuPIs"))
 }
 
 processResources {

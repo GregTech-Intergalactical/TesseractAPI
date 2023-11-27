@@ -29,7 +29,8 @@
   "depends": {
     "minecraft": ">=1.19.2",
     "fabricloader": ">=0.4.0",
-    "fabric": "*"
+    "fabric": "*", 
+    "minecraft": "1.18.2"
   },
   "custom": {
     "mc-publish": {

@@ -72,14 +72,14 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
                 if (!cap.isPresent()) continue;
                 //Perform insertion, and add to the transaction.
                 var handler = cap.get();
-                long voltage = transaction.voltageOut - cable.getLoss();
+                long voltage = transaction.voltageOut - Math.round(cable.getLoss());
                 long ampsToInsert = handler.availableAmpsInput(voltage);
                 GTTransaction.TransferData data = new GTTransaction.TransferData(transaction,voltage, ampsToInsert);
                 if (this.callback.modify(data, dir, false, true) || this.callback.modify(data, side, true, true)){
                     continue;
                 }
                 if (data.getAmps(true) < ampsToInsert) ampsToInsert = data.getAmps(true);
-                if (data.getLoss() > 0) voltage -= data.getLoss();
+                if (data.getLoss() > 0) voltage -= Math.round(data.getLoss());
                 long amps = handler.insertAmps(voltage, ampsToInsert, true);
                 if (amps > 0){
                     transaction.addData(amps, cable.getLoss(), t -> {

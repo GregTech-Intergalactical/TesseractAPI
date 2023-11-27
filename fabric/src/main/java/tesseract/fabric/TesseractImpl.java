@@ -1,5 +1,8 @@
 package tesseract.fabric;
 
+import carbonconfiglib.CarbonConfig;
+import carbonconfiglib.config.Config;
+import carbonconfiglib.config.ConfigHandler;
 import earth.terrarium.botarium.common.energy.base.EnergyContainer;
 import earth.terrarium.botarium.fabric.energy.FabricBlockEnergyContainer;
 import earth.terrarium.botarium.util.Updatable;
@@ -15,9 +18,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.api.ModLoadingContext;
-import net.minecraftforge.api.fml.event.config.ModConfigEvent;
-import net.minecraftforge.fml.config.ModConfig;
 import team.reborn.energy.api.EnergyStorage;
 import tesseract.Tesseract;
 import tesseract.TesseractConfig;
@@ -71,13 +71,10 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
     @Override
     public void onInitialize() {
         Tesseract.init();
-        ModLoadingContext.registerConfig(Tesseract.API_ID, ModConfig.Type.COMMON, TesseractConfig.COMMON_SPEC);
         ServerLifecycleEvents.SERVER_STOPPING.register(TesseractImpl::onServerStopping);
         ServerTickEvents.START_WORLD_TICK.register(TesseractImpl::onStartTick);
         ServerTickEvents.END_WORLD_TICK.register(TesseractImpl::onEndTick);
         ServerWorldEvents.UNLOAD.register((TesseractImpl::onWorldUnload));
-        ModConfigEvent.LOADING.register(TesseractConfig::onModConfigEvent);
-        ModConfigEvent.RELOADING.register(TesseractConfig::onModConfigEvent);
         TesseractLookups.ENERGY_HANDLER_ITEM.registerFallback((s, c) -> {
             if (s.getItem() instanceof IEnergyItem energyItem){
                 return energyItem.createEnergyHandler(new ContainerItemContextWrapper(c));
@@ -98,5 +95,9 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
 
     public static void registerTREItem(BiFunction<ItemStack, ContainerItemContext, IEnergyHandler> function, Item type){
         EnergyStorage.ITEM.registerForItems((stack, context) -> (EnergyStorage) function.apply(stack, context), type);
+    }
+
+    public static ConfigHandler createConfig(Config config){
+        return CarbonConfig.createConfig(Tesseract.API_ID, config);
     }
 }

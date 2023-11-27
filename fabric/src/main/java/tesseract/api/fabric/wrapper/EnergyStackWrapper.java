@@ -28,28 +28,28 @@ public class EnergyStackWrapper implements IEnergyHandlerItem {
 
     @Override
     public long insertEu(long voltage, boolean simulate) {
-        return (long) (storage.insert(holder, (long) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), simulate) / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        return (long) (storage.insert(holder, (long) (voltage * TesseractConfig.EU_TO_TRE_RATIO.get()), simulate) / TesseractConfig.EU_TO_TRE_RATIO.get());
     }
 
     @Override
     public long extractEu(long voltage, boolean simulate) {
-        return (long) (storage.extract(holder, (long) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), simulate) / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        return (long) (storage.extract(holder, (long) (voltage * TesseractConfig.EU_TO_TRE_RATIO.get()), simulate) / TesseractConfig.EU_TO_TRE_RATIO.get());
     }
 
     @Override
     public long getEnergy() {
-        return (long) (storage.getStoredEnergy() / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        return (long) (storage.getStoredEnergy() / TesseractConfig.EU_TO_TRE_RATIO.get());
     }
 
     @Override
     public long getCapacity() {
-        return (long) (storage.getCapacity() / TesseractConfig.COMMON.EU_TO_TRE_RATIO);
+        return (long) (storage.getCapacity() / TesseractConfig.EU_TO_TRE_RATIO.get());
     }
 
     @Override
     public long availableAmpsInput(long voltage) {
         if (!canInput()) return 0;
-        long inserted = storage.insert(holder, (long) (voltage * TesseractConfig.COMMON.EU_TO_TRE_RATIO), false);
+        long inserted = storage.insert(holder, (long) (voltage * TesseractConfig.EU_TO_TRE_RATIO.get()), false);
         return inserted == voltage ? 1 : 0;
     }
 
@@ -75,7 +75,7 @@ public class EnergyStackWrapper implements IEnergyHandlerItem {
 
     @Override
     public boolean canOutput() {
-        return TesseractConfig.COMMON.ENABLE_FE_OR_TRE_INPUT && storage.supportsExtraction();
+        return TesseractConfig.ENABLE_FE_OR_TRE_INPUT.get() && storage.supportsExtraction();
     }
 
     @Override

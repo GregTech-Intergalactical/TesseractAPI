@@ -29,8 +29,8 @@ dependencies{
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     compileOnly("com.electronwill.night-config:toml:${rootProject.nightconfig_version}")
     compileOnly("com.electronwill.night-config:core:${rootProject.nightconfig_version}")
-    modImplementation("net.minecraftforge:forgeconfigapiport-fabric:4.2.11")
     modImplementation("earth.terrarium:botarium-common-${project.minecraft_version}:${project.botarium_version}")
+    modImplementation "maven.modrinth:carbon-config:yIKfSms3"
     testImplementation('junit:junit:4.11')
     testImplementation(sourceSets.main.output)
 }
