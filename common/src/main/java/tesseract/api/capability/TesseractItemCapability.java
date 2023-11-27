@@ -1,6 +1,5 @@
 package tesseract.api.capability;
 
-import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
