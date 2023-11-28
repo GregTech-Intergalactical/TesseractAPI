@@ -19,8 +19,8 @@ public interface IEnergyHandlerMoveable extends EnergyExtractable, EnergyInserta
     @Override
     default long insertEnergy(long maxInsert, Simulation simulation){
         long euToInsert = (long) (maxInsert / TesseractConfig.EU_TO_TRE_RATIO.get());
-        long amp = getEnergyHandler().insertAmps(euToInsert, 1, simulation.isSimulating());
-        return amp == 1 ? maxInsert : 0;
+        long inserted = getEnergyHandler().insertEu(euToInsert, simulation.isSimulating());
+        return (long) (inserted * TesseractConfig.EU_TO_TRE_RATIO.get());
     }
 
     @Override

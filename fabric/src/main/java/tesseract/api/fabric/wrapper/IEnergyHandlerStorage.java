@@ -13,13 +13,13 @@ public interface IEnergyHandlerStorage extends EnergyStorage {
     @Override
     default long insert(long maxReceive, TransactionContext context) {
         long euToInsert = (long) (maxReceive / TesseractConfig.EU_TO_TRE_RATIO.get());
-        long amp = getEnergyHandler().insertAmps(euToInsert, 1, true);
+        long inserted = getEnergyHandler().insertEu(euToInsert, true);
         context.addCloseCallback((t, r) -> {
             if (r.wasCommitted()){
-                getEnergyHandler().insertAmps(euToInsert, 1, false);
+                getEnergyHandler().insertEu(inserted, false);
             }
         });
-        return amp == 1 ? maxReceive : 0;
+        return (long) (inserted * TesseractConfig.EU_TO_TRE_RATIO.get());
     }
 
     @Override

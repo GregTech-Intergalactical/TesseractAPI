@@ -262,7 +262,7 @@ public class RFController extends Controller<RFTransaction, IRFCable, IRFNode> {
         for (RFConsumer consumer : list) {
             long added = consumer.insert(Math.min(transaction.rf, consumer.getNode().maxInsert()), true);
             if (added <= 0) continue;
-            transaction.addData(added, rf -> consumer.insert(rf, true));
+            transaction.addData(added, rf -> consumer.insert(rf, false));
         }
     }
 }

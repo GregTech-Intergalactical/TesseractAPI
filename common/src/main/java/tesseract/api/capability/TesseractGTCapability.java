@@ -24,7 +24,7 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
     }
 
     @Override
-    public long insertAmps(long voltage, long amps, boolean simulate) {
+    public long insertEu(long voltage, boolean simulate) {
         if (this.isSending) return 0;
         this.isSending = true;
         if (!simulate) {
@@ -32,7 +32,7 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
             old.commit();
         } else {
             long pos = tile.getBlockPos().asLong();
-            GTTransaction transaction = new GTTransaction(amps, voltage, t -> {});
+            GTTransaction transaction = new GTTransaction(voltage, t -> {});
             if (!this.isNode) {
                 TesseractGraphWrappers.GT_ENERGY.getController(tile.getLevel(), pos).insert(pos, side, transaction, callback);
             } else {
@@ -40,18 +40,7 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
             }
             this.old = transaction;
         }
-        this.isSending = false;
-        return amps - old.getAvailableAmps();
-    }
-
-    @Override
-    public long insertEu(long voltage, boolean simulate) {
-        return insertAmps(voltage, 1, simulate) == 1 ? voltage : 0;
-    }
-
-    @Override
-    public long extractAmps(long voltage, long amps, boolean simulate) {
-        return 0;
+        return voltage - old.eu;
     }
 
     @Override
@@ -60,8 +49,6 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
     }
 
     private void transferAroundPipe(GTTransaction transaction, long pos) {
-        boolean flag = false;
-
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
             //First, perform cover modifications.
@@ -69,28 +56,30 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
             if (otherTile != null) {
                 //Check the handler.
                 var cap = TesseractCapUtils.getEnergyHandler(otherTile, dir.getOpposite());
-                if (!cap.isPresent()) continue;
+                if (cap.isEmpty()) continue;
                 //Perform insertion, and add to the transaction.
                 var handler = cap.get();
-                long voltage = transaction.voltageOut - Math.round(cable.getLoss());
-                long ampsToInsert = handler.availableAmpsInput(voltage);
-                GTTransaction.TransferData data = new GTTransaction.TransferData(transaction,voltage, ampsToInsert);
+                long loss = Math.round(cable.getLoss());
+                long voltage = transaction.voltage - loss;
+                long remainingEu = transaction.eu;
+                long toInsert = Math.min(remainingEu, voltage);
+                GTTransaction.TransferData data = new GTTransaction.TransferData(transaction, toInsert, transaction.voltage).setLoss(cable.getLoss());
                 if (this.callback.modify(data, dir, false, true) || this.callback.modify(data, side, true, true)){
                     continue;
                 }
-                if (data.getAmps(true) < ampsToInsert) ampsToInsert = data.getAmps(true);
-                if (data.getLoss() > 0) voltage -= Math.round(data.getLoss());
-                long amps = handler.insertAmps(voltage, ampsToInsert, true);
-                if (amps > 0){
-                    transaction.addData(amps, cable.getLoss(), t -> {
+                if (data.getEu() < toInsert) toInsert = data.getEu();
+                if (data.getLoss() > 0) toInsert -= Math.round(data.getLoss());
+                if (toInsert <= 0) return;
+                long inserted = handler.insertEu(toInsert, true);
+                if (inserted > 0){
+                    transaction.addData(inserted, cable.getLoss(), t -> {
                         if (this.callback.modify(t, dir, false, false) || this.callback.modify(data, side, true, false)){
                             return;
                         }
-                        handler.insertAmps(t.getVoltage(), t.getAmps(true), false);
+                        handler.insertEu(t.getEu(), false);
                     });
                 }
-                if (transaction.getAvailableAmps() == 0) break;
-
+                if (transaction.eu == 0) break;
             }
         }
     }

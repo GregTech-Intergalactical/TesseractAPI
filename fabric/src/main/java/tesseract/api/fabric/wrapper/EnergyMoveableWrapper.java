@@ -25,31 +25,9 @@ public class EnergyMoveableWrapper implements IEnergyHandler {
     }
 
     @Override
-    public long extractAmps(long voltage, long amps, boolean simulate) {
-        if (storage instanceof EnergyExtractable extractable && extractable.canExtract(getTier(voltage))){
-            if (extractable.extractEnergy(voltage, Simulation.SIMULATE) == voltage){
-                if (!simulate) extractable.extractEnergy(voltage, Simulation.ACT);
-                return 1;
-            }
-        }
-        return 0;
-    }
-
-    @Override
     public long extractEu(long voltage, boolean simulate) {
         if (storage instanceof EnergyExtractable extractable && extractable.canExtract(getTier(voltage))){
             return extractable.extractEnergy(voltage, simulate ? Simulation.SIMULATE : Simulation.ACT);
-        }
-        return 0;
-    }
-
-    @Override
-    public long insertAmps(long voltage, long amps, boolean simulate) {
-        if (storage instanceof EnergyInsertable insertable && insertable.canInsert(getTier(voltage))){
-            if (insertable.insertEnergy(voltage, Simulation.SIMULATE) == voltage){
-                if (!simulate) insertable.insertEnergy(voltage, Simulation.ACT);
-                return 1;
-            }
         }
         return 0;
     }

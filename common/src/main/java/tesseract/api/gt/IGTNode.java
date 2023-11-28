@@ -16,47 +16,6 @@ import tesseract.api.GraphWrapper;
 public interface IGTNode {
 
     /**
-     * Inserts x amps of y voltage into the node.
-     * @param voltage The voltage to be inserted into the node.
-     * @param amps    The amps to be inserted into the node.
-     * @param simulate If true, the container will not be modified.
-     * @return The amps that were added to the node.
-     */
-    default long insertAmps(long voltage, long amps, boolean simulate){
-        if (voltage <= 0 || amps <= 0) return 0;
-        long insertedAmps = 0;
-        for (int i = 0; i < amps; i++){
-            long inserted = insertEu(voltage, true);
-            if (inserted == voltage){
-                insertedAmps++;
-                getState().receive(simulate, amps);
-                if (!simulate) insertEu(voltage, false);
-            } else {
-                break;
-            }
-        }
-        return insertedAmps;
-    }
-
-    /**
-     * Extracts x amps of y voltage from the node.
-     * @param voltage The voltage to be extracted from the node.
-     * @param amps    The amps to be extracted from the node.
-     * @param simulate If true, the container will not be modified.
-     * @return The amps that were extracted from the node.
-     */
-    default long extractAmps(long voltage, long amps, boolean simulate){
-        if (voltage < 0 || amps < 0) return 0;
-        amps = Math.min(amps, this.availableAmpsOutput());
-        amps = Math.min(amps, this.getEnergy() / this.getOutputVoltage());
-        if (!simulate){
-            extractEu(voltage * amps, false);
-        }
-        this.getState().extract(simulate, amps);
-        return amps;
-    }
-
-    /**
      * Extracts a given amount of energy from the node.
      * @param voltage The amount to be extracted from the node.
      * @param simulate If true, the container will not be modified.
