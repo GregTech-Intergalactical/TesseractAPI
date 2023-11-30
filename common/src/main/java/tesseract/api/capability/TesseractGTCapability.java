@@ -6,10 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import tesseract.TesseractCapUtils;
 import tesseract.TesseractGraphWrappers;
-import tesseract.api.gt.GTConsumer;
-import tesseract.api.gt.GTTransaction;
-import tesseract.api.gt.IEnergyHandler;
-import tesseract.api.gt.IGTCable;
+import tesseract.api.gt.*;
 import tesseract.graph.Graph;
 import tesseract.util.Pos;
 
@@ -25,10 +22,9 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
 
     @Override
     public long insertEu(long voltage, boolean simulate) {
-        if (this.isSending) return 0;
+        if (this.isSending || (!simulate && old == null)) return 0;
         this.isSending = true;
         if (!simulate) {
-            if (old == null) return 0;
             old.commit();
         } else {
             long pos = tile.getBlockPos().asLong();
@@ -40,6 +36,7 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
             }
             this.old = transaction;
         }
+        this.isSending = false;
         return voltage - old.eu;
     }
 
@@ -49,6 +46,8 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
     }
 
     private void transferAroundPipe(GTTransaction transaction, long pos) {
+        boolean hasInserted = false;
+        boolean lossAdded = false;
         for (Direction dir : Graph.DIRECTIONS) {
             if (dir == this.side || !this.tile.connects(dir)) continue;
             //First, perform cover modifications.
@@ -60,24 +59,30 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
                 //Perform insertion, and add to the transaction.
                 var handler = cap.get();
                 long loss = Math.round(cable.getLoss());
-                long voltage = transaction.voltage - loss;
-                long remainingEu = transaction.eu;
-                long toInsert = Math.min(remainingEu, voltage);
-                GTTransaction.TransferData data = new GTTransaction.TransferData(transaction, toInsert, transaction.voltage).setLoss(cable.getLoss());
+                if (hasInserted && !lossAdded){
+                    transaction.addData(0, loss, 0, d -> {});
+                    lossAdded = true;
+                }
+
+                long remainingEu = lossAdded ? transaction.eu : transaction.eu - loss;
+                GTTransaction.TransferData data = new GTTransaction.TransferData(transaction, remainingEu, transaction.voltage).setLoss(cable.getLoss());
                 if (this.callback.modify(data, dir, false, true) || this.callback.modify(data, side, true, true)){
                     continue;
                 }
-                if (data.getEu() < toInsert) toInsert = data.getEu();
-                if (data.getLoss() > 0) toInsert -= Math.round(data.getLoss());
-                if (toInsert <= 0) return;
-                long inserted = handler.insertEu(toInsert, true);
+                if (data.getEu() < remainingEu) remainingEu = data.getEu();
+                if (data.getLoss() > 0) remainingEu -= Math.round(data.getLoss());
+                if (remainingEu <= 0) return;
+                long inserted = handler.insertEu(remainingEu, true);
                 if (inserted > 0){
-                    transaction.addData(inserted, cable.getLoss(), t -> {
+                    transaction.addData(inserted, inserted, cable.getLoss(), t -> {
                         if (this.callback.modify(t, dir, false, false) || this.callback.modify(data, side, true, false)){
                             return;
                         }
                         handler.insertEu(t.getEu(), false);
                     });
+                    if (transaction.voltage > this.cable.getVoltage()){
+                        ((IGTEvent)TesseractGraphWrappers.GT_ENERGY.getController(tile.getLevel(), pos)).onCableOverVoltage(tile.getLevel(), pos, transaction.voltage);
+                    }
                 }
                 if (transaction.eu == 0) break;
             }

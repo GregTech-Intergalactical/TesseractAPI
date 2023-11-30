@@ -28,10 +28,10 @@ public class GTTransaction extends Transaction<GTTransaction.TransferData> {
 
 
 
-    public TransferData addData(long eu, double loss, Consumer<TransferData> data) {
+    public TransferData addData(long eu, long consumedEu, double loss, Consumer<TransferData> data) {
         eu = Math.min(eu, this.eu);
         TransferData dat = this.addData(new TransferData(this, eu, this.voltage).setLoss(loss));
-        this.eu -= Math.min(this.eu, eu + Math.round(loss));
+        this.eu -= Math.min(this.eu, consumedEu);
         this.onCommit(data);
         return dat;
     }
