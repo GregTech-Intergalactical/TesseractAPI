@@ -43,7 +43,7 @@ dependencies {
         exclude(group: "curse.maven")
     }
     testImplementation('junit:junit:4.11')
-    modImplementation(include("maven.modrinth:carbon-config:IMC0pt5I"))
+    modImplementation(include("maven.modrinth:carbon-config:${project.carbon_config_forge_version}"))
 }
 
 processResources {

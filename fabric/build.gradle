@@ -52,7 +52,7 @@ dependencies {
     }
     modImplementation(include("earth.terrarium:botarium-fabric-${project.minecraft_version}:${project.botarium_version}"))
     modCompileOnly("curse.maven:modern_industrialization-405388:3866891")
-    modImplementation(include("maven.modrinth:carbon-config:2ngFmmhP"))
+    modImplementation(include("maven.modrinth:carbon-config:${project.carbon_config_fabric_version}"))
 }
 
 processResources {
