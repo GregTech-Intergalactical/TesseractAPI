@@ -23,26 +23,6 @@ public class EnergyTileWrapper implements IEnergyHandler {
     }
 
     @Override
-    public long insertAmps(long voltage, long amps, boolean simulate) {
-        long inserted = storage.receiveEnergy((int) (voltage * TesseractConfig.EU_TO_FE_RATIO.get()), simulate);
-        if (inserted == voltage * TesseractConfig.EU_TO_FE_RATIO.get()){
-            return 1;
-        }
-        return 0;
-
-    }
-
-    @Override
-    public long extractAmps(long voltage, long amps, boolean simulate) {
-        long inserted = storage.extractEnergy((int) (voltage * TesseractConfig.EU_TO_FE_RATIO.get()), simulate);
-        if (inserted == voltage * TesseractConfig.EU_TO_FE_RATIO.get()){
-            return 1;
-        }
-        return 0;
-
-    }
-
-    @Override
     public long insertEu(long voltage, boolean simulate) {
         return (long) (storage.receiveEnergy((int) (voltage * TesseractConfig.EU_TO_FE_RATIO.get()), simulate) / TesseractConfig.EU_TO_FE_RATIO.get());
 

@@ -24,32 +24,6 @@ public class EnergyTileWrapper implements IEnergyHandler {
     }
 
     @Override
-    public long insertAmps(long voltage, long amps, boolean simulate) {
-        try(Transaction transaction = Transaction.openOuter()) {
-            long inserted = storage.insert((long) (voltage * TesseractConfig.EU_TO_TRE_RATIO.get()), transaction);
-            if (inserted == voltage * TesseractConfig.EU_TO_TRE_RATIO.get()){
-                if (!simulate) transaction.commit();
-                return 1;
-            }
-            return 0;
-        }
-
-    }
-
-    @Override
-    public long extractAmps(long voltage, long amps, boolean simulate) {
-        try(Transaction transaction = Transaction.openOuter()) {
-            long inserted = storage.extract((long) (voltage * TesseractConfig.EU_TO_TRE_RATIO.get()), transaction);
-            if (inserted == voltage * TesseractConfig.EU_TO_TRE_RATIO.get()){
-                if (!simulate) transaction.commit();
-                return 1;
-            }
-            return 0;
-        }
-
-    }
-
-    @Override
     public long insertEu(long voltage, boolean simulate) {
         try(Transaction transaction = Transaction.openOuter()) {
             long inserted = (long) (storage.insert((long) (voltage * TesseractConfig.EU_TO_TRE_RATIO.get()), transaction) / TesseractConfig.EU_TO_TRE_RATIO.get());

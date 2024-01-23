@@ -30,7 +30,7 @@ dependencies{
     compileOnly("com.electronwill.night-config:toml:${rootProject.nightconfig_version}")
     compileOnly("com.electronwill.night-config:core:${rootProject.nightconfig_version}")
     modImplementation("earth.terrarium:botarium-common-${project.minecraft_version}:${project.botarium_version}")
-    modImplementation "maven.modrinth:carbon-config:yIKfSms3"
+    modImplementation "maven.modrinth:carbon-config:${project.carbon_config_fabric_version}"
     testImplementation('junit:junit:4.11')
     testImplementation(sourceSets.main.output)
 }

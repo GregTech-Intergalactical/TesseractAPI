@@ -12,8 +12,8 @@ public interface IEnergyHandlerStorage extends IEnergyStorage {
     @Override
     default int receiveEnergy(int maxReceive, boolean simulate) {
         long euToInsert = (long) (maxReceive / TesseractConfig.EU_TO_FE_RATIO.get());
-        long amp = getEnergyHandler().insertAmps(euToInsert, 1, simulate);
-        return amp == 1 ? maxReceive : 0;
+        long inserted = getEnergyHandler().insertEu(euToInsert, simulate);
+        return (int) (inserted * TesseractConfig.EU_TO_FE_RATIO.get());
     }
 
     @Override

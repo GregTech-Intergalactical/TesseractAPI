@@ -279,7 +279,8 @@ public class Group<T, C extends IConnectable, N> implements INode {
         // The contains() check can be skipped here, because Graph will only call remove() if it knows that the group contains the entry.
         // For now, it is retained for completeness and debugging purposes.
         if (!contains(pos)) {
-            throw new IllegalArgumentException("Group::remove: Tried to call with a position that does not exist within the group.");
+            //Tesseract.LOGGER.error(new IllegalArgumentException("Group::remove: Tried to call with a position that does not exist within the group."));
+            return;
         }
 
         // If removing the entry would not cause a group split, then it is safe to remove the entry directly.

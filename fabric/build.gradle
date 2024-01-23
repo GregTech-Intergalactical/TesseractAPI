@@ -51,7 +51,7 @@ dependencies {
         transitive = false
     }
     modImplementation(include("earth.terrarium:botarium-fabric-${project.minecraft_version}:${project.botarium_version}"))
-    modImplementation(include("maven.modrinth:carbon-config:yIKfSms3"))
+    modImplementation(include("maven.modrinth:carbon-config:${project.carbon_config_fabric_version}"))
 }
 
 processResources {
