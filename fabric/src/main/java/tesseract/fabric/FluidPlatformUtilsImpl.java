@@ -43,6 +43,11 @@ public class FluidPlatformUtilsImpl {
         return FluidVariantAttributes.getTemperature(FluidVariant.of(fluid));
     }
 
+    public static int getFluidDensity(Fluid fluid){
+        //cause fabric sucks and doesn't have a good fluid api
+        return 1000;
+    }
+
     public static boolean isFluidGaseous(Fluid fluid){
         return FluidVariantAttributes.isLighterThanAir(FluidVariant.of(fluid));
     }

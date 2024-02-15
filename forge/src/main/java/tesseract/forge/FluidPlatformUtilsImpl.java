@@ -24,6 +24,10 @@ public class FluidPlatformUtilsImpl {
         return fluid.getAttributes().getTemperature();
     }
 
+    public static int getFluidDensity(Fluid fluid){
+        return fluid.getAttributes().getDensity();
+    }
+
     public static boolean isFluidGaseous(Fluid fluid){
         return fluid.getAttributes().isGaseous();
     }

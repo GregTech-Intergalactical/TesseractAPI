@@ -44,6 +44,11 @@ public class FluidPlatformUtils {
     }
 
     @ExpectPlatform
+    public static int getFluidDensity(Fluid fluid){
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
     public static boolean isFluidGaseous(Fluid fluid){
         throw new AssertionError();
     }
