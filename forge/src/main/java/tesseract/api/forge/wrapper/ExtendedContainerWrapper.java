@@ -22,4 +22,9 @@ public class ExtendedContainerWrapper extends InvWrapper {
     public ItemStack extractItem(int slot, int amount, boolean simulate) {
         return ((ExtendedItemContainer)getInv()).extractItem(slot, amount, simulate);
     }
+
+    @Override
+    public int getSlotLimit(int slot) {
+        return ((ExtendedItemContainer)getInv()).getSlotLimit(slot);
+    }
 }
