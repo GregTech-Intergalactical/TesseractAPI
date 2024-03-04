@@ -11,26 +11,18 @@ import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import tesseract.Tesseract;
-import tesseract.TesseractConfig;
 import tesseract.api.GraphWrapper;
 import tesseract.api.context.TesseractItemContext;
 import tesseract.api.forge.Provider;
 import tesseract.api.forge.TesseractCaps;
-import tesseract.api.forge.wrapper.ItemStackWrapper;
+import tesseract.api.wrapper.ItemStackWrapper;
 import tesseract.api.gt.GTTransaction;
 import tesseract.api.gt.IEnergyItem;
 import tesseract.api.gt.IGTCable;
 import tesseract.api.gt.IGTNode;
 import tesseract.controller.Energy;
-
-import java.sql.Ref;
 
 @Mod(Tesseract.API_ID)
 public class TesseractImpl extends Tesseract {
