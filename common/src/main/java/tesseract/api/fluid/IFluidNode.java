@@ -71,5 +71,5 @@ public interface IFluidNode extends FluidContainer {
         return getFluids().get(tank);
     }
 
-    GraphWrapper.ICapabilityGetter<IFluidNode> GETTER = (TesseractCapUtils::getFluidNode);
+    GraphWrapper.ICapabilityGetter<IFluidNode> GETTER = (TesseractCapUtils.INSTANCE::getFluidNode);
 }

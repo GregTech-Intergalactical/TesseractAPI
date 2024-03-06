@@ -54,7 +54,7 @@ public class TesseractGTCapability<T extends BlockEntity & IGTCable> extends Tes
             BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
             if (otherTile != null) {
                 //Check the handler.
-                var cap = TesseractCapUtils.getEnergyHandler(otherTile, dir.getOpposite());
+                var cap = TesseractCapUtils.INSTANCE.getEnergyHandler(otherTile, dir.getOpposite());
                 if (cap.isEmpty()) continue;
                 //Perform insertion, and add to the transaction.
                 var handler = cap.get();

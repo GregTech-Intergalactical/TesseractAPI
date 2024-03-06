@@ -25,9 +25,10 @@ import tesseract.api.rf.IRFNode;
 import java.util.Optional;
 
 public class TesseractPlatformUtilsImpl implements TesseractPlatformUtils {
+    @Override
     public IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        LazyOptional<IEnergyHandler> capability = TesseractCapUtilsImpl.getEnergyHandler(tile, direction).map(e -> LazyOptional.of(() -> e)).orElse(LazyOptional.empty());
+        LazyOptional<IEnergyHandler> capability = TesseractCapUtils.INSTANCE.getEnergyHandler(tile, direction).map(e -> LazyOptional.of(() -> e)).orElse(LazyOptional.empty());
         if (capability.isPresent()) {
             if (invalidate != null )capability.addListener(o -> invalidate.run());
             return capability.resolve().get();
@@ -35,6 +36,7 @@ public class TesseractPlatformUtilsImpl implements TesseractPlatformUtils {
         return null;
     }
 
+    @Override
     public IRFNode getRFNode(Level level, long pos, Direction capSide, Runnable capCallback){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) {
@@ -54,6 +56,7 @@ public class TesseractPlatformUtilsImpl implements TesseractPlatformUtils {
         }
     }
 
+    @Override
     public IHeatNode getHeatNode(Level level, long pos, Direction direction, Runnable invalidate){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) return null;
@@ -65,14 +68,17 @@ public class TesseractPlatformUtilsImpl implements TesseractPlatformUtils {
         return null;
     }
 
+    @Override
     public boolean isFeCap(Class<?> cap){
         return cap == IEnergyStorage.class;
     }
 
+    @Override
     public boolean isForge(){
         return true;
     }
 
+    @Override
     public ConfigHandler createConfig(Config config){
         return CarbonConfig.CONFIGS.createConfig(config);
     }

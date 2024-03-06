@@ -27,9 +27,10 @@ import java.util.Optional;
 
 @SuppressWarnings("UnstableApiUsage")
 public class TesseractPlatformUtilsImpl implements TesseractPlatformUtils {
+    @Override
     public IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        Optional<IEnergyHandler> capability = TesseractCapUtilsImpl.getEnergyHandler(tile, direction);
+        Optional<IEnergyHandler> capability = TesseractCapUtils.INSTANCE.getEnergyHandler(tile, direction);
         if (capability.isPresent()) {
             if (invalidate != null) ((TileListeners)tile).addListener(() -> invalidate.run());
             return capability.get();
@@ -37,6 +38,7 @@ public class TesseractPlatformUtilsImpl implements TesseractPlatformUtils {
         return null;
     }
 
+    @Override
     public IRFNode getRFNode(Level level, long pos, Direction capSide, Runnable capCallback){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) {
@@ -60,10 +62,11 @@ public class TesseractPlatformUtilsImpl implements TesseractPlatformUtils {
         return null;
     }
 
+    @Override
     public IHeatNode getHeatNode(Level level, long pos, Direction direction, Runnable invalidate){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) return null;
-        Optional<IHeatHandler> capability = TesseractCapUtils.getHeatHandler(tile, direction);
+        Optional<IHeatHandler> capability = TesseractCapUtils.INSTANCE.getHeatHandler(tile, direction);
         if (capability.isPresent()) {
             if (invalidate != null) ((TileListeners)tile).addListener(invalidate);
             return capability.get();
@@ -71,14 +74,17 @@ public class TesseractPlatformUtilsImpl implements TesseractPlatformUtils {
         return null;
     }
 
+    @Override
     public boolean isFeCap(Class<?> cap){
         return false;
     }
 
+    @Override
     public boolean isForge(){
         return false;
     }
 
+    @Override
     public ConfigHandler createConfig(Config config){
         return CarbonConfig.createConfig(Tesseract.API_ID, config);
     }
