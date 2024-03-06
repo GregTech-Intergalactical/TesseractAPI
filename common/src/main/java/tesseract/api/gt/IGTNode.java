@@ -123,5 +123,5 @@ public interface IGTNode {
 
     }
 
-    GraphWrapper.ICapabilityGetter<IGTNode> GT_GETTER = TesseractPlatformUtils::getGTNode;
+    GraphWrapper.ICapabilityGetter<IGTNode> GT_GETTER = TesseractPlatformUtils.INSTANCE::getGTNode;
 }

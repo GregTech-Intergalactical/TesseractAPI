@@ -75,8 +75,4 @@ public class TesseractImpl extends Tesseract {
             GraphWrapper.getWrappers().forEach(GraphWrapper::healthCheck);
         }
     }
-
-    public static ConfigHandler createConfig(Config config){
-        return CarbonConfig.CONFIGS.createConfig(config);
-    }
 }

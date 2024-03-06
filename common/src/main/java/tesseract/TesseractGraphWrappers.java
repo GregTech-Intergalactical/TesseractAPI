@@ -29,7 +29,7 @@ public class TesseractGraphWrappers {
     public static final GraphWrapper<ItemTransaction, IItemPipe, IItemNode> ITEM = new GraphWrapper<>(ItemController::new, IItemNode.GETTER);
 
     public static final GraphWrapper<RFTransaction, IRFCable, IRFNode> RF = new GraphWrapper<>(RFController::new, IRFNode.GETTER);
-    public static long dropletMultiplier = TesseractPlatformUtils.isForge() ? 1L : 81L;
+    public static long dropletMultiplier = TesseractPlatformUtils.INSTANCE.isForge() ? 1L : 81L;
     //public static GraphWrapper<Integer, IRFCable, IRFNode> FE_ENERGY = new GraphWrapper<>(RFController::new);
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
 

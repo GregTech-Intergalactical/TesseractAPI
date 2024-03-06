@@ -1,5 +1,7 @@
 package tesseract;
 
+import carbonconfiglib.config.Config;
+import carbonconfiglib.config.ConfigHandler;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -8,30 +10,22 @@ import tesseract.api.heat.IHeatNode;
 import tesseract.api.rf.IRFNode;
 import tesseract.graph.INode;
 
-public class TesseractPlatformUtils {
-    @ExpectPlatform
-    public static IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
-        throw new AssertionError();
-    }
+import java.util.ServiceLoader;
 
-    @ExpectPlatform
-    public static IRFNode getRFNode(Level level, long pos, Direction direction, Runnable invalidate){
-        throw new AssertionError();
-    }
-
-    @ExpectPlatform
-    public static IHeatNode getHeatNode(Level level, long pos, Direction direction, Runnable invalidate){
-        throw new AssertionError();
-    }
-
-    @ExpectPlatform
-    public static boolean isFeCap(Class<?> cap){
-        throw new AssertionError();
-    }
+public interface TesseractPlatformUtils {
+    TesseractPlatformUtils INSTANCE =  ServiceLoader.load(TesseractPlatformUtils.class).findFirst().orElseThrow(() -> new IllegalStateException("No implementation of TesseractPlatformUtils found"));
 
 
-    @ExpectPlatform
-    public static boolean isForge(){
-        throw new AssertionError();
-    }
+    IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate);
+
+    IRFNode getRFNode(Level level, long pos, Direction direction, Runnable invalidate);
+
+    IHeatNode getHeatNode(Level level, long pos, Direction direction, Runnable invalidate);
+
+    boolean isFeCap(Class<?> cap);
+
+
+    boolean isForge();
+
+    ConfigHandler createConfig(Config config);
 }

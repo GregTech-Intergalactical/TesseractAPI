@@ -104,8 +104,4 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
     public static void registerTREItem(BiFunction<ItemStack, ContainerItemContext, IEnergyHandler> function, Item type){
         EnergyStorage.ITEM.registerForItems((stack, context) -> (EnergyStorage) function.apply(stack, context), type);
     }
-
-    public static ConfigHandler createConfig(Config config){
-        return CarbonConfig.createConfig(Tesseract.API_ID, config);
-    }
 }

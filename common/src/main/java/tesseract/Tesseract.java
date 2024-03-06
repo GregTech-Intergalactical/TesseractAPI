@@ -43,9 +43,4 @@ public class Tesseract {
     public static boolean hadFirstTick(LevelAccessor world) {
         return TEST || firstTick.contains(world);
     }
-
-    @ExpectPlatform
-    public static ConfigHandler createConfig(Config config){
-        throw new AssertionError();
-    }
 }
