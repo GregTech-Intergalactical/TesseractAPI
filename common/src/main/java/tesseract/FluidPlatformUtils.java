@@ -15,58 +15,35 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ServiceLoader;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class FluidPlatformUtils {
-    public static FluidHolder createFluidStack(Fluid fluid, long amount){
+public interface FluidPlatformUtils {
+    FluidPlatformUtils INSTANCE =  ServiceLoader.load(FluidPlatformUtils.class).findFirst().orElseThrow(() -> new IllegalStateException("No implementation of FluidPlatformUtils found"));
+    //public static FluidPlatformUtils INSTANCE = new FluidPlatformUtils();
+
+    static FluidHolder createFluidStack(Fluid fluid, long amount){
         return FluidHooks.newFluidHolder(fluid,amount, null);
     }
 
-    @ExpectPlatform
-    public static ResourceLocation getStillTexture(Fluid fluid){
-        throw new AssertionError();
-    }
+    ResourceLocation getStillTexture(Fluid fluid);
 
-    @ExpectPlatform
-    public static ResourceLocation getFlowingTexture(Fluid fluid){
-        throw new AssertionError();
-    }
+    ResourceLocation getFlowingTexture(Fluid fluid);
 
-    @ExpectPlatform
-    public static ResourceLocation getFluidId(Fluid fluid){
-        throw new AssertionError();
-    }
+    ResourceLocation getFluidId(Fluid fluid);
 
-    @ExpectPlatform
-    public static int getFluidTemperature(Fluid fluid){
-        throw new AssertionError();
-    }
+    int getFluidTemperature(Fluid fluid);
 
-    @ExpectPlatform
-    public static int getFluidDensity(Fluid fluid){
-        throw new AssertionError();
-    }
+    int getFluidDensity(Fluid fluid);
 
-    @ExpectPlatform
-    public static boolean isFluidGaseous(Fluid fluid){
-        throw new AssertionError();
-    }
+    boolean isFluidGaseous(Fluid fluid);
 
-    @ExpectPlatform
-    public static int getFluidColor(Fluid fluid){
-        throw new AssertionError();
-    }
+    int getFluidColor(Fluid fluid);
 
-    @ExpectPlatform
-    public static SoundEvent getFluidSound(Fluid fluid, boolean fill){
-        throw new AssertionError();
-    }
+    SoundEvent getFluidSound(Fluid fluid, boolean fill);
 
-    @ExpectPlatform
-    public static Component getFluidDisplayName(FluidHolder fluid){
-        throw new AssertionError();
-    }
+    Component getFluidDisplayName(FluidHolder fluid);
 
     /**
      * Fill a destination fluid handler from a source fluid handler with a max amount.
@@ -80,7 +57,7 @@ public class FluidPlatformUtils {
      * @return the fluidStack that was transferred from the source to the destination. null on failure.
      */
     @NotNull
-    public static FluidHolder tryFluidTransfer(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, long maxAmount, boolean doTransfer) {
+    default FluidHolder tryFluidTransfer(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, long maxAmount, boolean doTransfer) {
         for (int i = 0; i < fluidSource.getTankAmount(); i++) {
             FluidHolder fluid = fluidSource.getFluidInTank(i);
             FluidHolder transfer = tryFluidTransfer(fluidDestination, fluidSource, fluid.copyWithAmount(Math.min(fluid.getFluidAmount(), maxAmount)), doTransfer);
@@ -101,7 +78,7 @@ public class FluidPlatformUtils {
      * @return the FluidHolder that was transferred from the source to the destination. null on failure.
      */
     @NotNull
-    public static FluidHolder tryFluidTransfer(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, FluidHolder resource, boolean doTransfer)
+    default FluidHolder tryFluidTransfer(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, FluidHolder resource, boolean doTransfer)
     {
         FluidHolder drainable = fluidSource.extractFluid(resource, true);
         if (!drainable.isEmpty() && resource.matches(drainable))
@@ -142,15 +119,15 @@ public class FluidPlatformUtils {
         return FluidHooks.emptyFluid();
     }
 
-    public static boolean fillItemFromContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
+    default boolean fillItemFromContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
         return fillItemFromContainer(stack, handler, s -> true, consumer);
     }
 
-    public static boolean emptyItemIntoContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
+    default boolean emptyItemIntoContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
         return emptyItemIntoContainer(stack, handler, s -> true, consumer);
     }
 
-    public static boolean fillItemFromContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
+    default boolean fillItemFromContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
         PlatformFluidItemHandler itemHandler = FluidHooks.safeGetItemFluidManager(stack.copy()).orElse(null);
         if (itemHandler == null) return false;
         for (int i = 0; i < handler.getTankAmount(); i++) {
@@ -172,7 +149,7 @@ public class FluidPlatformUtils {
         return false;
     }
 
-    public static boolean emptyItemIntoContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
+    default boolean emptyItemIntoContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
         PlatformFluidItemHandler itemHandler = FluidHooks.safeGetItemFluidManager(stack.copy()).orElse(null);
         if (itemHandler == null) return false;
         for (int i = 0; i < itemHandler.getTankAmount(); i++) {
@@ -196,7 +173,7 @@ public class FluidPlatformUtils {
         return false;
     }
 
-    public static void writeToPacket(FriendlyByteBuf buffer, FluidHolder holder) {
+    default void writeToPacket(FriendlyByteBuf buffer, FluidHolder holder) {
         if (holder.isEmpty()) {
             buffer.writeBoolean(false);
         } else {
@@ -207,7 +184,7 @@ public class FluidPlatformUtils {
         }
     }
 
-    public static FluidHolder readFromPacket(FriendlyByteBuf buffer) {
+    default FluidHolder readFromPacket(FriendlyByteBuf buffer) {
         if (!buffer.readBoolean()) return FluidHooks.emptyFluid();
         Fluid fluid = Registry.FLUID.byId(buffer.readVarInt());
         long amount = buffer.readVarLong();

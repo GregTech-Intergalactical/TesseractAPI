@@ -6,41 +6,42 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.material.Fluid;
+import tesseract.FluidPlatformUtils;
 
-public class FluidPlatformUtilsImpl {
+public class FluidPlatformUtilsImpl implements FluidPlatformUtils {
 
-    public static ResourceLocation getStillTexture(Fluid fluid){
+    public ResourceLocation getStillTexture(Fluid fluid){
         return fluid.getAttributes().getStillTexture();
     }
 
-    public static ResourceLocation getFlowingTexture(Fluid fluid){
+    public ResourceLocation getFlowingTexture(Fluid fluid){
         return fluid.getAttributes().getFlowingTexture();
     }
-    public static ResourceLocation getFluidId(Fluid fluid){
+    public ResourceLocation getFluidId(Fluid fluid){
         return fluid.getRegistryName();
     }
 
-    public static int getFluidTemperature(Fluid fluid){
+    public int getFluidTemperature(Fluid fluid){
         return fluid.getAttributes().getTemperature();
     }
 
-    public static int getFluidDensity(Fluid fluid){
+    public int getFluidDensity(Fluid fluid){
         return fluid.getAttributes().getDensity();
     }
 
-    public static boolean isFluidGaseous(Fluid fluid){
+    public boolean isFluidGaseous(Fluid fluid){
         return fluid.getAttributes().isGaseous();
     }
 
-    public static int getFluidColor(Fluid fluid){
+    public int getFluidColor(Fluid fluid){
         return fluid.getAttributes().getColor();
     }
 
-    public static SoundEvent getFluidSound(Fluid fluid, boolean fill){
+    public SoundEvent getFluidSound(Fluid fluid, boolean fill){
         return fill ? fluid.getAttributes().getFillSound() : fluid.getAttributes().getEmptySound();
     }
 
-    public static Component getFluidDisplayName(FluidHolder fluid){
+    public Component getFluidDisplayName(FluidHolder fluid){
         return fluid.getFluid().getAttributes().getDisplayName(ForgeFluidHolder.toStack(fluid));
     }
 }

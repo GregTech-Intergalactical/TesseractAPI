@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 
 public interface TesseractCapUtils {
-    TesseractCapUtils INSTANCE =  ServiceLoader.load(TesseractCapUtils.class).findFirst().orElseThrow(() -> new IllegalStateException("No implementation of TesseractPlatformUtils found"));
+    TesseractCapUtils INSTANCE =  ServiceLoader.load(TesseractCapUtils.class).findFirst().orElseThrow(() -> new IllegalStateException("No implementation of TesseractCapUtils found"));
     //public static final TesseractCapUtils INSTANCE = new TesseractCapUtils();
     Optional<IEnergyHandlerItem> getEnergyHandlerItem(ItemStack stack);
     

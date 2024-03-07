@@ -172,9 +172,9 @@ public class FluidController extends Controller<FluidTransaction, IFluidPipe, IF
         }
     }
     public void commitFluid(FluidConsumer consumer, FluidHolder stack) {
-        int temperature = FluidPlatformUtils.getFluidTemperature(stack.getFluid());
+        int temperature = FluidPlatformUtils.INSTANCE.getFluidTemperature(stack.getFluid());
         long amount = stack.getFluidAmount();
-        boolean isGaseous = FluidPlatformUtils.isFluidGaseous(stack.getFluid());
+        boolean isGaseous = FluidPlatformUtils.INSTANCE.isFluidGaseous(stack.getFluid());
         boolean cantHandle = !consumer.canHandle(temperature, isGaseous);
         if (!cantHandle) {
             for (Long2ObjectMap.Entry<IFluidPipe> p : consumer.getFull().long2ObjectEntrySet()) {
