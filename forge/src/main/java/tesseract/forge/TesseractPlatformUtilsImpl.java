@@ -7,6 +7,7 @@ import earth.terrarium.botarium.common.energy.base.EnergyContainer;
 import earth.terrarium.botarium.forge.energy.ForgeEnergyContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
@@ -81,5 +82,10 @@ public class TesseractPlatformUtilsImpl implements TesseractPlatformUtils {
     @Override
     public ConfigHandler createConfig(Config config){
         return CarbonConfig.CONFIGS.createConfig(config);
+    }
+
+    @Override
+    public boolean areCapsCompatible(ItemStack a, ItemStack b){
+        return a.areCapsCompatible(b);
     }
 }

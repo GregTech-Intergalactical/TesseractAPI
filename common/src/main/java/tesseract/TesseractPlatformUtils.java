@@ -4,6 +4,7 @@ import carbonconfiglib.config.Config;
 import carbonconfiglib.config.ConfigHandler;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import tesseract.api.gt.IGTNode;
 import tesseract.api.heat.IHeatNode;
@@ -28,4 +29,6 @@ public interface TesseractPlatformUtils {
     boolean isForge();
 
     ConfigHandler createConfig(Config config);
+
+    boolean areCapsCompatible(ItemStack a, ItemStack b);
 }

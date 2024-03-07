@@ -3,6 +3,7 @@ package tesseract.util;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import tesseract.TesseractPlatformUtils;
 import tesseract.api.item.PlatformItemHandler;
 
 
@@ -27,9 +28,8 @@ public class ItemHandlerUtils {
         return (!a.hasTag() || a.getTag().equals(b.getTag())) && areCapsCompatible(a, b);
     }
 
-    @ExpectPlatform
     private static boolean areCapsCompatible(ItemStack a, ItemStack b){
-        throw new AssertionError();
+        return TesseractPlatformUtils.INSTANCE.areCapsCompatible(a, b);
     }
 
     public static ItemStack copyStackWithSize(@NotNull ItemStack itemStack, int size) {
