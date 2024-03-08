@@ -15,7 +15,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.material.Fluid;
 import tesseract.FluidPlatformUtils;
 
-public class FluidPlatformUtilsImpl implements FluidPlatformUtils {
+public class FluidPlatformUtilsImpl extends FluidPlatformUtils {
 
     public ResourceLocation getStillTexture(Fluid fluid){
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {

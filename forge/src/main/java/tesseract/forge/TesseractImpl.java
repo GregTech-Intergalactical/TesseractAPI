@@ -12,6 +12,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
+import tesseract.FluidPlatformUtils;
 import tesseract.Tesseract;
 import tesseract.api.GraphWrapper;
 import tesseract.api.context.TesseractItemContext;
@@ -30,6 +31,7 @@ public class TesseractImpl extends Tesseract {
     public static GraphWrapper<GTTransaction, IGTCable, IGTNode> GT_ENERGY = new GraphWrapper<>(Energy::new, IGTNode.GT_GETTER);
 
     public TesseractImpl() {
+        FluidPlatformUtils.INSTANCE = new FluidPlatformUtilsImpl();
         Tesseract.init();
         MinecraftForge.EVENT_BUS.addListener(this::serverStoppedEvent);
         MinecraftForge.EVENT_BUS.addListener(this::worldUnloadEvent);

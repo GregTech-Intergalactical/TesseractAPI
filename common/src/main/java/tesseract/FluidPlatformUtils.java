@@ -19,31 +19,31 @@ import java.util.ServiceLoader;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public interface FluidPlatformUtils {
-    FluidPlatformUtils INSTANCE =  ServiceLoader.load(FluidPlatformUtils.class).findFirst().orElseThrow(() -> new IllegalStateException("No implementation of FluidPlatformUtils found"));
+public abstract class FluidPlatformUtils {
+    public static FluidPlatformUtils INSTANCE; // =  ServiceLoader.load(FluidPlatformUtils.class).findFirst().orElseThrow(() -> new IllegalStateException("No implementation of FluidPlatformUtils found"));
     //public static FluidPlatformUtils INSTANCE = new FluidPlatformUtils();
 
-    static FluidHolder createFluidStack(Fluid fluid, long amount){
+    public static FluidHolder createFluidStack(Fluid fluid, long amount){
         return FluidHooks.newFluidHolder(fluid,amount, null);
     }
 
-    ResourceLocation getStillTexture(Fluid fluid);
+    public abstract ResourceLocation getStillTexture(Fluid fluid);
 
-    ResourceLocation getFlowingTexture(Fluid fluid);
+    public abstract ResourceLocation getFlowingTexture(Fluid fluid);
 
-    ResourceLocation getFluidId(Fluid fluid);
+    public abstract ResourceLocation getFluidId(Fluid fluid);
 
-    int getFluidTemperature(Fluid fluid);
+    public abstract int getFluidTemperature(Fluid fluid);
 
-    int getFluidDensity(Fluid fluid);
+    public abstract int getFluidDensity(Fluid fluid);
 
-    boolean isFluidGaseous(Fluid fluid);
+    public abstract boolean isFluidGaseous(Fluid fluid);
 
-    int getFluidColor(Fluid fluid);
+    public abstract int getFluidColor(Fluid fluid);
 
-    SoundEvent getFluidSound(Fluid fluid, boolean fill);
+    public abstract SoundEvent getFluidSound(Fluid fluid, boolean fill);
 
-    Component getFluidDisplayName(FluidHolder fluid);
+    public abstract Component getFluidDisplayName(FluidHolder fluid);
 
     /**
      * Fill a destination fluid handler from a source fluid handler with a max amount.
@@ -57,7 +57,7 @@ public interface FluidPlatformUtils {
      * @return the fluidStack that was transferred from the source to the destination. null on failure.
      */
     @NotNull
-    default FluidHolder tryFluidTransfer(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, long maxAmount, boolean doTransfer) {
+    public FluidHolder tryFluidTransfer(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, long maxAmount, boolean doTransfer) {
         for (int i = 0; i < fluidSource.getTankAmount(); i++) {
             FluidHolder fluid = fluidSource.getFluidInTank(i);
             FluidHolder transfer = tryFluidTransfer(fluidDestination, fluidSource, fluid.copyWithAmount(Math.min(fluid.getFluidAmount(), maxAmount)), doTransfer);
@@ -78,7 +78,7 @@ public interface FluidPlatformUtils {
      * @return the FluidHolder that was transferred from the source to the destination. null on failure.
      */
     @NotNull
-    default FluidHolder tryFluidTransfer(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, FluidHolder resource, boolean doTransfer)
+    public FluidHolder tryFluidTransfer(PlatformFluidHandler fluidDestination, PlatformFluidHandler fluidSource, FluidHolder resource, boolean doTransfer)
     {
         FluidHolder drainable = fluidSource.extractFluid(resource, true);
         if (!drainable.isEmpty() && resource.matches(drainable))
@@ -119,15 +119,15 @@ public interface FluidPlatformUtils {
         return FluidHooks.emptyFluid();
     }
 
-    default boolean fillItemFromContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
+    public boolean fillItemFromContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
         return fillItemFromContainer(stack, handler, s -> true, consumer);
     }
 
-    default boolean emptyItemIntoContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
+    public boolean emptyItemIntoContainer(ItemStack stack, PlatformFluidHandler handler, Consumer<ItemStack> consumer){
         return emptyItemIntoContainer(stack, handler, s -> true, consumer);
     }
 
-    default boolean fillItemFromContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
+    public boolean fillItemFromContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
         PlatformFluidItemHandler itemHandler = FluidHooks.safeGetItemFluidManager(stack.copy()).orElse(null);
         if (itemHandler == null) return false;
         for (int i = 0; i < handler.getTankAmount(); i++) {
@@ -149,7 +149,7 @@ public interface FluidPlatformUtils {
         return false;
     }
 
-    default boolean emptyItemIntoContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
+    public boolean emptyItemIntoContainer(ItemStack stack, PlatformFluidHandler handler, Predicate<ItemStack> tester, Consumer<ItemStack> consumer){
         PlatformFluidItemHandler itemHandler = FluidHooks.safeGetItemFluidManager(stack.copy()).orElse(null);
         if (itemHandler == null) return false;
         for (int i = 0; i < itemHandler.getTankAmount(); i++) {
@@ -173,7 +173,7 @@ public interface FluidPlatformUtils {
         return false;
     }
 
-    default void writeToPacket(FriendlyByteBuf buffer, FluidHolder holder) {
+    public void writeToPacket(FriendlyByteBuf buffer, FluidHolder holder) {
         if (holder.isEmpty()) {
             buffer.writeBoolean(false);
         } else {
@@ -184,7 +184,7 @@ public interface FluidPlatformUtils {
         }
     }
 
-    default FluidHolder readFromPacket(FriendlyByteBuf buffer) {
+    public FluidHolder readFromPacket(FriendlyByteBuf buffer) {
         if (!buffer.readBoolean()) return FluidHooks.emptyFluid();
         Fluid fluid = Registry.FLUID.byId(buffer.readVarInt());
         long amount = buffer.readVarLong();
