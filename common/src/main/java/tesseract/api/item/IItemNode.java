@@ -68,5 +68,5 @@ public interface IItemNode extends ExtendedItemContainer {
         return true;
     }
 
-    GraphWrapper.ICapabilityGetter<IItemNode> GETTER = (TesseractCapUtils::getItemNode);
+    GraphWrapper.ICapabilityGetter<IItemNode> GETTER = (TesseractCapUtils.INSTANCE::getItemNode);
 }

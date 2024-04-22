@@ -46,7 +46,7 @@ public class Fluid extends FluidController {
 
     @Override
     public void onPipeOverTemp(Level w, long pos, int temperature) {
-        w.setBlockAndUpdate(BlockPos.of(pos), temperature >= FluidPlatformUtils.getFluidTemperature(Fluids.LAVA) ? Blocks.LAVA.defaultBlockState() : Blocks.FIRE.defaultBlockState());
+        w.setBlockAndUpdate(BlockPos.of(pos), temperature >= FluidPlatformUtils.INSTANCE.getFluidTemperature(Fluids.LAVA) ? Blocks.LAVA.defaultBlockState() : Blocks.FIRE.defaultBlockState());
     }
 
     @Override

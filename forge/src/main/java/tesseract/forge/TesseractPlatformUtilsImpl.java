@@ -1,14 +1,20 @@
 package tesseract.forge;
 
+import carbonconfiglib.CarbonConfig;
+import carbonconfiglib.config.Config;
+import carbonconfiglib.config.ConfigHandler;
 import earth.terrarium.botarium.api.energy.EnergyContainer;
 import earth.terrarium.botarium.forge.energy.ForgeEnergyContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
+import tesseract.TesseractCapUtils;
+import tesseract.TesseractPlatformUtils;
 import tesseract.api.forge.TesseractCaps;
 import tesseract.api.forge.wrapper.RFWrapper;
 import tesseract.api.gt.IEnergyHandler;
@@ -17,10 +23,13 @@ import tesseract.api.heat.IHeatHandler;
 import tesseract.api.heat.IHeatNode;
 import tesseract.api.rf.IRFNode;
 
-public class TesseractPlatformUtilsImpl {
-    public static IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
+import java.util.Optional;
+
+public class TesseractPlatformUtilsImpl implements TesseractPlatformUtils {
+    @Override
+    public IGTNode getGTNode(Level level, long pos, Direction direction, Runnable invalidate){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
-        LazyOptional<IEnergyHandler> capability = TesseractCapUtilsImpl.getEnergyHandler(tile, direction).map(e -> LazyOptional.of(() -> e)).orElse(LazyOptional.empty());
+        LazyOptional<IEnergyHandler> capability = TesseractCapUtils.INSTANCE.getEnergyHandler(tile, direction).map(e -> LazyOptional.of(() -> e)).orElse(LazyOptional.empty());
         if (capability.isPresent()) {
             if (invalidate != null )capability.addListener(o -> invalidate.run());
             return capability.resolve().get();
@@ -28,7 +37,8 @@ public class TesseractPlatformUtilsImpl {
         return null;
     }
 
-    public static IRFNode getRFNode(Level level, long pos, Direction capSide, Runnable capCallback){
+    @Override
+    public IRFNode getRFNode(Level level, long pos, Direction capSide, Runnable capCallback){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) {
             return null;
@@ -47,7 +57,8 @@ public class TesseractPlatformUtilsImpl {
         }
     }
 
-    public static IHeatNode getHeatNode(Level level, long pos, Direction direction, Runnable invalidate){
+    @Override
+    public IHeatNode getHeatNode(Level level, long pos, Direction direction, Runnable invalidate){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) return null;
         LazyOptional<IHeatHandler> capability = tile.getCapability(TesseractCaps.HEAT_CAPABILITY, direction);
@@ -58,11 +69,23 @@ public class TesseractPlatformUtilsImpl {
         return null;
     }
 
-    public static boolean isFeCap(Class<?> cap){
+    @Override
+    public boolean isFeCap(Class<?> cap){
         return cap == IEnergyStorage.class;
     }
 
-    public static boolean isForge(){
+    @Override
+    public boolean isForge(){
         return true;
+    }
+
+    @Override
+    public ConfigHandler createConfig(Config config){
+        return CarbonConfig.CONFIGS.createConfig(config);
+    }
+
+    @Override
+    public boolean areCapsCompatible(ItemStack a, ItemStack b){
+        return a.areCapsCompatible(b);
     }
 }

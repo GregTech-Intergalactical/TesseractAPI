@@ -57,5 +57,5 @@ public interface IHeatNode {
         return getHeat() / 100;
     }
 
-    GraphWrapper.ICapabilityGetter<IHeatNode> GETTER = TesseractPlatformUtils::getHeatNode;
+    GraphWrapper.ICapabilityGetter<IHeatNode> GETTER = TesseractPlatformUtils.INSTANCE::getHeatNode;
 }

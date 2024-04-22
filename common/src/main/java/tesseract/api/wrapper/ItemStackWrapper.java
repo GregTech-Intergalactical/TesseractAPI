@@ -1,4 +1,4 @@
-package tesseract.api.forge.wrapper;
+package tesseract.api.wrapper;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;

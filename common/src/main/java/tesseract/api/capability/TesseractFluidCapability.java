@@ -130,7 +130,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
 
             if (this.callback.modify(stack, dir, false, true)) continue;
             //Check the handler.
-            var cap = TesseractCapUtils.getFluidHandler(tile.getLevel(), BlockPos.of(Pos.offset(pos, dir)), dir.getOpposite());
+            var cap = TesseractCapUtils.INSTANCE.getFluidHandler(tile.getLevel(), BlockPos.of(Pos.offset(pos, dir)), dir.getOpposite());
             if (cap.isEmpty()) continue;
             //Perform insertion, and add to the transaction.
             var handler = cap.get();

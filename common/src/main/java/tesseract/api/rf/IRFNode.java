@@ -37,5 +37,5 @@ public interface IRFNode extends EnergyContainer, Updatable {
 
     }
 
-    GraphWrapper.ICapabilityGetter<IRFNode> GETTER = TesseractPlatformUtils::getRFNode;
+    GraphWrapper.ICapabilityGetter<IRFNode> GETTER = TesseractPlatformUtils.INSTANCE::getRFNode;
 }

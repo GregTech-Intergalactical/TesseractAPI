@@ -88,7 +88,7 @@ public class TesseractItemCapability<T extends BlockEntity & IItemPipe> extends 
             BlockEntity otherTile = tile.getLevel().getBlockEntity(BlockPos.of(Pos.offset(pos, dir)));
             if (otherTile != null) {
                 //Check the handler.
-                var cap = TesseractCapUtils.getItemHandler(otherTile, dir.getOpposite());
+                var cap = TesseractCapUtils.INSTANCE.getItemHandler(otherTile, dir.getOpposite());
                 if (cap.isEmpty()) continue;
                 //Perform insertion, and add to the transaction.
                 var handler = cap.get();

@@ -22,6 +22,7 @@ import team.reborn.energy.api.EnergyStorage;
 import tesseract.Tesseract;
 import tesseract.TesseractConfig;
 import tesseract.api.GraphWrapper;
+import tesseract.api.context.TesseractItemContext;
 import tesseract.api.fabric.TesseractLookups;
 import tesseract.api.fabric.wrapper.ContainerItemContextWrapper;
 import tesseract.api.gt.IEnergyHandler;
@@ -76,8 +77,9 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
         ServerTickEvents.END_WORLD_TICK.register(TesseractImpl::onEndTick);
         ServerWorldEvents.UNLOAD.register((TesseractImpl::onWorldUnload));
         TesseractLookups.ENERGY_HANDLER_ITEM.registerFallback((s, c) -> {
-            if (s.getItem() instanceof IEnergyItem energyItem){
-                return energyItem.createEnergyHandler(new ContainerItemContextWrapper(c));
+            TesseractItemContext context = new ContainerItemContextWrapper(c);
+            if (s.getItem() instanceof IEnergyItem energyItem && energyItem.canCreate(context)){
+                return energyItem.createEnergyHandler(context);
             }
             return null;
         });
@@ -95,9 +97,5 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
 
     public static void registerTREItem(BiFunction<ItemStack, ContainerItemContext, IEnergyHandler> function, Item type){
         EnergyStorage.ITEM.registerForItems((stack, context) -> (EnergyStorage) function.apply(stack, context), type);
-    }
-
-    public static ConfigHandler createConfig(Config config){
-        return CarbonConfig.createConfig(Tesseract.API_ID, config);
     }
 }

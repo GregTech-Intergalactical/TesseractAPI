@@ -104,20 +104,20 @@ public class PipeFluidHolder {
 
         @Override
         public int hashCode() {
-            return FluidPlatformUtils.getFluidId(fluid).hashCode();
+            return FluidPlatformUtils.INSTANCE.getFluidId(fluid).hashCode();
         }
 
         @Override
         public boolean equals(Object obj) {
-            ResourceLocation compare = FluidPlatformUtils.getFluidId(fluid);
+            ResourceLocation compare = FluidPlatformUtils.INSTANCE.getFluidId(fluid);
             if (obj instanceof SetHolder s) {
-                return FluidPlatformUtils.getFluidId(s.fluid).equals(compare);
+                return FluidPlatformUtils.INSTANCE.getFluidId(s.fluid).equals(compare);
             }
             if (obj instanceof Fluid f) {
-                return FluidPlatformUtils.getFluidId(f).equals(compare);
+                return FluidPlatformUtils.INSTANCE.getFluidId(f).equals(compare);
             }
             if (obj instanceof FluidHolder s) {
-                return FluidPlatformUtils.getFluidId(s.getFluid()).equals(compare);
+                return FluidPlatformUtils.INSTANCE.getFluidId(s.getFluid()).equals(compare);
             }
             if (obj instanceof ResourceLocation r) {
                 return r.equals(compare);

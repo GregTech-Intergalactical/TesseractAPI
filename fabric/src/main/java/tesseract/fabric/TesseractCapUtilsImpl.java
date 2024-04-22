@@ -21,6 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import team.reborn.energy.api.EnergyStorage;
+import tesseract.TesseractCapUtils;
 import tesseract.TesseractConfig;
 import tesseract.api.fabric.TesseractLookups;
 import tesseract.api.fabric.TileListeners;
@@ -35,13 +36,15 @@ import tesseract.mixin.fabric.FabricBlockFluidContainerAccessor;
 
 import java.util.Optional;
 
-public class TesseractCapUtilsImpl {
-    public static Optional<IEnergyHandlerItem> getEnergyHandlerItem(ItemStack stack){
+public class TesseractCapUtilsImpl implements TesseractCapUtils {
+    @Override
+    public Optional<IEnergyHandlerItem> getEnergyHandlerItem(ItemStack stack){
         IEnergyHandlerItem energyHandler = ContainerItemContext.withInitial(stack).find(TesseractLookups.ENERGY_HANDLER_ITEM);
         return Optional.ofNullable(energyHandler);
     }
 
-    public static Optional<IEnergyHandlerItem> getWrappedEnergyHandlerItem(ItemStack stack){
+    @Override
+    public Optional<IEnergyHandlerItem> getWrappedEnergyHandlerItem(ItemStack stack){
         IEnergyHandlerItem energyHandler = ContainerItemContext.withInitial(stack).find(TesseractLookups.ENERGY_HANDLER_ITEM);
         if (energyHandler == null){
             EnergyStorage storage = ContainerItemContext.withInitial(stack).find(EnergyStorage.ITEM);
@@ -55,7 +58,8 @@ public class TesseractCapUtilsImpl {
         return Optional.ofNullable(energyHandler);
     }
 
-    public static Optional<IEnergyHandler> getEnergyHandler(@NotNull BlockEntity entity, Direction side){
+    @Override
+    public Optional<IEnergyHandler> getEnergyHandler(@NotNull BlockEntity entity, Direction side){
         IEnergyHandler energyHandler = TesseractLookups.ENERGY_HANDLER_SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
         if (energyHandler == null) {
             energyHandler = getEnergyStorage(entity, side);
@@ -63,26 +67,30 @@ public class TesseractCapUtilsImpl {
         return Optional.ofNullable(energyHandler);
     }
 
-    public static Optional<IHeatHandler> getHeatHandler(BlockEntity entity, Direction side){
+    @Override
+    public Optional<IHeatHandler> getHeatHandler(BlockEntity entity, Direction side){
         IHeatHandler heatHandler = TesseractLookups.HEAT_HANDLER_SIDED.find(entity.getLevel(), entity.getBlockPos(), entity.getBlockState(), entity, side);
         return Optional.ofNullable(heatHandler);
     }
 
     //TODO figure out better abstraction method
-    public static Optional<PlatformItemHandler> getItemHandler(BlockEntity tile, Direction side){
+    @Override
+    public Optional<PlatformItemHandler> getItemHandler(BlockEntity tile, Direction side){
         Storage<ItemVariant> storage = ItemStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, side);
         //if (storage instanceof IItemHandler itemHandler) return Optional.of(itemHandler);
         return storage == null ? Optional.empty() : Optional.of(new FabricPlatformItemHandler(storage));
     }
 
-    public static Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
+    @Override
+    public Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity != null) return FluidHooks.safeGetBlockFluidManager(blockEntity, side);
         Storage<FluidVariant> storage = FluidStorage.SIDED.find(level, pos, side);
         return storage == null ? Optional.empty() : Optional.of(new FabricFluidHandler(storage));
     }
 
-    public static IItemNode getItemNode(Level level, long pos, Direction capSide, Runnable capCallback){
+    @Override
+    public IItemNode getItemNode(Level level, long pos, Direction capSide, Runnable capCallback){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) {
             return null;
@@ -99,7 +107,7 @@ public class TesseractCapUtilsImpl {
         return null;
     }
 
-    private static IEnergyHandler getEnergyStorage(BlockEntity be, Direction direction){
+    private IEnergyHandler getEnergyStorage(BlockEntity be, Direction direction){
         EnergyStorage storage = EnergyStorage.SIDED.find(be.getLevel(), be.getBlockPos(), be.getBlockState(), be, direction);
         if (storage == null) return null;
         if (storage instanceof IEnergyHandler moveable1) return moveable1;
@@ -107,7 +115,8 @@ public class TesseractCapUtilsImpl {
         return new EnergyTileWrapper(be, storage);
     }
 
-    public static IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
+    @Override
+    public IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback){
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) {
             return null;

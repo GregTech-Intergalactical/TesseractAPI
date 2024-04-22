@@ -15,37 +15,42 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.registries.ForgeRegistries;
+import tesseract.FluidPlatformUtils;
 
-public class FluidPlatformUtilsImpl {
+public class FluidPlatformUtilsImpl extends FluidPlatformUtils {
 
-    public static ResourceLocation getStillTexture(Fluid fluid){
+    public ResourceLocation getStillTexture(Fluid fluid){
         return IClientFluidTypeExtensions.of(fluid).getStillTexture();
     }
 
-    public static ResourceLocation getFlowingTexture(Fluid fluid){
+    public ResourceLocation getFlowingTexture(Fluid fluid){
         return IClientFluidTypeExtensions.of(fluid).getFlowingTexture();
     }
-    public static ResourceLocation getFluidId(Fluid fluid){
+    public ResourceLocation getFluidId(Fluid fluid){
         return ForgeRegistries.FLUIDS.getKey(fluid);
     }
 
-    public static int getFluidTemperature(Fluid fluid){
+    public int getFluidTemperature(Fluid fluid){
         return fluid.getFluidType().getTemperature();
     }
 
-    public static boolean isFluidGaseous(Fluid fluid){
+    public int getFluidDensity(Fluid fluid){
+        return fluid.getAttributes().getDensity();
+    }
+
+    public boolean isFluidGaseous(Fluid fluid){
         return fluid.getFluidType().isLighterThanAir();
     }
 
-    public static int getFluidColor(Fluid fluid){
+    public int getFluidColor(Fluid fluid){
         return IClientFluidTypeExtensions.of(fluid).getTintColor();
     }
 
-    public static SoundEvent getFluidSound(Fluid fluid, boolean fill){
+    public SoundEvent getFluidSound(Fluid fluid, boolean fill){
         return fill ? fluid.getFluidType().getSound(SoundActions.BUCKET_FILL) : fluid.getFluidType().getSound(SoundActions.BUCKET_EMPTY);
     }
 
-    public static Component getFluidDisplayName(FluidHolder fluid){
+    public Component getFluidDisplayName(FluidHolder fluid){
         return fluid.getFluid().getFluidType().getDescription(ForgeFluidHolder.toStack(fluid));
     }
 }

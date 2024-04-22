@@ -16,10 +16,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.material.Fluid;
+import tesseract.FluidPlatformUtils;
 
-public class FluidPlatformUtilsImpl {
+public class FluidPlatformUtilsImpl extends FluidPlatformUtils {
 
-    public static ResourceLocation getStillTexture(Fluid fluid){
+    public ResourceLocation getStillTexture(Fluid fluid){
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
             FluidVariant variant = FluidVariant.of(fluid);
             TextureAtlasSprite[] sprites = FluidVariantRendering.getSprites(variant);
@@ -29,7 +30,7 @@ public class FluidPlatformUtilsImpl {
         return new ResourceLocation("block/water_still");
     }
 
-    public static ResourceLocation getFlowingTexture(Fluid fluid){
+    public ResourceLocation getFlowingTexture(Fluid fluid){
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
             FluidVariant variant = FluidVariant.of(fluid);
             TextureAtlasSprite[] sprites = FluidVariantRendering.getSprites(variant);
@@ -38,30 +39,35 @@ public class FluidPlatformUtilsImpl {
         }
         return new ResourceLocation("block/water_still");
     }
-    public static ResourceLocation getFluidId(Fluid fluid){
+    public ResourceLocation getFluidId(Fluid fluid){
         return Registry.FLUID.getKey(fluid);
     }
 
-    public static int getFluidTemperature(Fluid fluid){
+    public int getFluidTemperature(Fluid fluid){
         return FluidVariantAttributes.getTemperature(FluidVariant.of(fluid));
     }
 
-    public static boolean isFluidGaseous(Fluid fluid){
+    public int getFluidDensity(Fluid fluid){
+        //cause fabric sucks and doesn't have a good fluid api
+        return 1000;
+    }
+
+    public boolean isFluidGaseous(Fluid fluid){
         return FluidVariantAttributes.isLighterThanAir(FluidVariant.of(fluid));
     }
 
-    public static int getFluidColor(Fluid fluid){
+    public int getFluidColor(Fluid fluid){
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
             return FluidVariantRendering.getColor(FluidVariant.of(fluid));
         }
         return -1;
     }
 
-    public static SoundEvent getFluidSound(Fluid fluid, boolean fill){
+    public SoundEvent getFluidSound(Fluid fluid, boolean fill){
         return fill ? FluidVariantAttributes.getFillSound(FluidVariant.of(fluid)) : FluidVariantAttributes.getEmptySound(FluidVariant.of(fluid));
     }
 
-    public static Component getFluidDisplayName(FluidHolder fluid){
+    public Component getFluidDisplayName(FluidHolder fluid){
         return FluidVariantAttributes.getName(FluidVariant.of(fluid.getFluid(), fluid.getCompound()));
     }
 }
