@@ -1,8 +1,5 @@
 package tesseract.forge;
 
-import carbonconfiglib.CarbonConfig;
-import carbonconfiglib.config.Config;
-import carbonconfiglib.config.ConfigHandler;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -11,9 +8,6 @@ import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
 import tesseract.FluidPlatformUtils;
 import tesseract.Tesseract;

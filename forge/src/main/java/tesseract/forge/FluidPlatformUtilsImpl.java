@@ -35,7 +35,7 @@ public class FluidPlatformUtilsImpl extends FluidPlatformUtils {
     }
 
     public int getFluidDensity(Fluid fluid){
-        return fluid.getAttributes().getDensity();
+        return fluid.getFluidType().getDensity();
     }
 
     public boolean isFluidGaseous(Fluid fluid){
