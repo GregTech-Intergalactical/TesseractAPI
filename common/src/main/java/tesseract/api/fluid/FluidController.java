@@ -1,7 +1,7 @@
 package tesseract.api.fluid;
 
 
-import earth.terrarium.botarium.api.fluid.FluidHolder;
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;

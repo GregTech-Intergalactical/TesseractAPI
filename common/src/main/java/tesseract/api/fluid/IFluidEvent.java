@@ -1,7 +1,7 @@
 package tesseract.api.fluid;
 
 
-import earth.terrarium.botarium.api.fluid.FluidHolder;
+import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import net.minecraft.world.level.Level;
 
 /**

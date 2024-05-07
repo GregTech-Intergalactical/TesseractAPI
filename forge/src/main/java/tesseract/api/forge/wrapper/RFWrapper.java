@@ -1,6 +1,6 @@
 package tesseract.api.forge.wrapper;
 
-import earth.terrarium.botarium.api.energy.EnergySnapshot;
+import earth.terrarium.botarium.common.energy.base.EnergySnapshot;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.energy.IEnergyStorage;
@@ -77,5 +77,10 @@ public record RFWrapper(IEnergyStorage storage) implements IRFNode {
     @Override
     public boolean canOutput(Direction direction) {
         return allowsExtraction();
+    }
+
+    @Override
+    public void clearContent() {
+        storage.extractEnergy(storage.getEnergyStored(), false);
     }
 }

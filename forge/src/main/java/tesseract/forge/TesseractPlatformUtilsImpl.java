@@ -3,7 +3,7 @@ package tesseract.forge;
 import carbonconfiglib.CarbonConfig;
 import carbonconfiglib.config.Config;
 import carbonconfiglib.config.ConfigHandler;
-import earth.terrarium.botarium.api.energy.EnergyContainer;
+import earth.terrarium.botarium.common.energy.base.EnergyContainer;
 import earth.terrarium.botarium.forge.energy.ForgeEnergyContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
