@@ -4,7 +4,7 @@ import carbonconfiglib.CarbonConfig;
 import carbonconfiglib.config.Config;
 import carbonconfiglib.config.ConfigHandler;
 import earth.terrarium.botarium.common.energy.base.EnergyContainer;
-import earth.terrarium.botarium.fabric.energy.FabricBlockEnergyContainer;
+import earth.terrarium.botarium.impl.energy.FabricBlockEnergyContainer;
 import earth.terrarium.botarium.util.Updatable;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -90,7 +90,7 @@ public class TesseractImpl extends Tesseract implements ModInitializer {
             IEnergyHandler handler = euFunction.apply(blockEntity, direction);
             if (handler != null) return (EnergyStorage) handler;
             EnergyContainer node = rfFunction.apply(blockEntity, direction);
-            if (node != null) return node instanceof EnergyStorage storage ? storage : new FabricBlockEnergyContainer(node, node instanceof Updatable<?> ? (Updatable<BlockEntity>) node : b -> {}, blockEntity);
+            if (node != null) return node instanceof EnergyStorage storage ? storage : node instanceof Updatable ? new FabricBlockEnergyContainer(node) : null;
             return null;
         }, type);
     }

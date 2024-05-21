@@ -6,7 +6,6 @@ package tesseract.api.capability;
 import earth.terrarium.botarium.common.fluid.base.FluidContainer;
 import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import earth.terrarium.botarium.common.fluid.base.FluidSnapshot;
-import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -14,7 +13,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
 import tesseract.TesseractCapUtils;
 import tesseract.TesseractGraphWrappers;
-import tesseract.api.fluid.FluidContainerHandler;
 import tesseract.api.fluid.FluidTransaction;
 import tesseract.api.fluid.IFluidNode;
 import tesseract.api.fluid.IFluidPipe;
@@ -24,7 +22,7 @@ import tesseract.util.Pos;
 import java.util.List;
 
 
-public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extends TesseractBaseCapability<T> implements IFluidNode, FluidContainerHandler {
+public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extends TesseractBaseCapability<T> implements IFluidNode {
 
     private FluidTransaction old;
 
@@ -50,12 +48,12 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     @NotNull
     @Override
     public FluidHolder getFluidInTank(int tank) {
-        return FluidHooks.emptyFluid();
+        return FluidHolder.empty();
     }
 
     @Override
     public List<FluidHolder> getFluids() {
-        return List.of(FluidHooks.emptyFluid());
+        return List.of(FluidHolder.empty());
     }
 
     @Override
@@ -86,11 +84,6 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     @Override
     public FluidSnapshot createSnapshot() {
         return null;
-    }
-
-    @Override
-    public FluidContainer getFluidContainer() {
-        return this;
     }
 
     @Override
@@ -150,7 +143,7 @@ public class TesseractFluidCapability<T extends BlockEntity & IFluidPipe> extend
     @NotNull
     @Override
     public FluidHolder extractFluid(FluidHolder resource, boolean simulate) {
-        return FluidHooks.emptyFluid();
+        return FluidHolder.empty();
     }
 
     @Override

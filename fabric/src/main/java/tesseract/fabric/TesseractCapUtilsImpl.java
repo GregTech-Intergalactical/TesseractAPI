@@ -1,13 +1,9 @@
 package tesseract.fabric;
 
 
-import earth.terrarium.botarium.common.energy.base.PlatformItemEnergyManager;
-import earth.terrarium.botarium.common.energy.util.EnergyHooks;
-import earth.terrarium.botarium.common.fluid.base.FluidAttachment;
+import earth.terrarium.botarium.common.energy.base.EnergyContainer;
 import earth.terrarium.botarium.common.fluid.base.FluidContainer;
-import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
-import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
-import earth.terrarium.botarium.fabric.fluid.storage.FabricFluidHandler;
+import earth.terrarium.botarium.common.item.ItemStackHolder;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -40,20 +36,21 @@ import java.util.Optional;
 public class TesseractCapUtilsImpl implements TesseractCapUtils {
     @Override
     public Optional<IEnergyHandlerItem> getEnergyHandlerItem(ItemStack stack){
-        IEnergyHandlerItem energyHandler = ContainerItemContext.withInitial(stack).find(TesseractLookups.ENERGY_HANDLER_ITEM);
+        IEnergyHandlerItem energyHandler = ContainerItemContext.withConstant(stack).find(TesseractLookups.ENERGY_HANDLER_ITEM);
         return Optional.ofNullable(energyHandler);
     }
 
     @Override
     public Optional<IEnergyHandlerItem> getWrappedEnergyHandlerItem(ItemStack stack){
-        IEnergyHandlerItem energyHandler = ContainerItemContext.withInitial(stack).find(TesseractLookups.ENERGY_HANDLER_ITEM);
+        IEnergyHandlerItem energyHandler = ContainerItemContext.withConstant(stack).find(TesseractLookups.ENERGY_HANDLER_ITEM);
         if (energyHandler == null){
-            EnergyStorage storage = ContainerItemContext.withInitial(stack).find(EnergyStorage.ITEM);
+            EnergyStorage storage = ContainerItemContext.withConstant(stack).find(EnergyStorage.ITEM);
             if (storage instanceof IEnergyHandlerItem e){
                 energyHandler = e;
-            } else if (EnergyHooks.isEnergyItem(stack)){
-                PlatformItemEnergyManager itemEnergyManager = EnergyHooks.getItemEnergyManager(stack);
-                energyHandler = new EnergyStackWrapper(stack, itemEnergyManager);
+            } else if (EnergyContainer.holdsEnergy(stack)){
+                ItemStackHolder holder = new ItemStackHolder(stack);
+                EnergyContainer itemEnergyManager = EnergyContainer.of(holder);
+                energyHandler = new EnergyStackWrapper(holder, itemEnergyManager);
             }
         }
         return Optional.ofNullable(energyHandler);
@@ -83,11 +80,10 @@ public class TesseractCapUtilsImpl implements TesseractCapUtils {
     }
 
     @Override
-    public Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
+    public Optional<FluidContainer> getFluidHandler(Level level, BlockPos pos, Direction side){
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity != null) return FluidHooks.safeGetBlockFluidManager(blockEntity, side);
-        Storage<FluidVariant> storage = FluidStorage.SIDED.find(level, pos, side);
-        return storage == null ? Optional.empty() : Optional.of(new FabricFluidHandler(storage));
+        if (blockEntity != null) return Optional.ofNullable(FluidContainer.of(blockEntity, side));
+        return Optional.ofNullable(FluidContainer.of(level, pos, side));
     }
 
     @Override
@@ -121,13 +117,6 @@ public class TesseractCapUtilsImpl implements TesseractCapUtils {
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) {
             return null;
-        }
-        if(tile instanceof FluidAttachment attachment && attachment.getFluidHolderType() == BlockEntity.class) {
-            FluidContainer container = attachment.getFluidContainer(tile).getContainer(capSide);
-            if (container == null) return null;
-            if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
-            if (container instanceof IFluidNode node) return node;
-            else return new FluidContainerWrapper(container);
         }
         Storage<FluidVariant> storage = FluidStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, capSide);
         if (storage != null){

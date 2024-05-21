@@ -4,7 +4,7 @@ import carbonconfiglib.CarbonConfig;
 import carbonconfiglib.config.Config;
 import carbonconfiglib.config.ConfigHandler;
 import earth.terrarium.botarium.common.energy.base.EnergyContainer;
-import earth.terrarium.botarium.forge.energy.ForgeEnergyContainer;
+import earth.terrarium.botarium.impl.energy.ForgeEnergyContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -47,8 +47,8 @@ public class TesseractPlatformUtilsImpl implements TesseractPlatformUtils {
         if (capability.isPresent()) {
             if (capCallback != null) capability.addListener(o -> capCallback.run());
             IEnergyStorage handler = capability.map(f -> f).orElse(null);
-            if (handler instanceof ForgeEnergyContainer container){
-                EnergyContainer container1 = container.container().getContainer(capSide);
+            if (handler instanceof ForgeEnergyContainer.ForgeEnergyStorage<?> container){
+                EnergyContainer container1 = container.container();
                 if (container1 instanceof IRFNode node) return node;
             }
             return handler instanceof IRFNode node ? node : new RFWrapper(handler);

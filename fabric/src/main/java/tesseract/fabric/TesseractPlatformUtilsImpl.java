@@ -4,8 +4,6 @@ package tesseract.fabric;
 import carbonconfiglib.CarbonConfig;
 import carbonconfiglib.config.Config;
 import carbonconfiglib.config.ConfigHandler;
-import earth.terrarium.botarium.common.energy.base.EnergyAttachment;
-import earth.terrarium.botarium.common.energy.base.EnergyContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -44,13 +42,6 @@ public class TesseractPlatformUtilsImpl implements TesseractPlatformUtils {
         BlockEntity tile = level.getBlockEntity(BlockPos.of(pos));
         if (tile == null) {
             return null;
-        }
-        if(tile instanceof EnergyAttachment attachment && attachment.getEnergyHolderType() == BlockEntity.class) {
-            EnergyContainer container = attachment.getEnergyStorage(tile).getContainer(capSide);
-            if (container instanceof IRFNode node) {
-                if (capCallback != null) ((TileListeners)tile).addListener(capCallback);
-                return node;
-            }
         }
         EnergyStorage storage = EnergyStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, capSide);
         if (storage != null){

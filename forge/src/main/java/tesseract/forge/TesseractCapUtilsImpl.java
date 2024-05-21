@@ -2,10 +2,8 @@ package tesseract.forge;
 
 
 import earth.terrarium.botarium.common.fluid.base.FluidContainer;
-import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
-import earth.terrarium.botarium.common.fluid.utils.FluidHooks;
-import earth.terrarium.botarium.forge.fluid.ForgeFluidContainer;
-import earth.terrarium.botarium.forge.fluid.ForgeFluidHandler;
+import earth.terrarium.botarium.impl.fluid.ForgeFluidContainer;
+import earth.terrarium.botarium.impl.fluid.PlatformBlockFluidHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -78,16 +76,16 @@ public class TesseractCapUtilsImpl implements TesseractCapUtils {
     }
 
     @Override
-    public Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side){
+    public Optional<FluidContainer> getFluidHandler(Level level, BlockPos pos, Direction side){
         BlockEntity entity = level.getBlockEntity(pos);
         if (entity == null){
             BlockState state = level.getBlockState(pos);
             if (state.getBlock() instanceof AbstractCauldronBlock){
-                return Optional.of(new ForgeFluidHandler(new CauldronWrapper(state, level, pos)));
+                return Optional.of(new PlatformBlockFluidHandler(new CauldronWrapper(state, level, pos)));
             }
             return Optional.empty();
         }
-        return FluidHooks.safeGetBlockFluidManager(entity, side);
+        return Optional.ofNullable(FluidContainer.of(entity, side));
     }
 
     @Override
@@ -107,8 +105,8 @@ public class TesseractCapUtilsImpl implements TesseractCapUtils {
         if (capability.isPresent()) {
             if (capCallback != null) capability.addListener(o -> capCallback.run());
             IFluidHandler handler = capability.map(f -> f).orElse(null);
-            if (handler instanceof ForgeFluidContainer container){
-                FluidContainer container1 = container.container().getContainer(capSide);
+            if (handler instanceof ForgeFluidContainer.ForgeFluidHandler<?> container){
+                FluidContainer container1 = container.container();
                 if (container1 instanceof IFluidNode node) return node;
             }
             return handler instanceof IFluidNode ? (IFluidNode) handler: new FluidTileWrapper(tile, handler);

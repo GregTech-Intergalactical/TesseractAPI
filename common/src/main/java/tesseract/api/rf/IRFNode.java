@@ -15,7 +15,7 @@ import tesseract.api.GraphWrapper;
  * Created with consent and permission of King Lemming and Team CoFH. Released with permission under LGPL 2.1 when bundled with Forge.
  * </p>
  */
-public interface IRFNode extends EnergyContainer, Updatable<BlockEntity> {
+public interface IRFNode extends EnergyContainer, Updatable {
 
     /**
      * Used to determine if this storage can receive energy in the given direction.
@@ -34,7 +34,7 @@ public interface IRFNode extends EnergyContainer, Updatable<BlockEntity> {
     boolean canOutput(Direction direction);
 
     @Override
-    default void update(BlockEntity blockEntity) {
+    default void update() {
 
     }
 

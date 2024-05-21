@@ -1,7 +1,7 @@
 package tesseract.api.fabric.wrapper;
 
 
-import earth.terrarium.botarium.common.energy.base.PlatformItemEnergyManager;
+import earth.terrarium.botarium.common.energy.base.EnergyContainer;
 import earth.terrarium.botarium.common.item.ItemStackHolder;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
@@ -17,23 +17,23 @@ import tesseract.api.gt.IEnergyHandlerItem;
 
 public class EnergyStackWrapper implements IEnergyHandlerItem {
     private final ItemStackHolder holder;
-    private final PlatformItemEnergyManager storage;
+    private final EnergyContainer storage;
 
     private final GTConsumer.State state = new GTConsumer.State(this);
 
-    public EnergyStackWrapper(ItemStack stack, PlatformItemEnergyManager storage) {
-        this.holder = new ItemStackHolder(stack);
+    public EnergyStackWrapper(ItemStackHolder stack, EnergyContainer storage) {
+        this.holder = stack;
         this.storage = storage;
     }
 
     @Override
     public long insertEu(long voltage, boolean simulate) {
-        return (long) (storage.insert(holder, (long) (voltage * TesseractConfig.EU_TO_TRE_RATIO.get()), simulate) / TesseractConfig.EU_TO_TRE_RATIO.get());
+        return (long) (storage.insertEnergy((long) (voltage * TesseractConfig.EU_TO_TRE_RATIO.get()), simulate) / TesseractConfig.EU_TO_TRE_RATIO.get());
     }
 
     @Override
     public long extractEu(long voltage, boolean simulate) {
-        return (long) (storage.extract(holder, (long) (voltage * TesseractConfig.EU_TO_TRE_RATIO.get()), simulate) / TesseractConfig.EU_TO_TRE_RATIO.get());
+        return (long) (storage.extractEnergy((long) (voltage * TesseractConfig.EU_TO_TRE_RATIO.get()), simulate) / TesseractConfig.EU_TO_TRE_RATIO.get());
     }
 
     @Override
@@ -43,13 +43,13 @@ public class EnergyStackWrapper implements IEnergyHandlerItem {
 
     @Override
     public long getCapacity() {
-        return (long) (storage.getCapacity() / TesseractConfig.EU_TO_TRE_RATIO.get());
+        return (long) (storage.getMaxCapacity() / TesseractConfig.EU_TO_TRE_RATIO.get());
     }
 
     @Override
     public long availableAmpsInput(long voltage) {
         if (!canInput()) return 0;
-        long inserted = storage.insert(holder, (long) (voltage * TesseractConfig.EU_TO_TRE_RATIO.get()), false);
+        long inserted = storage.insertEnergy((long) (voltage * TesseractConfig.EU_TO_TRE_RATIO.get()), false);
         return inserted == voltage ? 1 : 0;
     }
 
@@ -75,12 +75,12 @@ public class EnergyStackWrapper implements IEnergyHandlerItem {
 
     @Override
     public boolean canOutput() {
-        return TesseractConfig.ENABLE_FE_OR_TRE_INPUT.get() && storage.supportsExtraction();
+        return TesseractConfig.ENABLE_FE_OR_TRE_INPUT.get() && storage.allowsExtraction();
     }
 
     @Override
     public boolean canInput() {
-        return storage.supportsInsertion();
+        return storage.allowsInsertion();
     }
 
     @Override

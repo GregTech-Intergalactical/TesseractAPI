@@ -4,7 +4,7 @@ package tesseract.api.forge.wrapper;
 import earth.terrarium.botarium.common.fluid.base.FluidContainer;
 import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import earth.terrarium.botarium.common.fluid.base.FluidSnapshot;
-import earth.terrarium.botarium.forge.fluid.ForgeFluidHolder;
+import earth.terrarium.botarium.impl.fluid.ForgeFluidHolder;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;

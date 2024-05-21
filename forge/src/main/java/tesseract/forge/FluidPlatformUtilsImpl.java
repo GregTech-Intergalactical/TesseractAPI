@@ -2,7 +2,7 @@ package tesseract.forge;
 
 
 import earth.terrarium.botarium.common.fluid.base.FluidHolder;
-import earth.terrarium.botarium.forge.fluid.ForgeFluidHolder;
+import earth.terrarium.botarium.impl.fluid.ForgeFluidHolder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;

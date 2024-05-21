@@ -1,7 +1,7 @@
 package tesseract;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
+import earth.terrarium.botarium.common.fluid.base.FluidContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -34,7 +34,7 @@ public interface TesseractCapUtils {
     Optional<PlatformItemHandler> getItemHandler(BlockEntity entity, Direction side);
 
     
-    Optional<PlatformFluidHandler> getFluidHandler(Level level, BlockPos pos, Direction side);
+    Optional<FluidContainer> getFluidHandler(Level level, BlockPos pos, Direction side);
 
     
     IFluidNode getFluidNode(Level level, long pos, Direction capSide, Runnable capCallback);

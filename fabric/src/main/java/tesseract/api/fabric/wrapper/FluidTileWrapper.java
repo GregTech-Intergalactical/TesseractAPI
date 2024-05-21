@@ -5,7 +5,7 @@ package tesseract.api.fabric.wrapper;
 import earth.terrarium.botarium.common.fluid.base.FluidContainer;
 import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import earth.terrarium.botarium.common.fluid.base.FluidSnapshot;
-import earth.terrarium.botarium.fabric.fluid.holder.FabricFluidHolder;
+import earth.terrarium.botarium.impl.fluid.holder.FabricFluidHolder;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;

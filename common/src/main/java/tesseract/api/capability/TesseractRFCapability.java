@@ -1,8 +1,8 @@
 package tesseract.api.capability;
 
 
+import earth.terrarium.botarium.common.energy.base.EnergyContainer;
 import earth.terrarium.botarium.common.energy.base.EnergySnapshot;
-import earth.terrarium.botarium.common.energy.util.EnergyHooks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -59,15 +59,14 @@ public class TesseractRFCapability<T extends BlockEntity & IRFCable> extends Tes
                 long rf = transaction.rf;
                 if (this.callback.modify(rf, dir, false, true) || this.callback.modify(rf, side, true, true)) continue;
                 //Check the handler.
-                var cap = EnergyHooks.safeGetBlockEnergyManager(otherTile, dir.getOpposite());
-                if (cap.isEmpty()) continue;
+                var handler = EnergyContainer.of(otherTile, dir.getOpposite());
+                if (handler == null) continue;
                 //Perform insertion, and add to the transaction.
-                var handler = cap.get();
-                long amount = handler.insert(rf,  true);
+                long amount = handler.insertEnergy(rf,  true);
                 if (amount > 0) {
                     transaction.addData(rf, a -> {
                         if (this.callback.modify(a, dir, false, true) || this.callback.modify(a, side, true, true)) return;
-                        handler.insert(a, false);
+                        handler.insertEnergy(a, false);
                     });
                 }
                 if (transaction.rf == 0) break;
