@@ -1,6 +1,5 @@
 package tesseract;
 
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

@@ -2,7 +2,6 @@ package tesseract;
 
 import carbonconfiglib.config.Config;
 import carbonconfiglib.config.ConfigHandler;
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;

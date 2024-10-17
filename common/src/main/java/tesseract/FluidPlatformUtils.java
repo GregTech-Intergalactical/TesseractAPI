@@ -1,6 +1,5 @@
 package tesseract;
 
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import earth.terrarium.botarium.common.fluid.base.FluidHolder;
 import earth.terrarium.botarium.common.fluid.base.PlatformFluidHandler;
 import earth.terrarium.botarium.common.fluid.base.PlatformFluidItemHandler;

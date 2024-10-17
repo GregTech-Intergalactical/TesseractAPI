@@ -1,6 +1,5 @@
 package tesseract.util;
 
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import tesseract.TesseractPlatformUtils;

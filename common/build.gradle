@@ -1,54 +1,36 @@
-archivesBaseName = rootProject.tesseract_archive_base_name
-version = "${project.mod_version}-${rootProject.minecraft_version}"
-
-sourceSets {
-    test {
-        compileClasspath += main.compileClasspath
-        runtimeClasspath += main.runtimeClasspath
-    }
+plugins {
+    id "xyz.wagyourtail.unimined" version "1.3.9-SNAPSHOT"
 }
+archivesBaseName = rootProject.tesseract_archive_base_name
 
-loom {
-    runs {
-        testClient {
-            client()
-            ideConfigGenerated project.rootProject == project
-            name = "Testmod Client"
-            source sourceSets.test
-        }
-        testServer {
-            server()
-            ideConfigGenerated project.rootProject == project
-            name = "Testmod Server"
-            source sourceSets.test
-        }
+unimined.minecraft {
+    version minecraft_version
+    defaultRemapJar = false
+
+    mappings {
+        intermediary()
+        mojmap()
+        devFallbackNamespace "official"
+        devNamespace "mojmap"
+        parchment(rootProject.minecraft_version, rootProject.mappings_version)
+    }
+
+    mods.modImplementation {
+        namespace("intermediary")
     }
 }
 
 dependencies{
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    compileOnly("com.electronwill.night-config:toml:${rootProject.nightconfig_version}")
-    compileOnly("com.electronwill.night-config:core:${rootProject.nightconfig_version}")
+    //compileOnly("com.electronwill.night-config:toml:${rootProject.nightconfig_version}")
+    //compileOnly("com.electronwill.night-config:core:${rootProject.nightconfig_version}")
     modImplementation("earth.terrarium:botarium-common-${project.minecraft_version}:${project.botarium_version}")
-    modImplementation "maven.modrinth:carbon-config:${project.carbon_config_fabric_version}"
-    testImplementation('junit:junit:4.11')
-    testImplementation(sourceSets.main.output)
-}
-
-architectury {
-    common("forge", "fabric")
+    implementation 'com.github.Carbon-Config-Project:CarbonConfigLib:1.3.0'
 }
 
 publishing {
     publications {
         mavenJava(org.gradle.api.publish.maven.MavenPublication) {
-            artifact(sourcesJar) {
-                builtBy remapSourcesJar
-            }
-
-            afterEvaluate {
-                artifact remapJar
-            }
+            from components.java
         }
     }
 
